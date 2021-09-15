@@ -1,0 +1,38 @@
+.flex{
+  display: flex;
+}
+.flex-column{
+  flex-direction: column;
+}
+.flex-center{
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  align-content: center;
+}
+.flex-v-center{
+  align-items: center;
+}
+.flex-v-end{
+  align-items: flex-end;
+}
+.flex-column-between{
+  justify-content: space-between;
+}
+.flex-h-between{
+  justify-content: space-between;
+}
+
+:root{
+  --primary-color:#7553CB;
+  --primary-light-color:#9577E0;
+  --second-color: #FF694E;
+  --second-light-color:#FF9A88;
+
+  --toastify-color-progress-dark: #F6904D;
+
+  --warning:#F95B46;
+  --in-progress:#3EA8E0;
+  --success:#3EE0AE;
+  --success-light:#72e6c1;
+}
