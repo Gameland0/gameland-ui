@@ -159,8 +159,7 @@ export const Lend = () => {
             days: 0,
             collateral: 0,
             borrower: null,
-            borrowAt: null,
-            isPaid: null
+            borrowAt: null
           }
           const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
           if (res.data.code === 1) {

@@ -2,11 +2,16 @@ import React from 'react'
 import styled from 'styled-components'
 import { NavLink } from 'react-router-dom'
 import { AccountBar } from './AccountBar'
+import { ReactComponent as Logo } from '../assets/logo.svg'
 
 const HeaderBox = styled.div`
   height: 100px;
   background: linear-gradient(180deg, #292929 0%, #585858 100%);
   overflow: hidden;
+
+  .logo svg {
+    max-width: 15rem;
+  }
 `
 
 const activeClassName = 'ACTIVE'
@@ -63,7 +68,9 @@ export const Header = () => {
   return (
     <HeaderBox>
       <div className="container flex flex-h-between flex-v-center">
-        <div className="logo">GameLand</div>
+        <div className="logo">
+          <Logo></Logo>
+        </div>
         <div className="flex flex-h-between">
           <Link exact to="/">
             <span>Rent</span>

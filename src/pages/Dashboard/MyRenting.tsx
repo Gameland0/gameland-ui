@@ -65,7 +65,9 @@ export const MyRenting = () => {
       const params = {
         borrower: null,
         borrowAt: null,
-        isBorrowed: null
+        isBorrowed: null,
+        isLending: null,
+        withdrawable: true
       }
       const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
       if (res.data.code === 1) {
@@ -119,7 +121,7 @@ export const MyRenting = () => {
               <span className="tips">#{currentItem.nftId}</span>
             </p>
 
-            {currentItem.isPaid ? null : isApproved ? (
+            {isApproved ? (
               <>
                 <Dlist className="flex">
                   <div>
@@ -172,7 +174,6 @@ export const MyRenting = () => {
                   img={item.img}
                   nftId={item.nftId}
                   borrowAt={item.borrowAt}
-                  isPaid={item.isPaid}
                   isExpired={item.isExpired}
                 ></RentingCard>
               </Col>

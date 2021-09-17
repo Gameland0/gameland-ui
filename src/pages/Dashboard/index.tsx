@@ -8,7 +8,6 @@ import {
   GameLandAddress,
   useActiveWeb3React,
   useGameLandContract,
-  useGreeterContract,
   useMyNftContract,
   useMyNfts,
   useStore
@@ -17,15 +16,17 @@ import { NumInput } from '../../components/NumInput'
 import { toastify } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { http } from '../../components/Store'
-import { isEmpty, isEqual } from 'lodash'
-import { formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../../utils'
-import { formatEther } from '@ethersproject/units'
+import { isEmpty } from 'lodash'
+import { formatAddress, getProgress, ZeroAddress } from '../../utils'
 import { MyRenting } from './MyRenting'
 import { SpanLabel, DaysInfo } from '../Rent'
 import BigNumber from 'bignumber.js'
+import { lowerCase } from 'lower-case'
 
 const { TabPane } = Tabs
-
+const MyTabs = styled(Tabs)`
+  margin-top: 2rem;
+`
 const MyNftBox = styled.div`
   margin-top: 2rem;
 `
@@ -34,9 +35,6 @@ export const Dashboard = () => {
   const { account } = useActiveWeb3React()
   const Nft = useMyNftContract()
   const gameland = useGameLandContract()
-  const greeter = useGreeterContract()
-  const [loading, setLoading] = useState(false)
-  const [greeting, setGreeting] = useState('')
   const [nid, setNid] = useState('')
   const myNft = useMyNfts()
 
@@ -144,65 +142,48 @@ export const Dashboard = () => {
     }
   }
 
-  const handleSetGreeting = async () => {
-    setLoading(true)
-
-    // const greet = await greeter?.setGreeting(greeting)
-    // await greet.wait().then()
-
-    await greeter
-      ?.setGreeting(greeting)
-      .then(async (res: any) => {
-        const { wait } = res
-        const w = await wait()
-        console.log(res, w)
-      })
-      .catch((err: any) => console.log(err))
-    setLoading(false)
-  }
-
-  const handlegetGreeting = async () => {
-    try {
-      const data = await greeter?.greet()
-      console.log('greeting: ' + data)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
-  const handlegetCheck = async () => {
-    try {
-      const approveAddress = await Nft?.ownerOf(greeting)
-      console.log('ownerOf: ' + approveAddress)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
   const handleGetBorrowStatus = async () => {
     try {
       const status = await gameland?.borrow_status(nid)
       const dateStr = (status[1].toString() + '000') as unknown as number
-      console.log(dateStr, new Date(Number(dateStr)))
+      console.log(status, dateStr, new Date(Number(dateStr)))
     } catch (err: any) {
       console.log(err.message)
     }
   }
 
+  const handleBorrowOrNot = async () => {
+    try {
+      const status = await gameland?.borrow_or_not(nid)
+      console.log(status)
+    } catch (err: any) {
+      console.log(err.message)
+    }
+  }
+
+  const checkWithdrawAble = (borrowed: boolean, nftOwner: string, account: string) => {
+    console.log(borrowed, nftOwner, account)
+
+    if (borrowed || !nftOwner || !account) {
+      return false
+    }
+    return lowerCase(nftOwner) !== lowerCase(account)
+  }
   const handleNftClick = async (item: any) => {
     setVisible(true)
     setCurrentItem(item)
+    setExpired(false)
 
     try {
-      let _lending = await gameland?.get_all_nftinfo(item.nftId)
-      _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
+      const _borrowed = await gameland?.borrow_or_not(item.nftId)
+      console.log(_borrowed)
 
-      const _borrowed = await gameland?.borrow_status(item.nftId)
-      setBorrowed(!isEqual(_borrowed[0], ZeroAddress))
-      setWithdrawable(!isEqual(_lending, ZeroNftInfo) && !_borrowed)
-      console.log(!!_borrowed[0], isEqual(_borrowed[0], ZeroAddress))
+      const nftOwner = await Nft?.ownerOf(item.nftId)
+      setBorrowed(_borrowed)
+      setWithdrawable(checkWithdrawAble(_borrowed, nftOwner, account as string))
+      console.log(_borrowed)
 
-      if (!isEqual(_borrowed[0], ZeroAddress)) {
+      if (_borrowed) {
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         console.log(_progress)
 
@@ -281,7 +262,8 @@ export const Dashboard = () => {
           isLending: false,
           price: 0,
           days: 0,
-          collateral: 0
+          collateral: 0,
+          withdrawable: false
         }
         const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
         console.log(res)
@@ -366,7 +348,7 @@ export const Dashboard = () => {
   // }
   return (
     <div>
-      <Modal footer={null} onCancel={() => setVisible(false)} visible={visible}>
+      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <NftCard
@@ -417,7 +399,7 @@ export const Dashboard = () => {
                 </div>
               </>
             ) : withdrawable ? (
-              <Button block loading={withdrawing} onClick={handleWithdraw} type="ghost">
+              <Button block shape="round" loading={withdrawing} onClick={handleWithdraw} type="ghost">
                 Withdraw
               </Button>
             ) : isApproved ? (
@@ -469,24 +451,23 @@ export const Dashboard = () => {
           </Col>
         </Row>
       </Modal>
-      <ChainName />
-      <Input type="text" value={greeting} onChange={(e) => setGreeting(e.currentTarget.value)} />
-      <Button onClick={handlegetCheck}>checkId</Button>
-      <Button onClick={handleSetGreeting} loading={loading}>
-        setGreeting
-      </Button>
-      <Button onClick={handlegetGreeting}>getGreeting</Button>
-      <Button onClick={handleGetTestNft}>getNFT</Button>
+      {process.env.NODE_ENV === 'production' ? (
+        <>
+          <ChainName />
+          <Button onClick={handleGetTestNft}>getNFT</Button>
 
-      <Input value={nid} onChange={(e) => setNid(e.currentTarget.value)} />
-      <Button onClick={handleMint}>mint</Button>
-      <Button onClick={checkNftOwner}>checkNftOwner</Button>
-      <Button onClick={checkApproveOwner}>checkApproveOwner</Button>
-      <Button onClick={checkOwnerOf}>checkOwnerOf</Button>
-      <Button onClick={checkNftBalance}>nftBalance</Button>
-      <Button onClick={handleGetBorrowStatus}>GetBorrowStatus</Button>
+          <Input value={nid} onChange={(e) => setNid(e.currentTarget.value)} />
+          <Button onClick={handleMint}>mint</Button>
+          <Button onClick={checkNftOwner}>checkNftOwner</Button>
+          <Button onClick={checkApproveOwner}>checkApproveOwner</Button>
+          <Button onClick={checkOwnerOf}>checkOwnerOf</Button>
+          <Button onClick={checkNftBalance}>nftBalance</Button>
+          <Button onClick={handleGetBorrowStatus}>GetBorrowStatus</Button>
+          <Button onClick={handleBorrowOrNot}>Borrowed</Button>
+        </>
+      ) : null}
 
-      <Tabs defaultActiveKey="1">
+      <MyTabs defaultActiveKey="1">
         <TabPane tab={<span className="clearGap">My NFT</span>} key="1">
           {' '}
           <MyNftBox>
@@ -502,7 +483,7 @@ export const Dashboard = () => {
                         nftId={item.nftId}
                         isLending={item.isLending}
                         isBorrowed={item.isBorrowed}
-                        withdrawable={withdrawable}
+                        withdrawable={item.withdrawable}
                         borrowAt={item.borrowAt}
                       ></NftCard>
                     </Col>
@@ -514,7 +495,7 @@ export const Dashboard = () => {
         <TabPane tab={<span className="clearGap">My Renting</span>} key="2">
           <MyRenting />
         </TabPane>
-      </Tabs>
+      </MyTabs>
     </div>
   )
 }

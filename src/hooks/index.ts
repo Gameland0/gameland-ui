@@ -35,7 +35,6 @@ export interface NFTData {
   owner?: string
   price?: number
   updatedAt?: string
-  isPaid?: boolean
 }
 
 export function useStore() {

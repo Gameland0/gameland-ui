@@ -39,7 +39,6 @@ const Days = styled.span`
 export interface RentingProps extends NFTData {
   onClick?: () => void
   unOperate?: boolean
-  isPaid?: boolean
   isExpired?: boolean
   borrowAt: string
 }
@@ -62,22 +61,19 @@ const ProgressText = styled.div`
   color: #3b3b3b;
 `
 const InProgressBox = styled.div<InProgressProps>`
-  background: ${({ isExpired, isPaid }) =>
-    isExpired ? 'var(--warning)' : isPaid ? 'var(--success)' : 'var(--in-progress)'};
+  background: ${({ isExpired }) => (isExpired ? 'var(--warning)' : 'var(--in-progress)')};
   width: ${({ progress }) => (progress ? progress + '%' : 0)};
   height: 4px;
 `
 interface InProgressProps {
   progress: number
   isExpired?: boolean
-  isPaid?: boolean
 }
 const InProgress: React.FC<InProgressProps> = ({ progress }) => {
   return <InProgressBox progress={progress}></InProgressBox>
 }
 export interface ProgressLabelProps {
   name: string
-  isPaid?: boolean
   nftId: string
   price?: number
   isExpired?: boolean
@@ -86,7 +82,7 @@ export interface ProgressLabelProps {
   right?: boolean
 }
 
-export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isExpired, isPaid, days, borrowAt }) => {
+export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt }) => {
   const progress = useMemo(() => getProgress(borrowAt, days), [borrowAt, days])
   const dayLeft = useMemo(() => getTimeLeftText(borrowAt, days), [days, borrowAt])
 
@@ -94,7 +90,7 @@ export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isEx
     <div style={{ overflow: 'hidden' }}>
       {right || <p>{name}</p>}
       <ProgressBar right={right}>
-        <InProgress progress={progress} isExpired={isExpired} isPaid={isPaid} />
+        <InProgress progress={progress} isExpired={isExpired} />
       </ProgressBar>
       <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem' }}>{isExpired ? 'Expired' : dayLeft}</p>
     </div>
@@ -125,12 +121,11 @@ export const FakeButton: React.FC<FakeButtonProps> = ({ type, children }) => {
   return <FakeButtonBox type={type}>{children}</FakeButtonBox>
 }
 interface OperateProps {
-  isPaid?: boolean
   onClick?: () => void
   isExpired?: boolean
 }
-const Operate: React.FC<OperateProps> = ({ isPaid, isExpired }) => {
-  return <>{isExpired || isPaid ? null : <FakeButton type="ghost">Repay</FakeButton>}</>
+const Operate: React.FC<OperateProps> = ({ isExpired }) => {
+  return <>{isExpired ? null : <FakeButton type="ghost">Repay</FakeButton>}</>
 }
 export const RentingCard: React.FC<RentingProps> = ({
   unOperate,
@@ -139,7 +134,6 @@ export const RentingCard: React.FC<RentingProps> = ({
   price,
   days,
   onClick,
-  isPaid,
   isExpired,
   borrowAt,
   nftId
@@ -149,16 +143,9 @@ export const RentingCard: React.FC<RentingProps> = ({
       <Img src={img} alt="" />
       <Details className="flex flex-h-between flex-v-end">
         <div>
-          <ProgressLabels
-            isPaid={isPaid}
-            borrowAt={borrowAt}
-            name={name}
-            nftId={nftId}
-            price={price}
-            days={days as number}
-          />
+          <ProgressLabels borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
         </div>
-        {!unOperate ? <Operate isExpired={isExpired} isPaid={isPaid} onClick={() => onclick} /> : null}
+        {!unOperate ? <Operate isExpired={isExpired} onClick={() => onclick} /> : null}
       </Details>
     </CardBox>
   )

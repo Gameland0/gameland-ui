@@ -6,6 +6,15 @@ import { BaseProps } from './NumInput'
 import { ProgressLabelProps, ProgressLabels } from './RentingCard'
 import { toastify } from './Toastify'
 
+import Default from '../assets/default.png'
+import Blade from '../assets/blade.png'
+import Chaos from '../assets/chaos.png'
+import DiamondRing from '../assets/Diamond-ring.png'
+import Greatsword from '../assets/Greatsword.png'
+import Horn from '../assets/horn.png'
+import Map from '../assets/map.jpeg'
+import Minecraft from '../assets/minecraft.jpg'
+
 const CardBox = styled.div`
   width: 100%;
   height: 100%;
@@ -17,11 +26,6 @@ const CardBox = styled.div`
 
   &:last-child {
     border-right: 1px solid #707070;
-  }
-  img {
-    width: 100%;
-    height: auto;
-    border-radius: 1rem;
   }
 `
 const Details = styled.div`
@@ -90,8 +94,18 @@ interface OperateProps extends ProgressLabelProps {
   isLending?: boolean
   onClick?: () => void
   isBorrowed?: boolean
+  withdrawable?: boolean
 }
-const Operate: React.FC<OperateProps> = ({ isLending, isBorrowed, name, nftId, price, days, borrowAt }) => {
+const Operate: React.FC<OperateProps> = ({
+  withdrawable,
+  isLending,
+  isBorrowed,
+  name,
+  nftId,
+  price,
+  days,
+  borrowAt
+}) => {
   return (
     <>
       {isLending ? (
@@ -100,14 +114,27 @@ const Operate: React.FC<OperateProps> = ({ isLending, isBorrowed, name, nftId, p
         ) : (
           <FakeButton type="ghost">Withdraw</FakeButton>
         )
+      ) : withdrawable ? (
+        <FakeButton type="ghost">Withdraw</FakeButton>
       ) : (
         <FakeButton>Lend</FakeButton>
       )}
     </>
   )
 }
+export const Imgs: Record<string, string> = {
+  Blade,
+  Chaos,
+  'Diamond ring': DiamondRing,
+  Greatsword,
+  Horn,
+  'Central city': Map,
+  Minecraft
+}
+export { Default }
 export const Nft: React.FC<NftProps> = ({
   unOperate,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   img,
   name,
   price,
@@ -129,7 +156,7 @@ export const Nft: React.FC<NftProps> = ({
   }
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={handleClick}>
-      <Img src={img} alt={name} />
+      <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} />
       <Details className="flex flex-h-between">
         <div>
           <Labels
@@ -151,6 +178,7 @@ export const Nft: React.FC<NftProps> = ({
             isLending={isLending}
             isBorrowed={isBorrowed}
             onClick={() => onclick}
+            withdrawable={withdrawable}
           />
         ) : null}
       </Details>

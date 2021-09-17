@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import { NFTData, useStore } from '../hooks'
 import { Img } from './Img'
+import { Default, Imgs } from './Nft'
 import { BaseProps } from './NumInput'
 import { toastify } from './Toastify'
 
@@ -43,7 +44,6 @@ export interface RentProps extends NFTData {
 }
 interface LabelProps {
   name: string
-  isPaid?: boolean
   nftId: string
   price?: number
   isExpired?: boolean
@@ -91,17 +91,8 @@ interface OperateProps {
 const Operate: React.FC<OperateProps> = ({ isLending }) => {
   return <>{isLending ? <FakeButton type="ghost">Rent</FakeButton> : null}</>
 }
-export const RentCard: React.FC<RentProps> = ({
-  unOperate,
-  img,
-  name,
-  price,
-  days,
-  onClick,
-  isPaid,
-  isLending,
-  nftId
-}) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const RentCard: React.FC<RentProps> = ({ unOperate, img, name, price, days, onClick, isLending, nftId }) => {
   const { networkError } = useStore()
   const handleClick = () => {
     if (networkError) {
@@ -112,10 +103,10 @@ export const RentCard: React.FC<RentProps> = ({
   }
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={handleClick}>
-      <Img src={img} alt="" />
+      <Img src={Imgs[name] ? Imgs[name] : Default} alt="" />
       <Details className="flex flex-h-between flex-v-end">
         <div>
-          <Labels isPaid={isPaid} name={name} nftId={nftId} price={price} days={days as number} />
+          <Labels name={name} nftId={nftId} price={price} days={days as number} />
         </div>
         {!unOperate ? <Operate isLending={isLending} onClick={() => onclick} /> : null}
       </Details>
