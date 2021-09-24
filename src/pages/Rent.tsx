@@ -212,7 +212,7 @@ export const Rent = () => {
                 />
               </Col>
             ))
-          : 'empty'}
+          : 'Empty'}
       </Row>
     </RentBox>
   )

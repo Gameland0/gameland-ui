@@ -120,6 +120,15 @@ export const Dashboard = () => {
       toastify.error(err.message)
     }
   }
+  const checkExists = async () => {
+    try {
+      const isExists = await Nft?.exist(nid)
+      console.log(`${nid} is exists:` + isExists)
+    } catch (err: any) {
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
   const checkNftBalance = async () => {
     try {
       const balanceOf = await Nft?.balanceOf(account)
@@ -346,6 +355,8 @@ export const Dashboard = () => {
   //     console.log(err)
   //   }
   // }
+  console.log(process.env.NODE_ENV)
+
   return (
     <div>
       <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
@@ -451,7 +462,7 @@ export const Dashboard = () => {
           </Col>
         </Row>
       </Modal>
-      {process.env.NODE_ENV === 'production' ? (
+      {process.env.NODE_ENV === 'development' ? (
         <>
           <ChainName />
           <Button onClick={handleGetTestNft}>getNFT</Button>
@@ -460,6 +471,7 @@ export const Dashboard = () => {
           <Button onClick={handleMint}>mint</Button>
           <Button onClick={checkNftOwner}>checkNftOwner</Button>
           <Button onClick={checkApproveOwner}>checkApproveOwner</Button>
+          <Button onClick={checkExists}>checkExists</Button>
           <Button onClick={checkOwnerOf}>checkOwnerOf</Button>
           <Button onClick={checkNftBalance}>nftBalance</Button>
           <Button onClick={handleGetBorrowStatus}>GetBorrowStatus</Button>
@@ -472,7 +484,7 @@ export const Dashboard = () => {
           {' '}
           <MyNftBox>
             <Row>
-              {myNft
+              {myNft.length
                 ? myNft.map((item: any) => (
                     <Col span="6" xl={6} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
                       <NftCard
@@ -488,7 +500,7 @@ export const Dashboard = () => {
                       ></NftCard>
                     </Col>
                   ))
-                : null}
+                : 'Empty'}
             </Row>
           </MyNftBox>
         </TabPane>

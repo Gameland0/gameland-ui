@@ -13,7 +13,7 @@
     "craco.config.js",
     "test",
     "*.d.ts",
-    "script/deploy.js",
+    "scripts/**/*",
     "setupProxy.js"
   ],
   "settings": {

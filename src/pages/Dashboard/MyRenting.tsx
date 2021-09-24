@@ -164,7 +164,7 @@ export const MyRenting = () => {
       </Modal>
 
       <Row>
-        {myRenting
+        {myRenting.length
           ? myRenting.map((item: any) => (
               <Col span="6" xl={6} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
                 <RentingCard
@@ -178,7 +178,7 @@ export const MyRenting = () => {
                 ></RentingCard>
               </Col>
             ))
-          : null}
+          : 'Empty'}
       </Row>
     </div>
   )

@@ -9,14 +9,16 @@ import { Web3Provider } from '@ethersproject/providers'
 import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
 import GreeterAbi from '../constants/Abis/Greeter.json'
-import MyNftAbi from '../constants/Abis/MyNft.json'
+// import MyNftAbi from '../constants/Abis/MyNft.json'
+import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
 import GameLandAbi from '../constants/Abis/GameLand.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 // export const GameLandAddress = '0x72b1A9ABDE02DbDeAa1e969467E6854999e06c57'
-export const GameLandAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
+export const GameLandAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512' // stable version
 // export const MyNFTAddress = '0xE01A18057b71cf11e711264fC03007AbC3C9a822'
-export const MyNFTAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+export const MyNFTAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3' // stable version
+// export const MyNFTAddress2 = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9' // with exist function version
 export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'
 
 export interface NFTData {
@@ -148,7 +150,7 @@ export function useGameLandContract() {
 export function useMyNftContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
-  return new Contract(MyNFTAddress, MyNftAbi, library?.getSigner())
+  return new Contract(MyNFTAddress, MyNftAbi.abi, library?.getSigner())
 }
 
 export interface ListenerOptions {

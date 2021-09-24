@@ -291,7 +291,7 @@ export const Lend = () => {
                 />
               </Col>
             ))
-          : 'empty'}
+          : 'Empty'}
       </Row>
     </RentBox>
   )

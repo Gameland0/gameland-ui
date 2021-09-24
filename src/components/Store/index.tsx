@@ -17,11 +17,15 @@ export interface StoreData {
 }
 
 export const StoreContext = createContext({} as StoreData)
-export const fetcher = (...args: [any, ...any[]]) => fetch(...args).then((res) => res.json())
+
+// export const baseUrl = 'https://api-gameland.bandot.io'
+const baseUrl = process.env.NODE_ENV === 'production' ? 'https://api-gameland.bandot.io' : ''
 export const http = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? 'https://api-gameland.bandot.io' : '',
+  baseURL: baseUrl,
   timeout: 6000 // 请求超时时间
 })
+console.log(process.env.NODE_ENV === 'production', baseUrl)
+export const fetcher = (...args: [any, ...any[]]) => http.get(...args).then((res) => res.data)
 
 export const Store = ({ children }: { children: JSX.Element }) => {
   const networkError = useNetworkValidator()

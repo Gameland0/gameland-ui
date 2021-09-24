@@ -32,18 +32,11 @@ async function main() {
 
   console.log('Account balance:', (await deployerWallet.getBalance()).toString())
 
-  const MyNFT = await hre.ethers.getContractFactory('MyNFT')
-  const mynft = await MyNFT.connect(deployerWallet).deploy()
-  await mynft.deployed()
+  const Greeter = await hre.ethers.getContractFactory('Greeter')
+  const greeter = await Greeter.connect(deployerWallet).deploy('Hola hre!')
+  await greeter.deployed()
 
-  console.log('MyNFT deployed to:', mynft.address)
-
-  const Gameland = await hre.ethers.getContractFactory('GameLand')
-  // const gameland = await Gameland.connect(deployerWallet).deploy(mynft.address);
-  const gameland = await Gameland.connect(deployerWallet).deploy(mynft.address)
-  await gameland.deployed()
-
-  console.log('Gameland deployed to:', gameland.address)
+  console.log('greeter deployed to:', greeter.address)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

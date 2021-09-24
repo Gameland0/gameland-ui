@@ -1,12 +1,17 @@
 import { getAddress } from '@ethersproject/address'
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
-import { DAYS, HOUR, MINUTE, SECOND } from '../constants'
 
 export const NetworkContextName = 'GAMELAND'
 
 export const ZeroAddress = '0x0000000000000000000000000000000000000000'
 export const ZeroNftInfo = ['0.0', '0.0', '0.0', '0.0']
+
+export const SECOND = 1000
+export const MINUTE = 60 * SECOND
+export const HOUR = 60 * MINUTE
+export const DAYS = 24 * HOUR
+
 // returns the checksummed address if the address is valid, otherwise returns false
 export function isAddress(value: any): string | false {
   try {

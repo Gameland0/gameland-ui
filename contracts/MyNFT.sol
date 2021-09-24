@@ -10,4 +10,8 @@ contract MyNFT is ERC721 {
     function mint(address to, uint256 tokenId) external {
         _safeMint(to, tokenId, "");
     }
+
+    function exist(uint256 tokenId)  public view returns (bool) {
+        return _exists(tokenId);
+    }
 }

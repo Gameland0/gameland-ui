@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { NFTData } from '../hooks'
 import { getProgress, getTimeLeftText } from '../utils'
 import { Img } from './Img'
+import { Default, Imgs } from './Nft'
 import { BaseProps } from './NumInput'
 
 const CardBox = styled.div`
@@ -129,7 +130,6 @@ const Operate: React.FC<OperateProps> = ({ isExpired }) => {
 }
 export const RentingCard: React.FC<RentingProps> = ({
   unOperate,
-  img,
   name,
   price,
   days,
@@ -140,7 +140,8 @@ export const RentingCard: React.FC<RentingProps> = ({
 }) => {
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
-      <Img src={img} alt="" />
+      <Img src={Imgs[name] ? Imgs[name] : Default} alt="" />
+      {/* <Img src={img} alt="" /> */}
       <Details className="flex flex-h-between flex-v-end">
         <div>
           <ProgressLabels borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
