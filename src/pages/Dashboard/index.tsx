@@ -22,6 +22,7 @@ import { MyRenting } from './MyRenting'
 import { SpanLabel, DaysInfo } from '../Rent'
 import BigNumber from 'bignumber.js'
 import { lowerCase } from 'lower-case'
+import { parseEther } from '@ethersproject/units'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -68,13 +69,13 @@ export const Dashboard = () => {
     try {
       console.log(account, nid)
       const _mint = await Nft?.mint(account, nid)
-      const tx = await _mint.wait()
+      await _mint.wait()
       console.log(nid)
 
-      console.log(tx)
+      // console.log(tx)
       const params = {
         nftId: nid,
-        name: 'none',
+        name: 'six',
         img: 'img',
         isLending: false,
         isBorrowed: false,
@@ -300,15 +301,16 @@ export const Dashboard = () => {
   const handleLend = async () => {
     try {
       setLending(true)
-      const deposited = await gameland?.deposit(price, days, currentItem.nftId, collateral)
+
+      const deposited = await gameland?.deposit(parseEther(price), days, currentItem.nftId, parseEther(collateral))
       console.log(deposited)
       await deposited.wait()
 
       const params = {
         isLending: true,
-        price: price as unknown as number,
-        days: days as unknown as number,
-        collateral: collateral as unknown as number
+        price: Number(price),
+        days: Number(days),
+        collateral: Number(collateral)
       }
       console.log(params)
 
@@ -390,11 +392,11 @@ export const Dashboard = () => {
                   </div>
                   <div>
                     <SpanLabel>Collateral</SpanLabel>
-                    <span>{currentItem.collateral} ⬨</span>
+                    <span>{currentItem.collateral} Ξ</span>
                   </div>
                   <div>
                     <SpanLabel>price</SpanLabel>
-                    <span>{currentItem.price} ⬨ / day</span>
+                    <span>{currentItem.price} Ξ / day</span>
                   </div>
                   <div>
                     <SpanLabel>days</SpanLabel>
@@ -402,7 +404,7 @@ export const Dashboard = () => {
                   </div>
                   <div>
                     <SpanLabel>Total</SpanLabel>
-                    <span>{total} ⬨</span>
+                    <span>{total} Ξ</span>
                   </div>
                 </Dlist>
                 <div>

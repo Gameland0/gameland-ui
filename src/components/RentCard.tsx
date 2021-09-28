@@ -55,7 +55,7 @@ const Labels: React.FC<LabelProps> = ({ price, name, days }) => {
   return (
     <div style={{ overflow: 'hidden' }}>
       <p>{name}</p>
-      <span>{price} ⬨ / day</span>
+      <span>{price} Ξ / day</span>
       <Days>{days} days</Days>
     </div>
   )

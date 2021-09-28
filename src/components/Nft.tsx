@@ -59,7 +59,7 @@ const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, pr
       <p>{name}</p>
       {isLending || withdrawable ? (
         <>
-          <span>{price} ⬨ / day</span>
+          <span>{price} Ξ / day</span>
           <Days>{days} days</Days>
         </>
       ) : (

@@ -50,7 +50,7 @@ describe("Gameland", function () {
     it("Owner deposit NFT to gameland ", async function () {
       await hardhatNft.approve(hardhatGameland.address,1);
       expect(await hardhatNft.getApproved(1)).to.equal(hardhatGameland.address);
-      await hardhatGameland.deposit(1,1,1,1);
+      await hardhatGameland.deposit(ethers.utils.parseEther('0.1'),1,1,1);
       expect(await hardhatGameland.nft_owner(1)).to.equal(owner.address); 
       expect(await hardhatNft.ownerOf(1)).to.equal(hardhatGameland.address);
       
@@ -67,11 +67,11 @@ describe("Gameland", function () {
       expect(await hardhatNft.getApproved(1)).to.equal(hardhatGameland.address);
       //let owner_cur_balance = await provider.getBalance(owner.address);
 
-      await hardhatGameland.deposit(1,1,1,1);
+      await hardhatGameland.deposit(1,1,1,ethers.utils.parseEther('1.1'));
       expect(await hardhatGameland.nft_owner(1)).to.equal(owner.address); 
       expect(await hardhatNft.ownerOf(1)).to.equal(hardhatGameland.address);
 
-      await hardhatGameland.connect(borrower).rent(1, {value: ethers.utils.parseEther("2")});
+      await hardhatGameland.connect(borrower).rent(1, {value: ethers.utils.parseEther("2.1")});
       let borrow_status=await hardhatGameland.borrow_status(1);
       expect(borrow_status[0]).to.equal(borrower.address);
 

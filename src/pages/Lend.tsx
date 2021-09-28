@@ -208,11 +208,11 @@ export const Lend = () => {
                   </div>
                   <div>
                     <SpanLabel>Collateral</SpanLabel>
-                    <span>{currentItem.collateral} ⬨</span>
+                    <span>{currentItem.collateral} Ξ</span>
                   </div>
                   <div>
                     <SpanLabel>price</SpanLabel>
-                    <span>{currentItem.price} ⬨ / day</span>
+                    <span>{currentItem.price} Ξ / day</span>
                   </div>
                   <div>
                     <SpanLabel>days</SpanLabel>
@@ -220,7 +220,7 @@ export const Lend = () => {
                   </div>
                   <div>
                     <SpanLabel>Total</SpanLabel>
-                    <span>{total} ⬨</span>
+                    <span>{total} Ξ</span>
                   </div>
                 </Dlist>
                 <div>

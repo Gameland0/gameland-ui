@@ -77,7 +77,7 @@ export const Card: React.FC<CardProps> = ({ showInfo, img, name, price, days, on
         <div>
           <p>{name}</p>
           <>
-            <span>{price} ⬨ / day</span>
+            <span>{price} Ξ / day</span>
             <Days>{days} days</Days>
           </>
         </div>

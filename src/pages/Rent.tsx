@@ -8,7 +8,7 @@ import { Modal } from '../components/Modal'
 import BigNumber from 'bignumber.js'
 import { useActiveWeb3React, useGameLandContract, useStore } from '../hooks'
 import { toastify } from '../components/Toastify'
-import { parseEther } from '@ethersproject/units'
+// import { parseEther } from '@ethersproject/units'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
 import { RentCard } from '../components/RentCard'
@@ -16,6 +16,7 @@ import { isEmpty } from 'lodash'
 import { formatAddress, ZeroAddress } from '../utils'
 import { http } from '../components/Store'
 import { BaseProps } from '../components/NumInput'
+import { parseEther } from '@ethersproject/units'
 
 const RentBox = styled.div`
   margin: 2rem 0;
@@ -109,9 +110,10 @@ export const Rent = () => {
       const days = new BigNumber(currentItem.days as unknown as string)
       const price = new BigNumber(currentItem.price as unknown as string)
       const cost = days.times(price)
-      const amount = parseEther(collateral.plus(cost).toString())
+      const amount = collateral.plus(cost).toString()
+      console.log(parseEther(amount).toString())
 
-      const rented = await gameland?.connect(library.getSigner()).rent(currentItem.nftId, { value: amount })
+      const rented = await gameland?.connect(library.getSigner()).rent(currentItem.nftId, { value: parseEther(amount) })
       const borrowed = await gameland?.borrow_status(currentItem.nftId)
       await rented.wait()
       if (borrowed) {
@@ -164,11 +166,11 @@ export const Rent = () => {
               </div>
               <div>
                 <SpanLabel>Collateral</SpanLabel>
-                <span>{currentItem.collateral} ⬨</span>
+                <span>{currentItem.collateral} Ξ</span>
               </div>
               <div>
                 <SpanLabel>price</SpanLabel>
-                <span>{currentItem.price} ⬨ / day</span>
+                <span>{currentItem.price} Ξ / day</span>
               </div>
               <div>
                 <SpanLabel>days</SpanLabel>
@@ -176,7 +178,7 @@ export const Rent = () => {
               </div>
               <div>
                 <SpanLabel>Total</SpanLabel>
-                <span>{total} ⬨</span>
+                <span>{total} Ξ</span>
               </div>
             </Dlist>
             <div>
