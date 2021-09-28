@@ -120,34 +120,31 @@ export const MyRenting = () => {
             <p>
               <span className="tips">#{currentItem.nftId}</span>
             </p>
-
+            <Dlist className="flex">
+              <div>
+                <SpanLabel>Owner</SpanLabel>
+                <span title={currentItem.originOwner}>{formatAddress(currentItem.originOwner || ZeroAddress, 6)}</span>
+              </div>
+              <div>
+                <SpanLabel>Collateral</SpanLabel>
+                <span>{currentItem.collateral} Ξ</span>
+              </div>
+              <div>
+                <SpanLabel>price</SpanLabel>
+                <span>{currentItem.price} Ξ / day</span>
+              </div>
+              <div>
+                <SpanLabel>days</SpanLabel>
+                <span>{currentItem.days}</span>
+              </div>
+              <div>
+                <SpanLabel>Total</SpanLabel>
+                <span>{total} Ξ</span>
+              </div>
+            </Dlist>
+            <br />
             {isApproved ? (
               <>
-                <Dlist className="flex">
-                  <div>
-                    <SpanLabel>Owner</SpanLabel>
-                    <span title={currentItem.originOwner}>
-                      {formatAddress(currentItem.originOwner || ZeroAddress, 6)}
-                    </span>
-                  </div>
-                  <div>
-                    <SpanLabel>Collateral</SpanLabel>
-                    <span>{currentItem.collateral} Ξ</span>
-                  </div>
-                  <div>
-                    <SpanLabel>price</SpanLabel>
-                    <span>{currentItem.price} Ξ / day</span>
-                  </div>
-                  <div>
-                    <SpanLabel>days</SpanLabel>
-                    <span>{currentItem.days}</span>
-                  </div>
-                  <div>
-                    <SpanLabel>Total</SpanLabel>
-                    <span>{total} Ξ</span>
-                  </div>
-                </Dlist>
-                <br />
                 <Button className="lend" shape="round" block onClick={handleRepay} loading={repaying}>
                   Repay
                 </Button>

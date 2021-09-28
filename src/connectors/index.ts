@@ -14,10 +14,11 @@ export const supportedNetwork = [
 ]
 
 const RPC_URL =
-  process.env.NODE_ENV === 'production'
+  process.env.NODE_ENV !== 'development'
     ? process.env.REACT_APP_RPC_URL_AURORA_TESTNET
     : process.env.REACT_APP_RPC_URL_LOCAL_TESTNET
-const CHAIN_ID = parseInt(process.env.REACT_APP_CHAIN_ID ?? '1313161555')
+const chainId = process.env.NODE_ENV !== 'development' ? '1313161555' : process.env.REACT_APP_CHAIN_ID
+const CHAIN_ID = parseInt(chainId ?? '1313161555')
 
 export const injected = new InjectedConnector({
   supportedChainIds: supportedNetwork

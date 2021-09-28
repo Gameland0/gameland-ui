@@ -17,6 +17,7 @@ import { formatAddress, ZeroAddress } from '../utils'
 import { http } from '../components/Store'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
+import { lowerCase } from 'lower-case'
 
 const RentBox = styled.div`
   margin: 2rem 0;
@@ -185,9 +186,24 @@ export const Rent = () => {
               <DaysInfo>Rent for {currentItem.days} days</DaysInfo>
             </div>
             <br />
-            <Button shape="round" type="primary" block onClick={handleRent} loading={renting}>
+            <Button
+              shape="round"
+              type="primary"
+              block
+              onClick={handleRent}
+              loading={renting}
+              disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))}
+            >
               Rent
             </Button>
+            <br />
+            <p className=" text-center">
+              <span className="tips">
+                {lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))
+                  ? 'Unable to rent your own NFT'
+                  : undefined}
+              </span>
+            </p>
           </Col>
         </Row>
       </Modal>

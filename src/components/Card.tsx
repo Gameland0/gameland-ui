@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import url from '../assets/minecraft.jpg'
 import { Button } from 'antd'
 import { NFTData, useActiveWeb3React, useGameLandContract } from '../hooks'
 import { formatEther } from '@ethersproject/units'
 import { isEqual } from 'lodash'
 import { ZeroNftInfo } from '../utils'
 import { Img } from './Img'
+import { Default, Imgs } from './Nft'
 
 export interface CardProps extends NFTData {
   cost?: number
@@ -43,7 +43,7 @@ const Days = styled.span`
   font-size: 0.875rem;
   margin-left: 0.5rem;
 `
-export const Card: React.FC<CardProps> = ({ showInfo, img, name, price, days, onClick, type, nftId }) => {
+export const Card: React.FC<CardProps> = ({ showInfo, name, price, days, onClick, type, nftId }) => {
   const { account } = useActiveWeb3React()
   const gameland = useGameLandContract()
   const [borrowed, setBorrowed] = useState(false)
@@ -72,7 +72,9 @@ export const Card: React.FC<CardProps> = ({ showInfo, img, name, price, days, on
   }, [nftId, type, account])
   return (
     <CardBox onClick={onClick}>
-      <Img src={img || url} alt="" />
+      {/* <Img src={img || url} alt="" /> */}
+      <Img src={Imgs[name] ? Imgs[name] : Default} alt="" />
+
       <Details className="flex flex-h-between">
         <div>
           <p>{name}</p>

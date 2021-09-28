@@ -17,6 +17,7 @@ import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
 import { http } from '../components/Store'
 import BigNumber from 'bignumber.js'
 import { SpanLabel, DaysInfo } from './Rent'
+import { Loading } from '../components/Loading'
 const RentBox = styled.div`
   margin: 2rem;
 `
@@ -48,6 +49,8 @@ export const Lend = () => {
   const [approving, setApproving] = useState(false)
   const [withdrawable, setWithdrawable] = useState(false)
   const { mutateNfts } = useStore()
+
+  const [awaiting, setAwaiting] = useState(false)
   // useEffect(() => {
   //   console.log(greeter?.setGreeting('hll'))
   // }, [greeter])
@@ -64,30 +67,38 @@ export const Lend = () => {
   const handleShowModal = async (item: CardProps) => {
     setCurrentItem(item)
     setVisible(true)
-
+    setAwaiting(true)
     try {
-      let _lending = await gameland?.get_all_nftinfo(item.nftId)
-      _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
-
       const _borrowed = await gameland?.check_the_borrow_status(item.nftId)
       setBorrowed(_borrowed)
-      setWithdrawable(!isEqual(_lending, ZeroNftInfo) && !_borrowed)
       if (_borrowed) {
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         setProgress(_progress)
+      } else {
+        let _lending = await gameland?.get_all_nftinfo(item.nftId)
+        _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
+
+        setWithdrawable(!isEqual(_lending, ZeroNftInfo))
       }
-    } catch (err) {
-      throw err
+    } catch (err: any) {
+      toastify.error(err.message)
     }
 
     if (nft) {
-      console.log(item)
+      try {
+        const approveAddress = await nft.getApproved(item.nftId)
+        console.log(approveAddress, approveAddress === ZeroAddress)
 
-      const approveAddress = await nft.getApproved(item.nftId)
-      console.log(approveAddress)
-
-      setIsApproved(approveAddress === ZeroAddress)
+        if (approveAddress === gameland?.address) {
+          setIsApproved(true)
+        } else {
+          setIsApproved(false)
+        }
+      } catch (err: any) {
+        console.log(err.message)
+      }
     }
+    setAwaiting(false)
   }
 
   const handleCostChange = useCallback((val) => setPrice(val), [])
@@ -197,7 +208,9 @@ export const Lend = () => {
           <Col span="12" xl={12} sm={24}>
             <h3>{currentItem.name}</h3>
             <span className="tips">#{currentItem.nftId}</span>
-            {borrowed ? (
+            {awaiting ? (
+              <Loading />
+            ) : borrowed ? (
               <>
                 <Dlist className="flex">
                   <div>

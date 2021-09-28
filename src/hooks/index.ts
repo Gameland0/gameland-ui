@@ -14,15 +14,13 @@ import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
 import GameLandAbi from '../constants/Abis/GameLand.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
-// export const GameLandAddress = '0x72b1A9ABDE02DbDeAa1e969467E6854999e06c57'
+
 export const GameLandAddress: string = process.env.REACT_APP_GAMELAND || 'undefined' // stable version
-// export const MyNFTAddress = '0xE01A18057b71cf11e711264fC03007AbC3C9a822'
 export const MyNFTAddress = process.env.REACT_APP_MYNFT || 'undefined' // stable version
-// export const MyNFTAddress2 = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9' // with exist function version
 export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'
 
 if (typeof MyNFTAddress === 'undefined' || typeof GameLandAddress === 'undefined') {
-  throw new Error(`Seems contract unexist.`)
+  throw new Error(`Seems contract not exist.`)
 }
 
 export interface NFTData {
