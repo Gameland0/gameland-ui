@@ -96,7 +96,7 @@ export const Rent = () => {
     setCurrentItem(item)
     setVisible(true)
   }
-  const gameland = useGameLandContract()
+  const gamelandContract = useGameLandContract()
   const [renting, setRenting] = useState(false)
 
   const handleRent = async () => {
@@ -114,8 +114,10 @@ export const Rent = () => {
       const amount = collateral.plus(cost).toString()
       console.log(parseEther(amount).toString())
 
-      const rented = await gameland?.connect(library.getSigner()).rent(currentItem.nftId, { value: parseEther(amount) })
-      const borrowed = await gameland?.borrow_status(currentItem.nftId)
+      const rented = await gamelandContract
+        ?.connect(library.getSigner())
+        .rent(currentItem.nftId, { value: parseEther(amount) })
+      const borrowed = await gamelandContract?.borrow_status(currentItem.nftId)
       await rented.wait()
       if (borrowed) {
         const params = {

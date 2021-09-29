@@ -72,6 +72,22 @@ export const validNumber = (number: string, min: number): boolean => {
 
   return false
 }
+export const validIntNumber = (number: string): boolean => {
+  if (!number) {
+    return true
+  }
+
+  const numReg = /^[1-9]\d*$/
+  console.log(numReg.test(number))
+
+  if (numReg.test(number)) {
+    return true
+    // if (Number(number) > min) {
+    // }
+  }
+
+  return false
+}
 
 export function getProgress(borrowAt: string, days: number) {
   const _days = days * DAYS

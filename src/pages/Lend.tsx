@@ -34,8 +34,8 @@ export const Lend = () => {
   const { account } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as NFTData)
   const [visible, setVisible] = useState(false)
-  const gameland = useGameLandContract()
-  const nft = useMyNftContract()
+  const gamelandContract = useGameLandContract()
+  const nftContract = useMyNftContract()
   const [isApproved, setIsApproved] = useState(false)
   const myLendingNfts = useMyLendingNfts()
 
@@ -69,13 +69,13 @@ export const Lend = () => {
     setVisible(true)
     setAwaiting(true)
     try {
-      const _borrowed = await gameland?.check_the_borrow_status(item.nftId)
+      const _borrowed = await gamelandContract?.check_the_borrow_status(item.nftId)
       setBorrowed(_borrowed)
       if (_borrowed) {
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         setProgress(_progress)
       } else {
-        let _lending = await gameland?.get_all_nftinfo(item.nftId)
+        let _lending = await gamelandContract?.get_all_nftinfo(item.nftId)
         _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
 
         setWithdrawable(!isEqual(_lending, ZeroNftInfo))
@@ -84,12 +84,12 @@ export const Lend = () => {
       toastify.error(err.message)
     }
 
-    if (nft) {
+    if (nftContract) {
       try {
-        const approveAddress = await nft.getApproved(item.nftId)
+        const approveAddress = await nftContract.getApproved(item.nftId)
         console.log(approveAddress, approveAddress === ZeroAddress)
 
-        if (approveAddress === gameland?.address) {
+        if (approveAddress === gamelandContract?.address) {
           setIsApproved(true)
         } else {
           setIsApproved(false)
@@ -108,7 +108,7 @@ export const Lend = () => {
   const handleLend = async () => {
     try {
       setLending(true)
-      const deposited = await gameland?.deposit(price, days, currentItem.nftId, collateral)
+      const deposited = await gamelandContract?.deposit(price, days, currentItem.nftId, collateral)
       console.log(deposited)
       await deposited.wait()
 
@@ -143,10 +143,10 @@ export const Lend = () => {
 
   const handleApprove = async () => {
     setApproving(true)
-    if (nft) {
+    if (nftContract) {
       console.log(GameLandAddress, currentItem.nftId)
       try {
-        const approvetx = await nft.approve(GameLandAddress, currentItem.nftId)
+        const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         await approvetx.wait()
         setIsApproved(true)
       } catch (err: any) {
@@ -157,12 +157,12 @@ export const Lend = () => {
   }
 
   const handleWithdraw = async () => {
-    if (gameland) {
+    if (gamelandContract) {
       try {
         setWithdrawing(true)
-        const withdrawnft = await gameland.withdrawnft(currentItem.nftId)
+        const withdrawnft = await gamelandContract.withdrawnft(currentItem.nftId)
         await withdrawnft.wait()
-        const owner = await nft?.ownerOf(currentItem.nftId)
+        const owner = await nftContract?.ownerOf(currentItem.nftId)
         if (owner === account) {
           const params = {
             isLending: false,

@@ -45,7 +45,7 @@ const Days = styled.span`
 `
 export const Card: React.FC<CardProps> = ({ showInfo, name, price, days, onClick, type, nftId }) => {
   const { account } = useActiveWeb3React()
-  const gameland = useGameLandContract()
+  const gamelandContract = useGameLandContract()
   const [borrowed, setBorrowed] = useState(false)
   const [lending, setLending] = useState(['0.0', '0.0', '0.0', '0.0'])
   useEffect(() => {
@@ -57,10 +57,10 @@ export const Card: React.FC<CardProps> = ({ showInfo, name, price, days, onClick
       // setBorrowed([])
 
       try {
-        const _lending = await gameland?.get_all_nftinfo(nftId)
+        const _lending = await gamelandContract?.get_all_nftinfo(nftId)
         setLending(_lending ? _lending.map((item: any) => formatEther(item).toString()) : [])
 
-        const _borrowed = await gameland?.check_the_borrow_status(nftId)
+        const _borrowed = await gamelandContract?.check_the_borrow_status(nftId)
         setBorrowed(_borrowed)
         console.log(_borrowed)
       } catch (err) {

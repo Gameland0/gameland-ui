@@ -18,11 +18,6 @@ const CardBox = styled.div`
   &:last-child {
     border-right: 1px solid #707070;
   }
-  img {
-    width: 100%;
-    height: auto;
-    border-radius: 1rem;
-  }
 `
 const Details = styled.div`
   margin-top: 1rem;

@@ -21,8 +21,8 @@ export const MyRenting = () => {
   const [isApproved, setIsApproved] = useState(false)
   const { mutateNfts } = useStore()
 
-  const nft = useMyNftContract()
-  const gameland = useGameLandContract()
+  const nftContract = useMyNftContract()
+  const gamelandContract = useGameLandContract()
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -37,14 +37,14 @@ export const MyRenting = () => {
     setVisible(true)
     setCurrentItem(item)
 
-    if (nft) {
+    if (nftContract) {
       console.log(item)
 
       try {
-        const approveAddress = await nft.getApproved(item.nftId)
+        const approveAddress = await nftContract.getApproved(item.nftId)
         console.log(approveAddress, approveAddress === ZeroAddress)
 
-        if (approveAddress === gameland?.address) {
+        if (approveAddress === gamelandContract?.address) {
           setIsApproved(true)
         } else {
           setIsApproved(false)
@@ -59,7 +59,7 @@ export const MyRenting = () => {
     console.log('repay')
     try {
       setRepaying(true)
-      const repaid = await gameland?.repay(currentItem.nftId)
+      const repaid = await gamelandContract?.repay(currentItem.nftId)
       console.log(repaid)
       const tx = await repaid.wait()
       const params = {
@@ -87,10 +87,10 @@ export const MyRenting = () => {
   }
   const handleApprove = async () => {
     setApproving(true)
-    if (nft) {
+    if (nftContract) {
       console.log(GameLandAddress, currentItem.nftId)
       try {
-        const approvetx = await nft.approve(GameLandAddress, currentItem.nftId)
+        const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         await approvetx.wait()
         setIsApproved(true)
       } catch (err: any) {

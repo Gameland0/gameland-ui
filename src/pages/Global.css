@@ -22,12 +22,17 @@
 .flex-h-between{
   justify-content: space-between;
 }
+.m-10{
+  margin: 1rem;
+}
 
 :root{
   --primary-color:#7553CB;
   --primary-light-color:#9577E0;
   --second-color: #FF694E;
   --second-light-color:#FF9A88;
+
+  --normal-black: #3e3e3e;
 
   --toastify-color-progress-dark: #F6904D;
 

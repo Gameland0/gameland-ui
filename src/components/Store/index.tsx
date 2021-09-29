@@ -19,7 +19,7 @@ export interface StoreData {
 export const StoreContext = createContext({} as StoreData)
 
 // export const baseUrl = 'https://api-gameland.bandot.io'
-const baseUrl = process.env.NODE_ENV === 'production' ? 'https://api-gameland.bandot.io' : ''
+const baseUrl = process.env.NODE_ENV === 'production' ? 'https://gameland.network' : ''
 export const http = axios.create({
   baseURL: baseUrl,
   timeout: 6000 // 请求超时时间

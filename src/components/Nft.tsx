@@ -14,6 +14,13 @@ import Greatsword from '../assets/Greatsword.png'
 import Horn from '../assets/horn.png'
 import Map from '../assets/map.jpeg'
 import Minecraft from '../assets/minecraft.jpg'
+import Alien from '../assets/Alien.jpeg'
+import Eagle from '../assets/Eagle.png'
+import Devil from '../assets/Devil.png'
+import Fox from '../assets/Fox.jpeg'
+import Animal from '../assets/Unknown.jpeg'
+import Wizards from '../assets/Wizards.png'
+import Woof from '../assets/Woof.jpeg'
 
 const CardBox = styled.div`
   width: 100%;
@@ -75,6 +82,7 @@ const FakeButtonBox = styled.div<{ type?: string }>`
   line-height: 2rem;
   font-size: 0.875rem;
   color: white;
+  text-align: center;
   background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--primary-color)')};
   border: ${({ type }) => (type === 'ghost' ? `1px solid white` : '1px solid transparent')};
 
@@ -129,7 +137,14 @@ export const Imgs: Record<string, string> = {
   Greatsword,
   Horn,
   'Central city': Map,
-  Minecraft
+  Minecraft,
+  Alien,
+  Woof,
+  Wizards,
+  Fox,
+  Eagle,
+  Devil,
+  Animal
 }
 export { Default }
 export const Nft: React.FC<NftProps> = ({

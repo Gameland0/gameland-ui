@@ -1,4 +1,4 @@
-import { validNumber } from '../utils'
+import { validIntNumber, validNumber } from '../utils'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from 'antd'
 import styled from 'styled-components'
@@ -14,6 +14,7 @@ interface NumInputProps extends BaseProps {
   onMaxClick?: () => void
   min?: number
   max?: number
+  validInt?: boolean
   onChange: (val: number) => void
 }
 
@@ -35,6 +36,7 @@ export const NumInput: React.FC<NumInputProps> = ({
   onChange,
   onMaxClick,
   showMax,
+  validInt,
   value
 }) => {
   const [_value, _setValue] = useState<number | string>('')
@@ -45,12 +47,20 @@ export const NumInput: React.FC<NumInputProps> = ({
       // console.log(e.currentTarget.value, validNumber(e.currentTarget.value, 0));
       const val = e.currentTarget.value
 
+      if (validInt) {
+        if (validIntNumber(val)) {
+          _setValue(val)
+          _onChange(val)
+        }
+        return
+      }
+
       if (validNumber(val, min)) {
         _setValue(val)
         _onChange(val)
       }
     },
-    [_onChange, min]
+    [_onChange, min, validInt]
   )
 
   const handleMaxClick = useCallback(() => {

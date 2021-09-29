@@ -13,7 +13,7 @@ import {
   useStore
 } from '../../hooks'
 import { NumInput } from '../../components/NumInput'
-import { toastify } from '../../components/Toastify'
+import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { http } from '../../components/Store'
 import { isEmpty } from 'lodash'
@@ -29,14 +29,12 @@ const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
   margin-top: 2rem;
 `
-const MyNftBox = styled.div`
-  margin-top: 2rem;
-`
+const MyNftBox = styled.div``
 
 export const Dashboard = () => {
   const { account } = useActiveWeb3React()
-  const Nft = useMyNftContract()
-  const gameland = useGameLandContract()
+  const nftContract = useMyNftContract()
+  const gamelandContract = useGameLandContract()
   const [nid, setNid] = useState('')
   const myNft = useMyNfts()
 
@@ -57,6 +55,7 @@ export const Dashboard = () => {
   const [isApproved, setIsApproved] = useState(false)
   const { mutateNfts } = useStore()
 
+  const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
 
   useEffect(() => {
@@ -73,38 +72,56 @@ export const Dashboard = () => {
     return _cost.plus(collateral).toString()
   }, [currentItem])
 
+  const nfts = ['Eagle', 'Wizards', 'Animal', 'Devil', 'Woof', 'Alien', 'Fox']
+
   const handleMint = async () => {
+    setMinting(true)
     try {
-      console.log(account, nid)
-      const _mint = await Nft?.mint(account, nid)
+      let NftAmount: any = window.localStorage.getItem(`Amount-${account}`) ?? 0
+      console.log(NftAmount)
+
+      if (NftAmount >= 2) {
+        toastify.error('Each user can only mint two NFTs.')
+        setMinting(false)
+        return
+      }
+      const id = new Date().valueOf()
+      const _mint = await nftContract?.mint(account, id)
       await _mint.wait()
-      console.log(nid)
+      console.log(id)
 
-      // console.log(tx)
-      // const params = {
-      //   nftId: nid,
-      //   name: 'six',
-      //   img: 'img',
-      //   isLending: false,
-      //   isBorrowed: false,
-      //   owner: account,
-      //   originOwner: account
-      // }
-      // const res: any = await http.post('/api/nft', params)
-      // console.log(res)
+      const num = Math.floor(Math.random() * 7)
+      const params = {
+        nftId: id,
+        name: nfts[num],
+        img: 'img',
+        isLending: false,
+        isBorrowed: false,
+        owner: account,
+        originOwner: account
+      }
+      const res: any = await http.post('/api/nft', params)
+      console.log(res, res.data.code === 1)
+      NftAmount += 1
+      window.localStorage.setItem(`Amount-${account}`, NftAmount)
 
-      // if (res.data.code === 1) {
-      //   console.log(res)
-      //   toastify.success(res.data.message)
-      // }
+      if (res.data.code === 1) {
+        console.log(res)
+        toastify.success(res.data.message)
+        setMinting(false)
+        mutateNfts(undefined, true)
+      } else {
+        throw res
+      }
     } catch (err: any) {
+      setMinting(false)
       console.log(err)
       toastify.error(err.message)
     }
   }
   const checkNftOwner = async () => {
     try {
-      const originOwn = await gameland?.nft_owner(nid)
+      const originOwn = await gamelandContract?.nft_owner(nid)
       console.log(`${nid} origin owner:` + originOwn)
     } catch (err: any) {
       console.log(err)
@@ -113,7 +130,7 @@ export const Dashboard = () => {
   }
   const checkApproveOwner = async () => {
     try {
-      const approvedAddr = await Nft?.getApproved(nid)
+      const approvedAddr = await nftContract?.getApproved(nid)
       console.log(`${nid} Approved address:` + approvedAddr)
     } catch (err: any) {
       console.log(err)
@@ -122,7 +139,7 @@ export const Dashboard = () => {
   }
   const checkOwnerOf = async () => {
     try {
-      const ownerOf = await Nft?.ownerOf(nid)
+      const ownerOf = await nftContract?.ownerOf(nid)
       console.log(`${nid} ownerOf address:` + ownerOf)
     } catch (err: any) {
       console.log(err)
@@ -131,7 +148,7 @@ export const Dashboard = () => {
   }
   const checkExists = async () => {
     try {
-      const isExists = await Nft?.exist(nid)
+      const isExists = await nftContract?.exist(nid)
       console.log(`${nid} is exists:` + isExists)
     } catch (err: any) {
       console.log(err)
@@ -140,7 +157,7 @@ export const Dashboard = () => {
   }
   const checkNftBalance = async () => {
     try {
-      const balanceOf = await Nft?.balanceOf(account)
+      const balanceOf = await nftContract?.balanceOf(account)
       console.log(`account nft:` + balanceOf)
     } catch (err: any) {
       console.log(err)
@@ -150,9 +167,9 @@ export const Dashboard = () => {
 
   const handleGetTestNft = async () => {
     try {
-      console.log(gameland?.address)
+      console.log(gamelandContract?.address)
 
-      const data = await gameland?.testnft()
+      const data = await gamelandContract?.testnft()
       console.log('data:' + data)
     } catch (err: any) {
       console.log(err)
@@ -162,7 +179,7 @@ export const Dashboard = () => {
 
   const handleGetBorrowStatus = async () => {
     try {
-      const status = await gameland?.borrow_status(nid)
+      const status = await gamelandContract?.borrow_status(nid)
       const dateStr = (status[1].toString() + '000') as unknown as number
       console.log(status, dateStr, new Date(Number(dateStr)))
     } catch (err: any) {
@@ -172,7 +189,7 @@ export const Dashboard = () => {
 
   const handleBorrowOrNot = async () => {
     try {
-      const status = await gameland?.borrow_or_not(nid)
+      const status = await gamelandContract?.borrow_or_not(nid)
       console.log(status)
     } catch (err: any) {
       console.log(err.message)
@@ -180,8 +197,8 @@ export const Dashboard = () => {
   }
 
   const CheckNFTLendingInfo = async () => {
-    if (gameland) {
-      const info = await gameland.get_all_nftinfo(nid)
+    if (gamelandContract) {
+      const info = await gamelandContract.get_all_nftinfo(nid)
       console.log(info.map((item: any) => item.toString()))
     }
   }
@@ -201,7 +218,7 @@ export const Dashboard = () => {
     setAwaiting(true)
 
     try {
-      const _borrowed = await gameland?.borrow_or_not(item.nftId)
+      const _borrowed = await gamelandContract?.borrow_or_not(item.nftId)
       console.log(_borrowed)
       setBorrowed(_borrowed)
 
@@ -212,21 +229,21 @@ export const Dashboard = () => {
         setProgress(_progress)
         setExpired(_progress >= 100)
       } else {
-        const nftOwner = await Nft?.ownerOf(item.nftId)
+        const nftOwner = await nftContract?.ownerOf(item.nftId)
         setWithdrawable(checkWithdrawAble(nftOwner, account as string))
       }
     } catch (err: any) {
       console.log(err.message)
     }
 
-    if (Nft) {
+    if (nftContract) {
       console.log(item)
 
       try {
-        const approveAddress = await Nft.getApproved(item.nftId)
+        const approveAddress = await nftContract.getApproved(item.nftId)
         console.log(approveAddress, approveAddress === ZeroAddress)
 
-        if (approveAddress === gameland?.address) {
+        if (approveAddress === gamelandContract?.address) {
           setIsApproved(true)
         } else {
           setIsApproved(false)
@@ -239,11 +256,11 @@ export const Dashboard = () => {
   }
 
   const handleLiquidation = async () => {
-    if (gameland) {
+    if (gamelandContract) {
       setLiquidating(true)
 
       try {
-        const liquidated = await gameland.liquidation(currentItem.nftId)
+        const liquidated = await gamelandContract.liquidation(currentItem.nftId)
         liquidated.wait()
         console.log(liquidated)
         const params = {
@@ -273,12 +290,12 @@ export const Dashboard = () => {
   }
 
   const handleWithdraw = async () => {
-    if (gameland) {
+    if (gamelandContract) {
       try {
         setWithdrawing(true)
-        const withdrawnft = await gameland.withdrawnft(currentItem.nftId)
+        const withdrawnft = await gamelandContract.withdrawnft(currentItem.nftId)
         await withdrawnft.wait()
-        const owner = await Nft?.ownerOf(currentItem.nftId)
+        const owner = await nftContract?.ownerOf(currentItem.nftId)
         const params = {
           isLending: false,
           price: 0,
@@ -287,7 +304,7 @@ export const Dashboard = () => {
           withdrawable: false
         }
         const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
-        console.log(res)
+        console.log(owner, res)
 
         if (owner === account && res.data.code === 1) {
           console.log(res.data.message)
@@ -313,7 +330,12 @@ export const Dashboard = () => {
     try {
       setLending(true)
 
-      const deposited = await gameland?.deposit(parseEther(price), days, currentItem.nftId, parseEther(collateral))
+      const deposited = await gamelandContract?.deposit(
+        parseEther(price),
+        days,
+        currentItem.nftId,
+        parseEther(collateral)
+      )
       console.log(deposited)
       await deposited.wait()
 
@@ -348,10 +370,10 @@ export const Dashboard = () => {
 
   const handleApprove = async () => {
     setApproving(true)
-    if (Nft) {
-      console.log(GameLandAddress, currentItem.nftId, Nft)
+    if (nftContract) {
+      console.log(GameLandAddress, currentItem.nftId, nftContract)
       try {
-        const approvetx = await Nft.approve(GameLandAddress, currentItem.nftId)
+        const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         await approvetx.wait()
         setIsApproved(true)
       } catch (err: any) {
@@ -360,15 +382,6 @@ export const Dashboard = () => {
     }
     setApproving(false)
   }
-  // const handleGetApprv = async () => {
-  //   try {
-  //     const approveAddress = await Nft?.getApproved(1631088022611)
-  //     console.log('approveAddress: ' + approveAddress)
-  //   } catch (err) {
-  //     console.log(err)
-  //   }
-  // }
-  console.log(process.env.NODE_ENV)
 
   return (
     <div>
@@ -441,7 +454,7 @@ export const Dashboard = () => {
                   </div>
                   <div>
                     <span>Enter renting days.</span>
-                    <NumInput onChange={handleDaysChange} value={days} />
+                    <NumInput validInt onChange={handleDaysChange} value={days} />
                   </div>
                 </Dlist>
                 <br />
@@ -495,14 +508,29 @@ export const Dashboard = () => {
         </>
       ) : null}
 
-      <MyTabs defaultActiveKey="1">
-        <TabPane tab={<span className="clearGap">My NFT</span>} key="1">
-          {' '}
+      <MyTabs
+        defaultActiveKey="1"
+        tabBarExtraContent={
+          <Button onClick={handleMint} loading={minting}>
+            Mint NFT
+          </Button>
+        }
+      >
+        <TabPaneBox tab={<span className="clearGap">My NFT</span>} key="1">
           <MyNftBox>
             <Row>
               {myNft.length
                 ? myNft.map((item: any) => (
-                    <Col span="6" xl={6} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
+                    <Col
+                      span="6"
+                      xl={6}
+                      lg={8}
+                      md={12}
+                      sm={12}
+                      xs={24}
+                      key={item.id}
+                      onClick={() => handleNftClick(item)}
+                    >
                       <NftCard
                         name={item.name}
                         price={item.price}
@@ -519,11 +547,17 @@ export const Dashboard = () => {
                 : 'Empty'}
             </Row>
           </MyNftBox>
-        </TabPane>
-        <TabPane tab={<span className="clearGap">My Renting</span>} key="2">
+        </TabPaneBox>
+        <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
           <MyRenting />
-        </TabPane>
+        </TabPaneBox>
       </MyTabs>
+      <ToastContainer />
     </div>
   )
 }
+
+const TabPaneBox = styled(TabPane)`
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+`
