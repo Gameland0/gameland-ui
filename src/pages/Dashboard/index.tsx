@@ -80,7 +80,7 @@ export const Dashboard = () => {
       let NftAmount: any = window.localStorage.getItem(`Amount-${account}`) ?? 0
       console.log(NftAmount)
 
-      if (NftAmount >= 2) {
+      if (NftAmount.length >= 2) {
         toastify.error('Each user can only mint two NFTs.')
         setMinting(false)
         return
