@@ -5,6 +5,6 @@ export const useLendingNfts = (): NFTData[] => {
 
   return useMemo(() => {
     if (!nfts || !nfts.data) return []
-    return nfts.data.filter((item: any) => item.isLending && !item.isBorrowed)
+    return nfts.data
   }, [nfts])
 }

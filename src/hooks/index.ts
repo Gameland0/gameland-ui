@@ -23,22 +23,29 @@ if (typeof MyNFTAddress === 'undefined' || typeof GameLandAddress === 'undefined
   throw new Error(`Seems contract not exist.`)
 }
 
-export interface NFTData {
+interface OpenseaData {
+  token_id?: string
+  image_url?: string
+}
+
+export interface NFTData extends OpenseaData {
   borrower?: boolean
   collateral?: number
   createdAt?: string
   days?: number
   id?: number
-  img: string
+  img?: string
   isBorrowed?: boolean
   isLending?: boolean
   borrowAt?: string
   name: string
   nftId: string
   originOwner?: string
-  owner?: string
+  owner?: any
   price?: number
   updatedAt?: string
+  image_preview_url?: string
+  image_original_url?: string
 }
 
 export function useStore() {

@@ -171,7 +171,8 @@ export const Nft: React.FC<NftProps> = ({
   }
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={handleClick}>
-      <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} />
+      {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} /> */}
+      <Img src={img} alt={name} />
       <Details className="flex flex-h-between">
         <div>
           <Labels

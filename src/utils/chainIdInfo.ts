@@ -14,7 +14,8 @@ const ChainId: Record<string, number> = {
   kovan: 42,
   aurora: 1313161554,
   'Aurora Testnet': 1313161555,
-  localnode: 1337
+  localnode: 1337,
+  polygon: 137
 }
 
 export default ChainId

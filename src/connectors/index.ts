@@ -3,14 +3,15 @@ import { NetworkConnector } from '@web3-react/network-connector'
 import ChainId from '../utils/chainIdInfo'
 
 export const supportedNetwork = [
-  // ChainId.mainnet,
+  ChainId.mainnet,
   // ChainId.ropsten,
-  // ChainId.rinkeby,
+  ChainId.rinkeby,
   // ChainId.goerli,
   // ChainId.kovan,
   // ChainId.aurora,
   ChainId['Aurora Testnet'],
-  ChainId.localnode
+  ChainId.localnode,
+  ChainId.polygon
 ]
 
 const RPC_URL =

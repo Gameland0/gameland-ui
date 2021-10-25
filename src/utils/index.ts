@@ -12,6 +12,12 @@ export const MINUTE = 60 * SECOND
 export const HOUR = 60 * MINUTE
 export const DAYS = 24 * HOUR
 
+export function contractionId(id: string): string {
+  const len = id.length
+  // return len > 18 ? `${id.substring(0,4)}...${id.substring(len-5)}` : id
+  return id
+}
+
 // returns the checksummed address if the address is valid, otherwise returns false
 export function isAddress(value: any): string | false {
   try {

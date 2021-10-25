@@ -535,7 +535,7 @@ export const Dashboard = () => {
                         name={item.name}
                         price={item.price}
                         days={item.days}
-                        img={item.img}
+                        img={item.image_preview_url}
                         nftId={item.nftId}
                         isLending={item.isLending}
                         isBorrowed={item.isBorrowed}

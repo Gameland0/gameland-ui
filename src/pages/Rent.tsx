@@ -11,9 +11,10 @@ import { toastify } from '../components/Toastify'
 // import { parseEther } from '@ethersproject/units'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
+import { NftView } from '../components/NftView'
 import { RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
-import { formatAddress, ZeroAddress } from '../utils'
+import { contractionId, formatAddress, ZeroAddress } from '../utils'
 import { http } from '../components/Store'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
@@ -145,27 +146,29 @@ export const Rent = () => {
 
   return (
     <RentBox>
-      <Modal footer={null} onCancel={() => setVisible(false)} visible={visible}>
+      <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
-            <NftCard
+            {/* <NftCard
               nftId={currentItem.nftId}
               name={currentItem.name}
               price={currentItem.price}
               days={currentItem.days}
-              img={currentItem.img}
+              img={currentItem.image_preview_url}
               unOperate={true}
-            />
-
+            /> */}
+            <NftView img={currentItem.image_url} name={currentItem.name}></NftView>
             {/* <Card name={currentItem.name} price={currentItem.price} days={currentItem.days} img={currentItem.img} /> */}
           </Col>
           <Col span="12" xl={12} sm={24}>
             <h3>{currentItem.name}</h3>
-            <span>#{currentItem.nftId}</span>
+            <span>#{contractionId(String(currentItem.token_id))}</span>
             <Dlist className="flex">
               <div>
                 <SpanLabel>Owner</SpanLabel>
-                <span title={currentItem.originOwner}>{formatAddress(currentItem.originOwner || ZeroAddress, 6)}</span>
+                <span title={currentItem.owner?.address}>
+                  {formatAddress(currentItem.owner?.address || ZeroAddress, 6)}
+                </span>
               </div>
               <div>
                 <SpanLabel>Collateral</SpanLabel>
@@ -194,7 +197,8 @@ export const Rent = () => {
               block
               onClick={handleRent}
               loading={renting}
-              disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))}
+              // disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))}
+              disabled={true}
             >
               Rent
             </Button>
@@ -227,7 +231,7 @@ export const Rent = () => {
                   name={item.name}
                   days={item.days}
                   price={item.price}
-                  img={item.img}
+                  img={item.image_preview_url}
                   isLending={item.isLending}
                 />
               </Col>

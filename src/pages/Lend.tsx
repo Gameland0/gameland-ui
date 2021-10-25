@@ -297,7 +297,7 @@ export const Lend = () => {
                   price={item.price}
                   nftId={item.nftId}
                   borrowAt={item.borrowAt}
-                  img={item.img}
+                  img={item.image_preview_url}
                   isLending={item.isLending}
                   isBorrowed={item.isBorrowed}
                   withdrawable={withdrawable}

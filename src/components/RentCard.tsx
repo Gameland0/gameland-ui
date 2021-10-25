@@ -98,7 +98,8 @@ export const RentCard: React.FC<RentProps> = ({ unOperate, img, name, price, day
   }
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={handleClick}>
-      <Img src={Imgs[name] ? Imgs[name] : Default} alt="" />
+      {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt="" /> */}
+      <Img src={img} alt="" />
       <Details className="flex flex-h-between flex-v-end">
         <div>
           <Labels name={name} nftId={nftId} price={price} days={days as number} />

@@ -1,5 +1,4 @@
 import { isEmpty } from 'lodash'
-import { lowerCase } from 'lower-case'
 import { useMemo } from 'react'
 import { NFTData, useActiveWeb3React, useStore } from '.'
 
@@ -11,6 +10,6 @@ export const useMyRenting = (): NFTData[] => {
     if (!account || isEmpty(nfts) || !nfts.data) return []
     console.log(account, nfts)
 
-    return nfts.data.filter((item: any) => item.borrower && lowerCase(item.borrower) === lowerCase(account))
+    return nfts.data
   }, [account, nfts])
 }
