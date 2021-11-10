@@ -1,14 +1,19 @@
 import React from 'react'
 import styled from 'styled-components'
 import defaultImg from '../assets/default.png'
+import { BaseProps } from './NumInput'
 
-type ImgProps = React.ImgHTMLAttributes<HTMLImageElement>
+interface ImgProps extends BaseProps {
+  hideRadius?: boolean
+  src?: string
+  alt?: string
+}
 
 const ImgWrap = styled.div`
   width: 100%;
   height: 100%:
 `
-const ImgInner = styled.div`
+const ImgInner = styled.div<{ hideRadius?: boolean }>`
   width: 100%;
   height: 0px;
   padding-bottom: 100%;
@@ -18,7 +23,10 @@ const ImgInner = styled.div`
     width: 100%;
     height: 100%;
     position: absolute;
-    border-radius: 1rem;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    border-bottom-left-radius: ${(hideRadius): string => (hideRadius ? '0' : '1rem')};
+    border-bottom-right-radius: ${(hideRadius): string => (hideRadius ? '0' : '1rem')};
     object-fit: contain;
   }
 `

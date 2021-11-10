@@ -3,7 +3,7 @@ import { NetworkConnector } from '@web3-react/network-connector'
 import ChainId from '../utils/chainIdInfo'
 
 export const supportedNetwork = [
-  ChainId.mainnet,
+  // ChainId.mainnet,
   // ChainId.ropsten,
   ChainId.rinkeby,
   // ChainId.goerli,

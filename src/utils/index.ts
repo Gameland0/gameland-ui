@@ -13,6 +13,7 @@ export const HOUR = 60 * MINUTE
 export const DAYS = 24 * HOUR
 
 export function contractionId(id: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const len = id.length
   // return len > 18 ? `${id.substring(0,4)}...${id.substring(len-5)}` : id
   return id
@@ -109,8 +110,8 @@ export function getProgress(borrowAt: string, days: number) {
 }
 
 export function getTimeLeftText(borrowAt: string, days: number) {
-  const _days = days * DAYS
-  const deadline = new Date(borrowAt).valueOf() + _days
+  const duration = days * DAYS
+  const deadline = new Date(borrowAt).valueOf() + duration
   const now = new Date().valueOf()
   const timeLeft = deadline - now
 
@@ -118,15 +119,43 @@ export function getTimeLeftText(borrowAt: string, days: number) {
     return 'Expired'
   } else if (timeLeft > DAYS) {
     const _days = Math.floor(timeLeft / DAYS)
-    return `${_days} days`
+    const _hour = Math.floor((timeLeft - _days * DAYS) / HOUR)
+    return `${_days} days ${_hour} hs`
   } else if (timeLeft > HOUR) {
     const _hour = Math.floor(timeLeft / HOUR)
-    return `${_hour} hours`
+    return `${_hour} hs`
   } else if (timeLeft > MINUTE) {
     const _minutes = Math.floor(timeLeft / MINUTE)
-    return `${_minutes} minutes`
+    return `${_minutes} mins`
   } else if (timeLeft > SECOND) {
     const _seconds = Math.floor(timeLeft / SECOND)
-    return `${_seconds} seconds.`
+    return `${_seconds} secs.`
   }
+}
+export function handleFetchQueue(urls: string[], max: number, callback: (r: any) => void) {
+  const urlAmount = urls.length
+  const requestsQueue: any[] = []
+  const results: any[] = []
+  let i = 0
+  const handleRequest = (url: string) => {
+    const req = fetch(url, {
+      cache: 'no-cache'
+    })
+      .then((res) => {
+        const len = results.push(res)
+        if (len < urlAmount && i + 1 < urlAmount) {
+          requestsQueue.shift()
+          handleRequest(urls[++i])
+        } else if (len === urlAmount) {
+          'function' === typeof callback && callback(results)
+        }
+      })
+      .catch((e) => {
+        results.push(e)
+      })
+    if (requestsQueue.push(req) < max) {
+      handleRequest(urls[++i])
+    }
+  }
+  handleRequest(urls[i])
 }

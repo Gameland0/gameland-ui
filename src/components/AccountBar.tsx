@@ -6,9 +6,11 @@ import { ConnectWallet } from './ConnectWallet'
 import { useActiveWeb3React, useStore } from '../hooks'
 
 const AddressBox = styled.div`
-  border: 1px solid #707070;
-  padding: 0.4rem 0.5rem;
-  font-size: 1rem;
+  border: 1px solid #ccc;
+  color: #666;
+  padding: 0.4rem 0.75rem;
+  border-radius: 1.25rem;
+  font-size: 0.875rem;
 `
 export const AccountBar = () => {
   const context = useActiveWeb3React()

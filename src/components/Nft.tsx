@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { NFTData, useStore } from '../hooks'
 import { Img } from './Img'
@@ -21,23 +21,27 @@ import Fox from '../assets/Fox.jpeg'
 import Animal from '../assets/Unknown.jpeg'
 import Wizards from '../assets/Wizards.png'
 import Woof from '../assets/Woof.jpeg'
+import BigNumber from 'bignumber.js'
+import { PriceLabel } from './RentCard'
 
-const CardBox = styled.div`
+export const CardBox = styled.div`
   width: 100%;
   height: 100%;
-  background: #505050;
-  border: 1px solid #707070;
-  border-right: none;
-  padding: 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
   cursor: pointer;
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
 
-  &:last-child {
-    border-right: 1px solid #707070;
+  &:hover {
+    transform: translateY(-1%);
   }
 `
-const Details = styled.div`
+export const Details = styled.div`
+  position: relative;
   margin-top: 1rem;
-  padding: 0.5rem;
+  padding: 0.5rem 1rem 1rem;
   p {
     margin-bottom: 0.3rem;
   }
@@ -45,7 +49,6 @@ const Details = styled.div`
 const Days = styled.span`
   color: #aaa;
   font-size: 0.875rem;
-  margin-left: 0.5rem;
 `
 export interface NftProps extends NFTData {
   onClick?: () => void
@@ -58,36 +61,50 @@ interface LabelProps {
   nftId: string
   price?: number
   days?: number
+  collateral?: number
   withdrawable?: boolean
 }
-const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, price, days }) => {
+const LabelsWrap = styled.div`
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+`
+const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, price, days, collateral }) => {
+  const total = useMemo(() => {
+    if (!days || !price || !collateral) {
+      return 0
+    }
+    const _cost = new BigNumber(price as number).times(days as number)
+    return _cost.plus(collateral).toString()
+  }, [price, days, collateral])
   return (
-    <>
+    <LabelsWrap>
       <p>{name}</p>
       {isLending || withdrawable ? (
-        <>
-          <span>{price} Ξ / day</span>
+        <div>
+          <PriceLabel>{total} Ξ</PriceLabel>
           <Days>{days} days</Days>
-        </>
+        </div>
       ) : (
         <span className="tips">#{nftId}</span>
       )}
-    </>
+    </LabelsWrap>
   )
 }
 const FakeButtonBox = styled.div<{ type?: string }>`
   display: block;
   height: 2rem;
-  padding: 0 1rem;
+  padding: ${({ type }) => (type === 'ghost' ? '0 .5rem' : '0 1rem')};
   line-height: 2rem;
-  font-size: 0.875rem;
-  color: white;
+  font-size: ${({ type }) => (type === 'ghost' ? '0.75rem' : '0.875rem')};
+  color: ${({ type }) => (type === 'ghost' ? '#404040' : 'var(--primary-color)')};
   text-align: center;
-  background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--primary-color)')};
-  border: ${({ type }) => (type === 'ghost' ? `1px solid white` : '1px solid transparent')};
+  border-radius: 1.25rem;
+  background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'white')};
+  border: ${({ type }) => (type === 'ghost' ? `1px solid #ccc` : '1px solid var(--primary-color)')};
 
   &:hover {
-    background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--primary-light-color)')};
+    background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'white')};
   }
 `
 
@@ -104,6 +121,22 @@ interface OperateProps extends ProgressLabelProps {
   isBorrowed?: boolean
   withdrawable?: boolean
 }
+const TabWrap = styled.span`
+  padding: 0.45rem;
+  height: 2rem;
+  border-radius: 1rem;
+  line-height: 2rem;
+  border: 1px solid var(--third-light-color);
+  color: var(--third-light-color);
+`
+export const Tag: React.FC<{ text: string }> = ({ text }) => {
+  return <TabWrap>{text}</TabWrap>
+}
+const OperateWrap = styled.div`
+  position: absolute;
+  right: 1rem;
+  bottom: 2rem;
+`
 const Operate: React.FC<OperateProps> = ({
   withdrawable,
   isLending,
@@ -112,11 +145,14 @@ const Operate: React.FC<OperateProps> = ({
   nftId,
   price,
   days,
-  borrowAt
+  borrowAt,
+  sellOrders
 }) => {
   return (
-    <>
-      {isLending ? (
+    <OperateWrap>
+      {sellOrders ? (
+        <Tag text="On sale" />
+      ) : isLending ? (
         isBorrowed ? (
           <ProgressLabels right borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
         ) : (
@@ -125,9 +161,9 @@ const Operate: React.FC<OperateProps> = ({
       ) : withdrawable ? (
         <FakeButton type="ghost">Withdraw</FakeButton>
       ) : (
-        <FakeButton>Lend</FakeButton>
+        <FakeButton type="fill">Lend</FakeButton>
       )}
-    </>
+    </OperateWrap>
   )
 }
 export const Imgs: Record<string, string> = {
@@ -158,8 +194,10 @@ export const Nft: React.FC<NftProps> = ({
   isLending,
   withdrawable,
   isBorrowed,
+  collateral,
   nftId,
-  borrowAt
+  borrowAt,
+  sell_orders
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -170,13 +208,14 @@ export const Nft: React.FC<NftProps> = ({
     onClick && onClick()
   }
   return (
-    <CardBox className="flex flex-column-between flex-column" onClick={handleClick}>
+    <CardBox className="flex flex-column" onClick={handleClick}>
       {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} /> */}
       <Img src={img} alt={name} />
-      <Details className="flex flex-h-between">
+      <Details>
         <div>
           <Labels
             withdrawable={withdrawable}
+            collateral={collateral}
             name={name}
             isLending={isLending}
             nftId={nftId}
@@ -195,6 +234,7 @@ export const Nft: React.FC<NftProps> = ({
             isBorrowed={isBorrowed}
             onClick={() => onclick}
             withdrawable={withdrawable}
+            sellOrders={sell_orders}
           />
         ) : null}
       </Details>

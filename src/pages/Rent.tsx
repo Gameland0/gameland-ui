@@ -11,7 +11,7 @@ import { toastify } from '../components/Toastify'
 // import { parseEther } from '@ethersproject/units'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
-import { NftView } from '../components/NftView'
+// import { NftView } from '../components/NftView'
 import { RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
 import { contractionId, formatAddress, ZeroAddress } from '../utils'
@@ -19,16 +19,18 @@ import { http } from '../components/Store'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
+import { Empty } from '../components/Empty'
 
-const RentBox = styled.div`
-  margin: 2rem 0;
+export const RentBox = styled.div`
+  margin: 3rem 0;
 `
 export const DayInfoBox = styled.div<{ progress?: number }>`
   margin-top: 1rem;
   height: 2rem;
   line-height: 2rem;
   border-radius: 1rem;
-  border: 1px solid white;
+  border: 1px solid #ddd;
+  background: white;
   font-size: 0.875rem;
   text-align: center;
   position: relative;
@@ -76,6 +78,8 @@ export const Rent = () => {
   const [visible, setVisible] = useState(false)
   const lendingNfts = useLendingNfts()
   const { mutateNfts } = useStore()
+  const gamelandContract = useGameLandContract()
+  const [renting, setRenting] = useState(false)
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -91,51 +95,72 @@ export const Rent = () => {
   //   console.log(greeter?.setGreeting('hll'))
   // }, [greeter])
 
-  const handleShowModal = (item: NftProps) => {
+  const handleShowModal = async (item: NftProps) => {
     console.log('rent')
-
+    if (!gamelandContract) {
+      toastify.error('Contract not found.')
+      return
+    }
     setCurrentItem(item)
     setVisible(true)
+    if (await gamelandContract.check_the_borrow_status(item.gamelandNftId)) {
+      const borrowInfo = await gamelandContract.get_borrow_info(item.gamelandNftId)
+
+      const params = {
+        isBorrowed: true,
+        borrower: borrowInfo[0],
+        borrowAt: borrowInfo[1]
+      }
+      await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+    }
   }
-  const gamelandContract = useGameLandContract()
-  const [renting, setRenting] = useState(false)
 
   const handleRent = async () => {
     try {
-      setRenting(true)
       if (!library) {
-        setRenting(false)
         toastify.error('Please connect a account.')
         return
       }
-      const collateral = new BigNumber(currentItem.collateral as unknown as string)
-      const days = new BigNumber(currentItem.days as unknown as string)
-      const price = new BigNumber(currentItem.price as unknown as string)
-      const cost = days.times(price)
-      const amount = collateral.plus(cost).toString()
-      console.log(parseEther(amount).toString())
+      if (!gamelandContract) {
+        toastify.error('Contract not found.')
+        return
+      }
+      const borrowed = await gamelandContract?.check_the_borrow_status(currentItem.gamelandNftId)
+      if (!borrowed) {
+        setRenting(true)
 
-      const rented = await gamelandContract
-        ?.connect(library.getSigner())
-        .rent(currentItem.nftId, { value: parseEther(amount) })
-      const borrowed = await gamelandContract?.borrow_status(currentItem.nftId)
-      await rented.wait()
-      if (borrowed) {
-        const params = {
-          isBorrowed: true,
-          borrower: account,
-          borrowAt: new Date().toJSON()
-        }
-        const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
+        const collateral = new BigNumber(currentItem.collateral as unknown as string)
+        const days = new BigNumber(currentItem.days as unknown as string)
+        const price = new BigNumber(currentItem.price as unknown as string)
+        const cost = days.times(price)
+        const amount = collateral.plus(cost).toString()
 
-        if (res.data.code === 1) {
-          setRenting(false)
-          toastify.success('succeed')
-          mutateNfts(undefined, true)
-          setVisible(false)
-        } else {
-          throw res.message || res.data.message
+        const rented = await gamelandContract
+          ?.connect(library.getSigner())
+          .rent(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId, {
+            value: parseEther(amount)
+          })
+        console.log(rented)
+
+        const { status } = await rented.wait()
+        if (!status) {
+          throw Error('Failed to rent.')
         }
+      }
+      const params = {
+        isBorrowed: true,
+        borrower: account,
+        borrowAt: new Date().toJSON()
+      }
+      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+
+      if (res.data.code === 1) {
+        setRenting(false)
+        toastify.success('succeed')
+        mutateNfts(undefined, true)
+        setVisible(false)
+      } else {
+        throw res.message || res.data.message
       }
     } catch (err: any) {
       console.log(err.message)
@@ -149,15 +174,15 @@ export const Rent = () => {
       <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
-            {/* <NftCard
+            <NftCard
               nftId={currentItem.nftId}
               name={currentItem.name}
               price={currentItem.price}
               days={currentItem.days}
               img={currentItem.image_preview_url}
               unOperate={true}
-            /> */}
-            <NftView img={currentItem.image_url} name={currentItem.name}></NftView>
+            />
+            {/* <NftView img={currentItem.image_url} name={currentItem.name}></NftView> */}
             {/* <Card name={currentItem.name} price={currentItem.price} days={currentItem.days} img={currentItem.img} /> */}
           </Col>
           <Col span="12" xl={12} sm={24}>
@@ -166,9 +191,7 @@ export const Rent = () => {
             <Dlist className="flex">
               <div>
                 <SpanLabel>Owner</SpanLabel>
-                <span title={currentItem.owner?.address}>
-                  {formatAddress(currentItem.owner?.address || ZeroAddress, 6)}
-                </span>
+                <span title={currentItem.originOwner}>{formatAddress(currentItem.originOwner || ZeroAddress, 4)}</span>
               </div>
               <div>
                 <SpanLabel>Collateral</SpanLabel>
@@ -193,12 +216,13 @@ export const Rent = () => {
             <br />
             <Button
               shape="round"
+              danger
               type="primary"
               block
               onClick={handleRent}
               loading={renting}
-              // disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))}
-              disabled={true}
+              size="large"
+              disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))}
             >
               Rent
             </Button>
@@ -213,11 +237,11 @@ export const Rent = () => {
           </Col>
         </Row>
       </Modal>
-      <Row>
-        {lendingNfts.length
-          ? lendingNfts.map((item, index) => (
-              <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
-                {/* <Card
+      <Row gutter={[20, 20]}>
+        {lendingNfts.length ? (
+          lendingNfts.map((item, index) => (
+            <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
+              {/* <Card
                   type="rent"
                   onClick={() => handleShowModal(item)}
                   name={item.name}
@@ -225,18 +249,21 @@ export const Rent = () => {
                   price={item.price}
                   img={item.img}
                 /> */}
-                <RentCard
-                  nftId={item.nftId}
-                  onClick={() => handleShowModal(item)}
-                  name={item.name}
-                  days={item.days}
-                  price={item.price}
-                  img={item.image_preview_url}
-                  isLending={item.isLending}
-                />
-              </Col>
-            ))
-          : 'Empty'}
+              <RentCard
+                nftId={item.nftId}
+                onClick={() => handleShowModal(item)}
+                name={item.name}
+                days={item.days}
+                collateral={item.collateral}
+                price={item.price}
+                img={item.image_preview_url}
+                isLending={item.isLending}
+              />
+            </Col>
+          ))
+        ) : (
+          <Empty text="Ooops, looks like nothing here." />
+        )}
       </Row>
     </RentBox>
   )

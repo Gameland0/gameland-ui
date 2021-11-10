@@ -1,3 +1,4 @@
+import { lowerCase } from 'lower-case'
 import { useMemo } from 'react'
 import { NFTData, useActiveWeb3React, useStore } from '.'
 export const useMyLendingNfts = (): NFTData[] => {
@@ -5,7 +6,7 @@ export const useMyLendingNfts = (): NFTData[] => {
   const { account } = useActiveWeb3React()
 
   return useMemo(() => {
-    if (!account || !nfts || !nfts.data) return []
-    return nfts.data
+    if (!account || !nfts) return []
+    return nfts.filter((item: any) => item.isLending && lowerCase(item.originOwner) === lowerCase(account))
   }, [account, nfts])
 }

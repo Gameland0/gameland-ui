@@ -29,11 +29,12 @@ interface OpenseaData {
 }
 
 export interface NFTData extends OpenseaData {
-  borrower?: boolean
+  borrower?: string
   collateral?: number
   createdAt?: string
   days?: number
   id?: number
+  token_id?: string
   img?: string
   isBorrowed?: boolean
   isLending?: boolean
@@ -46,6 +47,9 @@ export interface NFTData extends OpenseaData {
   updatedAt?: string
   image_preview_url?: string
   image_original_url?: string
+  sell_orders?: Record<string, any>[]
+  contractAddress?: string
+  gamelandNftId?: number
 }
 
 export function useStore() {
@@ -177,3 +181,8 @@ export interface Call {
 }
 
 export { useMyNfts, useMyRenting }
+
+// export function useReceipt(transaction: TransactionResponse) {
+//   const {hash }
+//   return ''
+// }

@@ -3,29 +3,9 @@ import styled from 'styled-components'
 import { NFTData } from '../hooks'
 import { getProgress, getTimeLeftText } from '../utils'
 import { Img } from './Img'
-import { Default, Imgs } from './Nft'
 import { BaseProps } from './NumInput'
+import { CardBox, Details } from './Nft'
 
-const CardBox = styled.div`
-  width: 100%;
-  height: 100%;
-  background: #505050;
-  border: 1px solid #707070;
-  border-right: none;
-  padding: 1rem;
-  cursor: pointer;
-
-  &:last-child {
-    border-right: 1px solid #707070;
-  }
-`
-const Details = styled.div`
-  margin-top: 1rem;
-  padding: 0.5rem;
-  p {
-    margin-bottom: 0.3rem;
-  }
-`
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Days = styled.span`
   color: #aaa;
@@ -44,6 +24,7 @@ const ProgressBar = styled.div<{ right?: boolean }>`
   margin: 0.5rem 0 0.35rem;
   background: white;
   border-radius: 2px;
+  background: #e3e5e7;
   height: 4px;
   overflow: hidden;
 `
@@ -76,9 +57,12 @@ export interface ProgressLabelProps {
   days: number
   borrowAt: string
   right?: boolean
+  sellOrders?: Record<string, any>[]
 }
 
 export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt }) => {
+  console.log(borrowAt, days)
+
   const progress = useMemo(() => getProgress(borrowAt, days), [borrowAt, days])
   const dayLeft = useMemo(() => getTimeLeftText(borrowAt, days), [days, borrowAt])
 
@@ -94,18 +78,19 @@ export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isEx
 }
 const FakeButtonBox = styled.div<{ type?: string }>`
   display: block;
-  height: 2.5rem;
+  height: 2rem;
+  border-radius: 1rem;
   padding: 0 1rem;
-  line-height: 2.5rem;
+  line-height: 2rem;
   font-size: 0.875rem;
-  color: ${({ type }) => (type === 'ghost' ? 'var(--success)' : 'white')};
-  background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--success)')};
-  border: ${({ type }) => (type === 'ghost' ? `1px solid var(--success)` : '1px solid transparent')};
+  color: ${({ type }) => (type === 'ghost' ? 'var(--second-color)' : 'white')};
+  background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--second-color)')};
+  border: ${({ type }) => (type === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
 
   &:hover {
-    background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--success-light)')};
-    color: ${({ type }) => (type === 'ghost' ? 'var(--success-light)' : 'white')};
-    border: ${({ type }) => (type === 'ghost' ? `1px solid var(--success-light)` : '1px solid transparent')};
+    background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--second-light-color)')};
+    color: ${({ type }) => (type === 'ghost' ? 'var(--second-light-color)' : 'white')};
+    border: ${({ type }) => (type === 'ghost' ? `1px solid var(--second-light-color)` : '1px solid transparent')};
   }
 `
 
@@ -121,7 +106,7 @@ interface OperateProps {
   isExpired?: boolean
 }
 const Operate: React.FC<OperateProps> = ({ isExpired }) => {
-  return <>{isExpired ? null : <FakeButton type="ghost">Repay</FakeButton>}</>
+  return <>{isExpired ? null : <FakeButton type="ghost">Return</FakeButton>}</>
 }
 export const RentingCard: React.FC<RentingProps> = ({
   unOperate,
@@ -131,13 +116,14 @@ export const RentingCard: React.FC<RentingProps> = ({
   onClick,
   isExpired,
   borrowAt,
-  nftId
+  nftId,
+  img
 }) => {
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
-      <Img src={Imgs[name] ? Imgs[name] : Default} alt="" />
-      {/* <Img src={img} alt="" /> */}
-      <Details className="flex flex-h-between flex-v-end">
+      {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt="" /> */}
+      <Img src={img} alt="" />
+      <Details className="flex flex-h-between">
         <div>
           <ProgressLabels borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
         </div>

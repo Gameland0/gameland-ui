@@ -8,8 +8,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #404040;
-  color: #fff;
+  background-color: #fff;
+  color: #404040;
 }
 ul,li{
   margin: 0;
@@ -17,7 +17,7 @@ ul,li{
   list-style: none;
 }
 h1, h2, h3, h4, h5, h6,a,.ant-tabs{
-  color: white;
+  color: #404040;
 }
 .container{
   width: 62.5%;
@@ -48,7 +48,7 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   outline:none;
   padding: 1rem;
   border-radius: 1.5rem;
-  background-color: #363636;
+  background-color: white;
 }
 @media screen and (min-width: 240px) {
   .container{
@@ -69,18 +69,19 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   margin: 0;
 }
 .ant-btn-ghost{
-  color: white;
+  color: #404040;
 }
 .ant-modal-content{
   border-radius: 1rem;
-  box-shadow: none;
-  overflow: hidden;
-  background: transparent;
+  background: #f3f5f7;
+}
+.ant-modal-body{
+  border-radius: 1rem;
 }
 .ant-modal-header{
-  background: #3e3e3e;
+  background: white;
   border-bottom: none;
-  color: white;
+  color: #404040;
   text-align: center;
   .ant-modal-title{
     color: white;
@@ -90,4 +91,8 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
 .ant-tabs-tab-btn[aria-selected="true"]{
   font-size: 1rem;
   font-weight: bold;
+}
+
+.ant-tabs-top > .ant-tabs-nav::before{
+  border-color: #ddd;
 }

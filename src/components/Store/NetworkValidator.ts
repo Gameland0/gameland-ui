@@ -1,25 +1,27 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supportedNetwork } from '../../connectors'
 import { useActiveWeb3React } from '../../hooks'
 
 // return true while network error
 export const useNetworkValidator = () => {
   const { active } = useActiveWeb3React()
-  const [chainId, setChainId] = useState<number | undefined>()
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     ;(window as any).ethereum.request({ method: 'eth_chainId' }).then((res: any) => {
       console.log(parseInt(res, 16))
-      setChainId(parseInt(res, 16))
+      const chainId = parseInt(res, 16)
+      if (!chainId) {
+        setError(false)
+        return
+      }
+      console.log(chainId, !supportedNetwork.includes(chainId))
+
+      setError(!supportedNetwork.includes(chainId))
     })
   }, [active])
 
-  const result = useMemo(() => {
-    if (!chainId) {
-      return false
-    }
-    return supportedNetwork.includes(chainId)
-  }, [chainId])
+  console.log(error)
 
-  return !result
+  return error
 }

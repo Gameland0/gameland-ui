@@ -1,5 +1,13 @@
 import React, { useMemo, useState } from 'react'
-import { GameLandAddress, NFTData, useGameLandContract, useMyNftContract, useMyRenting, useStore } from '../../hooks'
+import {
+  GameLandAddress,
+  NFTData,
+  useActiveWeb3React,
+  useGameLandContract,
+  useMyNftContract,
+  useMyRenting,
+  useStore
+} from '../../hooks'
 import { Row, Col, Button } from 'antd'
 import { RentingCard } from '../../components/RentingCard'
 import { Nft as NftCard } from '../../components/Nft'
@@ -11,8 +19,11 @@ import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { toastify } from '../../components/Toastify'
 import { http } from '../../components/Store'
+import { Empty } from '../../components/Empty'
+import { lowerCase } from 'lower-case'
 
 export const MyRenting = () => {
+  const { library } = useActiveWeb3React()
   const myRenting = useMyRenting()
   const [currentItem, setCurrentItem] = useState({} as NFTData)
   const [visible, setVisible] = useState(false)
@@ -58,10 +69,25 @@ export const MyRenting = () => {
   const handleRepay = async () => {
     console.log('repay')
     try {
+      if (!library) {
+        toastify.error('Please connect an account.')
+        return
+      }
+      if (!nftContract || !gamelandContract) {
+        toastify.error('Contract not found.')
+        return
+      }
       setRepaying(true)
-      const repaid = await gamelandContract?.repay(currentItem.nftId)
-      console.log(repaid)
-      const tx = await repaid.wait()
+      const owner = await nftContract.ownerOf(currentItem.nftId)
+      if (lowerCase(owner) !== lowerCase(gamelandContract.address)) {
+        const repaid = await gamelandContract
+          .connect(library.getSigner())
+          ._return(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId)
+        const { status } = await repaid.wait()
+        if (!status) {
+          throw Error('Failed to repay, please try again.')
+        }
+      }
       const params = {
         borrower: null,
         borrowAt: null,
@@ -69,9 +95,8 @@ export const MyRenting = () => {
         isLending: null,
         withdrawable: true
       }
-      const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
+      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
-        console.log(tx)
         toastify.success('succeed')
         mutateNfts(undefined, true)
         setRepaying(false)
@@ -93,6 +118,7 @@ export const MyRenting = () => {
         const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         await approvetx.wait()
         setIsApproved(true)
+        toastify.success("Now you're able to return NFT")
       } catch (err: any) {
         toastify.error(err.message)
       }
@@ -102,14 +128,14 @@ export const MyRenting = () => {
 
   return (
     <div>
-      <Modal footer={null} onCancel={() => setVisible(false)} visible={visible}>
+      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <NftCard
               name={currentItem.name}
               price={currentItem.price}
               days={currentItem.days}
-              img={currentItem.img}
+              img={currentItem.image_url}
               nftId={currentItem.nftId}
               unOperate={true}
             />
@@ -123,7 +149,7 @@ export const MyRenting = () => {
             <Dlist className="flex">
               <div>
                 <SpanLabel>Owner</SpanLabel>
-                <span title={currentItem.originOwner}>{formatAddress(currentItem.originOwner || ZeroAddress, 6)}</span>
+                <span title={currentItem.originOwner}>{formatAddress(currentItem.originOwner || ZeroAddress, 4)}</span>
               </div>
               <div>
                 <SpanLabel>Collateral</SpanLabel>
@@ -145,13 +171,13 @@ export const MyRenting = () => {
             <br />
             {isApproved ? (
               <>
-                <Button className="lend" shape="round" block onClick={handleRepay} loading={repaying}>
-                  Repay
+                <Button className="lend" size="large" shape="round" block onClick={handleRepay} loading={repaying}>
+                  Return
                 </Button>
               </>
             ) : (
               <div>
-                <Button className="lend" shape="round" block onClick={handleApprove} loading={approving}>
+                <Button className="lend" size="large" shape="round" block onClick={handleApprove} loading={approving}>
                   Approve
                 </Button>
               </div>
@@ -160,22 +186,24 @@ export const MyRenting = () => {
         </Row>
       </Modal>
 
-      <Row>
-        {myRenting.length
-          ? myRenting.map((item: any) => (
-              <Col span="6" xl={6} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
-                <RentingCard
-                  name={item.name}
-                  price={item.price}
-                  days={item.days}
-                  img={item.img}
-                  nftId={item.nftId}
-                  borrowAt={item.borrowAt}
-                  isExpired={item.isExpired}
-                ></RentingCard>
-              </Col>
-            ))
-          : 'Empty'}
+      <Row gutter={[20, 20]}>
+        {myRenting.length ? (
+          myRenting.map((item: any) => (
+            <Col span="6" xl={6} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
+              <RentingCard
+                name={item.name}
+                price={item.price}
+                days={item.days}
+                img={item.image_preview_url}
+                nftId={item.nftId}
+                borrowAt={item.borrowAt}
+                isExpired={item.isExpired}
+              ></RentingCard>
+            </Col>
+          ))
+        ) : (
+          <Empty text="Ooops, looks like nothing here." />
+        )}
       </Row>
     </div>
   )

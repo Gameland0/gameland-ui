@@ -3,12 +3,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 // import { useGreeterContract } from '../hooks'
 import { Row, Col, Button } from 'antd'
-import { Card, CardProps } from '../components/Card'
-import { Nft } from '../components/Nft'
-import { NumInput } from '../components/NumInput'
+import { Nft, NftProps } from '../components/Nft'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
-import { GameLandAddress, NFTData, useActiveWeb3React, useGameLandContract, useMyNftContract, useStore } from '../hooks'
+import { NFTData, useActiveWeb3React, useGameLandContract, useMyNftContract, useStore } from '../hooks'
 import { toastify } from '../components/Toastify'
 import { formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../utils'
 import { formatEther } from '@ethersproject/units'
@@ -16,11 +14,10 @@ import { isEmpty, isEqual } from 'lodash'
 import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
 import { http } from '../components/Store'
 import BigNumber from 'bignumber.js'
-import { SpanLabel, DaysInfo } from './Rent'
+import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
-const RentBox = styled.div`
-  margin: 2rem;
-`
+import { lowerCase } from 'lower-case'
+import { Empty } from '../components/Empty'
 
 export const Dlist = styled.div`
   flex-direction: column;
@@ -36,24 +33,15 @@ export const Lend = () => {
   const [visible, setVisible] = useState(false)
   const gamelandContract = useGameLandContract()
   const nftContract = useMyNftContract()
-  const [isApproved, setIsApproved] = useState(false)
   const myLendingNfts = useMyLendingNfts()
 
-  const [price, setPrice] = useState('')
-  const [days, setdays] = useState('')
-  const [collateral, setCollateral] = useState('')
-  const [lending, setLending] = useState(false)
   const [borrowed, setBorrowed] = useState(false)
   const [progress, setProgress] = useState(0)
   const [withdrawing, setWithdrawing] = useState(false)
-  const [approving, setApproving] = useState(false)
   const [withdrawable, setWithdrawable] = useState(false)
   const { mutateNfts } = useStore()
 
   const [awaiting, setAwaiting] = useState(false)
-  // useEffect(() => {
-  //   console.log(greeter?.setGreeting('hll'))
-  // }, [greeter])
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -64,18 +52,18 @@ export const Lend = () => {
     return _cost.plus(collateral).toString()
   }, [currentItem])
 
-  const handleShowModal = async (item: CardProps) => {
+  const handleShowModal = async (item: NftProps) => {
     setCurrentItem(item)
     setVisible(true)
     setAwaiting(true)
     try {
-      const _borrowed = await gamelandContract?.check_the_borrow_status(item.nftId)
+      const _borrowed = await gamelandContract?.check_the_borrow_status(item.gamelandNftId)
       setBorrowed(_borrowed)
       if (_borrowed) {
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         setProgress(_progress)
       } else {
-        let _lending = await gamelandContract?.get_all_nftinfo(item.nftId)
+        let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
         _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
 
         setWithdrawable(!isEqual(_lending, ZeroNftInfo))
@@ -83,126 +71,70 @@ export const Lend = () => {
     } catch (err: any) {
       toastify.error(err.message)
     }
-
-    if (nftContract) {
-      try {
-        const approveAddress = await nftContract.getApproved(item.nftId)
-        console.log(approveAddress, approveAddress === ZeroAddress)
-
-        if (approveAddress === gamelandContract?.address) {
-          setIsApproved(true)
-        } else {
-          setIsApproved(false)
-        }
-      } catch (err: any) {
-        console.log(err.message)
-      }
-    }
     setAwaiting(false)
   }
 
-  const handleCostChange = useCallback((val) => setPrice(val), [])
-  const handleDaysChange = useCallback((val) => setdays(val), [])
-  const handleCollateralChange = useCallback((val) => setCollateral(val), [])
-
-  const handleLend = async () => {
+  const handleWithdraw = async () => {
     try {
-      setLending(true)
-      const deposited = await gamelandContract?.deposit(price, days, currentItem.nftId, collateral)
-      console.log(deposited)
-      await deposited.wait()
-
-      const params = {
-        isLending: true,
-        price: price as unknown as number,
-        days: days as unknown as number,
-        collateral: collateral as unknown as number
+      if (!account) {
+        toastify.error('Please connect a account.')
+        return
       }
-      console.log(params)
-
-      const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
-      console.log(res)
-
-      setLending(false)
+      if (!nftContract || !gamelandContract) {
+        toastify.error('Contract not found.')
+        return
+      }
+      setWithdrawing(true)
+      const owner = await nftContract.ownerOf(currentItem.nftId)
+      if (lowerCase(owner) !== lowerCase(account)) {
+        const withdrawnft = await gamelandContract.withdrawnft(
+          currentItem.nftId,
+          currentItem.contractAddress,
+          currentItem.gamelandNftId
+        )
+        const { status } = await withdrawnft.wait()
+        if (!status) {
+          throw Error('Failed to lend.')
+        }
+      }
+      const params = {
+        isLending: false,
+        price: 0,
+        days: 0,
+        collateral: 0,
+        withdrawable: false,
+        borrower: null,
+        borrowAt: null
+      }
+      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
-        setPrice('')
-        setCollateral('')
-        setdays('')
+        setWithdrawable(false)
+        setWithdrawing(false)
         setVisible(false)
         mutateNfts(undefined, true)
       } else {
-        throw res.message || res.data.message
+        throw res.message || res.data.message || 'Server down.'
       }
     } catch (err: any) {
-      console.log(err.message)
+      console.log(err)
+      setWithdrawing(false)
       toastify.error(err.message)
-      setLending(false)
-    }
-  }
-
-  const handleApprove = async () => {
-    setApproving(true)
-    if (nftContract) {
-      console.log(GameLandAddress, currentItem.nftId)
-      try {
-        const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
-        await approvetx.wait()
-        setIsApproved(true)
-      } catch (err: any) {
-        toastify.error(err.message)
-      }
-    }
-    setApproving(false)
-  }
-
-  const handleWithdraw = async () => {
-    if (gamelandContract) {
-      try {
-        setWithdrawing(true)
-        const withdrawnft = await gamelandContract.withdrawnft(currentItem.nftId)
-        await withdrawnft.wait()
-        const owner = await nftContract?.ownerOf(currentItem.nftId)
-        if (owner === account) {
-          const params = {
-            isLending: false,
-            price: 0,
-            days: 0,
-            collateral: 0,
-            borrower: null,
-            borrowAt: null
-          }
-          const res: any = await http.put(`/api/nft/${currentItem.nftId}`, params)
-          if (res.data.code === 1) {
-            toastify.success('succeed')
-            setWithdrawable(false)
-            setWithdrawing(false)
-            setVisible(false)
-            mutateNfts(undefined, true)
-          } else {
-            throw res.message || res.data.message
-          }
-        }
-      } catch (err: any) {
-        console.log(err)
-        setWithdrawing(false)
-        toastify.error(err.message)
-      }
     }
   }
 
   return (
     <RentBox>
-      <Modal footer={null} onCancel={() => setVisible(false)} visible={visible}>
+      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
-            <Card
+            <Nft
               nftId={currentItem.nftId}
               name={currentItem.name}
               price={currentItem.price}
               days={currentItem.days}
-              img={currentItem.img}
-              showInfo={false}
+              img={currentItem.image_url}
+              unOperate={true}
             />
           </Col>
           <Col span="12" xl={12} sm={24}>
@@ -214,9 +146,13 @@ export const Lend = () => {
               <>
                 <Dlist className="flex">
                   <div>
+                    <SpanLabel>Borrower</SpanLabel>
+                    <span title={currentItem.borrower}>{formatAddress(currentItem.borrower || ZeroAddress, 4)}</span>
+                  </div>
+                  <div>
                     <SpanLabel>Owner</SpanLabel>
                     <span title={currentItem.originOwner}>
-                      {formatAddress(currentItem.originOwner || ZeroAddress, 6)}
+                      {formatAddress(currentItem.originOwner || ZeroAddress, 4)}
                     </span>
                   </div>
                   <div>
@@ -240,71 +176,38 @@ export const Lend = () => {
                   <DaysInfo progress={progress}>Rent for {currentItem.days} days</DaysInfo>
                 </div>
               </>
-            ) : withdrawable ? (
+            ) : (
               <div>
                 <br />
-                <Button block onClick={handleWithdraw} loading={withdrawing}>
+                <Button block shape="round" onClick={handleWithdraw} loading={withdrawing} size="large">
                   Withdraw
                 </Button>
               </div>
-            ) : isApproved ? (
-              <>
-                <Dlist className="flex">
-                  <div>
-                    <span>Enter collateral.</span>
-                    <NumInput onChange={handleCollateralChange} value={collateral} />
-                  </div>
-                  <div>
-                    <span>Enter price per day.</span>
-                    <NumInput onChange={handleCostChange} value={price} />
-                  </div>
-                  <div>
-                    <span>Enter renting days.</span>
-                    <NumInput onChange={handleDaysChange} value={days} />
-                  </div>
-                </Dlist>
-                <br />
-                <Button
-                  className="lend"
-                  shape="round"
-                  block
-                  onClick={handleLend}
-                  disabled={!price && !days && !collateral}
-                  loading={lending}
-                >
-                  Lend
-                </Button>
-              </>
-            ) : (
-              <>
-                <br />
-                <Button className="lend" shape="round" block onClick={handleApprove} loading={approving}>
-                  Approve
-                </Button>
-              </>
             )}
           </Col>
         </Row>
       </Modal>
-      <Row>
-        {myLendingNfts.length
-          ? myLendingNfts.map((item, index) => (
-              <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
-                <Nft
-                  onClick={() => handleShowModal(item)}
-                  name={item.name}
-                  days={item.days}
-                  price={item.price}
-                  nftId={item.nftId}
-                  borrowAt={item.borrowAt}
-                  img={item.image_preview_url}
-                  isLending={item.isLending}
-                  isBorrowed={item.isBorrowed}
-                  withdrawable={withdrawable}
-                />
-              </Col>
-            ))
-          : 'Empty'}
+      <Row gutter={[20, 20]}>
+        {myLendingNfts.length ? (
+          myLendingNfts.map((item, index) => (
+            <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
+              <Nft
+                onClick={() => handleShowModal(item)}
+                name={item.name}
+                days={item.days}
+                price={item.price}
+                nftId={item.nftId}
+                borrowAt={item.borrowAt}
+                img={item.image_preview_url}
+                isLending={item.isLending}
+                isBorrowed={item.isBorrowed}
+                withdrawable={withdrawable}
+              />
+            </Col>
+          ))
+        ) : (
+          <Empty text="Ooops, looks like nothing here." />
+        )}
       </Row>
     </RentBox>
   )

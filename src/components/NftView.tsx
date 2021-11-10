@@ -13,7 +13,7 @@ const NftViewBox = styled.div`
 export const NftView: React.FC<NftViewProps> = ({ img, name }) => {
   return (
     <NftViewBox>
-      <Img src={img} alt={name} />
+      <Img hideRadius={true} src={img} alt={name} />
     </NftViewBox>
   )
 }

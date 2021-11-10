@@ -9,8 +9,10 @@ const { useBreakpoint } = Grid
 
 const HeaderBox = styled.div`
   height: 100px;
-  background: linear-gradient(180deg, #292929 0%, #585858 100%);
+  // background: linear-gradient(180deg, #292929 0%, #585858 100%);
+  box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  border-bottom: 1px solid var(--primary-color);
 
   .logo svg {
     max-width: 15rem;
@@ -37,7 +39,8 @@ const Link = styled(NavLink).attrs({
     border-radius: 12px;
     font-weight: bold;
     border-radius: 0;
-    background: linear-gradient(180deg, var(--primary-light-color) 0%, var(--primary-color) 100%);
+    color: white;
+    background: linear-gradient(180deg, var(--fourth-color) 0%, var(--primary-color) 70%);
     span {
       transform: rotate(-15deg);
     }
@@ -48,7 +51,7 @@ const Link = styled(NavLink).attrs({
       position: absolute;
       left: -10px;
       transform: rotate(8deg);
-      background: linear-gradient(180deg, var(--primary-light-color) 0%, var(--primary-color) 100%);
+      background: linear-gradient(180deg, var(--fourth-color) 0%, var(--primary-color) 70%);
     }
     &:after {
       content: '';
@@ -58,21 +61,23 @@ const Link = styled(NavLink).attrs({
       right: -10px;
       top: -2px;
       transform: rotate(8deg);
-      background: linear-gradient(180deg, var(--primary-light-color) 0%, var(--primary-color) 100%);
+      background: linear-gradient(180deg, var(--fourth-color) 0%, var(--primary-color) 70%);
+    }
+    :hover,
+    :focus {
+      color: white;
     }
   }
 
   :hover,
   :focus {
-    color: white;
+    color: var(--primary-color);
   }
 `
 export const Header = () => {
   const [visible, setVisible] = useState(false)
   const screens = useBreakpoint()
   const isMobile = useMemo(() => {
-    console.log(screens.lg)
-
     return !(screens.lg ?? true)
   }, [screens])
 
@@ -80,7 +85,7 @@ export const Header = () => {
     <HeaderBox>
       <div className="container flex flex-h-between flex-v-center">
         <div className="logo">
-          <Logo></Logo>
+          <Logo height="36"></Logo>
         </div>
         {!isMobile ? (
           <>
@@ -130,14 +135,7 @@ export const Header = () => {
 
 const MobileDrawer = styled(Drawer)`
   .ant-drawer-body {
-    background: var(--normal-black);
     padding-top: 4rem;
-  }
-  .anticon-close {
-    color: white;
-    svg {
-      color: white;
-    }
   }
 `
 const MobileNav = styled(NavLink).attrs({
