@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 // import { useGreeterContract } from '../hooks'
-import { Row, Col, Button } from 'antd'
+import { Row, Col, Button, Popconfirm } from 'antd'
 import { Nft, NftProps } from '../components/Nft'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
@@ -34,6 +34,8 @@ export const Lend = () => {
   const gamelandContract = useGameLandContract()
   const nftContract = useMyNftContract()
   const myLendingNfts = useMyLendingNfts()
+  const [expired, setExpired] = useState(false)
+  const [liquidating, setLiquidating] = useState(false)
 
   const [borrowed, setBorrowed] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -55,6 +57,7 @@ export const Lend = () => {
   const handleShowModal = async (item: NftProps) => {
     setCurrentItem(item)
     setVisible(true)
+    setExpired(false)
     setAwaiting(true)
     try {
       const _borrowed = await gamelandContract?.check_the_borrow_status(item.gamelandNftId)
@@ -62,6 +65,7 @@ export const Lend = () => {
       if (_borrowed) {
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         setProgress(_progress)
+        setExpired(_progress >= 100)
       } else {
         let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
         _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
@@ -120,6 +124,41 @@ export const Lend = () => {
       console.log(err)
       setWithdrawing(false)
       toastify.error(err.message)
+    }
+  }
+
+  const handleLiquidation = async () => {
+    if (gamelandContract) {
+      setLiquidating(true)
+
+      try {
+        const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId)
+        liquidated.wait()
+        console.log(liquidated)
+        const params = {
+          isLending: false,
+          isBorrowed: false,
+          borrower: '',
+          originOwner: currentItem.borrower,
+          price: 0,
+          days: 0,
+          collateral: 0,
+          borrowAt: null
+        }
+        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          setLiquidating(false)
+          setVisible(false)
+          mutateNfts(undefined, true)
+        } else {
+          throw Error(res)
+        }
+      } catch (err: any) {
+        console.log(err.message)
+        toastify.error(err.message || err.data.message)
+        setLiquidating(false)
+      }
     }
   }
 
@@ -182,6 +221,16 @@ export const Lend = () => {
                 <Button block shape="round" onClick={handleWithdraw} loading={withdrawing} size="large">
                   Withdraw
                 </Button>
+              </div>
+            )}
+            {expired && (
+              <div>
+                <br />
+                <Popconfirm title="Are you sure to liquidation your NFT?" onConfirm={handleLiquidation}>
+                  <Button shape="round" danger block loading={liquidating} size="large">
+                    Liquidation
+                  </Button>
+                </Popconfirm>
               </div>
             )}
           </Col>
