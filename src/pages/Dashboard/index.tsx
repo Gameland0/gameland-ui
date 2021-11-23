@@ -569,18 +569,20 @@ export const Dashboard = () => {
         <>
           <ChainName />
           <Button onClick={handleGetTestNft}>getNFT</Button>
-
-          <Input value={nid} onChange={(e) => setNid(e.currentTarget.value)} />
           <Button onClick={handleAddProgram}>addContract</Button>
           <Button onClick={handleMint}>mint</Button>
+
+          <Input value={nid} onChange={(e) => setNid(e.currentTarget.value)} />
           <Button onClick={checkNftOwner}>checkNftOwner</Button>
+          <Button onClick={handleBorrowOrNot}>Borrowed</Button>
+          <Button onClick={handleGetBorrowStatus}>GetBorrowStatus</Button>
+          <Button onClick={CheckNFTLendingInfo}>CheckNFTLendingInfo</Button>
+          <br />
           <Button onClick={checkApproveOwner}>checkApproveOwner</Button>
           <Button onClick={checkExists}>checkExists</Button>
           <Button onClick={checkOwnerOf}>checkOwnerOf</Button>
           <Button onClick={checkNftBalance}>nftBalance</Button>
-          <Button onClick={handleGetBorrowStatus}>GetBorrowStatus</Button>
-          <Button onClick={handleBorrowOrNot}>Borrowed</Button>
-          <Button onClick={CheckNFTLendingInfo}>CheckNFTLendingInfo</Button>
+          <br />
         </>
       ) : null}
 
