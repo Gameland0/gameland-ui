@@ -85,7 +85,7 @@ export const Header = () => {
     <HeaderBox>
       <div className="container flex flex-h-between flex-v-center">
         <div className="logo">
-          <Logo height="36"></Logo>
+          <Logo height="100"></Logo>
         </div>
         {!isMobile ? (
           <>
