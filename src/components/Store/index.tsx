@@ -25,7 +25,7 @@ export interface StoreData {
 
 export const StoreContext = createContext({} as StoreData)
 
-export const baseUrl = 'http://testnet-api.gameland.network'
+export const baseUrl = 'https://testnet-api.gameland.network'
 // const baseUrl = process.env.NODE_ENV === 'development' ? '/api' : 'http://testnet-api.gameland.network'
 export const http = axios.create({
   baseURL: baseUrl,
