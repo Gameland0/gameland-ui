@@ -181,6 +181,7 @@ export const Rent = () => {
               days={currentItem.days}
               img={currentItem.image_preview_url}
               unOperate={true}
+              asset_contract={currentItem.asset_contract}
             />
             {/* <NftView img={currentItem.image_url} name={currentItem.name}></NftView> */}
             {/* <Card name={currentItem.name} price={currentItem.price} days={currentItem.days} img={currentItem.img} /> */}
@@ -258,6 +259,7 @@ export const Rent = () => {
                 price={item.price}
                 img={item.image_preview_url}
                 isLending={item.isLending}
+                asset_contract={item.asset_contract}
               />
             </Col>
           ))

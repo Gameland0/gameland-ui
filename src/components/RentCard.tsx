@@ -6,9 +6,10 @@ import { BaseProps } from './NumInput'
 import { toastify } from './Toastify'
 import { CardBox, Details } from './Nft'
 import BigNumber from 'bignumber.js'
+import { Tag } from 'antd'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Days = styled.span`
+const Tips = styled.span`
   color: #aaa;
   font-size: 0.875rem;
 `
@@ -42,7 +43,7 @@ const Labels: React.FC<LabelProps> = ({ price, name, days, collateral }) => {
     <div style={{ overflow: 'hidden' }}>
       <p>{name}</p>
       <PriceLabel>{total} Ξ </PriceLabel>
-      <Days>{days} days</Days>
+      <Tips>{days} days</Tips>
     </div>
   )
 }
@@ -88,7 +89,8 @@ export const RentCard: React.FC<RentProps> = ({
   days,
   onClick,
   isLending,
-  nftId
+  nftId,
+  asset_contract
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -105,9 +107,25 @@ export const RentCard: React.FC<RentProps> = ({
       <Details className="flex flex-h-between">
         <div>
           <Labels collateral={collateral} name={name} nftId={nftId} price={price} days={days as number} />
+          <Standard color="processing">{asset_contract?.schema_name}</Standard>
         </div>
         {!unOperate ? <Operate isLending={isLending} onClick={() => onclick} /> : null}
       </Details>
     </CardBox>
   )
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const Type = styled.div`
+  position: absolute;
+  left: 0;
+  top: 2rem;
+  z-index: 1;
+  padding: 0.15rem 0.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 0.825rem;
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+`
+export const Standard = styled(Tag)`
+  margin-top: 0.5rem;
+`

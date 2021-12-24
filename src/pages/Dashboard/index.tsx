@@ -16,8 +16,8 @@ import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { http } from '../../components/Store'
-import { isEmpty } from 'lodash'
-import { formatAddress, getProgress, ZeroAddress } from '../../utils'
+import { isEmpty, isEqual } from 'lodash'
+import { formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../../utils'
 import { MyRenting } from './MyRenting'
 import { SpanLabel, DaysInfo } from '../Rent'
 import BigNumber from 'bignumber.js'
@@ -25,6 +25,7 @@ import { lowerCase } from 'lower-case'
 import { parseEther } from '@ethersproject/units'
 import { Loading } from '../../components/Loading'
 import { Empty } from '../../components/Empty'
+import { formatEther } from '@ethersproject/units'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -189,7 +190,7 @@ export const Dashboard = () => {
     try {
       const status = await gamelandContract?.get_borrow_info(nid)
       const dateStr = (status[1].toString() + '000') as unknown as number
-      console.log(gamelandContract?.address, status, dateStr, new Date(Number(dateStr)))
+      console.log(status, dateStr, new Date(Number(dateStr)))
     } catch (err: any) {
       console.log(err.message)
     }
@@ -237,8 +238,14 @@ export const Dashboard = () => {
         setProgress(_progress)
         setExpired(_progress >= 100)
       } else {
-        const nftOwner = await nftContract?.ownerOf(item.token_id)
-        setWithdrawable(checkWithdrawAble(nftOwner, account as string))
+        // const nftOwner = await nftContract?.ownerOf(item.token_id)
+        // setWithdrawable(checkWithdrawAble(nftOwner, account as string))
+        let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
+
+        _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
+
+        console.log(isEqual(_lending, ZeroNftInfo))
+        setWithdrawable(!isEqual(_lending, ZeroNftInfo))
       }
     } catch (err: any) {
       console.log(err.message)
@@ -372,25 +379,24 @@ export const Dashboard = () => {
         return
       }
       setLending(true)
-      const owner = await nftContract.ownerOf(currentItem.nftId)
-      if (lowerCase(owner) !== lowerCase(account)) {
-        const deposited = await gamelandContract.deposit(
-          parseEther(price),
-          days,
-          currentItem.nftId,
-          parseEther(collateral),
-          currentItem.contractAddress,
-          currentItem.gamelandNftId
-        )
+      // const owner = await nftContract.ownerOf(currentItem.nftId)
 
-        gamelandContract.on('Received', (from, to, amount, event) => {
-          console.log(`${from} sent ${amount} to ${to},event: ${event}`)
-        })
-        const tx = await deposited.wait()
-        console.log(deposited.hash, tx)
-        if (!tx.status) {
-          throw Error('Failed to deposit.')
-        }
+      const deposited = await gamelandContract.deposit(
+        parseEther(price),
+        days,
+        currentItem.nftId,
+        parseEther(collateral),
+        currentItem.contractAddress,
+        currentItem.gamelandNftId
+      )
+
+      gamelandContract.on('Received', (from, to, amount, event) => {
+        console.log(`${from} sent ${amount} to ${to},event: ${event}`)
+      })
+      const tx = await deposited.wait()
+      console.log(deposited.hash, tx)
+      if (!tx.status) {
+        throw Error('Failed to deposit.')
       }
 
       const params = {
@@ -458,6 +464,7 @@ export const Dashboard = () => {
               nftId={currentItem.token_id as string}
               withdrawable={withdrawable}
               unOperate={true}
+              asset_contract={currentItem.asset_contract}
             />
           </Col>
 
@@ -566,8 +573,10 @@ export const Dashboard = () => {
         </Row>
       </Modal>
       {process.env.NODE_ENV === 'development' ? (
-        <>
+        <div style={{ marginTop: '1rem' }}>
           <ChainName />
+          <b>{gamelandContract?.address}</b>
+          <br />
           <Button onClick={handleGetTestNft}>getNFT</Button>
           <Button onClick={handleAddProgram}>addContract</Button>
           <Button onClick={handleMint}>mint</Button>
@@ -583,7 +592,7 @@ export const Dashboard = () => {
           <Button onClick={checkOwnerOf}>checkOwnerOf</Button>
           <Button onClick={checkNftBalance}>nftBalance</Button>
           <br />
-        </>
+        </div>
       ) : null}
 
       <MyTabs
@@ -624,6 +633,7 @@ export const Dashboard = () => {
                       borrowAt={item.borrowAt}
                       sell_orders={item.sell_orders}
                       collateral={item.collateral}
+                      asset_contract={item.asset_contract}
                     ></NftCard>
                   </Col>
                 ))

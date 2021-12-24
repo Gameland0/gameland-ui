@@ -49,7 +49,9 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     fetcher
   )
 
-  const [openseaData, setOpenseaData] = useState({})
+  const [openseaData, setOpenseaData] = useState({
+    assets: []
+  })
 
   const [updater, dispatchOpensea] = useReducer((c) => c + 1, 0)
 
@@ -63,8 +65,18 @@ export const Store = ({ children }: { children: JSX.Element }) => {
       .then((res) => res.json())
       .then((data) => {
         console.log(data)
+        const currentData = openseaData
 
-        setOpenseaData(data)
+        if (currentData.assets.length) {
+          currentData.assets.concat(data.assets)
+          setOpenseaData(currentData)
+        } else {
+          setOpenseaData(data)
+        }
+
+        if (data.assets.length === pageSize) {
+          dispatchOpensea()
+        }
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, updater])

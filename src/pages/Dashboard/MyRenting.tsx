@@ -138,6 +138,7 @@ export const MyRenting = () => {
               img={currentItem.image_url}
               nftId={currentItem.nftId}
               unOperate={true}
+              asset_contract={currentItem.asset_contract}
             />
           </Col>
 
@@ -198,6 +199,7 @@ export const MyRenting = () => {
                 nftId={item.nftId}
                 borrowAt={item.borrowAt}
                 isExpired={item.isExpired}
+                asset_contract={item.asset_contract}
               ></RentingCard>
             </Col>
           ))

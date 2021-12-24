@@ -5,6 +5,7 @@ import { getProgress, getTimeLeftText } from '../utils'
 import { Img } from './Img'
 import { BaseProps } from './NumInput'
 import { CardBox, Details } from './Nft'
+import { Standard } from './RentCard'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Days = styled.span`
@@ -117,7 +118,8 @@ export const RentingCard: React.FC<RentingProps> = ({
   isExpired,
   borrowAt,
   nftId,
-  img
+  img,
+  asset_contract
 }) => {
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
@@ -126,6 +128,7 @@ export const RentingCard: React.FC<RentingProps> = ({
       <Details className="flex flex-h-between">
         <div>
           <ProgressLabels borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
+          <Standard color="processing">{asset_contract?.schema_name}</Standard>
         </div>
         {!unOperate ? <Operate isExpired={isExpired} onClick={() => onclick} /> : null}
       </Details>

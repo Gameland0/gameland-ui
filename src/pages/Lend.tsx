@@ -69,6 +69,7 @@ export const Lend = () => {
       } else {
         let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
         _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
+        console.log(isEqual(_lending, ZeroNftInfo))
 
         setWithdrawable(!isEqual(_lending, ZeroNftInfo))
       }
@@ -251,6 +252,7 @@ export const Lend = () => {
                 isLending={item.isLending}
                 isBorrowed={item.isBorrowed}
                 withdrawable={withdrawable}
+                asset_contract={item.asset_contract}
               />
             </Col>
           ))

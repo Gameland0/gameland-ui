@@ -50,6 +50,7 @@ export interface NFTData extends OpenseaData {
   sell_orders?: Record<string, any>[]
   contractAddress?: string
   gamelandNftId?: number
+  asset_contract?: Record<string, any>
 }
 
 export function useStore() {

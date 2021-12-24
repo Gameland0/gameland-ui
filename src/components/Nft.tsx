@@ -22,9 +22,10 @@ import Animal from '../assets/Unknown.jpeg'
 import Wizards from '../assets/Wizards.png'
 import Woof from '../assets/Woof.jpeg'
 import BigNumber from 'bignumber.js'
-import { PriceLabel } from './RentCard'
+import { PriceLabel, Standard } from './RentCard'
 
 export const CardBox = styled.div`
+  position: relative;
   width: 100%;
   height: 100%;
   background: #fff;
@@ -135,7 +136,7 @@ export const Tag: React.FC<{ text: string }> = ({ text }) => {
 const OperateWrap = styled.div`
   position: absolute;
   right: 1rem;
-  bottom: 2rem;
+  top: 1rem;
 `
 const Operate: React.FC<OperateProps> = ({
   withdrawable,
@@ -197,7 +198,8 @@ export const Nft: React.FC<NftProps> = ({
   collateral,
   nftId,
   borrowAt,
-  sell_orders
+  sell_orders,
+  asset_contract
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -222,6 +224,7 @@ export const Nft: React.FC<NftProps> = ({
             price={price}
             days={days}
           />
+          <Standard color="processing">{asset_contract?.schema_name}</Standard>
         </div>
         {!unOperate ? (
           <Operate
