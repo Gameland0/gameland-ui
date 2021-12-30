@@ -9,8 +9,8 @@ import { Web3Provider } from '@ethersproject/providers'
 import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
 import GreeterAbi from '../constants/Abis/Greeter.json'
-// import MyNftAbi from '../constants/Abis/MyNft.json'
-import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
+import MyNftAbi from '../constants/Abis/MyNft.json'
+// import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
 import GameLandAbi from '../constants/Abis/GameLand.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
@@ -164,7 +164,7 @@ export function useGameLandContract() {
 export function useMyNftContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
-  return new Contract(MyNFTAddress, MyNftAbi.abi, library?.getSigner())
+  return new Contract(MyNFTAddress, MyNftAbi, library?.getSigner())
 }
 
 export interface ListenerOptions {
