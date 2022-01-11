@@ -115,21 +115,13 @@ export const Dashboard = () => {
       console.log(item)
 
       try {
-        if (currentItem.asset_contract?.schema_name === 'ERC721') {
-          const approveAddress = await NFTsContract[contractAddress].getApproved(item.token_id)
-          console.log(approveAddress, approveAddress === ZeroAddress)
+        const approveAddress = await NFTsContract[contractAddress].getApproved(item.token_id)
+        console.log(approveAddress, approveAddress === ZeroAddress)
 
-          if (lowerCase(approveAddress) === lowerCase(gamelandContract?.address as string)) {
-            setIsApproved(true)
-          } else {
-            setIsApproved(false)
-          }
+        if (lowerCase(approveAddress) === lowerCase(gamelandContract?.address as string)) {
+          setIsApproved(true)
         } else {
-          const isApproved = await NFTsContract[lowerCase(contractAddress)].isApprovedForAll(
-            gamelandContract?.address,
-            account
-          )
-          isApproved ? setIsApproved(true) : setIsApproved(false)
+          setIsApproved(false)
         }
       } catch (err: any) {
         console.log(err.message)
@@ -237,8 +229,9 @@ export const Dashboard = () => {
   const handleCollateralChange = useCallback((val) => setCollateral(val), [])
 
   const handleLend = async () => {
+    const contractAddress = currentItem.asset_contract?.address
     try {
-      if (!gamelandContract) {
+      if (!gamelandContract || !NFTsContract) {
         toastify.error('Contract not found.')
         return
       }
@@ -307,12 +300,7 @@ export const Dashboard = () => {
           }
           await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         }
-        let approvetx
-        if (currentItem.asset_contract?.schema_name === 'ERC721') {
-          approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
-        } else {
-          approvetx = await NFTsContract[nftAddress].setApprovalForAll(GameLandAddress, true)
-        }
+        const approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         console.log(approvetx)
 
@@ -335,7 +323,6 @@ export const Dashboard = () => {
               name={currentItem.name}
               price={currentItem.price}
               days={currentItem.days}
-              collateral={currentItem.collateral}
               img={currentItem.image_url}
               nftId={currentItem.token_id as string}
               withdrawable={withdrawable}

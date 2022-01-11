@@ -224,7 +224,9 @@ export const Nft: React.FC<NftProps> = ({
             price={price}
             days={days}
           />
-          <Standard color="processing">{asset_contract?.schema_name}</Standard>
+          <Standard color={asset_contract?.schema_name === 'ERC721' ? 'processing' : 'orange'}>
+            {asset_contract?.schema_name}
+          </Standard>
         </div>
         {!unOperate ? (
           <Operate

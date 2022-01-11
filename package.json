@@ -28,7 +28,7 @@
     "chai": "^4.3.4",
     "craco-less": "^1.20.0",
     "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.4.6",
+    "ethers": "5.5.2",
     "http-proxy-middleware": "^2.0.1",
     "less": "^4.1.1",
     "less-loader": "^10.0.1",
@@ -37,6 +37,7 @@
     "react": "^17.0.2",
     "react-device-detect": "^1.17.0",
     "react-dom": "^17.0.2",
+    "react-jdenticon": "^0.0.9",
     "react-router": "^5.2.1",
     "react-router-dom": "^5.2.1",
     "react-scripts": "4.0.3",
@@ -51,7 +52,7 @@
     "build": "GENERATE_SOURCEMAP=false craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "sv":"cd build && http-server"
+    "sv": "cd build && http-server"
   },
   "eslintConfig": {
     "extends": [

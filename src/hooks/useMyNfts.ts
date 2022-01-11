@@ -1,26 +1,31 @@
 import { lowerCase } from 'lower-case'
 import { useMemo } from 'react'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { NFTData, useActiveWeb3React, useGameLandContract, useStore } from '.'
 
 export const useMyNfts = (): NFTData[] => {
   const { nfts } = useStore()
   const { account } = useActiveWeb3React()
-  const gameland = useGameLandContract()
+  // const gameland = useGameLandContract()
 
   return useMemo(() => {
     if (!nfts) return []
     if (!account) return []
+    console.log(nfts)
+
     const data = nfts.filter((item: any) => {
-      const ownerAddress = lowerCase(item.owner.address as string)
-      const originOwner = lowerCase(item.originOwner as string)
-      const user = lowerCase(account as string)
+      // const ownerAddress = lowerCase(item.owner.address as string)
+      const originOwner = lowerCase(item.originOwner)
+      const user = lowerCase(account)
       const borrower = lowerCase(item.borrower ?? '')
-      const gamelandAddress = lowerCase(gameland?.address as string)
+      // const gamelandAddress = lowerCase(gameland?.address as string)
       return item.owner.address
-        ? (ownerAddress === user && borrower !== user) || // mine owned
-            (ownerAddress === gamelandAddress && originOwner === user) || // deposit
-            (ownerAddress === user && originOwner === user)
-        : false
+        ? (originOwner === user && borrower !== user) || // mine owned
+            originOwner === user
+        : // ? (ownerAddress === user && borrower !== user) || // mine owned
+          //     (ownerAddress === gamelandAddress && originOwner === user) || // deposit
+          //     (ownerAddress === user && originOwner === user)
+          false
     })
 
     return data

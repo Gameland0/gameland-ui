@@ -6,7 +6,8 @@ import { BaseProps } from './NumInput'
 import { toastify } from './Toastify'
 import { CardBox, Details } from './Nft'
 import BigNumber from 'bignumber.js'
-import { Tag } from 'antd'
+import { Tag, Spin } from 'antd'
+import { Loading3QuartersOutlined } from '@ant-design/icons'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Tips = styled.span`
@@ -47,37 +48,51 @@ const Labels: React.FC<LabelProps> = ({ price, name, days, collateral }) => {
     </div>
   )
 }
-const FakeButtonBox = styled.div<{ type?: string }>`
+const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   display: block;
-  height: 2rem;
-  border-radius: 1rem;
+  height: 2.5rem;
+  cursor: pointer;
+  border-radius: 1.25rem;
   padding: 0 1rem;
-  line-height: 2rem;
+  line-height: 2.5rem;
   font-size: 0.875rem;
-  color: ${({ type }) => (type === 'ghost' ? 'var(--second-color)' : 'white')};
-  background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--second-color)')};
-  border: ${({ type }) => (type === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
+  width: ${({ block }) => (block ? '100%' : 'auto')};
+  color: ${({ theme }) => (theme === 'ghost' ? 'var(--second-color)' : 'white')};
+  background: ${({ theme }) => (theme === 'ghost' ? 'transparent' : 'var(--second-color)')};
+  border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
 
   &:hover {
-    background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'var(--second-light-color)')};
-    color: ${({ type }) => (type === 'ghost' ? 'var(--second-light-color)' : 'white')};
-    border: ${({ type }) => (type === 'ghost' ? `1px solid var(--second-light-color)` : '1px solid transparent')};
+    background: ${({ theme }) => (theme === 'ghost' ? 'transparent' : 'var(--second-light-color)')};
+    color: ${({ theme }) => (theme === 'ghost' ? 'var(--second-light-color)' : 'white')};
+    border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-light-color)` : '1px solid transparent')};
+  }
+  &[disabled],
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 `
 
-interface FakeButtonProps extends BaseProps {
-  type?: 'fill' | 'ghost'
-  onClick?: () => void
+interface FakeButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, BaseProps {
+  theme?: 'fill' | 'ghost'
+  loading?: boolean
+  block?: boolean
 }
-export const FakeButton: React.FC<FakeButtonProps> = ({ type, children }) => {
-  return <FakeButtonBox type={type}>{children}</FakeButtonBox>
+const antIcon = <Loading3QuartersOutlined style={{ fontSize: 16, color: 'white' }} spin />
+
+export const FakeButton: React.FC<FakeButtonProps> = ({ theme, children, loading, block, ...props }) => {
+  return (
+    <FakeButtonBox block={block} theme={theme} {...props}>
+      {loading ? <Spin indicator={antIcon} /> : children}
+    </FakeButtonBox>
+  )
 }
 interface OperateProps {
   isLending?: boolean
   onClick?: () => void
 }
 const Operate: React.FC<OperateProps> = ({ isLending }) => {
-  return <>{isLending ? <FakeButton type="ghost">Rent</FakeButton> : null}</>
+  return <>{isLending ? <FakeButton theme="ghost">Rent</FakeButton> : null}</>
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const RentCard: React.FC<RentProps> = ({
@@ -107,7 +122,9 @@ export const RentCard: React.FC<RentProps> = ({
       <Details className="flex flex-h-between">
         <div>
           <Labels collateral={collateral} name={name} nftId={nftId} price={price} days={days as number} />
-          <Standard color="processing">{asset_contract?.schema_name}</Standard>
+          <Standard color={asset_contract?.schema_name === 'ERC721' ? 'processing' : 'orange'}>
+            {asset_contract?.schema_name}
+          </Standard>
         </div>
         {!unOperate ? <Operate isLending={isLending} onClick={() => onclick} /> : null}
       </Details>

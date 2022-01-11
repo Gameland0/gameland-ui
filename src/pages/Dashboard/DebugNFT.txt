@@ -1,13 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Row, Col, Tabs, Button, Popconfirm } from 'antd'
+import { Row, Col, Tabs, Button, Input, Popconfirm } from 'antd'
 import styled from 'styled-components'
+import { ChainName } from '../../components/ChainName'
 import { Modal } from '../../components/Modal'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
 import {
   GameLandAddress,
   useActiveWeb3React,
   useGameLandContract,
-  // useMyNftContract,
+  useMyNftContract,
   useMyNfts,
   useNFTContract,
   useStore
@@ -35,9 +36,10 @@ const MyNftBox = styled.div``
 
 export const Dashboard = () => {
   const { account } = useActiveWeb3React()
-  // const nftContract = useMyNftContract()
+  const nftContract = useMyNftContract()
   const NFTsContract = useNFTContract()
   const gamelandContract = useGameLandContract()
+  const [nid, setNid] = useState('')
   const myNft = useMyNfts()
 
   const [visible, setVisible] = useState(false)
@@ -69,6 +71,148 @@ export const Dashboard = () => {
     const _cost = new BigNumber(currentItem.price as number).times(currentItem.days as number)
     return _cost.plus(collateral).toString()
   }, [currentItem])
+
+  const nfts = ['Eagle', 'Wizards', 'Animal', 'Devil', 'Woof', 'Alien', 'Fox']
+  const handleAddProgram = async () => {
+    try {
+      const addedProgram = await gamelandContract?.add_nft_program(nid)
+      const { status } = await addedProgram.wait()
+      if (!status) {
+        throw Error('failed')
+      }
+      toastify.success('succeed')
+    } catch (error: any) {
+      toastify.error(error.message || 'Failed to add nft contract')
+    }
+  }
+  const handleMint = async () => {
+    setMinting(true)
+    try {
+      let NftAmount: any = window.localStorage.getItem(`Amount-${account}`) ?? 0
+      console.log(NftAmount)
+
+      if (NftAmount.length >= 2) {
+        toastify.error('Each user can only mint two NFTs.')
+        setMinting(false)
+        return
+      }
+      const id = new Date().valueOf()
+      const _mint = await nftContract?.mint(account, id)
+      await _mint.wait()
+      console.log(id)
+
+      const num = Math.floor(Math.random() * 7)
+      const params = {
+        nftId: id,
+        name: nfts[num],
+        img: 'img',
+        isLending: false,
+        isBorrowed: false,
+        owner: account,
+        originOwner: account
+      }
+      const res: any = await http.post('/api/nft', params)
+      console.log(res, res.data.code === 1)
+      NftAmount += 1
+      window.localStorage.setItem(`Amount-${account}`, NftAmount)
+
+      if (res.data.code === 1) {
+        console.log(res)
+        toastify.success(res.data.message)
+        setMinting(false)
+        mutateNfts(undefined, true)
+      } else {
+        throw res
+      }
+    } catch (err: any) {
+      setMinting(false)
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
+  const checkNftOwner = async () => {
+    try {
+      const originOwn = await gamelandContract?.nft_owner(nid)
+      console.log(`${nid} origin owner:` + originOwn)
+    } catch (err: any) {
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
+  const checkApproveOwner = async () => {
+    try {
+      const approvedAddr = await nftContract?.getApproved(nid)
+      console.log(`${nid} Approved address:` + approvedAddr)
+    } catch (err: any) {
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
+  const checkOwnerOf = async () => {
+    try {
+      const ownerOf = await nftContract?.ownerOf(nid)
+      console.log(`${nid} ownerOf address:` + ownerOf)
+    } catch (err: any) {
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
+  const checkExists = async () => {
+    try {
+      const isExists = await nftContract?.exist(nid)
+      console.log(`${nid} is exists:` + isExists)
+    } catch (err: any) {
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
+  const checkNftBalance = async () => {
+    try {
+      const balanceOf = await nftContract?.balanceOf(account)
+      console.log(`account nft:` + balanceOf)
+    } catch (err: any) {
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
+
+  const handleGetTestNft = async () => {
+    try {
+      console.log(gamelandContract?.address)
+
+      const data = await gamelandContract?.get_all_nfts()
+      console.log('data:' + data)
+    } catch (err: any) {
+      console.log(err)
+      toastify.error(err.message)
+    }
+  }
+
+  const handleGetBorrowStatus = async () => {
+    try {
+      const status = await gamelandContract?.get_borrow_info(nid)
+      const dateStr = (status[1].toString() + '000') as unknown as number
+      console.log(status, dateStr, new Date(Number(dateStr)))
+    } catch (err: any) {
+      console.log(err.message)
+    }
+  }
+
+  const handleBorrowOrNot = async () => {
+    try {
+      const status = await gamelandContract?.borrow_or_not(nid)
+      console.log(status)
+    } catch (err: any) {
+      console.log(err.message)
+    }
+  }
+
+  const CheckNFTLendingInfo = async () => {
+    if (gamelandContract) {
+      const info = await gamelandContract.get_nft_allinfo(nid)
+      console.log(info.map((item: any) => item.toString()))
+    }
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const checkWithdrawAble = (nftOwner: string, account: string) => {
@@ -110,26 +254,18 @@ export const Dashboard = () => {
       console.log(err.message)
       toastify.error(err.message || 'Error occured with retrieving details.')
     }
-    const contractAddress = currentItem.asset_contract?.address
-    if (NFTsContract !== null) {
+
+    if (nftContract) {
       console.log(item)
 
       try {
-        if (currentItem.asset_contract?.schema_name === 'ERC721') {
-          const approveAddress = await NFTsContract[contractAddress].getApproved(item.token_id)
-          console.log(approveAddress, approveAddress === ZeroAddress)
+        const approveAddress = await nftContract.getApproved(item.token_id)
+        console.log(approveAddress, approveAddress === ZeroAddress)
 
-          if (lowerCase(approveAddress) === lowerCase(gamelandContract?.address as string)) {
-            setIsApproved(true)
-          } else {
-            setIsApproved(false)
-          }
+        if (lowerCase(approveAddress) === lowerCase(gamelandContract?.address as string)) {
+          setIsApproved(true)
         } else {
-          const isApproved = await NFTsContract[lowerCase(contractAddress)].isApprovedForAll(
-            gamelandContract?.address,
-            account
-          )
-          isApproved ? setIsApproved(true) : setIsApproved(false)
+          setIsApproved(false)
         }
       } catch (err: any) {
         console.log(err.message)
@@ -178,13 +314,12 @@ export const Dashboard = () => {
           toastify.error('Please connect a account.')
           return
         }
-        const contractAddress = currentItem.asset_contract?.address
-        if (!gamelandContract || !NFTsContract) {
+        if (!gamelandContract || !nftContract) {
           toastify.error('Contract not found.')
           return
         }
         setWithdrawing(true)
-        const owner = await NFTsContract[contractAddress].ownerOf(currentItem.nftId)
+        const owner = await nftContract.ownerOf(currentItem.nftId)
 
         if (lowerCase(owner) !== lowerCase(account)) {
           const withdrawnft = await gamelandContract.withdrawnft(
@@ -238,7 +373,7 @@ export const Dashboard = () => {
 
   const handleLend = async () => {
     try {
-      if (!gamelandContract) {
+      if (!gamelandContract || !nftContract) {
         toastify.error('Contract not found.')
         return
       }
@@ -298,8 +433,7 @@ export const Dashboard = () => {
 
   const handleApprove = async () => {
     setApproving(true)
-    const nftAddress = currentItem.asset_contract?.address
-    if (NFTsContract) {
+    if (nftContract) {
       try {
         if (currentItem.originOwner !== account) {
           const params = {
@@ -307,12 +441,8 @@ export const Dashboard = () => {
           }
           await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         }
-        let approvetx
-        if (currentItem.asset_contract?.schema_name === 'ERC721') {
-          approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
-        } else {
-          approvetx = await NFTsContract[nftAddress].setApprovalForAll(GameLandAddress, true)
-        }
+        const nftAddress = currentItem.asset_contract?.address
+        const approvetx = NFTsContract ? await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId) : ''
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         console.log(approvetx)
 
@@ -335,7 +465,6 @@ export const Dashboard = () => {
               name={currentItem.name}
               price={currentItem.price}
               days={currentItem.days}
-              collateral={currentItem.collateral}
               img={currentItem.image_url}
               nftId={currentItem.token_id as string}
               withdrawable={withdrawable}
@@ -448,6 +577,28 @@ export const Dashboard = () => {
           </Col>
         </Row>
       </Modal>
+      {process.env.NODE_ENV === 'development' ? (
+        <div style={{ marginTop: '1rem' }}>
+          <ChainName />
+          <b>{gamelandContract?.address}</b>
+          <br />
+          <Button onClick={handleGetTestNft}>getNFT</Button>
+          <Button onClick={handleAddProgram}>addContract</Button>
+          <Button onClick={handleMint}>mint</Button>
+
+          <Input value={nid} onChange={(e) => setNid(e.currentTarget.value)} />
+          <Button onClick={checkNftOwner}>checkNftOwner</Button>
+          <Button onClick={handleBorrowOrNot}>Borrowed</Button>
+          <Button onClick={handleGetBorrowStatus}>GetBorrowStatus</Button>
+          <Button onClick={CheckNFTLendingInfo}>CheckNFTLendingInfo</Button>
+          <br />
+          <Button onClick={checkApproveOwner}>checkApproveOwner</Button>
+          <Button onClick={checkExists}>checkExists</Button>
+          <Button onClick={checkOwnerOf}>checkOwnerOf</Button>
+          <Button onClick={checkNftBalance}>nftBalance</Button>
+          <br />
+        </div>
+      ) : null}
 
       <MyTabs
         defaultActiveKey="1"

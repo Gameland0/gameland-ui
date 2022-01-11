@@ -4,10 +4,9 @@ module.exports = function (app) {
   app.use(
     '/api',
     createProxyMiddleware({
-      // target: 'http://testnet-api.gameland.network',
-      target: 'http://localhost:8088',
+      target: process.env.NODE_ENV === 'development' ? 'http://localhost:8088' : 'https://testnet-api.gameland.network',
       changeOrigin: true,
-      pathRewrite: {'^/api': ''}
+      pathRewrite: { '^/api': '' }
     })
   )
 }

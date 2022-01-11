@@ -11,6 +11,7 @@ import { Lend } from './Lend'
 import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
 import { Mint } from './Mint'
+import { Guilds } from './Guilds'
 
 const Wrap = styled.div`
   min-height: 30rem;
@@ -21,11 +22,12 @@ function App() {
     <div className="App">
       <Header />
       <Web3Manager>
-        <Wrap className="container">
+        <Wrap className="">
           <Switch>
             <Route exact path="/" component={Rent} />
             <Route exact path="/lend" component={Lend} />
             <Route exact path="/dashboard" component={Dashboard} />
+            <Route exact path="/guilds" component={Guilds} />
             <Route exact path="/mint" component={Mint} />
           </Switch>
           <ToastContainer />

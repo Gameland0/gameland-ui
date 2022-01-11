@@ -164,102 +164,105 @@ export const Lend = () => {
   }
 
   return (
-    <RentBox>
-      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
-        <Row gutter={[24, 24]}>
-          <Col span="12" xl={12} sm={24}>
-            <Nft
-              nftId={currentItem.nftId}
-              name={currentItem.name}
-              price={currentItem.price}
-              days={currentItem.days}
-              img={currentItem.image_url}
-              unOperate={true}
-            />
-          </Col>
-          <Col span="12" xl={12} sm={24}>
-            <h3>{currentItem.name}</h3>
-            <span className="tips">#{currentItem.nftId}</span>
-            {awaiting ? (
-              <Loading />
-            ) : borrowed ? (
-              <>
-                <Dlist className="flex">
-                  <div>
-                    <SpanLabel>Borrower</SpanLabel>
-                    <span title={currentItem.borrower}>{formatAddress(currentItem.borrower || ZeroAddress, 4)}</span>
-                  </div>
-                  <div>
-                    <SpanLabel>Owner</SpanLabel>
-                    <span title={currentItem.originOwner}>
-                      {formatAddress(currentItem.originOwner || ZeroAddress, 4)}
-                    </span>
-                  </div>
-                  <div>
-                    <SpanLabel>Collateral</SpanLabel>
-                    <span>{currentItem.collateral} Ξ</span>
-                  </div>
-                  <div>
-                    <SpanLabel>price</SpanLabel>
-                    <span>{currentItem.price} Ξ / day</span>
-                  </div>
-                  <div>
-                    <SpanLabel>days</SpanLabel>
-                    <span>{currentItem.days}</span>
-                  </div>
-                  <div>
-                    <SpanLabel>Total</SpanLabel>
-                    <span>{total} Ξ</span>
-                  </div>
-                </Dlist>
-                <div>
-                  <DaysInfo progress={progress}>Rent for {currentItem.days} days</DaysInfo>
-                </div>
-              </>
-            ) : (
-              <div>
-                <br />
-                <Button block shape="round" onClick={handleWithdraw} loading={withdrawing} size="large">
-                  Withdraw
-                </Button>
-              </div>
-            )}
-            {expired && (
-              <div>
-                <br />
-                <Popconfirm title="Are you sure to liquidation your NFT?" onConfirm={handleLiquidation}>
-                  <Button shape="round" danger block loading={liquidating} size="large">
-                    Liquidation
-                  </Button>
-                </Popconfirm>
-              </div>
-            )}
-          </Col>
-        </Row>
-      </Modal>
-      <Row gutter={[20, 20]}>
-        {myLendingNfts.length ? (
-          myLendingNfts.map((item, index) => (
-            <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
+    <div className="container">
+      <RentBox>
+        <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
+          <Row gutter={[24, 24]}>
+            <Col span="12" xl={12} sm={24}>
               <Nft
-                onClick={() => handleShowModal(item)}
-                name={item.name}
-                days={item.days}
-                price={item.price}
-                nftId={item.nftId}
-                borrowAt={item.borrowAt}
-                img={item.image_preview_url}
-                isLending={item.isLending}
-                isBorrowed={item.isBorrowed}
-                withdrawable={withdrawable}
-                asset_contract={item.asset_contract}
+                nftId={currentItem.nftId}
+                name={currentItem.name}
+                price={currentItem.price}
+                days={currentItem.days}
+                img={currentItem.image_url}
+                unOperate={true}
               />
             </Col>
-          ))
-        ) : (
-          <Empty text="Ooops, looks like nothing here." />
-        )}
-      </Row>
-    </RentBox>
+            <Col span="12" xl={12} sm={24}>
+              <h3>{currentItem.name}</h3>
+              <span className="tips">#{currentItem.nftId}</span>
+              {awaiting ? (
+                <Loading />
+              ) : borrowed ? (
+                <>
+                  <Dlist className="flex">
+                    <div>
+                      <SpanLabel>Borrower</SpanLabel>
+                      <span title={currentItem.borrower}>{formatAddress(currentItem.borrower || ZeroAddress, 4)}</span>
+                    </div>
+                    <div>
+                      <SpanLabel>Owner</SpanLabel>
+                      <span title={currentItem.originOwner}>
+                        {formatAddress(currentItem.originOwner || ZeroAddress, 4)}
+                      </span>
+                    </div>
+                    <div>
+                      <SpanLabel>Collateral</SpanLabel>
+                      <span>{currentItem.collateral} Ξ</span>
+                    </div>
+                    <div>
+                      <SpanLabel>price</SpanLabel>
+                      <span>{currentItem.price} Ξ / day</span>
+                    </div>
+                    <div>
+                      <SpanLabel>days</SpanLabel>
+                      <span>{currentItem.days}</span>
+                    </div>
+                    <div>
+                      <SpanLabel>Total</SpanLabel>
+                      <span>{total} Ξ</span>
+                    </div>
+                  </Dlist>
+                  <div>
+                    <DaysInfo progress={progress}>Rent for {currentItem.days} days</DaysInfo>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <br />
+                  <Button block shape="round" onClick={handleWithdraw} loading={withdrawing} size="large">
+                    Withdraw
+                  </Button>
+                </div>
+              )}
+              {expired && (
+                <div>
+                  <br />
+                  <Popconfirm title="Are you sure to liquidation your NFT?" onConfirm={handleLiquidation}>
+                    <Button shape="round" danger block loading={liquidating} size="large">
+                      Liquidation
+                    </Button>
+                  </Popconfirm>
+                </div>
+              )}
+            </Col>
+          </Row>
+        </Modal>
+        <Row gutter={[20, 20]}>
+          {myLendingNfts.length ? (
+            myLendingNfts.map((item, index) => (
+              <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
+                <Nft
+                  onClick={() => handleShowModal(item)}
+                  name={item.name}
+                  days={item.days}
+                  collateral={item.collateral}
+                  price={item.price}
+                  nftId={item.nftId}
+                  borrowAt={item.borrowAt}
+                  img={item.image_preview_url}
+                  isLending={item.isLending}
+                  isBorrowed={item.isBorrowed}
+                  withdrawable={withdrawable}
+                  asset_contract={item.asset_contract}
+                />
+              </Col>
+            ))
+          ) : (
+            <Empty text="Ooops, looks like nothing here." />
+          )}
+        </Row>
+      </RentBox>
+    </div>
   )
 }

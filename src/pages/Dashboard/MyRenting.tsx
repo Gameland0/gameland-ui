@@ -6,6 +6,7 @@ import {
   useGameLandContract,
   useMyNftContract,
   useMyRenting,
+  useNFTContract,
   useStore
 } from '../../hooks'
 import { Row, Col, Button } from 'antd'
@@ -34,6 +35,7 @@ export const MyRenting = () => {
 
   const nftContract = useMyNftContract()
   const gamelandContract = useGameLandContract()
+  const NFTsContract = useNFTContract()
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -112,10 +114,18 @@ export const MyRenting = () => {
   }
   const handleApprove = async () => {
     setApproving(true)
-    if (nftContract) {
+    const nftAddress = currentItem.asset_contract?.address
+    if (NFTsContract) {
       console.log(GameLandAddress, currentItem.nftId)
       try {
-        const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
+        // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
+
+        let approvetx
+        if (currentItem.asset_contract?.schema_name === 'ERC721') {
+          approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
+        } else {
+          approvetx = await NFTsContract[nftAddress].setApprovalForAll(GameLandAddress, true)
+        }
         await approvetx.wait()
         setIsApproved(true)
         toastify.success("Now you're able to return NFT")

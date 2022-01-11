@@ -10,16 +10,23 @@ import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
 import GreeterAbi from '../constants/Abis/Greeter.json'
 import MyNftAbi from '../constants/Abis/MyNft.json'
+import ArchNftAbi from '../constants/Abis/ArchNft.json'
 // import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
 import GameLandAbi from '../constants/Abis/GameLand.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
+import { lowerCase } from 'lower-case'
 
 export const GameLandAddress: string = process.env.REACT_APP_GAMELAND || 'undefined' // stable version
 export const MyNFTAddress = process.env.REACT_APP_MYNFT || 'undefined' // stable version
+export const ArchAddress = process.env.REACT_APP_ARCH || 'undefined'
 export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'
 
-if (typeof MyNFTAddress === 'undefined' || typeof GameLandAddress === 'undefined') {
+if (
+  typeof MyNFTAddress === 'undefined' ||
+  typeof GameLandAddress === 'undefined' ||
+  typeof ArchAddress === 'undefined'
+) {
   throw new Error(`Seems contract not exist.`)
 }
 
@@ -158,13 +165,33 @@ export function useGameLandContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
 
-  return new Contract(GameLandAddress, GameLandAbi, library?.getSigner())
+  return new Contract(GameLandAddress, GameLandAbi, library.getSigner())
 }
 
 export function useMyNftContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
-  return new Contract(MyNFTAddress, MyNftAbi, library?.getSigner())
+  return new Contract(MyNFTAddress, MyNftAbi, library.getSigner())
+}
+
+export function useArchNftContract() {
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+  return new Contract(ArchAddress, ArchNftAbi, library.getSigner())
+}
+
+const ABIS: Record<string, any[]> = {}
+ABIS[lowerCase(MyNFTAddress)] = MyNftAbi
+ABIS[lowerCase(ArchAddress)] = ArchNftAbi
+
+export function useNFTContract() {
+  const contracts: Record<string, Contract> = {}
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+  Object.keys(ABIS).forEach((address) => {
+    contracts[address] = new Contract(address, ABIS[address], library?.getSigner())
+  })
+  return contracts
 }
 
 export interface ListenerOptions {

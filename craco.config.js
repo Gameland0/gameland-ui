@@ -1,11 +1,6 @@
 const CracoLessPlugin = require('craco-less')
 
 module.exports = {
-  // devServer:{
-  //   proxy: {
-  //     '/api': 'http://localhost:8080',
-  //   }
-  // },
   webpack: {
     configure: (webpackConfig) => {
       if (process.env.NODE_ENV === 'production') {
@@ -25,7 +20,7 @@ module.exports = {
       options: {
         lessLoaderOptions: {
           lessOptions: {
-            modifyVars: { '@primary-color': '#41ACEF', '@error-color': '#1fbb65' },
+            modifyVars: { '@primary-color': '#41ACEF', '@error-color': 'red' },
             javascriptEnabled: true
           }
         }

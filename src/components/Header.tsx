@@ -99,6 +99,9 @@ export const Header = () => {
               <Link to="/dashboard">
                 <span>Dashboard</span>
               </Link>
+              <Link to="/guilds">
+                <span>Guilds</span>
+              </Link>
             </div>
             <div className="flex flex-h-between flex-v-center">
               <AccountBar key="accountbar" />

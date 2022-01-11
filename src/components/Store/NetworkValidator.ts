@@ -15,13 +15,13 @@ export const useNetworkValidator = () => {
         setError(false)
         return
       }
-      console.log(chainId, !supportedNetwork.includes(chainId))
+      // console.log(chainId, !supportedNetwork.includes(chainId))
 
       setError(!supportedNetwork.includes(chainId))
     })
   }, [active])
 
-  console.log(error)
+  // console.log(error)
 
   return error
 }

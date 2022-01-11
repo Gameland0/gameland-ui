@@ -159,3 +159,19 @@ export function handleFetchQueue(urls: string[], max: number, callback: (r: any)
   }
   handleRequest(urls[i])
 }
+
+export const formatNum = (num: number | string, decimals: number) => {
+  if (!num) {
+    return
+  }
+  const decimalPlace = 10 ** decimals
+  return String(Math.floor(Number(num) * decimalPlace) / decimalPlace)
+}
+
+export const formatContribute = (num: number | string, decimals: number) => {
+  if (!num) {
+    return ''
+  }
+  const decimalPlace = 10 ** decimals
+  return String(Math.floor(Number(num) * decimalPlace))
+}

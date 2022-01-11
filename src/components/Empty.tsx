@@ -15,7 +15,7 @@ const EmptyWrap = styled.div`
 export const Empty: React.FC<EmptyProps> = ({ text }) => {
   return (
     <EmptyWrap className={'flex flex-center flex-column'}>
-      <AEmpty description={text} />
+      <AEmpty image={AEmpty.PRESENTED_IMAGE_SIMPLE} description={text} />
     </EmptyWrap>
   )
 }

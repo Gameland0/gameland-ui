@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
 // import { useGreeterContract } from '../hooks'
-import { Row, Col, Button } from 'antd'
+import { Row, Col } from 'antd'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import BigNumber from 'bignumber.js'
@@ -12,7 +12,7 @@ import { toastify } from '../components/Toastify'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
 // import { NftView } from '../components/NftView'
-import { RentCard } from '../components/RentCard'
+import { FakeButton, RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
 import { contractionId, formatAddress, ZeroAddress } from '../utils'
 import { http } from '../components/Store'
@@ -116,6 +116,8 @@ export const Rent = () => {
   }
 
   const handleRent = async () => {
+    console.log('rents')
+
     try {
       if (!library) {
         toastify.error('Please connect a account.')
@@ -170,79 +172,78 @@ export const Rent = () => {
   }
 
   return (
-    <RentBox>
-      <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose>
-        <Row gutter={[24, 24]}>
-          <Col span="12" xl={12} sm={24}>
-            <NftCard
-              nftId={currentItem.nftId}
-              name={currentItem.name}
-              price={currentItem.price}
-              days={currentItem.days}
-              img={currentItem.image_preview_url}
-              unOperate={true}
-              asset_contract={currentItem.asset_contract}
-            />
-            {/* <NftView img={currentItem.image_url} name={currentItem.name}></NftView> */}
-            {/* <Card name={currentItem.name} price={currentItem.price} days={currentItem.days} img={currentItem.img} /> */}
-          </Col>
-          <Col span="12" xl={12} sm={24}>
-            <h3>{currentItem.name}</h3>
-            <span>#{contractionId(String(currentItem.token_id))}</span>
-            <Dlist className="flex">
+    <div className="container">
+      <RentBox>
+        <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose>
+          <Row gutter={[24, 24]}>
+            <Col span="12" xl={12} sm={24}>
+              <NftCard
+                nftId={currentItem.nftId}
+                name={currentItem.name}
+                price={currentItem.price}
+                days={currentItem.days}
+                img={currentItem.image_preview_url}
+                unOperate={true}
+                asset_contract={currentItem.asset_contract}
+              />
+              {/* <NftView img={currentItem.image_url} name={currentItem.name}></NftView> */}
+              {/* <Card name={currentItem.name} price={currentItem.price} days={currentItem.days} img={currentItem.img} /> */}
+            </Col>
+            <Col span="12" xl={12} sm={24}>
+              <h3>{currentItem.name}</h3>
+              <span>#{contractionId(String(currentItem.token_id))}</span>
+              <Dlist className="flex">
+                <div>
+                  <SpanLabel>Owner</SpanLabel>
+                  <span title={currentItem.originOwner}>
+                    {formatAddress(currentItem.originOwner || ZeroAddress, 4)}
+                  </span>
+                </div>
+                <div>
+                  <SpanLabel>Collateral</SpanLabel>
+                  <span>{currentItem.collateral} Ξ</span>
+                </div>
+                <div>
+                  <SpanLabel>price</SpanLabel>
+                  <span>{currentItem.price} Ξ / day</span>
+                </div>
+                <div>
+                  <SpanLabel>days</SpanLabel>
+                  <span>{currentItem.days}</span>
+                </div>
+                <div>
+                  <SpanLabel>Total</SpanLabel>
+                  <span>{total} Ξ</span>
+                </div>
+              </Dlist>
               <div>
-                <SpanLabel>Owner</SpanLabel>
-                <span title={currentItem.originOwner}>{formatAddress(currentItem.originOwner || ZeroAddress, 4)}</span>
+                <DaysInfo>Rent for {currentItem.days} days</DaysInfo>
               </div>
-              <div>
-                <SpanLabel>Collateral</SpanLabel>
-                <span>{currentItem.collateral} Ξ</span>
-              </div>
-              <div>
-                <SpanLabel>price</SpanLabel>
-                <span>{currentItem.price} Ξ / day</span>
-              </div>
-              <div>
-                <SpanLabel>days</SpanLabel>
-                <span>{currentItem.days}</span>
-              </div>
-              <div>
-                <SpanLabel>Total</SpanLabel>
-                <span>{total} Ξ</span>
-              </div>
-            </Dlist>
-            <div>
-              <DaysInfo>Rent for {currentItem.days} days</DaysInfo>
-            </div>
-            <br />
-            <Button
-              shape="round"
-              danger
-              type="primary"
-              block
-              onClick={handleRent}
-              loading={renting}
-              size="large"
-              disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))}
-            >
-              Rent
-            </Button>
-            <br />
-            <p className=" text-center">
-              <span className="tips">
-                {lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))
-                  ? 'Unable to rent your own NFT'
-                  : undefined}
-              </span>
-            </p>
-          </Col>
-        </Row>
-      </Modal>
-      <Row gutter={[20, 20]}>
-        {lendingNfts.length ? (
-          lendingNfts.map((item, index) => (
-            <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
-              {/* <Card
+              <br />
+              <FakeButton
+                onClick={handleRent}
+                loading={renting}
+                block
+                disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
+              >
+                Rent
+              </FakeButton>
+              <br />
+              <p className=" text-center">
+                <span className="tips">
+                  {lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))
+                    ? 'Unable to rent your own NFT'
+                    : undefined}
+                </span>
+              </p>
+            </Col>
+          </Row>
+        </Modal>
+        <Row gutter={[20, 20]}>
+          {lendingNfts.length ? (
+            lendingNfts.map((item, index) => (
+              <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
+                {/* <Card
                   type="rent"
                   onClick={() => handleShowModal(item)}
                   name={item.name}
@@ -250,23 +251,24 @@ export const Rent = () => {
                   price={item.price}
                   img={item.img}
                 /> */}
-              <RentCard
-                nftId={item.nftId}
-                onClick={() => handleShowModal(item)}
-                name={item.name}
-                days={item.days}
-                collateral={item.collateral}
-                price={item.price}
-                img={item.image_preview_url}
-                isLending={item.isLending}
-                asset_contract={item.asset_contract}
-              />
-            </Col>
-          ))
-        ) : (
-          <Empty text="Ooops, looks like nothing here." />
-        )}
-      </Row>
-    </RentBox>
+                <RentCard
+                  nftId={item.nftId}
+                  onClick={() => handleShowModal(item)}
+                  name={item.name}
+                  days={item.days}
+                  collateral={item.collateral}
+                  price={item.price}
+                  img={item.image_preview_url}
+                  isLending={item.isLending}
+                  asset_contract={item.asset_contract}
+                />
+              </Col>
+            ))
+          ) : (
+            <Empty text="Ooops, looks like nothing here." />
+          )}
+        </Row>
+      </RentBox>
+    </div>
   )
 }
