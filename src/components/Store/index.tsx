@@ -21,6 +21,7 @@ export interface StoreData {
   lastBlockNumber: string
   setLastBlockNumber: React.Dispatch<React.SetStateAction<string>>
   dispatchOpensea: React.DispatchWithoutAction
+  contracts: any
   mutateContracts: KeyedMutator<any>
 
   // rentingNfts: Record<string, any>
@@ -146,6 +147,7 @@ export const Store = ({ children }: { children: JSX.Element }) => {
       lastBlockNumber,
       setLastBlockNumber,
       dispatchOpensea,
+      contracts,
       mutateContracts,
       guilds,
       mutateGuilds
@@ -153,6 +155,6 @@ export const Store = ({ children }: { children: JSX.Element }) => {
       // mutateRentingNfts
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [networkError, loading, activatingConnector, nfts, lastBlockNumber, guilds])
+  }, [networkError, contracts, loading, activatingConnector, nfts, lastBlockNumber, guilds])
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }

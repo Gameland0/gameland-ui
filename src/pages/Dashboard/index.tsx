@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Row, Col, Tabs, Button, Popconfirm } from 'antd'
+import { Row, Col, Tabs, Button, Popconfirm, Pagination } from 'antd'
 import styled from 'styled-components'
 import { Modal } from '../../components/Modal'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
@@ -26,6 +26,7 @@ import { parseEther } from '@ethersproject/units'
 import { Loading } from '../../components/Loading'
 import { Empty } from '../../components/Empty'
 import { formatEther } from '@ethersproject/units'
+import { useFetchMyNfts } from '../../hooks/useFetchMyNfts'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -39,6 +40,9 @@ export const Dashboard = () => {
   const NFTsContract = useNFTContract()
   const gamelandContract = useGameLandContract()
   const myNft = useMyNfts()
+  // const [offset, setOffset] = useState(0)
+  // const [limit, setLimit] = useState(20)
+  // const { data: myNfts, mutate: mutateMyNfts } = useFetchMyNfts(offset, limit)
 
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as NftProps)
@@ -496,6 +500,7 @@ export const Dashboard = () => {
               )}
             </Row>
           </MyNftBox>
+          {/* <Pagination defaultCurrent={1} /> */}
         </TabPaneBox>
         <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
           <MyRenting />

@@ -112,6 +112,10 @@ export const Guilds = () => {
   const [joinForm] = Form.useForm()
 
   const onFinish = async (values: any) => {
+    if (!library) {
+      toastify.error('Wait for connected or just refresh website.')
+      return
+    }
     values.membership = Number(values.membership)
     console.log('Success:', values)
     const params = {
@@ -125,6 +129,12 @@ export const Guilds = () => {
     }
     setApplying(true)
     try {
+      const signTx = await library?.getSigner().signMessage('Create guild')
+      console.log(signTx)
+      if (!signTx) {
+        setApplying(false)
+        throw new Error('Failed to create.')
+      }
       const result = await http.post('/v0/guilds', params)
       if (result.data.code !== 1) {
         throw new Error(result.data.message)
@@ -159,6 +169,11 @@ export const Guilds = () => {
     }
     setApplying(true)
     try {
+      const signTx = await library?.getSigner().signMessage(currentGuild.membership === '1' ? 'Invite' : 'Join guild')
+      console.log(signTx)
+      if (!signTx) {
+        throw new Error('Failed.')
+      }
       const result = await http.post('/v0/members', params)
       if (result.data.code !== 1) {
         throw new Error(result.data.message)
@@ -248,30 +263,39 @@ export const Guilds = () => {
     setMode('about')
   }
   const [leaving, setLeaving] = useState(false)
-  const handleLeave = () => {
+  const handleLeave = async () => {
     const currentMember = members.find((item: MemberData) => item.address === account)
     if (!currentMember) {
       toastify.error('Member not exists')
       return
     }
     setLeaving(true)
-    http
-      .delete(`/v0/members/${currentMember.id}`)
-      .then(async (res) => {
-        if (res.data.code === 0) {
-          throw new Error(res.data.message)
-        }
-        await http.put(`/v0/guilds/count/${currentMember.guildId}?amount=-1`)
-        toastify.success('successful')
-        mutateGuilds(undefined)
-        handleGoback()
-      })
-      .catch((err: any) => {
-        console.log(err)
+    try {
+      const signTx = await library?.getSigner().signMessage('Leave guild')
+      console.log(signTx)
+      if (!signTx) {
+        throw new Error('Failed to leave.')
+      }
+      http
+        .delete(`/v0/members/${currentMember.id}`)
+        .then(async (res) => {
+          if (res.data.code === 0) {
+            throw new Error(res.data.message)
+          }
+          await http.put(`/v0/guilds/count/${currentMember.guildId}?amount=-1`)
+          toastify.success('successful')
+          mutateGuilds(undefined)
+          handleGoback()
+        })
+        .catch((err: any) => {
+          console.log(err)
 
-        toastify.error(err.message)
-      })
-      .finally(() => setLeaving(false))
+          toastify.error(err.message)
+        })
+    } catch (error: any) {
+      setLeaving(false)
+      errorHandler(error)
+    }
   }
 
   function cancel(e: any) {
