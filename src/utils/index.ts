@@ -175,3 +175,15 @@ export const formatContribute = (num: number | string, decimals: number) => {
   const decimalPlace = 10 ** decimals
   return String(Math.floor(Number(num) * decimalPlace))
 }
+
+export const fixDigitalId = (first: number, id: number | string, digits: number) => {
+  const len = String(id).length
+  if (len === digits) {
+    return `${first}${id}`
+  }
+  let fixId = id
+  for (let i = len; i < digits; i++) {
+    fixId = `0` + fixId
+  }
+  return `${first}${fixId}`
+}

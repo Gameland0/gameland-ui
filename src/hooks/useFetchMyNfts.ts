@@ -17,7 +17,6 @@ export const useFetchMyNfts = (offset: number, limit: number) => {
     contracts.data.forEach((item: any) => {
       addresses += `&asset_contract_addresses=${item.address}`
     })
-    console.log(addresses)
 
     return `https://rinkeby-api.opensea.io/api/v1/assets?order_direction=asc&offset=${offset}&limit=${limit}&owner=${account}${addresses}`
   }, [offset, limit, contracts, account])

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Row, Col, Tabs, Button, Popconfirm, Pagination } from 'antd'
 import styled from 'styled-components'
 import { Modal } from '../../components/Modal'
@@ -17,7 +17,7 @@ import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { http } from '../../components/Store'
 import { isEmpty, isEqual } from 'lodash'
-import { formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../../utils'
+import { fixDigitalId, formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../../utils'
 import { MyRenting } from './MyRenting'
 import { SpanLabel, DaysInfo } from '../Rent'
 import BigNumber from 'bignumber.js'
@@ -36,13 +36,31 @@ const MyNftBox = styled.div``
 
 export const Dashboard = () => {
   const { account } = useActiveWeb3React()
+  const { contracts } = useStore()
   // const nftContract = useMyNftContract()
   const NFTsContract = useNFTContract()
   const gamelandContract = useGameLandContract()
-  const myNft = useMyNfts()
-  // const [offset, setOffset] = useState(0)
-  // const [limit, setLimit] = useState(20)
-  // const { data: myNfts, mutate: mutateMyNfts } = useFetchMyNfts(offset, limit)
+  // const myNft = useMyNfts()
+  // const [totalPage, setTotalPage] = useState(0)
+  const [offset, setOffset] = useState(0)
+  const [limit, setLimit] = useState(20)
+  const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts(offset, limit)
+  const [myNfts, setMyNfts] = useState<any[]>([])
+
+  useEffect(() => {
+    console.log(_myNfts)
+    if (!_myNfts) {
+      return
+    }
+    const _nfts = [...myNfts, ..._myNfts.assets]
+    setMyNfts(_nfts)
+    if (_myNfts.assets.length === limit) {
+      const _offset = offset + limit
+      setOffset(_offset)
+      mutateMyNfts(undefined)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_myNfts, offset])
 
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as NftProps)
@@ -64,6 +82,10 @@ export const Dashboard = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
+
+  // const handlePageChange = (page: any) => {
+  //   console.log(page)
+  // }
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -91,8 +113,11 @@ export const Dashboard = () => {
 
     if (item.sell_orders) return
 
+    const contractId = contracts.data.find((c: any) => lowerCase(c.address) === lowerCase(item.asset_contract.address))
+    const gamelandNftId = fixDigitalId(contractId.id, item.token_id, 4) as unknown as number
     try {
-      const _borrowed = await gamelandContract?.borrow_or_not(item.gamelandNftId)
+      const _borrowed = await gamelandContract?.borrow_or_not(gamelandNftId)
+
       setBorrowed(_borrowed)
 
       if (_borrowed) {
@@ -103,7 +128,7 @@ export const Dashboard = () => {
       } else {
         // const nftOwner = await nftContract?.ownerOf(item.token_id)
         // setWithdrawable(checkWithdrawAble(nftOwner, account as string))
-        let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
+        let _lending = await gamelandContract?.get_nft_allinfo(gamelandNftId)
 
         _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
 
@@ -115,8 +140,9 @@ export const Dashboard = () => {
       toastify.error(err.message || 'Error occured with retrieving details.')
     }
     const contractAddress = currentItem.asset_contract?.address
+
     if (NFTsContract !== null) {
-      console.log(item)
+      console.log(NFTsContract[contractAddress])
 
       try {
         if (currentItem.asset_contract?.schema_name === 'ERC721') {
@@ -467,8 +493,8 @@ export const Dashboard = () => {
         <TabPaneBox tab={<span className="clearGap">My NFT</span>} key="1">
           <MyNftBox>
             <Row gutter={[16, 16]}>
-              {myNft.length ? (
-                myNft.map((item: any) => (
+              {myNfts && myNfts.length ? (
+                myNfts.map((item: any) => (
                   <Col
                     span="6"
                     xl={6}
@@ -500,7 +526,9 @@ export const Dashboard = () => {
               )}
             </Row>
           </MyNftBox>
-          {/* <Pagination defaultCurrent={1} /> */}
+          <PaginationBox className="flex flex-center">
+            {/* <Pagination defaultCurrent={1} defaultPageSize={limit} total={totalPage} onChange={handlePageChange} /> */}
+          </PaginationBox>
         </TabPaneBox>
         <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
           <MyRenting />
@@ -510,7 +538,9 @@ export const Dashboard = () => {
     </div>
   )
 }
-
+const PaginationBox = styled.div`
+  margin-top: 2rem;
+`
 const TabPaneBox = styled(TabPane)`
   padding-top: 1rem;
   padding-bottom: 2rem;

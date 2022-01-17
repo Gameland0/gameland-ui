@@ -14,6 +14,8 @@ import { formatEther } from 'ethers/lib/utils'
 import { formatContribute } from '../../utils'
 import { lowerCase } from 'lodash'
 
+import { KeyedMutator } from 'swr/dist/types'
+import { Web3Provider } from '@ethersproject/providers'
 import { Loading } from '../../components/Loading'
 
 const { Option } = Select
@@ -254,10 +256,6 @@ export const Guilds = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentGuild, library])
 
-  useEffect(() => {
-    console.log(members)
-  }, [members])
-
   const handleGoback = () => {
     setCurrentGuild({} as GuildData)
     setMode('about')
@@ -371,6 +369,26 @@ export const Guilds = () => {
                         </Button>
                       </Popconfirm>
                     ) : null}
+                    {/* {currentGuild.founderAddress === account ? (
+                      <Popconfirm
+                        title="Are you sure to dismiss this guild?"
+                        onConfirm={handleLeave}
+                        onCancel={cancel}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <Button
+                          shape="round"
+                          loading={leaving}
+                          style={{ borderColor: 'orange', color: 'orange' }}
+                          ghost
+                        >
+                          Dismiss
+                        </Button>
+                      </Popconfirm>
+                    ) : (
+                      ''
+                    )} */}
                   </>
                 ) : (
                   ''
@@ -387,7 +405,15 @@ export const Guilds = () => {
               <p style={{ marginLeft: '5rem', marginRight: '5rem' }}>{currentGuild.description}</p>
             </div>
           ) : (
-            <Members members={members} fetchingMembers={fetchingMembers} />
+            <Members
+              mutateGuilds={mutateGuilds}
+              fetchMembers={fetchMembers}
+              library={library}
+              account={account}
+              currentGuild={currentGuild}
+              members={members}
+              fetchingMembers={fetchingMembers}
+            />
           )}
 
           <Modal destroyOnClose footer={null} onCancel={() => setJoinVisible(false)} visible={joinVisible}>
@@ -576,10 +602,52 @@ export const Guilds = () => {
 interface MembersProps {
   members: Record<string, any>[]
   fetchingMembers: boolean
+  currentGuild: any
+  account?: string | null
+  library: Web3Provider | undefined
+  fetchMembers: () => void
+  mutateGuilds: KeyedMutator<any>
 }
 
-const Members: React.FC<MembersProps> = ({ members, fetchingMembers }) => {
+const Members: React.FC<MembersProps> = ({
+  fetchMembers,
+  library,
+  currentGuild,
+  account,
+  members,
+  fetchingMembers,
+  mutateGuilds
+}) => {
   console.log(members)
+  const [expeling, setExpeling] = useState(false)
+  const handleExpel = async (id: number) => {
+    console.log('exprel')
+    setExpeling(true)
+    try {
+      const signTx = await library?.getSigner().signMessage('Expel member')
+      console.log(signTx)
+      if (!signTx) {
+        setExpeling(false)
+        throw new Error('Failed to create.')
+      }
+
+      const _delete = await http.delete(`/v0/members/${id}`)
+      if (_delete.data.code === 1) {
+        toastify.success('Expel successful')
+        const minusAmount = await http.put(`/v0/guilds/count/${currentGuild.id}?amount=-1`)
+        if (minusAmount.data.code !== 1) {
+          throw new Error(minusAmount.data.message)
+        }
+        fetchMembers()
+        mutateGuilds(undefined)
+      } else {
+        throw new Error(_delete.data.message)
+      }
+    } catch (error: any) {
+      setExpeling(false)
+      errorHandler(error)
+    }
+  }
 
   return (
     <div className="container">
@@ -607,6 +675,18 @@ const Members: React.FC<MembersProps> = ({ members, fetchingMembers }) => {
                 <ColBox span={4}>
                   {item.balance}
                   <Avatar size={24} src={Contribute} alt="" />
+                  {currentGuild.founderAddress === account && item.address !== account ? (
+                    <Popconfirm
+                      title="Are you sure to expel this member?"
+                      onConfirm={() => handleExpel(item.id)}
+                      okText="Yes"
+                      cancelText="No"
+                    >
+                      <Button type="link" disabled={expeling} style={{ color: 'orange' }} ghost>
+                        Expell
+                      </Button>
+                    </Popconfirm>
+                  ) : null}
                 </ColBox>
               </ItemRow>
             ))

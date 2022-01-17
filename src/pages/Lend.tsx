@@ -175,6 +175,7 @@ export const Lend = () => {
                 price={currentItem.price}
                 days={currentItem.days}
                 img={currentItem.image_url}
+                asset_contract={currentItem.asset_contract}
                 unOperate={true}
               />
             </Col>

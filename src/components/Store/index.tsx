@@ -82,12 +82,14 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     contracts.data.forEach((item: any) => {
       addresses += `&asset_contract_addresses=${item.address}`
     })
-    console.log(addresses)
     // return ''
     return `https://rinkeby-api.opensea.io/api/v1/assets?order_direction=asc&offset=${offset}&limit=${limit}${addresses}`
   }, [contracts, limit, offset])
 
   useEffect(() => {
+    if (!url) {
+      return
+    }
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
