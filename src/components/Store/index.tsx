@@ -3,7 +3,6 @@ import { isEmpty } from 'lodash'
 import React, { createContext, useEffect, useMemo, useReducer, useState } from 'react'
 import useSWR from 'swr'
 import { KeyedMutator } from 'swr/dist/types'
-import { useActiveWeb3React } from '../../hooks'
 import { useNetworkLoading } from './NetworkLoading'
 import { useNetworkValidator } from './NetworkValidator'
 
@@ -43,7 +42,6 @@ export const fetcher = (...args: [any, ...any[]]) => http.get(...args).then((res
 export const fetcher2 = (url: string) => fetch(url).then((res) => res.json())
 
 export const Store = ({ children }: { children: JSX.Element }) => {
-  const { account } = useActiveWeb3React()
   const networkError = useNetworkValidator()
   const loading = useNetworkLoading()
   const [offset, setOffset] = useState(0)

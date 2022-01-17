@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Row, Col, Tabs, Button, Popconfirm, Pagination } from 'antd'
+import { Row, Col, Tabs, Button, Popconfirm } from 'antd'
 import styled from 'styled-components'
 import { Modal } from '../../components/Modal'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
@@ -8,7 +8,7 @@ import {
   useActiveWeb3React,
   useGameLandContract,
   // useMyNftContract,
-  useMyNfts,
+  // useMyNfts,
   useNFTContract,
   useStore
 } from '../../hooks'
@@ -43,6 +43,7 @@ export const Dashboard = () => {
   // const myNft = useMyNfts()
   // const [totalPage, setTotalPage] = useState(0)
   const [offset, setOffset] = useState(0)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(20)
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts(offset, limit)
   const [myNfts, setMyNfts] = useState<any[]>([])

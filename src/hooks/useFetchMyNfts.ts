@@ -1,6 +1,4 @@
-import { lowerCase } from 'lower-case'
-import { off } from 'process'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import useSWR from 'swr'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useActiveWeb3React, useStore } from '.'
