@@ -116,30 +116,30 @@ export const Dashboard = () => {
 
     const contractId = contracts.data.find((c: any) => lowerCase(c.address) === lowerCase(item.asset_contract.address))
     const gamelandNftId = fixDigitalId(contractId.id, item.token_id, 4) as unknown as number
-    try {
-      const _borrowed = await gamelandContract?.borrow_or_not(gamelandNftId)
+    // try {
+    //   const _borrowed = await gamelandContract?.borrow_or_not(gamelandNftId)
 
-      setBorrowed(_borrowed)
+    //   setBorrowed(_borrowed)
 
-      if (_borrowed) {
-        const _progress = getProgress(item.borrowAt as string, item.days as number)
+    //   if (_borrowed) {
+    //     const _progress = getProgress(item.borrowAt as string, item.days as number)
 
-        setProgress(_progress)
-        setExpired(_progress >= 100)
-      } else {
-        // const nftOwner = await nftContract?.ownerOf(item.token_id)
-        // setWithdrawable(checkWithdrawAble(nftOwner, account as string))
-        let _lending = await gamelandContract?.get_nft_allinfo(gamelandNftId)
+    //     setProgress(_progress)
+    //     setExpired(_progress >= 100)
+    //   } else {
+    //     // const nftOwner = await nftContract?.ownerOf(item.token_id)
+    //     // setWithdrawable(checkWithdrawAble(nftOwner, account as string))
+    //     let _lending = await gamelandContract?.get_nft_allinfo(gamelandNftId)
 
-        _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
+    //     _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
 
-        console.log(isEqual(_lending, ZeroNftInfo))
-        setWithdrawable(!isEqual(_lending, ZeroNftInfo))
-      }
-    } catch (err: any) {
-      console.log(err.message)
-      toastify.error(err.message || 'Error occured with retrieving details.')
-    }
+    //     console.log(isEqual(_lending, ZeroNftInfo))
+    //     setWithdrawable(!isEqual(_lending, ZeroNftInfo))
+    //   }
+    // } catch (err: any) {
+    //   console.log(err.message)
+    //   toastify.error(err.message || 'Error occured with retrieving details.')
+    // }
     const contractAddress = currentItem.asset_contract?.address
 
     if (NFTsContract !== null) {

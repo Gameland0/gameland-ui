@@ -106,6 +106,11 @@ export const Store = ({ children }: { children: JSX.Element }) => {
           setOffset(_offset)
         }
       })
+      .catch((err) => {
+        console.log('err' + err)
+
+        return setOpenseaData({ assets: [] })
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url])
 
@@ -118,6 +123,10 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     const { assets } = openseaData as any
     const { data: debtsData } = debts
     // console.log(openseaData, debtsData)
+
+    if (!openseaData.assets.length) {
+      return
+    }
 
     const result = assets.map((item: Record<string, any>) => {
       const contractAddress = item.asset_contract.address

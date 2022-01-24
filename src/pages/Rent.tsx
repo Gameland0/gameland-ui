@@ -96,9 +96,9 @@ export const Rent = () => {
   // }, [greeter])
 
   const handleShowModal = async (item: NftProps) => {
-    console.log('rent')
+    console.log(gamelandContract)
     if (!gamelandContract) {
-      toastify.error('Contract not found.')
+      toastify.error('Contract not found, please connect wallet.')
       return
     }
     setCurrentItem(item)
