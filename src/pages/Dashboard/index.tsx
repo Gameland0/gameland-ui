@@ -29,6 +29,7 @@ import { Pagination } from '../../components/Pagination'
 import { ConnectWallet } from '../../components/ConnectWallet'
 import { fixDigitalId, ZeroAddress } from '../../utils'
 import { NFTDigits } from '../../constants'
+import { ABIs } from '../../constants/Abis/ABIs'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -55,7 +56,7 @@ export const fetchAbi = async (address: string) => {
     const dataJson = await data.json()
     const { result } = dataJson
 
-    localStorage.setItem(address, result)
+    localStorage.setItem(address.toLowerCase(), result)
 
     return result
   } catch (e: any) {
@@ -216,8 +217,17 @@ export const Dashboard = () => {
 
     const contractAddress = item.token_address ?? ''
 
-    const localAbi = localStorage.getItem(contractAddress)
-    const ABI = localAbi ? localAbi : await fetchAbi(contractAddress)
+    const localAbi = localStorage.getItem(contractAddress.toLowerCase())
+    let storedAbi
+    for (const [key, value] of Object.entries(ABIs)) {
+      if (key.toLowerCase() === contractAddress.toLowerCase()) {
+        storedAbi = value
+      }
+    }
+    console.log(storedAbi)
+
+    // const constantAbi: any[] = ABIs[contractAddress]
+    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
 
     item.contract = nftContract

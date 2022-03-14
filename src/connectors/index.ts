@@ -13,11 +13,9 @@ export const supportedNetwork = [
   // ChainId.localnode,
   ChainId.polygon
 ]
-
+// REACT_APP_CURRENT_CHAIN_ID
 const RPC_URL =
-  process.env.NODE_ENV !== 'development'
-    ? process.env.REACT_APP_CURRENT_CHAIN_ID
-    : process.env.REACT_APP_MUMBAI_CHAIN_ID
+  process.env.NODE_ENV !== 'development' ? process.env.REACT_APP_MATIC_RPC_URL : process.env.REACT_APP_MUMBAI_RPC_URL
 const chainId = process.env.NODE_ENV !== 'development' ? '137' : process.env.REACT_APP_MUMBAI_CHAIN_ID
 const CHAIN_ID = parseInt(chainId ?? '137')
 
