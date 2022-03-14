@@ -40,7 +40,6 @@ export const Lend = () => {
   const [borrowed, setBorrowed] = useState(false)
   const [progress, setProgress] = useState(0)
   const [withdrawing, setWithdrawing] = useState(false)
-  const [withdrawable, setWithdrawable] = useState(false)
   const { mutateDebts } = useStore()
 
   const [awaiting, setAwaiting] = useState(false)
@@ -75,12 +74,6 @@ export const Lend = () => {
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         setProgress(_progress)
         setExpired(_progress >= 100)
-      } else {
-        let _lending = await gamelandContract?.nft_basic_status(item.gamelandNftId)
-        _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
-        console.log(_lending, isEqual(_lending, ZeroNftInfo))
-
-        setWithdrawable(!isEqual(_lending, ZeroNftInfo))
       }
     } catch (err: any) {
       toastify.error(err.message)
@@ -117,7 +110,6 @@ export const Lend = () => {
       // const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
-        setWithdrawable(false)
         setWithdrawing(false)
         setVisible(false)
         mutateDebts(undefined, true)
