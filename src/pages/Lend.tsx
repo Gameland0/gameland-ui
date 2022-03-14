@@ -3,10 +3,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 // import { useGreeterContract } from '../hooks'
 import { Row, Col, Button, Popconfirm } from 'antd'
-import { Nft, NftProps } from '../components/Nft'
+import { Nft } from '../components/Nft'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
-import { NFTData, useActiveWeb3React, useGameLandContract, useMyNftContract, useStore } from '../hooks'
+import { NFTData, useActiveWeb3React, useGameLandContract, useStore } from '../hooks'
 import { toastify } from '../components/Toastify'
 import { formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../utils'
 import { formatEther } from '@ethersproject/units'
@@ -18,6 +18,7 @@ import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
 import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
+import { fetchAbi, getContract } from './Dashboard'
 
 export const Dlist = styled.div`
   flex-direction: column;
@@ -28,11 +29,10 @@ export const Dlist = styled.div`
 `
 
 export const Lend = () => {
-  const { account } = useActiveWeb3React()
+  const { account, library } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as NFTData)
   const [visible, setVisible] = useState(false)
   const gamelandContract = useGameLandContract()
-  const nftContract = useMyNftContract()
   const myLendingNfts = useMyLendingNfts()
   const [expired, setExpired] = useState(false)
   const [liquidating, setLiquidating] = useState(false)
@@ -41,7 +41,7 @@ export const Lend = () => {
   const [progress, setProgress] = useState(0)
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawable, setWithdrawable] = useState(false)
-  const { mutateNfts } = useStore()
+  const { mutateDebts } = useStore()
 
   const [awaiting, setAwaiting] = useState(false)
 
@@ -54,22 +54,31 @@ export const Lend = () => {
     return _cost.plus(collateral).toString()
   }, [currentItem])
 
-  const handleShowModal = async (item: NftProps) => {
-    setCurrentItem(item)
+  const handleShowModal = async (item: any) => {
     setVisible(true)
     setExpired(false)
     setAwaiting(true)
+
+    const contractAddress = item.contractAddress ?? ''
+
+    const ABI = await fetchAbi(contractAddress)
+    const nftContract = getContract(library, contractAddress, ABI)
+
+    item.contract = nftContract
+    setCurrentItem(item)
+
     try {
-      const _borrowed = await gamelandContract?.check_the_borrow_status(item.gamelandNftId)
+      const _borrowed = await gamelandContract?.borrow_or_not(item.gamelandNftId)
       setBorrowed(_borrowed)
       if (_borrowed) {
+        // if borrowed, show progress
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         setProgress(_progress)
         setExpired(_progress >= 100)
       } else {
-        let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
+        let _lending = await gamelandContract?.nft_basic_status(item.gamelandNftId)
         _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
-        console.log(isEqual(_lending, ZeroNftInfo))
+        console.log(_lending, isEqual(_lending, ZeroNftInfo))
 
         setWithdrawable(!isEqual(_lending, ZeroNftInfo))
       }
@@ -85,41 +94,35 @@ export const Lend = () => {
         toastify.error('Please connect a account.')
         return
       }
-      if (!nftContract || !gamelandContract) {
+
+      if (!currentItem.contract || !gamelandContract) {
         toastify.error('Contract not found.')
         return
       }
       setWithdrawing(true)
-      const owner = await nftContract.ownerOf(currentItem.nftId)
+      const owner = await currentItem.contract.ownerOf(currentItem.nftId)
       if (lowerCase(owner) !== lowerCase(account)) {
         const withdrawnft = await gamelandContract.withdrawnft(
           currentItem.nftId,
           currentItem.contractAddress,
-          currentItem.gamelandNftId
+          currentItem.gamelandNftId,
+          currentItem.id
         )
         const { status } = await withdrawnft.wait()
         if (!status) {
-          throw Error('Failed to lend.')
+          throw Error('Failed to withdraw.')
         }
       }
-      const params = {
-        isLending: false,
-        price: 0,
-        days: 0,
-        collateral: 0,
-        withdrawable: false,
-        borrower: null,
-        borrowAt: null
-      }
-      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http.delete(`/api/v0/opensea/${currentItem.id}`)
+      // const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
         setWithdrawable(false)
         setWithdrawing(false)
         setVisible(false)
-        mutateNfts(undefined, true)
+        mutateDebts(undefined, true)
       } else {
-        throw res.message || res.data.message || 'Server down.'
+        throw res.message || res.data.message || 'Service error.'
       }
     } catch (err: any) {
       console.log(err)
@@ -133,7 +136,7 @@ export const Lend = () => {
       setLiquidating(true)
 
       try {
-        const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId)
+        const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId, currentItem.id)
         liquidated.wait()
         console.log(liquidated)
         const params = {
@@ -146,12 +149,12 @@ export const Lend = () => {
           collateral: 0,
           borrowAt: null
         }
-        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
           setLiquidating(false)
           setVisible(false)
-          mutateNfts(undefined, true)
+          mutateDebts(undefined, true)
         } else {
           throw Error(res)
         }
@@ -171,11 +174,11 @@ export const Lend = () => {
             <Col span="12" xl={12} sm={24}>
               <Nft
                 nftId={currentItem.nftId}
-                name={currentItem.name}
+                name={currentItem.metadata?.name}
                 price={currentItem.price}
                 days={currentItem.days}
-                img={currentItem.image_url}
-                asset_contract={currentItem.asset_contract}
+                img={currentItem.metadata?.image}
+                contract_type={currentItem.standard}
                 unOperate={true}
               />
             </Col>
@@ -245,17 +248,17 @@ export const Lend = () => {
               <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
                 <Nft
                   onClick={() => handleShowModal(item)}
-                  name={item.name}
+                  name={item.metadata?.name}
                   days={item.days}
                   collateral={item.collateral}
                   price={item.price}
                   nftId={item.nftId}
                   borrowAt={item.borrowAt}
-                  img={item.image_preview_url}
+                  img={item.metadata?.image}
                   isLending={item.isLending}
                   isBorrowed={item.isBorrowed}
-                  withdrawable={withdrawable}
-                  asset_contract={item.asset_contract}
+                  withdrawable={item.withdrawable}
+                  contract_type={item.standard}
                 />
               </Col>
             ))

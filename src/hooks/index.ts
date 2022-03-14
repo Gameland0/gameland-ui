@@ -45,6 +45,7 @@ export interface NFTData extends OpenseaData {
   img?: string
   isBorrowed?: boolean
   isLending?: boolean
+  withdrawable?: boolean
   borrowAt?: string
   name: string
   nftId: string
@@ -55,22 +56,38 @@ export interface NFTData extends OpenseaData {
   image_preview_url?: string
   image_original_url?: string
   sell_orders?: Record<string, any>[]
+  metadata?: Record<string, any>
   contractAddress?: string
   gamelandNftId?: number
-  asset_contract?: Record<string, any>
+  contract_type?: string
+  token_address?: string
+  contract?: Record<string, any>
+  owner_of?: string
+  standard?: string
 }
 
 export function useStore() {
   return useContext(StoreContext)
 }
 
+// mainnet: 1,
+// ropsten: 3,
+// rinkeby: 4,
+// goerli: 5,
+// kovan: 42,
+// aurora: 1313161554,
+// 'Aurora Testnet': 1313161555,
+// localnode: 1337,
+// polygon: 137
 export declare enum ChainId {
   ROPSTEN = 3,
   RINKEBY = 4,
   GÖRLI = 5,
   KOVAN = 42,
   AURORA = 1313161554,
-  AURORA_TESTNET = 1313161555
+  AURORA_TESTNET = 1313161555,
+  ETHEREUM = 1,
+  POLYGON = 137
 }
 
 export function useActiveWeb3React(): Web3ReactContextInterface<Web3Provider> & { chainId?: ChainId } {

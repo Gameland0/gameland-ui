@@ -9,4 +9,12 @@ module.exports = function (app) {
       pathRewrite: { '^/api': '' }
     })
   )
+  app.use(
+    '/moralis',
+    createProxyMiddleware({
+      target: process.env.REACT_APP_MORALIS_API,
+      changeOrigin: true,
+      pathRewrite: { '^/moralis': '' }
+    })
+  )
 }

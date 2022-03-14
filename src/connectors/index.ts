@@ -9,8 +9,8 @@ export const supportedNetwork = [
   // ChainId.goerli,
   // ChainId.kovan,
   // ChainId.aurora,
-  ChainId['Aurora Testnet'],
-  ChainId.localnode,
+  // ChainId['Aurora Testnet'],
+  // ChainId.localnode,
   ChainId.polygon
 ]
 

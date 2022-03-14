@@ -3,8 +3,10 @@ import styled from 'styled-components'
 import { NavLink } from 'react-router-dom'
 import { AccountBar } from './AccountBar'
 import { ReactComponent as Logo } from '../assets/logo.svg'
+import { ReactComponent as LogoNormal } from '../assets/logo-normal.svg'
 import { Grid, Drawer } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
+import { useActiveWeb3React } from '../hooks'
 const { useBreakpoint } = Grid
 
 const HeaderBox = styled.div`
@@ -75,6 +77,7 @@ const Link = styled(NavLink).attrs({
   }
 `
 export const Header = () => {
+  const { chainId } = useActiveWeb3React()
   const [visible, setVisible] = useState(false)
   const screens = useBreakpoint()
   const isMobile = useMemo(() => {
@@ -85,7 +88,7 @@ export const Header = () => {
     <HeaderBox>
       <div className="container flex flex-h-between flex-v-center">
         <div className="logo">
-          <Logo height="100"></Logo>
+          {chainId === 137 ? <LogoNormal height="100"></LogoNormal> : <Logo height="100"></Logo>}
         </div>
         {!isMobile ? (
           <>

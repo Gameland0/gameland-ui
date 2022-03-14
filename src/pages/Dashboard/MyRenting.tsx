@@ -1,14 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import {
-  GameLandAddress,
-  NFTData,
-  useActiveWeb3React,
-  useGameLandContract,
-  useMyNftContract,
-  useMyRenting,
-  useNFTContract,
-  useStore
-} from '../../hooks'
+import { GameLandAddress, NFTData, useActiveWeb3React, useGameLandContract, useMyRenting, useStore } from '../../hooks'
 import { Row, Col, Button } from 'antd'
 import { RentingCard } from '../../components/RentingCard'
 import { Nft as NftCard } from '../../components/Nft'
@@ -22,20 +13,20 @@ import { toastify } from '../../components/Toastify'
 import { http } from '../../components/Store'
 import { Empty } from '../../components/Empty'
 import { lowerCase } from 'lower-case'
+import { fetchAbi, getContract } from '.'
 
 export const MyRenting = () => {
-  const { library } = useActiveWeb3React()
+  const { library, account } = useActiveWeb3React()
   const myRenting = useMyRenting()
   const [currentItem, setCurrentItem] = useState({} as NFTData)
   const [visible, setVisible] = useState(false)
   const [repaying, setRepaying] = useState(false)
   const [approving, setApproving] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
-  const { mutateNfts } = useStore()
+  const { mutateDebts } = useStore()
 
-  const nftContract = useMyNftContract()
   const gamelandContract = useGameLandContract()
-  const NFTsContract = useNFTContract()
+  // const NFTsContract = useNFTContract()
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -48,7 +39,15 @@ export const MyRenting = () => {
 
   const handleNftClick = async (item: any) => {
     setVisible(true)
+
+    const contractAddress = item.contractAddress ?? ''
+    const localAbi = localStorage.getItem(contractAddress)
+    const ABI = localAbi ? localAbi : await fetchAbi(contractAddress)
+    const nftContract = getContract(library, contractAddress, ABI)
+
+    item.contract = nftContract
     setCurrentItem(item)
+    console.log(item)
 
     if (nftContract) {
       console.log(item)
@@ -71,20 +70,30 @@ export const MyRenting = () => {
   const handleRepay = async () => {
     console.log('repay')
     try {
-      if (!library) {
+      if (!library || !account) {
         toastify.error('Please connect an account.')
         return
       }
-      if (!nftContract || !gamelandContract) {
+      if (!currentItem.contract || !gamelandContract) {
         toastify.error('Contract not found.')
         return
       }
       setRepaying(true)
-      const owner = await nftContract.ownerOf(currentItem.nftId)
+
+      const owner = await currentItem.contract.ownerOf(currentItem.nftId)
+      const borrowStatus = await gamelandContract.borrow_status(currentItem.gamelandNftId)
+
+      if (lowerCase(borrowStatus[0]) === lowerCase(account) && lowerCase(owner) !== lowerCase(account)) {
+        throw new Error('Your NFT has been transferred!')
+      }
+
       if (lowerCase(owner) !== lowerCase(gamelandContract.address)) {
-        const repaid = await gamelandContract
-          .connect(library.getSigner())
-          ._return(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId)
+        const repaid = await gamelandContract.connect(library.getSigner()).returnnft(
+          currentItem.nftId,
+          currentItem.contractAddress,
+          currentItem.gamelandNftId
+          // ,currentItem.id
+        )
         const { status } = await repaid.wait()
         if (!status) {
           throw Error('Failed to repay, please try again.')
@@ -97,10 +106,10 @@ export const MyRenting = () => {
         isLending: null,
         withdrawable: true
       }
-      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
-        mutateNfts(undefined, true)
+        mutateDebts(undefined, true)
         setRepaying(false)
         setVisible(false)
       } else {
@@ -114,21 +123,22 @@ export const MyRenting = () => {
   }
   const handleApprove = async () => {
     setApproving(true)
-    const nftAddress = currentItem.asset_contract?.address
-    if (NFTsContract) {
+    if (currentItem.contract) {
       console.log(GameLandAddress, currentItem.nftId)
       try {
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
-
         let approvetx
-        if (currentItem.asset_contract?.schema_name === 'ERC721') {
-          approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
+        if (currentItem.standard === 'ERC721' && !!currentItem.contract?.approve) {
+          approvetx = await currentItem.contract.approve(GameLandAddress, currentItem.nftId)
         } else {
-          approvetx = await NFTsContract[nftAddress].setApprovalForAll(GameLandAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(GameLandAddress, true)
         }
+        // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
+        console.log(approvetx)
+
         await approvetx.wait()
+
         setIsApproved(true)
-        toastify.success("Now you're able to return NFT")
       } catch (err: any) {
         toastify.error(err.message)
       }
@@ -142,13 +152,13 @@ export const MyRenting = () => {
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <NftCard
-              name={currentItem.name}
+              name={currentItem.metadata?.name}
               price={currentItem.price}
               days={currentItem.days}
-              img={currentItem.image_url}
+              img={currentItem.metadata?.image}
               nftId={currentItem.nftId}
               unOperate={true}
-              asset_contract={currentItem.asset_contract}
+              contract_type={currentItem.standard}
             />
           </Col>
 
@@ -202,14 +212,14 @@ export const MyRenting = () => {
           myRenting.map((item: any) => (
             <Col span="6" xl={6} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
               <RentingCard
-                name={item.name}
+                name={item.metadata.name}
                 price={item.price}
                 days={item.days}
-                img={item.image_preview_url}
+                img={item.metadata.image}
                 nftId={item.nftId}
                 borrowAt={item.borrowAt}
                 isExpired={item.isExpired}
-                asset_contract={item.asset_contract}
+                contract_type={item.standard}
               ></RentingCard>
             </Col>
           ))

@@ -7,6 +7,11 @@ export const useMyLendingNfts = (): NFTData[] => {
 
   return useMemo(() => {
     if (!account || !nfts) return []
-    return nfts.filter((item: any) => item.isLending && lowerCase(item.originOwner) === lowerCase(account))
+    return nfts
+      .filter((item: any) => lowerCase(item.originOwner) === lowerCase(account))
+      .map((item: any) => {
+        item.metadata = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata
+        return item
+      })
   }, [account, nfts])
 }

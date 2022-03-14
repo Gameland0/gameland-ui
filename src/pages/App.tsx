@@ -11,6 +11,7 @@ import { Lend } from './Lend'
 import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
 import { Mint } from './Mint'
+import { Alert } from 'antd'
 import { Guilds } from './Guilds'
 
 const Wrap = styled.div`
@@ -21,6 +22,19 @@ function App() {
   return (
     <div className="App">
       <Header />
+
+      <Alert
+        message={
+          <div className="container flex flex-center">
+            <a style={{ marginRight: '.5rem', textDecoration: 'underline' }} href="mailto:contact@bandot.io">
+              Contact us
+            </a>{' '}
+            to support your NFT projects.
+          </div>
+        }
+        closable
+        type="info"
+      />
       <Web3Manager>
         <Wrap className="">
           <Switch>

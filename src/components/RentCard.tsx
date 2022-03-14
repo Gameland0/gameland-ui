@@ -77,6 +77,7 @@ interface FakeButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>,
   theme?: 'fill' | 'ghost'
   loading?: boolean
   block?: boolean
+  disabled?: boolean
 }
 const antIcon = <Loading3QuartersOutlined style={{ fontSize: 16, color: 'white' }} spin />
 
@@ -105,7 +106,7 @@ export const RentCard: React.FC<RentProps> = ({
   onClick,
   isLending,
   nftId,
-  asset_contract
+  contract_type
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -122,9 +123,7 @@ export const RentCard: React.FC<RentProps> = ({
       <Details className="flex flex-h-between">
         <div>
           <Labels collateral={collateral} name={name} nftId={nftId} price={price} days={days as number} />
-          <Standard color={asset_contract?.schema_name === 'ERC721' ? 'processing' : 'orange'}>
-            {asset_contract?.schema_name}
-          </Standard>
+          <Standard color={contract_type === 'ERC721' ? 'processing' : 'orange'}>{contract_type}</Standard>
         </div>
         {!unOperate ? <Operate isLending={isLending} onClick={() => onclick} /> : null}
       </Details>

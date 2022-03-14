@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import defaultImg from '../assets/default.png'
 import { BaseProps } from './NumInput'
@@ -7,6 +7,7 @@ interface ImgProps extends BaseProps {
   hideRadius?: boolean
   src?: string
   alt?: string
+  size?: number
 }
 
 const ImgWrap = styled.div`
@@ -31,14 +32,25 @@ const ImgInner = styled.div<{ hideRadius?: boolean }>`
   }
 `
 
-export const Img: React.FC<ImgProps> = ({ src }) => {
+export const Img: React.FC<ImgProps> = ({ src, size }) => {
   const handleImgError = (e: any) => {
     e.target.src = defaultImg
   }
+  const _img = useMemo(() => {
+    if (src?.includes('googleusercontent')) return src + `=w${size}`
+
+    if (src?.startsWith('http')) return src
+
+    if (src?.startsWith('ipfs')) {
+      return 'https://ipfs.moralis.io:2053/ipfs/' + src.substring(7)
+    }
+
+    return src
+  }, [src, size])
   return (
     <ImgWrap>
       <ImgInner>
-        <img src={src} alt="" onError={handleImgError} />
+        <img src={_img} alt="" onError={handleImgError} />
       </ImgInner>
     </ImgWrap>
   )

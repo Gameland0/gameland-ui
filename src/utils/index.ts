@@ -187,3 +187,11 @@ export const fixDigitalId = (first: number, id: number | string, digits: number)
   }
   return `${first}${fixId}`
 }
+
+export const shortNumbers = (num: string | number, digits = 10) => {
+  if (!num) return 0
+
+  if (String(num).length <= digits) return num
+
+  return String(num).substring(0, digits) + '...'
+}

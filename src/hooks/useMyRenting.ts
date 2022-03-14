@@ -11,8 +11,13 @@ export const useMyRenting = (): NFTData[] => {
     if (!account || isEmpty(nfts)) return []
     console.log(account, nfts)
 
-    return nfts.filter((item: any) => {
-      return item.isBorrowed && lowerCase(item.borrower) === lowerCase(account)
-    })
+    return nfts
+      .filter((item: any) => {
+        return item.isBorrowed && lowerCase(item.borrower) === lowerCase(account)
+      })
+      .map((item: any) => {
+        item.metadata = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata
+        return item
+      })
   }, [account, nfts])
 }

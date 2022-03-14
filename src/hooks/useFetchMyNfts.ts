@@ -2,22 +2,35 @@ import { useMemo } from 'react'
 import useSWR from 'swr'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useActiveWeb3React, useStore } from '.'
-import { fetcher } from '../components/Store'
+import { fetcher, http } from '../components/Store'
 
 export const useFetchMyNfts = (offset: number, limit: number) => {
   const { account } = useActiveWeb3React()
   const { contracts } = useStore()
+
   const url = useMemo(() => {
+    console.log(contracts)
+
     if (!contracts) {
       return ''
     }
+    if (!account) {
+      return ''
+    }
+
     let addresses = ''
-    contracts.data.forEach((item: any) => {
-      addresses += `&asset_contract_addresses=${item.address}`
+
+    contracts.forEach((item: any) => {
+      addresses += `&token_addresses=${item}`
     })
 
-    return `https://rinkeby-api.opensea.io/api/v1/assets?order_direction=asc&offset=${offset}&limit=${limit}&owner=${account}${addresses}`
-  }, [offset, limit, contracts, account])
+    http.defaults.headers.common['X-Api-Key'] = process.env.REACT_APP_MORALIS_KEY
+
+    return `/moralis/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
+
+    // return `${process.env.REACT_APP_MORALIS_API}/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offset, limit, account, contracts])
 
   return useSWR(url, fetcher)
 }

@@ -119,7 +119,7 @@ export const RentingCard: React.FC<RentingProps> = ({
   borrowAt,
   nftId,
   img,
-  asset_contract
+  contract_type
 }) => {
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
@@ -128,7 +128,7 @@ export const RentingCard: React.FC<RentingProps> = ({
       <Details className="flex flex-h-between">
         <div>
           <ProgressLabels borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
-          <Standard color="processing">{asset_contract?.schema_name}</Standard>
+          <Standard color="processing">{contract_type}</Standard>
         </div>
         {!unOperate ? <Operate isExpired={isExpired} onClick={() => onclick} /> : null}
       </Details>

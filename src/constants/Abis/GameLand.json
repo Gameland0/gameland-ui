@@ -1,6 +1,12 @@
 [
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_rev",
+				"type": "address"
+			}
+		],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
 	},
@@ -17,6 +23,12 @@
 				"indexed": false,
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "lending_id",
 				"type": "uint256"
 			}
 		],
@@ -43,6 +55,48 @@
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
 				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "nft_programe_address",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "daily_price",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "duration",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "collatoral",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "total_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isERC721",
+				"type": "bool"
 			}
 		],
 		"name": "Received",
@@ -68,6 +122,30 @@
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
 				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "nft_programe_address",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint32",
+				"name": "rented_at",
+				"type": "uint32"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "lending_id",
+				"type": "uint256"
 			}
 		],
 		"name": "Rented",
@@ -92,6 +170,49 @@
 				"indexed": false,
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "nft_programe_address",
+				"type": "address"
+			}
+		],
+		"name": "Returned",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "lending_id",
 				"type": "uint256"
 			}
 		],
@@ -157,17 +278,45 @@
 	{
 		"inputs": [
 			{
+				"internalType": "address",
+				"name": "nft_programe_address",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "receiver",
+				"type": "address"
+			},
+			{
 				"internalType": "uint256",
-				"name": "gameland_nft_id",
+				"name": "nft_id",
 				"type": "uint256"
 			}
 		],
-		"name": "check_the_borrow_status",
+		"name": "build_call",
 		"outputs": [
 			{
-				"internalType": "bool",
+				"internalType": "bytes",
+				"name": "callload",
+				"type": "bytes"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "collatoralbalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
 				"name": "",
-				"type": "bool"
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -178,6 +327,11 @@
 			{
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lending_id",
 				"type": "uint256"
 			}
 		],
@@ -226,70 +380,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "get_all_nfts",
+		"name": "get_nft_programes",
 		"outputs": [
 			{
 				"internalType": "address[]",
 				"name": "",
 				"type": "address[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "gameland_nft_id",
-				"type": "uint256"
-			}
-		],
-		"name": "get_borrow_info",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "gameland_nft_id",
-				"type": "uint256"
-			}
-		],
-		"name": "get_nft_allinfo",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -394,7 +490,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "nfts",
+		"name": "nftprogrames",
 		"outputs": [
 			{
 				"internalType": "address",
@@ -553,25 +649,6 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "gameland_nft_id",
-				"type": "uint256"
-			}
-		],
-		"name": "query_the_nft_owner",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
 				"name": "nft_id",
 				"type": "uint256"
 			},
@@ -583,6 +660,11 @@
 			{
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lending_id",
 				"type": "uint256"
 			}
 		],
@@ -612,6 +694,19 @@
 		"name": "returnnft",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "rev",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -648,6 +743,11 @@
 			{
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lending_id",
 				"type": "uint256"
 			}
 		],

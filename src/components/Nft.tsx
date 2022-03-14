@@ -23,6 +23,7 @@ import Wizards from '../assets/Wizards.png'
 import Woof from '../assets/Woof.jpeg'
 import BigNumber from 'bignumber.js'
 import { PriceLabel, Standard } from './RentCard'
+import { shortNumbers } from '../utils'
 
 export const CardBox = styled.div`
   position: relative;
@@ -55,6 +56,7 @@ export interface NftProps extends NFTData {
   onClick?: () => void
   unOperate?: boolean
   withdrawable?: boolean
+  size?: number
 }
 interface LabelProps {
   name: string
@@ -87,7 +89,9 @@ const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, pr
           <Days>{days} days</Days>
         </div>
       ) : (
-        <span className="tips">#{nftId}</span>
+        <span className="tips" title={nftId}>
+          #{shortNumbers(nftId, 18)}
+        </span>
       )}
     </LabelsWrap>
   )
@@ -188,6 +192,7 @@ export const Nft: React.FC<NftProps> = ({
   unOperate,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   img,
+  size,
   name,
   price,
   days,
@@ -199,7 +204,7 @@ export const Nft: React.FC<NftProps> = ({
   nftId,
   borrowAt,
   sell_orders,
-  asset_contract
+  contract_type
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -212,7 +217,7 @@ export const Nft: React.FC<NftProps> = ({
   return (
     <CardBox className="flex flex-column" onClick={handleClick}>
       {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} /> */}
-      <Img src={img} alt={name} />
+      <Img size={size} src={img} alt={name} />
       <Details>
         <div>
           <Labels
@@ -224,9 +229,7 @@ export const Nft: React.FC<NftProps> = ({
             price={price}
             days={days}
           />
-          <Standard color={asset_contract?.schema_name === 'ERC721' ? 'processing' : 'orange'}>
-            {asset_contract?.schema_name}
-          </Standard>
+          <Standard color={contract_type === 'ERC721' ? 'processing' : 'orange'}>{contract_type}</Standard>
         </div>
         {!unOperate ? (
           <Operate
