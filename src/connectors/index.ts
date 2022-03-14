@@ -16,17 +16,17 @@ export const supportedNetwork = [
 
 const RPC_URL =
   process.env.NODE_ENV !== 'development'
-    ? process.env.REACT_APP_RPC_URL_AURORA_TESTNET
-    : process.env.REACT_APP_RPC_URL_LOCAL_TESTNET
-const chainId = process.env.NODE_ENV !== 'development' ? '1313161555' : process.env.REACT_APP_CHAIN_ID
-const CHAIN_ID = parseInt(chainId ?? '1313161555')
+    ? process.env.REACT_APP_CURRENT_CHAIN_ID
+    : process.env.REACT_APP_MUMBAI_CHAIN_ID
+const chainId = process.env.NODE_ENV !== 'development' ? '137' : process.env.REACT_APP_MUMBAI_CHAIN_ID
+const CHAIN_ID = parseInt(chainId ?? '137')
 
 export const injected = new InjectedConnector({
   supportedChainIds: supportedNetwork
 })
 
 if (typeof RPC_URL === 'undefined') {
-  throw new Error(`REACT_APP_RPC_URL_AURORA_TESTNET must be a defined environment variable`)
+  throw new Error(`REACT_APP_CURRENT_CHAIN_ID must be a defined environment variable`)
 }
 
 export const network = new NetworkConnector({
