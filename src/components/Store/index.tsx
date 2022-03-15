@@ -28,10 +28,20 @@ export const swrConfig = {
 }
 
 export const http = axios.create({
-  timeout: 10000,
-  baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : ''
+  timeout: 10000
 })
-export const fetcher = (...args: [any, ...any[]]) => http.get(...args).then((res) => res.data)
+// export const fetcher = (...args: [any, ...any[]]) => http.get(...args).then((res) => res.data)
+export const fetcher = (url: string) => {
+  let _url
+  if (process.env.NODE_ENV === 'production') {
+    _url = url.startsWith('/moralis')
+      ? 'https://deep-index.moralis.io/api/v2' + url
+      : 'https://polygon-api.gameland.network' + url
+  } else {
+    _url = url
+  }
+  return http.get(_url).then((res) => res.data)
+}
 export const fetcher2 = (url: string) => fetch(url).then((res) => res.json())
 
 export const Store = ({ children }: { children: JSX.Element }) => {
