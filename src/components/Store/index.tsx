@@ -38,7 +38,8 @@ export const swrConfig = {
 
 // export const baseUrl = 'https://testnet-api.gameland.network'
 export const http = axios.create({
-  timeout: 10000
+  timeout: 10000,
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : ''
   // headers: {
   //   'X-API-KEY': 'a47e9b96f1ca464792fb00e673164afc'
   // }
