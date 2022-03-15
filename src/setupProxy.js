@@ -9,6 +9,7 @@ module.exports = function (app) {
       pathRewrite: { '^/api': '' }
     })
   )
+  // test
   app.use(
     '/moralis',
     createProxyMiddleware({
