@@ -106,7 +106,7 @@ export const MyRenting = () => {
         isLending: null,
         withdrawable: true
       }
-      const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
         mutateDebts(undefined, true)

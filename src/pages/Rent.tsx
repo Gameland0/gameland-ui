@@ -112,7 +112,7 @@ export const Rent = () => {
         borrower: borrowInfo[0],
         borrowAt: borrowInfo[1]
       }
-      await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
+      await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
     }
   }
 
@@ -163,7 +163,7 @@ export const Rent = () => {
         borrower: borrower || account,
         borrowAt: new Date().toJSON()
       }
-      const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
 
       if (res.data.code === 1) {
         setRenting(false)
@@ -175,7 +175,7 @@ export const Rent = () => {
       }
     } catch (err: any) {
       console.log(err.message)
-      toastify.error(err.message)
+      toastify.error(err.data ? err.data.message : err.message)
       setRenting(false)
     }
   }

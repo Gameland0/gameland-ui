@@ -2,11 +2,11 @@ const { createProxyMiddleware } = require('http-proxy-middleware')
 
 module.exports = function (app) {
   app.use(
-    '/api',
+    '/v0',
     createProxyMiddleware({
       target: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089',
       changeOrigin: true,
-      pathRewrite: { '^/api': '' }
+      pathRewrite: { '^/v0': process.env.NODE_ENV === 'production' ? '' : '/v0' }
     })
   )
   // test

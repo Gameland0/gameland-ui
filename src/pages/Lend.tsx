@@ -105,8 +105,8 @@ export const Lend = () => {
           throw Error('Failed to withdraw.')
         }
       }
-      const res: any = await http.delete(`/api/v0/opensea/${currentItem.id}`)
-      // const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http.delete(`/v0/opensea/${currentItem.id}`)
+      // const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
         setWithdrawing(false)
@@ -140,7 +140,7 @@ export const Lend = () => {
           collateral: 0,
           borrowAt: null
         }
-        const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
           setLiquidating(false)

@@ -5,7 +5,7 @@ import ChainId from '../utils/chainIdInfo'
 export const supportedNetwork = [
   // ChainId.mainnet,
   // ChainId.ropsten,
-  ChainId.rinkeby,
+  // ChainId.rinkeby,
   // ChainId.goerli,
   // ChainId.kovan,
   // ChainId.aurora,

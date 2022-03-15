@@ -280,7 +280,7 @@ export const Dashboard = () => {
           collateral: 0,
           borrowAt: null
         }
-        const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
           setLiquidating(false)
@@ -336,7 +336,7 @@ export const Dashboard = () => {
           borrower: null,
           borrowAt: null
         }
-        const res: any = await http.put(`/api/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         console.log(owner, res)
 
         if (res.data.code === 1) {
@@ -404,7 +404,7 @@ export const Dashboard = () => {
       }
       console.log(params)
 
-      const res: any = await http.post(`/api/v0/opensea/`, params)
+      const res: any = await http.post(`/v0/opensea/`, params)
       console.log(res)
 
       setLending(false)

@@ -137,7 +137,7 @@
 //         setApplying(false)
 //         throw new Error('Failed to create.')
 //       }
-//       const result = await http.post('/api/v0/guilds', params)
+//       const result = await http.post('/v0/guilds', params)
 //       if (result.data.code !== 1) {
 //         throw new Error(result.data.message)
 //       }
@@ -176,11 +176,11 @@
 //       if (!signTx) {
 //         throw new Error('Failed.')
 //       }
-//       const result = await http.post('/api/v0/members', params)
+//       const result = await http.post('/v0/members', params)
 //       if (result.data.code !== 1) {
 //         throw new Error(result.data.message)
 //       }
-//       await http.put(`/api/v0/guilds/count/${currentGuild.id}?amount=1`)
+//       await http.put(`/v0/guilds/count/${currentGuild.id}?amount=1`)
 //       fetchMembers()
 //       setJoinVisible(false)
 //       mutateGuilds(undefined)
@@ -238,7 +238,7 @@
 //     }
 //     setFetchingMembers(true)
 //     http
-//       .get(`/api/v0/members?guildId=${currentGuild.id}`)
+//       .get(`/v0/members?guildId=${currentGuild.id}`)
 //       .then(async (res) => {
 //         const { data } = res.data
 
@@ -275,12 +275,12 @@
 //         throw new Error('Failed to leave.')
 //       }
 //       http
-//         .delete(`/api/v0/members/${currentMember.id}`)
+//         .delete(`/v0/members/${currentMember.id}`)
 //         .then(async (res) => {
 //           if (res.data.code === 0) {
 //             throw new Error(res.data.message)
 //           }
-//           await http.put(`/api/v0/guilds/count/${currentMember.guildId}?amount=-1`)
+//           await http.put(`/v0/guilds/count/${currentMember.guildId}?amount=-1`)
 //           toastify.success('successful')
 //           mutateGuilds(undefined)
 //           handleGoback()
@@ -631,10 +631,10 @@
 //         throw new Error('Failed to create.')
 //       }
 
-//       const _delete = await http.delete(`/api/v0/members/${id}`)
+//       const _delete = await http.delete(`/v0/members/${id}`)
 //       if (_delete.data.code === 1) {
 //         toastify.success('Expel successful')
-//         const minusAmount = await http.put(`/api/v0/guilds/count/${currentGuild.id}?amount=-1`)
+//         const minusAmount = await http.put(`/v0/guilds/count/${currentGuild.id}?amount=-1`)
 //         if (minusAmount.data.code !== 1) {
 //           throw new Error(minusAmount.data.message)
 //         }
