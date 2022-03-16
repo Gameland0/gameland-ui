@@ -35,7 +35,7 @@ export const fetcher = (url: string) => {
   let _url
   if (process.env.NODE_ENV === 'production') {
     _url = url.startsWith('/moralis')
-      ? 'https://deep-index.moralis.io/api/v2' + url
+      ? 'https://deep-index.moralis.io/api/v2' + url.substring(8)
       : 'https://polygon-api.gameland.network' + url
   } else {
     _url = url
