@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './pages/App'
-import reportWebVitals from './reportWebVitals'
+// import reportWebVitals from './reportWebVitals'
 import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
 import { Web3Provider } from '@ethersproject/providers'
 import { HashRouter } from 'react-router-dom'
