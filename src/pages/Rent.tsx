@@ -15,7 +15,7 @@ import { Nft as NftCard, NftProps } from '../components/Nft'
 import { FakeButton, RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
 import { formatAddress, ZeroAddress } from '../utils'
-import { http } from '../components/Store'
+import { http2 } from '../components/Store'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
@@ -112,7 +112,7 @@ export const Rent = () => {
         borrower: borrowInfo[0],
         borrowAt: borrowInfo[1]
       }
-      await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
     }
   }
 
@@ -163,7 +163,7 @@ export const Rent = () => {
         borrower: borrower || account,
         borrowAt: new Date().toJSON()
       }
-      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
 
       if (res.data.code === 1) {
         setRenting(false)

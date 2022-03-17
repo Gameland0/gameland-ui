@@ -17,7 +17,8 @@ import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import { lowerCase } from 'lower-case'
 
-export const GameLandAddress: string = process.env.REACT_APP_GAMELAND || 'undefined' // stable version
+export const GameLandAddress = '0xC288b87EE1a941e403b23054A920E4E3d764eeC6'
+// export const GameLandAddress: string = process.env.REACT_APP_GAMELAND || 'undefined' // stable version
 export const MyNFTAddress = process.env.REACT_APP_MYNFT || 'undefined' // stable version
 export const ArchAddress = process.env.REACT_APP_ARCH || 'undefined'
 export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'

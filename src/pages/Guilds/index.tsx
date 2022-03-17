@@ -3,7 +3,7 @@
 // import { Row, Col, Button, Form, Input, Select, Space, Avatar, Popconfirm } from 'antd'
 // import { useActiveWeb3React, useStore } from '../../hooks'
 // import { Modal } from '../../components/Modal'
-// import { http } from '../../components/Store'
+// import { http2 } from '../../components/Store'
 // import { toastify } from '../../components/Toastify'
 // import { Empty } from '../../components/Empty'
 // import { LeftOutlined } from '@ant-design/icons'
@@ -137,7 +137,7 @@
 //         setApplying(false)
 //         throw new Error('Failed to create.')
 //       }
-//       const result = await http.post('/v0/guilds', params)
+//       const result = await http2.post('/v0/guilds', params)
 //       if (result.data.code !== 1) {
 //         throw new Error(result.data.message)
 //       }
@@ -176,11 +176,11 @@
 //       if (!signTx) {
 //         throw new Error('Failed.')
 //       }
-//       const result = await http.post('/v0/members', params)
+//       const result = await http2.post('/v0/members', params)
 //       if (result.data.code !== 1) {
 //         throw new Error(result.data.message)
 //       }
-//       await http.put(`/v0/guilds/count/${currentGuild.id}?amount=1`)
+//       await http2.put(`/v0/guilds/count/${currentGuild.id}?amount=1`)
 //       fetchMembers()
 //       setJoinVisible(false)
 //       mutateGuilds(undefined)
@@ -280,7 +280,7 @@
 //           if (res.data.code === 0) {
 //             throw new Error(res.data.message)
 //           }
-//           await http.put(`/v0/guilds/count/${currentMember.guildId}?amount=-1`)
+//           await http2.put(`/v0/guilds/count/${currentMember.guildId}?amount=-1`)
 //           toastify.success('successful')
 //           mutateGuilds(undefined)
 //           handleGoback()
@@ -631,10 +631,10 @@
 //         throw new Error('Failed to create.')
 //       }
 
-//       const _delete = await http.delete(`/v0/members/${id}`)
+//       const _delete = await http2.delete(`/v0/members/${id}`)
 //       if (_delete.data.code === 1) {
 //         toastify.success('Expel successful')
-//         const minusAmount = await http.put(`/v0/guilds/count/${currentGuild.id}?amount=-1`)
+//         const minusAmount = await http2.put(`/v0/guilds/count/${currentGuild.id}?amount=-1`)
 //         if (minusAmount.data.code !== 1) {
 //           throw new Error(minusAmount.data.message)
 //         }

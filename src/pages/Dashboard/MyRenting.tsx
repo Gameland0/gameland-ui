@@ -10,7 +10,7 @@ import { formatAddress, ZeroAddress } from '../../utils'
 import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { toastify } from '../../components/Toastify'
-import { http } from '../../components/Store'
+import { http2 } from '../../components/Store'
 import { Empty } from '../../components/Empty'
 import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
@@ -106,7 +106,7 @@ export const MyRenting = () => {
         isLending: null,
         withdrawable: true
       }
-      const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
         mutateDebts(undefined, true)

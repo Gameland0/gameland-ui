@@ -30,7 +30,10 @@ export const swrConfig = {
 export const http = axios.create({
   timeout: 10000
 })
-// export const fetcher = (...args: [any, ...any[]]) => http.get(...args).then((res) => res.data)
+export const http2 = axios.create({
+  timeout: 10000,
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : ''
+})
 export const fetcher = (url: string) => {
   let _url
   if (process.env.NODE_ENV === 'production') {

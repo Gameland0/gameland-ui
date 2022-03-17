@@ -18,7 +18,7 @@ import { Contract } from '@ethersproject/contracts'
 import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
-import { http } from '../../components/Store'
+import { http2 } from '../../components/Store'
 import { MyRenting } from './MyRenting'
 import { lowerCase } from 'lower-case'
 import { parseEther } from '@ethersproject/units'
@@ -66,7 +66,7 @@ export const fetchAbi = async (address: string) => {
 }
 export const Dashboard = () => {
   const { account, library } = useActiveWeb3React()
-  const { mutateDebts } = useStore()
+  const { mutateDebts, nfts } = useStore()
   // const nftContract = useMyNftContract()
   const NFTsContract = useNFTContract()
   const gamelandContract = useGameLandContract()
@@ -99,7 +99,7 @@ export const Dashboard = () => {
   const [awaiting, setAwaiting] = useState(false)
 
   const fetchMetadata = (data: any[], contracts: Contract) => {
-    if (!data.length) {
+    if (!data || !data.length) {
       return []
     }
 
@@ -168,10 +168,17 @@ export const Dashboard = () => {
     //   _nfts = _myNfts.result
     // }
     console.log(_myNfts)
-
+    const lendableNfts = _myNfts.result.filter((item: any) => {
+      return (
+        nfts.findIndex(
+          (debt: any) =>
+            debt.contractAddress.toLowerCase() === item.token_address.toLowerCase() && debt.nftId === item.token_id
+        ) < 0
+      )
+    })
     const syncFn = async () => {
       const contracts = await gamelandContract?.get_nft_programes()
-      const _nfts = fetchMetadata(_myNfts.result, contracts)
+      const _nfts = fetchMetadata(lendableNfts, contracts)
       Promise.all(_nfts).then((vals) => {
         console.log(vals)
 
@@ -280,7 +287,7 @@ export const Dashboard = () => {
           collateral: 0,
           borrowAt: null
         }
-        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
           setLiquidating(false)
@@ -336,7 +343,7 @@ export const Dashboard = () => {
           borrower: null,
           borrowAt: null
         }
-        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         console.log(owner, res)
 
         if (res.data.code === 1) {
@@ -404,7 +411,7 @@ export const Dashboard = () => {
       }
       console.log(params)
 
-      const res: any = await http.post(`/v0/opensea/`, params)
+      const res: any = await http2.post(`/v0/opensea/`, params)
       console.log(res)
 
       setLending(false)
@@ -560,10 +567,10 @@ export const Dashboard = () => {
                 myNfts.map((item: any, index) => (
                   <Col span="6" xl={6} lg={8} md={12} sm={12} xs={24} key={index} onClick={() => handleNftClick(item)}>
                     <NftCard
-                      name={item.metadata.name}
+                      name={item.metadata?.name}
                       price={item.price}
                       days={item.days}
-                      img={item.metadata.image}
+                      img={item.metadata?.image}
                       size={300}
                       nftId={item.token_id as string}
                       isLending={item.isLending}

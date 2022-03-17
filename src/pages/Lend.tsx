@@ -11,7 +11,7 @@ import { toastify } from '../components/Toastify'
 import { formatAddress, getProgress, ZeroAddress } from '../utils'
 import { isEmpty } from 'lodash'
 import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
-import { http } from '../components/Store'
+import { http2 } from '../components/Store'
 import BigNumber from 'bignumber.js'
 import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
@@ -105,8 +105,7 @@ export const Lend = () => {
           throw Error('Failed to withdraw.')
         }
       }
-      const res: any = await http.delete(`/v0/opensea/${currentItem.id}`)
-      // const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http2.delete(`/v0/opensea/${currentItem.id}`)
       if (res.data.code === 1) {
         toastify.success('succeed')
         setWithdrawing(false)
@@ -140,7 +139,7 @@ export const Lend = () => {
           collateral: 0,
           borrowAt: null
         }
-        const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
           setLiquidating(false)
