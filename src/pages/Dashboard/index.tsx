@@ -9,7 +9,7 @@ import {
   useGameLandContract,
   // useMyNftContract,
   // useMyNfts,
-  useNFTContract,
+  // useNFTContract,
   useStore
 } from '../../hooks'
 
@@ -68,7 +68,7 @@ export const Dashboard = () => {
   const { account, library } = useActiveWeb3React()
   const { mutateDebts, nfts } = useStore()
   // const nftContract = useMyNftContract()
-  const NFTsContract = useNFTContract()
+  // const NFTsContract = useNFTContract()
   const gamelandContract = useGameLandContract()
   // const myNft = useMyNfts()
   // const [totalPage, setTotalPage] = useState(0)
@@ -310,12 +310,13 @@ export const Dashboard = () => {
           return
         }
         const contractAddress = currentItem.token_address ?? ''
-        if (!gamelandContract || !NFTsContract) {
+        if (!gamelandContract || !currentItem.contract) {
           toastify.error('Contract not found.')
           return
         }
         setWithdrawing(true)
-        const owner = await NFTsContract[contractAddress].ownerOf(currentItem.nftId)
+        const owner = await currentItem.contract.ownerOf(currentItem.nftId)
+        // const owner = await NFTsContract[contractAddress].ownerOf(currentItem.nftId)
 
         if (lowerCase(owner) !== lowerCase(account)) {
           const withdrawnft = await gamelandContract.withdrawnft(

@@ -18,18 +18,6 @@ import { useMyRenting } from './useMyRenting'
 import { lowerCase } from 'lower-case'
 
 export const GameLandAddress = '0xC288b87EE1a941e403b23054A920E4E3d764eeC6'
-// export const GameLandAddress: string = process.env.REACT_APP_GAMELAND || 'undefined' // stable version
-export const MyNFTAddress = process.env.REACT_APP_MYNFT || 'undefined' // stable version
-export const ArchAddress = process.env.REACT_APP_ARCH || 'undefined'
-export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'
-
-if (
-  typeof MyNFTAddress === 'undefined' ||
-  typeof GameLandAddress === 'undefined' ||
-  typeof ArchAddress === 'undefined'
-) {
-  throw new Error(`Seems contract not exist.`)
-}
 
 interface OpenseaData {
   token_id?: string
@@ -173,11 +161,11 @@ export function useInactiveListener(suppress = false) {
   }, [active, error, suppress, activate])
 }
 
-export function useGreeterContract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-  return new Contract(Greeter, GreeterAbi, library?.getSigner())
-}
+// export function useGreeterContract() {
+//   const { library } = useActiveWeb3React()
+//   if (!library) return null
+//   return new Contract(Greeter, GreeterAbi, library?.getSigner())
+// }
 
 export function useGameLandContract() {
   const { library } = useActiveWeb3React()
@@ -186,31 +174,19 @@ export function useGameLandContract() {
   return new Contract(GameLandAddress, GameLandAbi, library.getSigner())
 }
 
-export function useMyNftContract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-  return new Contract(MyNFTAddress, MyNftAbi, library.getSigner())
-}
+// const ABIS: Record<string, any[]> = {}
+// ABIS[lowerCase(MyNFTAddress)] = MyNftAbi
+// ABIS[lowerCase(ArchAddress)] = ArchNftAbi
 
-export function useArchNftContract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-  return new Contract(ArchAddress, ArchNftAbi, library.getSigner())
-}
-
-const ABIS: Record<string, any[]> = {}
-ABIS[lowerCase(MyNFTAddress)] = MyNftAbi
-ABIS[lowerCase(ArchAddress)] = ArchNftAbi
-
-export function useNFTContract() {
-  const contracts: Record<string, Contract> = {}
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-  Object.keys(ABIS).forEach((address) => {
-    contracts[address] = new Contract(address, ABIS[address], library?.getSigner())
-  })
-  return contracts
-}
+// export function useNFTContract() {
+//   const contracts: Record<string, Contract> = {}
+//   const { library } = useActiveWeb3React()
+//   if (!library) return null
+//   Object.keys(ABIS).forEach((address) => {
+//     contracts[address] = new Contract(address, ABIS[address], library?.getSigner())
+//   })
+//   return contracts
+// }
 
 export interface ListenerOptions {
   // how often this data should be fetched, by default 1
