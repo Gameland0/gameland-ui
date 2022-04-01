@@ -111,11 +111,19 @@ export const Dashboard = () => {
         let metadata: any
 
         if (item.token_uri.startsWith('http')) {
-          res = await fetch(item.token_uri, {
-            method: 'GET',
-            mode: 'cors'
-          })
-          metadata = await res.json()
+          console.log(item.token_uri.includes('www.evolution.land'))
+
+          if (item.token_uri.includes('www.evolution.land')) {
+            metadata = {
+              image: 'empty'
+            }
+          } else {
+            res = await fetch(item.token_uri, {
+              method: 'GET',
+              mode: 'cors'
+            })
+            metadata = await res.json()
+          }
         } else if (item.token_uri.startsWith('data:application')) {
           res = await fetch(item.token_uri)
           const json = await res.json()
@@ -546,17 +554,7 @@ export const Dashboard = () => {
         </Row>
       </Modal>
 
-      <MyTabs
-        defaultActiveKey="1"
-        // tabBarExtraContent={
-        //   // <Button onClick={handleMint} loading={minting}>
-        //   //   Mint NFT
-        //   // </Button>
-        //   <a href="https://testnets.opensea.io/collection/pumpkinman" target="_blank" rel="noreferrer">
-        //     Get NFT
-        //   </a>
-        // }
-      >
+      <MyTabs defaultActiveKey="1">
         <TabPaneBox tab={<span className="clearGap">My NFT</span>} key="1">
           <MyNftBox>
             <Row gutter={[16, 16]}>
