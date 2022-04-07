@@ -27,9 +27,10 @@ import { Empty } from '../../components/Empty'
 import { useFetchMyNfts } from '../../hooks/useFetchMyNfts'
 import { Pagination } from '../../components/Pagination'
 import { ConnectWallet } from '../../components/ConnectWallet'
-import { fixDigitalId, ZeroAddress } from '../../utils'
+import { fetchReceipt, fixDigitalId, ZeroAddress } from '../../utils'
 import { NFTDigits } from '../../constants'
 import { ABIs } from '../../constants/Abis/ABIs'
+import { hashMessage, sha256 } from 'ethers/lib/utils'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -110,7 +111,7 @@ export const Dashboard = () => {
         let res: any
         let metadata: any
 
-        if (item.token_uri.startsWith('http')) {
+        if (item.token_uri && item.token_uri.startsWith('http')) {
           console.log(item.token_uri.includes('www.evolution.land'))
 
           if (item.token_uri.includes('www.evolution.land')) {
@@ -145,7 +146,7 @@ export const Dashboard = () => {
         return
       }
       const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
-      item.gamelandNftId = gamelandId
+      item.gamelandNftId = hashMessage(gamelandId)
       return item
     })
   }
@@ -175,7 +176,7 @@ export const Dashboard = () => {
     // } else {
     //   _nfts = _myNfts.result
     // }
-    console.log(_myNfts)
+    console.log(_myNfts, nfts)
     const lendableNfts = _myNfts.result.filter((item: any) => {
       return (
         nfts.findIndex(
@@ -239,10 +240,10 @@ export const Dashboard = () => {
         storedAbi = value
       }
     }
-    console.log(storedAbi)
 
     // const constantAbi: any[] = ABIs[contractAddress]
     const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
+    console.log(ABI, contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
 
     item.contract = nftContract
@@ -283,7 +284,11 @@ export const Dashboard = () => {
 
       try {
         const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId)
-        liquidated.wait()
+        const receipt = await fetchReceipt(liquidated.hash, library)
+        const { status } = receipt
+        if (!status) {
+          throw Error('Failed to confiscated.')
+        }
         console.log(liquidated)
         const params = {
           isLending: false,
@@ -333,12 +338,8 @@ export const Dashboard = () => {
             currentItem.gamelandNftId,
             currentItem.id
           )
-          gamelandContract.on('Withdrew', (from, to, amount, event) => {
-            console.log(lowerCase(from) === lowerCase(gamelandContract.address), lowerCase(to) === lowerCase(account))
-
-            console.log(`${from} sent ${amount} to ${to},event: ${event}`)
-          })
-          const { status } = await withdrawnft.wait()
+          const receipt = await fetchReceipt(withdrawnft.hash, library)
+          const { status } = receipt
           if (!status) {
             throw Error('Failed to withdraw.')
           }
@@ -400,9 +401,8 @@ export const Dashboard = () => {
         currentItem.gamelandNftId
       )
 
-      const tx = await deposited.wait()
-      console.log(deposited.hash, tx)
-      if (!tx.status) {
+      const receipt = await fetchReceipt(deposited.hash, library)
+      if (!receipt.status) {
         throw Error('Failed to deposit.')
       }
 
@@ -454,8 +454,10 @@ export const Dashboard = () => {
         }
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         console.log(approvetx)
-
-        await approvetx.wait()
+        const receipt = await fetchReceipt(approvetx.hash, library)
+        if (!receipt.status) {
+          throw new Error('failed')
+        }
 
         setIsApproved(true)
       } catch (err: any) {
@@ -464,6 +466,7 @@ export const Dashboard = () => {
     }
     setApproving(false)
   }
+
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>

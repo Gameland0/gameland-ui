@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import { NFTData, useActiveWeb3React, useGameLandContract, useStore } from '../hooks'
 import { toastify } from '../components/Toastify'
-import { formatAddress, getProgress, ZeroAddress } from '../utils'
+import { fetchReceipt, formatAddress, getProgress, ZeroAddress } from '../utils'
 import { isEmpty } from 'lodash'
 import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
 import { http2 } from '../components/Store'
@@ -92,19 +92,18 @@ export const Lend = () => {
         return
       }
       setWithdrawing(true)
-      const owner = await currentItem.contract.ownerOf(currentItem.nftId)
-      if (lowerCase(owner) !== lowerCase(account)) {
-        const withdrawnft = await gamelandContract.withdrawnft(
-          currentItem.nftId,
-          currentItem.contractAddress,
-          currentItem.gamelandNftId,
-          currentItem.id
-        )
-        const { status } = await withdrawnft.wait()
-        if (!status) {
-          throw Error('Failed to withdraw.')
-        }
+      const withdrawnft = await gamelandContract.withdrawnft(
+        currentItem.nftId,
+        currentItem.contractAddress,
+        currentItem.gamelandNftId,
+        currentItem.id
+      )
+      const receipt = await fetchReceipt(withdrawnft.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to withdraw.')
       }
+
       const res: any = await http2.delete(`/v0/opensea/${currentItem.id}`)
       if (res.data.code === 1) {
         toastify.success('succeed')
@@ -127,7 +126,11 @@ export const Lend = () => {
 
       try {
         const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId, currentItem.id)
-        liquidated.wait()
+        const receipt = await fetchReceipt(liquidated.hash, library)
+        const { status } = receipt
+        if (!status) {
+          throw Error('Failed to confiscated.')
+        }
         console.log(liquidated)
         const params = {
           isLending: false,

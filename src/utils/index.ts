@@ -1,5 +1,6 @@
 import { getAddress } from '@ethersproject/address'
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
+import { TransactionReceipt } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
 
 export const NetworkContextName = 'GAMELAND'
@@ -194,4 +195,17 @@ export const shortNumbers = (num: string | number, digits = 10) => {
   if (String(num).length <= digits) return num
 
   return String(num).substring(0, digits) + '...'
+}
+
+export const fetchReceipt = async (transactionHash: string, provider: any): Promise<TransactionReceipt> => {
+  const getReceipt = async (hash: string, provider: Web3Provider): Promise<TransactionReceipt> => {
+    const receipt = await provider.getTransactionReceipt(hash)
+    if (receipt && receipt.blockNumber) {
+      console.log(receipt)
+      return receipt
+    } else {
+      return getReceipt(hash, provider)
+    }
+  }
+  return await getReceipt(transactionHash, provider)
 }

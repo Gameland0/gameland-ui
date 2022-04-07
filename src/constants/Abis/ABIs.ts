@@ -215,7 +215,7 @@ const ABIs: Record<string, any[]> = {
     },
     {
       inputs: [],
-      name: name,
+      name: 'name',
       outputs: [
         {
           internalType: 'string',
@@ -457,7 +457,7 @@ const ABIs: Record<string, any[]> = {
     {
       constant: true,
       inputs: [],
-      name: name,
+      name: 'name',
       outputs: [{ name: '', type: 'string' }],
       payable: false,
       stateMutability: 'view',
@@ -975,12 +975,7 @@ const ABIs: Record<string, any[]> = {
       stateMutability: 'view',
       type: 'function'
     },
-    {
-      inputs: [],
-      payable: false,
-      stateMutability: 'nonpayable',
-      type: 'constructor'
-    },
+    { inputs: [], payable: false, stateMutability: 'nonpayable', type: 'constructor' },
     {
       anonymous: false,
       inputs: [{ indexed: true, name: 'authority', type: 'address' }],

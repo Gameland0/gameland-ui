@@ -6,7 +6,7 @@ import { Nft as NftCard } from '../../components/Nft'
 import { Modal } from '../../components/Modal'
 import { Dlist } from '../Lend'
 import { SpanLabel } from '../Rent'
-import { formatAddress, ZeroAddress } from '../../utils'
+import { fetchReceipt, formatAddress, ZeroAddress } from '../../utils'
 import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { toastify } from '../../components/Toastify'
@@ -14,6 +14,7 @@ import { http2 } from '../../components/Store'
 import { Empty } from '../../components/Empty'
 import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
+import { ABIs } from '../../constants/Abis/ABIs'
 
 export const MyRenting = () => {
   const { library, account } = useActiveWeb3React()
@@ -41,8 +42,16 @@ export const MyRenting = () => {
     setVisible(true)
 
     const contractAddress = item.contractAddress ?? ''
-    const localAbi = localStorage.getItem(contractAddress)
-    const ABI = localAbi ? localAbi : await fetchAbi(contractAddress)
+    const localAbi = localStorage.getItem(contractAddress.toLowerCase())
+    let storedAbi
+    for (const [key, value] of Object.entries(ABIs)) {
+      if (key.toLowerCase() === contractAddress.toLowerCase()) {
+        storedAbi = value
+      }
+    }
+
+    // const constantAbi: any[] = ABIs[contractAddress]
+    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
 
     item.contract = nftContract
@@ -80,25 +89,21 @@ export const MyRenting = () => {
       }
       setRepaying(true)
 
-      const owner = await currentItem.contract.ownerOf(currentItem.nftId)
       const borrowStatus = await gamelandContract.borrow_status(currentItem.gamelandNftId)
+      console.log(lowerCase(borrowStatus[0]), lowerCase(account))
 
-      if (lowerCase(borrowStatus[0]) === lowerCase(account) && lowerCase(owner) !== lowerCase(account)) {
-        throw new Error('Your NFT has been transferred!')
+      const repaid = await gamelandContract.connect(library.getSigner()).returnnft(
+        currentItem.nftId,
+        currentItem.contractAddress,
+        currentItem.gamelandNftId
+        // ,currentItem.id
+      )
+      const receipt = await fetchReceipt(repaid.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to repay, please try again.')
       }
 
-      if (lowerCase(owner) !== lowerCase(gamelandContract.address)) {
-        const repaid = await gamelandContract.connect(library.getSigner()).returnnft(
-          currentItem.nftId,
-          currentItem.contractAddress,
-          currentItem.gamelandNftId
-          // ,currentItem.id
-        )
-        const { status } = await repaid.wait()
-        if (!status) {
-          throw Error('Failed to repay, please try again.')
-        }
-      }
       const params = {
         borrower: null,
         borrowAt: null,
@@ -124,19 +129,21 @@ export const MyRenting = () => {
   const handleApprove = async () => {
     setApproving(true)
     if (currentItem.contract) {
-      console.log(GameLandAddress, currentItem.nftId)
+      console.log(GameLandAddress, currentItem.contract)
       try {
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         let approvetx
-        if (currentItem.standard === 'ERC721' && !!currentItem.contract?.approve) {
+        if (currentItem.standard === 'ERC721' && !!currentItem.contract.approve) {
           approvetx = await currentItem.contract.approve(GameLandAddress, currentItem.nftId)
         } else {
           approvetx = await currentItem.contract.setApprovalForAll(GameLandAddress, true)
         }
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
-        console.log(approvetx)
-
-        await approvetx.wait()
+        const receipt = await fetchReceipt(approvetx.hash, library)
+        const { status } = receipt
+        if (!status) {
+          throw Error('Failed to Approved.')
+        }
 
         setIsApproved(true)
       } catch (err: any) {

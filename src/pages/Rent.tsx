@@ -14,7 +14,7 @@ import { Nft as NftCard, NftProps } from '../components/Nft'
 // import { NftView } from '../components/NftView'
 import { FakeButton, RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
-import { formatAddress, ZeroAddress } from '../utils'
+import { fetchReceipt, formatAddress, ZeroAddress } from '../utils'
 import { http2 } from '../components/Store'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
@@ -146,8 +146,8 @@ export const Rent = () => {
             value: parseEther(amount)
           })
         console.log(rented)
-
-        const { status } = await rented.wait()
+        const receipt = await fetchReceipt(rented.hash, library)
+        const { status } = receipt
         if (!status) {
           throw Error('Failed to rent.')
         }

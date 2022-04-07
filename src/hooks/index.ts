@@ -16,8 +16,10 @@ import GameLandAbi from '../constants/Abis/GameLand.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import { lowerCase } from 'lower-case'
+import { ABIs } from '../constants/Abis/ABIs'
 
 export const GameLandAddress = '0xC288b87EE1a941e403b23054A920E4E3d764eeC6'
+export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
 
 interface OpenseaData {
   token_id?: string
@@ -175,15 +177,23 @@ export function useGameLandContract() {
 }
 
 // const ABIS: Record<string, any[]> = {}
-// ABIS[lowerCase(MyNFTAddress)] = MyNftAbi
+// ABIS[lowerCase(TSAddress)] = ABIs[TSAddress]
 // ABIS[lowerCase(ArchAddress)] = ArchNftAbi
 
+export function useTsContract() {
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+
+  return new Contract(TSAddress, ABIs[TSAddress], library.getSigner())
+}
 // export function useNFTContract() {
 //   const contracts: Record<string, Contract> = {}
 //   const { library } = useActiveWeb3React()
 //   if (!library) return null
-//   Object.keys(ABIS).forEach((address) => {
-//     contracts[address] = new Contract(address, ABIS[address], library?.getSigner())
+//   console.log(ABIs)
+
+//   Object.keys(ABIs).forEach((address) => {
+//     contracts[address] = new Contract(address, ABIs[address], library?.getSigner())
 //   })
 //   return contracts
 // }
