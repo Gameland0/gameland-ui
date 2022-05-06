@@ -17,9 +17,9 @@ import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import { lowerCase } from 'lower-case'
 
-export const GameLandAddress: string = process.env.REACT_APP_GAMELAND || 'undefined' // stable version
-export const MyNFTAddress = process.env.REACT_APP_MYNFT || 'undefined' // stable version
-export const ArchAddress = process.env.REACT_APP_ARCH || 'undefined'
+export const GameLandAddress = '0xD2d0AF0E4661BF8b1074854c899d6c12F2D9742B' // stable version
+export const MyNFTAddress = '0xf2d47bbb40f9ffa447687b4708076f6ee3e9134c' // stable version
+export const ArchAddress = '0x2E7704C0aeE70BF604c0Ed93D72133F39935fE79'
 export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'
 
 if (
@@ -45,6 +45,7 @@ export interface NFTData extends OpenseaData {
   img?: string
   isBorrowed?: boolean
   isLending?: boolean
+  withdrawable?: boolean
   borrowAt?: string
   name: string
   nftId: string

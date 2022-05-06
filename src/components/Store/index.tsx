@@ -121,6 +121,9 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     }
 
     const { assets } = openseaData as any
+    if (!assets.length) {
+      return
+    }
     const { data: debtsData } = debts
     // console.log(openseaData, debtsData)
 
@@ -129,6 +132,9 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     }
 
     const result = assets.map((item: Record<string, any>) => {
+      if (!item || JSON.stringify(item) === '{}') {
+        return {}
+      }
       const contractAddress = item.asset_contract.address
       const tokenId = item.token_id
       const match = debtsData.find((debt: Record<string, any>) => {

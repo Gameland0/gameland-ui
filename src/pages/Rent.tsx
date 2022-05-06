@@ -150,6 +150,7 @@ export const Rent = () => {
         }
       }
       const params = {
+        isLending: false,
         isBorrowed: true,
         borrower: account,
         borrowAt: new Date().toJSON()

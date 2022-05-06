@@ -84,7 +84,7 @@ export const MyRenting = () => {
       if (lowerCase(owner) !== lowerCase(gamelandContract.address)) {
         const repaid = await gamelandContract
           .connect(library.getSigner())
-          ._return(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId)
+          .returnnft(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId)
         const { status } = await repaid.wait()
         if (!status) {
           throw Error('Failed to repay, please try again.')

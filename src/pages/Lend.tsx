@@ -40,7 +40,6 @@ export const Lend = () => {
   const [borrowed, setBorrowed] = useState(false)
   const [progress, setProgress] = useState(0)
   const [withdrawing, setWithdrawing] = useState(false)
-  const [withdrawable, setWithdrawable] = useState(false)
   const { mutateNfts } = useStore()
 
   const [awaiting, setAwaiting] = useState(false)
@@ -70,8 +69,6 @@ export const Lend = () => {
         let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
         _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
         console.log(isEqual(_lending, ZeroNftInfo))
-
-        setWithdrawable(!isEqual(_lending, ZeroNftInfo))
       }
     } catch (err: any) {
       toastify.error(err.message)
@@ -114,7 +111,6 @@ export const Lend = () => {
       const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
-        setWithdrawable(false)
         setWithdrawing(false)
         setVisible(false)
         mutateNfts(undefined, true)
@@ -254,7 +250,7 @@ export const Lend = () => {
                   img={item.image_preview_url}
                   isLending={item.isLending}
                   isBorrowed={item.isBorrowed}
-                  withdrawable={withdrawable}
+                  withdrawable={item.withdrawable}
                   asset_contract={item.asset_contract}
                 />
               </Col>

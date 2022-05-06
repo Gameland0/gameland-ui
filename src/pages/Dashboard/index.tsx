@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Row, Col, Tabs, Button, Popconfirm } from 'antd'
 import styled from 'styled-components'
@@ -16,8 +17,8 @@ import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { http } from '../../components/Store'
-import { isEmpty, isEqual } from 'lodash'
-import { fixDigitalId, formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../../utils'
+import { isEmpty } from 'lodash'
+import { fixDigitalId, formatAddress, ZeroAddress } from '../../utils'
 import { MyRenting } from './MyRenting'
 import { SpanLabel, DaysInfo } from '../Rent'
 import BigNumber from 'bignumber.js'
@@ -108,7 +109,6 @@ export const Dashboard = () => {
   }
   const handleNftClick = async (item: any) => {
     setVisible(true)
-    setCurrentItem(item)
     setExpired(false)
     setAwaiting(true)
 
@@ -116,37 +116,20 @@ export const Dashboard = () => {
 
     const contractId = contracts.data.find((c: any) => lowerCase(c.address) === lowerCase(item.asset_contract.address))
     const gamelandNftId = fixDigitalId(contractId.id, item.token_id, 4) as unknown as number
-    // try {
-    //   const _borrowed = await gamelandContract?.borrow_or_not(gamelandNftId)
+    item.gamelandNftId = gamelandNftId
+    item.nftId = item.token_id
+    item.contractAddress = item.asset_contract.address
+    setCurrentItem(item)
 
-    //   setBorrowed(_borrowed)
+    const contractAddress = item.asset_contract?.address
 
-    //   if (_borrowed) {
-    //     const _progress = getProgress(item.borrowAt as string, item.days as number)
-
-    //     setProgress(_progress)
-    //     setExpired(_progress >= 100)
-    //   } else {
-    //     // const nftOwner = await nftContract?.ownerOf(item.token_id)
-    //     // setWithdrawable(checkWithdrawAble(nftOwner, account as string))
-    //     let _lending = await gamelandContract?.get_nft_allinfo(gamelandNftId)
-
-    //     _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
-
-    //     console.log(isEqual(_lending, ZeroNftInfo))
-    //     setWithdrawable(!isEqual(_lending, ZeroNftInfo))
-    //   }
-    // } catch (err: any) {
-    //   console.log(err.message)
-    //   toastify.error(err.message || 'Error occured with retrieving details.')
-    // }
-    const contractAddress = currentItem.asset_contract?.address
+    console.log(NFTsContract, item.asset_contract?.schema_name)
 
     if (NFTsContract !== null) {
       console.log(NFTsContract[contractAddress])
 
       try {
-        if (currentItem.asset_contract?.schema_name === 'ERC721') {
+        if (item.asset_contract?.schema_name === 'ERC721') {
           const approveAddress = await NFTsContract[contractAddress].getApproved(item.token_id)
           console.log(approveAddress, approveAddress === ZeroAddress)
 
@@ -279,6 +262,14 @@ export const Dashboard = () => {
       }
       setLending(true)
       // const owner = await nftContract.ownerOf(currentItem.nftId)
+      console.log(
+        parseEther(price),
+        days,
+        currentItem.nftId,
+        parseEther(collateral),
+        currentItem.contractAddress,
+        currentItem.gamelandNftId
+      )
 
       const deposited = await gamelandContract.deposit(
         parseEther(price),
@@ -340,6 +331,8 @@ export const Dashboard = () => {
         }
         let approvetx
         if (currentItem.asset_contract?.schema_name === 'ERC721') {
+          console.log(GameLandAddress, currentItem.nftId)
+
           approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
         } else {
           approvetx = await NFTsContract[nftAddress].setApprovalForAll(GameLandAddress, true)
@@ -480,17 +473,7 @@ export const Dashboard = () => {
         </Row>
       </Modal>
 
-      <MyTabs
-        defaultActiveKey="1"
-        // tabBarExtraContent={
-        //   // <Button onClick={handleMint} loading={minting}>
-        //   //   Mint NFT
-        //   // </Button>
-        //   <a href="https://testnets.opensea.io/collection/pumpkinman" target="_blank" rel="noreferrer">
-        //     Get NFT
-        //   </a>
-        // }
-      >
+      <MyTabs defaultActiveKey="1">
         <TabPaneBox tab={<span className="clearGap">My NFT</span>} key="1">
           <MyNftBox>
             <Row gutter={[16, 16]}>
