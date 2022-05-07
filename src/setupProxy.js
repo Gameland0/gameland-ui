@@ -4,7 +4,7 @@ module.exports = function (app) {
   app.use(
     '/v0',
     createProxyMiddleware({
-      target: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089',
+      target: 'https://polygon-api.gameland.network',
       changeOrigin: true,
       pathRewrite: { '^/v0': process.env.NODE_ENV === 'production' ? '' : '/v0' }
     })

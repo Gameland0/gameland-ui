@@ -15,7 +15,6 @@ import { http2 } from '../components/Store'
 import BigNumber from 'bignumber.js'
 import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
-import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
 import { fetchAbi, getContract } from './Dashboard'
 
