@@ -17,6 +17,7 @@ import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
 import { Empty } from '../components/Empty'
 import { fetchAbi, getContract } from './Dashboard'
+import { Icon } from '../components/Icon'
 
 export const Dlist = styled.div`
   flex-direction: column;
@@ -194,11 +195,15 @@ export const Lend = () => {
                     </div>
                     <div>
                       <SpanLabel>Collateral</SpanLabel>
-                      <span>{currentItem.collateral} Ξ</span>
+                      <span>
+                        {currentItem.collateral} <Icon />
+                      </span>
                     </div>
                     <div>
                       <SpanLabel>price</SpanLabel>
-                      <span>{currentItem.price} Ξ / day</span>
+                      <span>
+                        {currentItem.price} <Icon /> / day
+                      </span>
                     </div>
                     <div>
                       <SpanLabel>days</SpanLabel>
@@ -206,7 +211,9 @@ export const Lend = () => {
                     </div>
                     <div>
                       <SpanLabel>Total</SpanLabel>
-                      <span>{total} Ξ</span>
+                      <span>
+                        {total} <Icon />
+                      </span>
                     </div>
                   </Dlist>
                   <div>

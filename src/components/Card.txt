@@ -7,6 +7,7 @@ import { isEqual } from 'lodash'
 import { ZeroNftInfo } from '../utils'
 import { Img } from './Img'
 import { Default, Imgs } from './Nft'
+import { Icon } from '../components/Icon'
 
 export interface CardProps extends NFTData {
   cost?: number
@@ -79,7 +80,9 @@ export const Card: React.FC<CardProps> = ({ showInfo, name, price, days, onClick
         <div>
           <p>{name}</p>
           <>
-            <span>{price} Ξ / day</span>
+            <span>
+            {price} <Icon /> / day
+            </span>
             <Days>{days} days</Days>
           </>
         </div>

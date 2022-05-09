@@ -16,6 +16,7 @@ import { FakeButton, RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
 import { fetchReceipt, formatAddress, ZeroAddress } from '../utils'
 import { http2 } from '../components/Store'
+import { Icon } from '../components/Icon'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
@@ -210,11 +211,15 @@ export const Rent = () => {
                 </div>
                 <div>
                   <SpanLabel>Collateral</SpanLabel>
-                  <span>{currentItem.collateral} Ξ</span>
+                  <span>
+                    {currentItem.collateral} <Icon />
+                  </span>
                 </div>
                 <div>
                   <SpanLabel>price</SpanLabel>
-                  <span>{currentItem.price} Ξ / day</span>
+                  <span>
+                    {currentItem.price} <Icon /> / day
+                  </span>
                 </div>
                 <div>
                   <SpanLabel>days</SpanLabel>
@@ -222,7 +227,9 @@ export const Rent = () => {
                 </div>
                 <div>
                   <SpanLabel>Total</SpanLabel>
-                  <span>{total} Ξ</span>
+                  <span>
+                    {total} <Icon />
+                  </span>
                 </div>
               </Dlist>
               <div>

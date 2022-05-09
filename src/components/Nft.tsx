@@ -5,7 +5,7 @@ import { Img } from './Img'
 import { BaseProps } from './NumInput'
 import { ProgressLabelProps, ProgressLabels } from './RentingCard'
 import { toastify } from './Toastify'
-
+import { Icon } from '../components/Icon'
 import Default from '../assets/default.png'
 import Blade from '../assets/blade.png'
 import Chaos from '../assets/chaos.png'
@@ -85,7 +85,9 @@ const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, pr
       <p>{name}</p>
       {isLending || withdrawable ? (
         <div>
-          <PriceLabel>{total} Ξ</PriceLabel>
+          <PriceLabel>
+            {total} <Icon />
+          </PriceLabel>
           <Days>{days} days</Days>
         </div>
       ) : (

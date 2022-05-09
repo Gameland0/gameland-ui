@@ -8,6 +8,7 @@ import { CardBox, Details } from './Nft'
 import BigNumber from 'bignumber.js'
 import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
+import { Icon } from '../components/Icon'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Tips = styled.span`
@@ -43,7 +44,9 @@ const Labels: React.FC<LabelProps> = ({ price, name, days, collateral }) => {
   return (
     <div style={{ overflow: 'hidden' }}>
       <p>{name}</p>
-      <PriceLabel>{total} Ξ </PriceLabel>
+      <PriceLabel>
+        {total} <Icon />
+      </PriceLabel>
       <Tips>{days} days</Tips>
     </div>
   )

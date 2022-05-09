@@ -15,6 +15,7 @@ import { Empty } from '../../components/Empty'
 import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
 import { ABIs } from '../../constants/Abis/ABIs'
+import { Icon } from '../../components/Icon'
 
 export const MyRenting = () => {
   const { library, account } = useActiveWeb3React()
@@ -181,11 +182,15 @@ export const MyRenting = () => {
               </div>
               <div>
                 <SpanLabel>Collateral</SpanLabel>
-                <span>{currentItem.collateral} Ξ</span>
+                <span>
+                  {currentItem.collateral} <Icon />
+                </span>
               </div>
               <div>
                 <SpanLabel>price</SpanLabel>
-                <span>{currentItem.price} Ξ / day</span>
+                <span>
+                  {currentItem.price} <Icon /> / day
+                </span>
               </div>
               <div>
                 <SpanLabel>days</SpanLabel>
@@ -193,7 +198,9 @@ export const MyRenting = () => {
               </div>
               <div>
                 <SpanLabel>Total</SpanLabel>
-                <span>{total} Ξ</span>
+                <span>
+                  {total} <Icon />
+                </span>
               </div>
             </Dlist>
             <br />
