@@ -42,7 +42,7 @@ export const Img: React.FC<ImgProps> = ({ src, size }) => {
     if (src?.startsWith('http')) return src
 
     if (src?.startsWith('ipfs')) {
-      return 'https://ipfs.moralis.io:2053/ipfs/' + src.substring(7)
+      return 'https://nftstorage.link/ipfs/' + src.substring(7)
     }
 
     return src

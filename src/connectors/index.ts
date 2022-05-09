@@ -1,5 +1,6 @@
 import { InjectedConnector } from '@web3-react/injected-connector'
 import { NetworkConnector } from '@web3-react/network-connector'
+import { POLYGON_CHAIN_ID, POLYGON_RPC_URL } from '../constants'
 import ChainId from '../utils/chainIdInfo'
 
 export const supportedNetwork = [
@@ -13,18 +14,17 @@ export const supportedNetwork = [
   // ChainId.localnode,
   ChainId.polygon
 ]
-// REACT_APP_CURRENT_CHAIN_ID
-const RPC_URL =
-  process.env.NODE_ENV === 'production' ? process.env.REACT_APP_MATIC_RPC_URL : process.env.REACT_APP_MUMBAI_RPC_URL
-const chainId = process.env.NODE_ENV === 'production' ? '137' : process.env.REACT_APP_MUMBAI_CHAIN_ID
-const CHAIN_ID = parseInt(chainId ?? '137')
+
+const RPC_URL = POLYGON_RPC_URL
+const chainId = POLYGON_CHAIN_ID
+const CHAIN_ID = chainId
 
 export const injected = new InjectedConnector({
   supportedChainIds: supportedNetwork
 })
 
 if (typeof RPC_URL === 'undefined') {
-  throw new Error(`REACT_APP_CURRENT_CHAIN_ID must be a defined environment variable`)
+  throw new Error(`RPC_URL must be a defined variable`)
 }
 
 export const network = new NetworkConnector({

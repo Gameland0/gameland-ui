@@ -16,6 +16,7 @@ import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
 import { ABIs } from '../../constants/Abis/ABIs'
 import { Icon } from '../../components/Icon'
+import { hashMessage } from 'ethers/lib/utils'
 
 export const MyRenting = () => {
   const { library, account } = useActiveWeb3React()
@@ -91,13 +92,20 @@ export const MyRenting = () => {
       setRepaying(true)
 
       const borrowStatus = await gamelandContract.borrow_status(currentItem.gamelandNftId)
-      console.log(lowerCase(borrowStatus[0]), lowerCase(account))
-
-      const repaid = await gamelandContract.connect(library.getSigner()).returnnft(
+      console.log(
+        borrowStatus,
+        gamelandContract,
         currentItem.nftId,
         currentItem.contractAddress,
-        currentItem.gamelandNftId
-        // ,currentItem.id
+        currentItem.gamelandNftId,
+        currentItem.id
+      )
+
+      const repaid = await gamelandContract.returnnft(
+        currentItem.nftId,
+        currentItem.contractAddress,
+        currentItem.gamelandNftId,
+        currentItem.id
       )
       const receipt = await fetchReceipt(repaid.hash, library)
       const { status } = receipt
