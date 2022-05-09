@@ -1,20 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Row, Col, Tabs, Button, Popconfirm } from 'antd'
 import styled from 'styled-components'
-import { Modal } from '../../components/Modal'
-import { Nft as NftCard, NftProps } from '../../components/Nft'
-import {
-  GameLandAddress,
-  useActiveWeb3React,
-  useGameLandContract,
-  // useMyNftContract,
-  // useMyNfts,
-  // useNFTContract,
-  useStore
-} from '../../hooks'
-
 import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
+import { hashMessage } from 'ethers/lib/utils'
+
+import { Modal } from '../../components/Modal'
+import { Nft as NftCard, NftProps } from '../../components/Nft'
+import { GameLandAddress, useActiveWeb3React, useGameLandContract, useStore } from '../../hooks'
 import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
@@ -28,9 +21,8 @@ import { useFetchMyNfts } from '../../hooks/useFetchMyNfts'
 import { Pagination } from '../../components/Pagination'
 import { ConnectWallet } from '../../components/ConnectWallet'
 import { fetchReceipt, fixDigitalId, ZeroAddress } from '../../utils'
-import { NFTDigits } from '../../constants'
+import { NFTDigits, OPENSEA_URL, POLYGONSCAN_KEY } from '../../constants'
 import { ABIs } from '../../constants/Abis/ABIs'
-import { hashMessage, sha256 } from 'ethers/lib/utils'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -46,7 +38,7 @@ export const getContract = (library: Web3Provider | undefined, address: string, 
 export const fetchAbi = async (address: string) => {
   if (!address) return
   try {
-    const apiKey = process.env.REACT_APP_POLYGONSCAN_KEY
+    const apiKey = POLYGONSCAN_KEY
     const data = await fetch(
       `https://api.polygonscan.com/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
       {
@@ -107,47 +99,60 @@ export const Dashboard = () => {
     console.log(data)
 
     return data.map(async (item) => {
-      if (!item.metadata) {
-        let res: any
-        let metadata: any
+      try {
+        if (!item.metadata) {
+          let res: any
+          let metadata: any
 
-        if (item.token_uri && item.token_uri.startsWith('http')) {
-          console.log(item.token_uri.includes('www.evolution.land'))
-
-          if (item.token_uri.includes('www.evolution.land')) {
-            metadata = {
-              image: 'empty'
+          if (item.token_uri && item.token_uri.startsWith('http')) {
+            try {
+              res = await fetch(item.token_uri, {
+                mode: 'no-cors' // 'cors' by default
+              })
+              if (res) {
+                metadata = await res.json()
+              }
+            } catch (error: any) {
+              metadata = {}
+              console.log(error)
             }
+          } else if (item.token_uri.startsWith('data:application')) {
+            res = await fetch(item.token_uri)
+            const json = await res.json()
+            metadata = JSON.parse(json)
           } else {
-            res = await fetch(item.token_uri, {
-              method: 'GET',
-              mode: 'cors'
-            })
-            metadata = await res.json()
+            metadata = {}
           }
-        } else if (item.token_uri.startsWith('data:application')) {
-          res = await fetch(item.token_uri)
-          const json = await res.json()
-          metadata = JSON.parse(json)
+
+          item.metadata = metadata
+        } else if (typeof item.metadata === 'string') {
+          try {
+            const { name, image } = JSON.parse(item.metadata)
+            item.metadata = {
+              name,
+              image
+            }
+          } catch (err: any) {
+            console.log(err)
+            item.metadata = {}
+          }
         }
 
-        item.metadata = metadata
-      } else if (typeof item.metadata === 'string') {
-        item.metadata = JSON.parse(item.metadata)
-      }
+        let contractIndex = contracts.findIndex((i: any) => {
+          return i.toLowerCase() === item.token_address.toLowerCase()
+        })
 
-      let contractIndex = contracts.findIndex((i: any) => {
-        return i.toLowerCase() === item.token_address.toLowerCase()
-      })
-
-      if (contractIndex >= 0) {
-        contractIndex = contractIndex + 1
-      } else {
-        return
+        if (contractIndex >= 0) {
+          contractIndex = contractIndex + 1
+        } else {
+          return
+        }
+        const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
+        item.gamelandNftId = hashMessage(gamelandId)
+        return item
+      } catch (err: any) {
+        console.log(err)
       }
-      const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
-      item.gamelandNftId = hashMessage(gamelandId)
-      return item
     })
   }
 
@@ -170,12 +175,6 @@ export const Dashboard = () => {
       setNextDisabled(false)
     }
 
-    // let _nfts
-    // if (myNfts.length >= limit && _myNfts.result.length > 0) {
-    //   _nfts = [...myNfts, ..._myNfts.result]
-    // } else {
-    //   _nfts = _myNfts.result
-    // }
     console.log(_myNfts, nfts)
     const lendableNfts = _myNfts.result.filter((item: any) => {
       return (
@@ -283,7 +282,7 @@ export const Dashboard = () => {
       setLiquidating(true)
 
       try {
-        const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId)
+        const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId, currentItem.id)
         const receipt = await fetchReceipt(liquidated.hash, library)
         const { status } = receipt
         if (!status) {
@@ -322,6 +321,7 @@ export const Dashboard = () => {
           toastify.error('Please connect a account.')
           return
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const contractAddress = currentItem.token_address ?? ''
         if (!gamelandContract || !currentItem.contract) {
           toastify.error('Contract not found.')
@@ -493,7 +493,7 @@ export const Dashboard = () => {
             </p>
             {currentItem.sell_orders ? (
               <a
-                href={`${process.env.REACT_APP_OPENSEA}/assets/${currentItem.contractAddress}/${currentItem.token_id}`}
+                href={`${OPENSEA_URL}/assets/${currentItem.contractAddress}/${currentItem.token_id}`}
                 target="_blank"
                 rel="noreferrer"
               >

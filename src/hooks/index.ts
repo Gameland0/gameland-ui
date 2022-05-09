@@ -8,17 +8,14 @@ import { isMobile } from 'react-device-detect'
 import { Web3Provider } from '@ethersproject/providers'
 import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
-import GreeterAbi from '../constants/Abis/Greeter.json'
-import MyNftAbi from '../constants/Abis/MyNft.json'
-import ArchNftAbi from '../constants/Abis/ArchNft.json'
 // import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
 import GameLandAbi from '../constants/Abis/GameLand.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
-import { lowerCase } from 'lower-case'
 import { ABIs } from '../constants/Abis/ABIs'
+import { GAMELADDRESS } from '../constants'
 
-export const GameLandAddress = '0xC288b87EE1a941e403b23054A920E4E3d764eeC6'
+export const GameLandAddress = GAMELADDRESS
 export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
 
 interface OpenseaData {

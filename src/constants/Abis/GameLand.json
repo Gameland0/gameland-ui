@@ -5,6 +5,11 @@
 				"internalType": "address",
 				"name": "_rev",
 				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_gove",
+				"type": "address"
 			}
 		],
 		"stateMutability": "nonpayable",
@@ -183,6 +188,12 @@
 				"internalType": "address",
 				"name": "nft_programe_address",
 				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "lending_id",
+				"type": "uint256"
 			}
 		],
 		"name": "Returned",
@@ -386,6 +397,19 @@
 				"internalType": "address[]",
 				"name": "",
 				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "governance",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
 			}
 		],
 		"stateMutability": "view",
@@ -689,6 +713,11 @@
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
 				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lending_id",
+				"type": "uint256"
 			}
 		],
 		"name": "returnnft",
@@ -726,6 +755,19 @@
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_gove",
+				"type": "address"
+			}
+		],
+		"name": "updategove",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{

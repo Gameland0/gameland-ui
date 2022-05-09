@@ -3,6 +3,7 @@ import useSWR from 'swr'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useActiveWeb3React, useStore } from '.'
 import { fetcher, http } from '../components/Store'
+import { MORALIS_KEY } from '../constants'
 
 export const useFetchMyNfts = (offset: number, limit: number) => {
   const { account } = useActiveWeb3React()
@@ -24,11 +25,11 @@ export const useFetchMyNfts = (offset: number, limit: number) => {
       addresses += `&token_addresses=${item}`
     })
 
-    http.defaults.headers.common['X-Api-Key'] = process.env.REACT_APP_MORALIS_KEY
+    http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
 
     return `/moralis/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
 
-    // return `${process.env.REACT_APP_MORALIS_API}/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
+    // return `${MORALIS_API}/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offset, limit, account, contracts])
 

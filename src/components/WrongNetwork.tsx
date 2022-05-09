@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify'
 import { ButtonProps } from 'antd/lib/button/button'
 import { useStore } from '../hooks'
 import { Modal } from 'antd'
+import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL } from '../constants'
 
 const { confirm } = Modal
 
@@ -35,7 +36,7 @@ export const WrongNetwork: React.FC<ButtonProps> = ({ ...props }) => {
         // check if the chain to connect to is installed
         await ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: process.env.REACT_APP_CURRENT_CHAIN_ID || '0x89' }] // chainId must be in hexadecimal numbers
+          params: [{ chainId: POLYGON_CHAIN_ID_HEX }] // chainId must be in hexadecimal numbers
         })
       } catch (error: any) {
         // This error code indicates that the chain has not been added to MetaMask
@@ -47,9 +48,8 @@ export const WrongNetwork: React.FC<ButtonProps> = ({ ...props }) => {
               params: [
                 {
                   chainName: 'Matic network',
-                  chainId: process.env.REACT_APP_CURRENT_CHAIN_ID || '0x89',
-                  // rpcUrls: ['https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161']
-                  rpcUrls: ['https://polygon-rpc.com']
+                  chainId: POLYGON_CHAIN_ID_HEX,
+                  rpcUrls: [POLYGON_RPC_URL]
                 }
               ]
             })

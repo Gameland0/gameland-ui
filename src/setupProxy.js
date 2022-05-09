@@ -13,7 +13,7 @@ module.exports = function (app) {
   app.use(
     '/moralis',
     createProxyMiddleware({
-      target: process.env.REACT_APP_MORALIS_API,
+      target: 'https://deep-index.moralis.io/api/v2',
       changeOrigin: true,
       pathRewrite: { '^/moralis': '' }
     })

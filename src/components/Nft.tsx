@@ -90,7 +90,7 @@ const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, pr
         </div>
       ) : (
         <span className="tips" title={nftId}>
-          #{shortNumbers(nftId, 18)}
+          #{shortNumbers(nftId, 12)}
         </span>
       )}
     </LabelsWrap>

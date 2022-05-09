@@ -49,6 +49,7 @@
   },
   "scripts": {
     "start": "craco start",
+    "mac":"HTTPS=true craco start",
     "build": "GENERATE_SOURCEMAP=false craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
