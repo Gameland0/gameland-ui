@@ -15,4 +15,4 @@ export const MUMBAI_CHAIN_ID_HEX = '0x13881'
 export const MUMBAI_RPC_URL = 'https://rpc-mumbai.maticvigil.com'
 export const OPENSEA_URL = 'https://opensea.io'
 
-export const GAMELADDRESS = '0x18da12d0346b5129C363d355B0765952652FD390'
+export const GAMELADDRESS = '0x3d83191eaf8000fcdf0b030fe12e2796e6325b66'

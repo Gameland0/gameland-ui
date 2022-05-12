@@ -187,11 +187,12 @@ export const Dashboard = () => {
     const syncFn = async () => {
       const contracts = await gamelandContract?.get_nft_programes()
       const _nfts = fetchMetadata(lendableNfts, contracts)
-      Promise.all(_nfts).then((vals) => {
-        console.log(vals)
-
-        setMyNfts(vals)
-      })
+      contracts
+        ? Promise.all(_nfts).then((vals) => {
+            console.log(vals)
+            setMyNfts(vals)
+          })
+        : setMyNfts([])
     }
     syncFn()
     // if (_myNfts.result.length === limit) {
