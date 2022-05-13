@@ -19,6 +19,8 @@ import { Dlist } from '../Lend'
 import { http } from '../../components/Store'
 import { isEmpty } from 'lodash'
 import { fixDigitalId, formatAddress, ZeroAddress } from '../../utils'
+import { Web3Provider } from '@ethersproject/providers'
+import { Contract } from '@ethersproject/contracts'
 import { MyRenting } from './MyRenting'
 import { SpanLabel, DaysInfo } from '../Rent'
 import BigNumber from 'bignumber.js'
@@ -35,8 +37,37 @@ const MyTabs = styled(Tabs)`
 `
 const MyNftBox = styled.div``
 
+export const getContract = (library: Web3Provider | undefined, address: string, abi: any[]) => {
+  if (!library) return null
+
+  return new Contract(address, abi, library.getSigner())
+}
+
+export const fetchAbi = async (address: string) => {
+  if (!address) return
+  try {
+    const apiKey = '5BCXEYI6ATAC8W93PHXY8UR598YSGNBWCT'
+    const data = await fetch(
+      `https://api.etherscan.io/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
+      {
+        method: 'GET',
+        mode: 'cors'
+      }
+    )
+    const dataJson = await data.json()
+    const { result } = dataJson
+
+    localStorage.setItem(address.toLowerCase(), result)
+
+    return result
+  } catch (e: any) {
+    console.log(e.message)
+    return []
+  }
+}
+
 export const Dashboard = () => {
-  const { account } = useActiveWeb3React()
+  const { account, library } = useActiveWeb3React()
   const { contracts } = useStore()
   // const nftContract = useMyNftContract()
   const NFTsContract = useNFTContract()
@@ -108,6 +139,7 @@ export const Dashboard = () => {
     return lowerCase(nftOwner) !== lowerCase(account)
   }
   const handleNftClick = async (item: any) => {
+    console.log('item', item)
     setVisible(true)
     setExpired(false)
     setAwaiting(true)
@@ -119,18 +151,15 @@ export const Dashboard = () => {
     item.gamelandNftId = gamelandNftId
     item.nftId = item.token_id
     item.contractAddress = item.asset_contract.address
-    setCurrentItem(item)
-
     const contractAddress = item.asset_contract?.address
-
-    console.log(NFTsContract, item.asset_contract?.schema_name)
-
-    if (NFTsContract !== null) {
-      console.log(NFTsContract[contractAddress])
-
+    const ABI = await fetchAbi(contractAddress)
+    const nftContract = getContract(library, contractAddress, ABI)
+    item.contract = nftContract
+    setCurrentItem(item)
+    if (nftContract !== null) {
       try {
         if (item.asset_contract?.schema_name === 'ERC721') {
-          const approveAddress = await NFTsContract[contractAddress].getApproved(item.token_id)
+          const approveAddress = await await nftContract?.getApproved(item.token_id)
           console.log(approveAddress, approveAddress === ZeroAddress)
 
           if (lowerCase(approveAddress) === lowerCase(gamelandContract?.address as string)) {
@@ -139,10 +168,7 @@ export const Dashboard = () => {
             setIsApproved(false)
           }
         } else {
-          const isApproved = await NFTsContract[lowerCase(contractAddress)].isApprovedForAll(
-            gamelandContract?.address,
-            account
-          )
+          const isApproved = await nftContract?.isApprovedForAll(gamelandContract?.address, account)
           isApproved ? setIsApproved(true) : setIsApproved(false)
         }
       } catch (err: any) {
@@ -288,7 +314,6 @@ export const Dashboard = () => {
       if (!tx.status) {
         throw Error('Failed to deposit.')
       }
-
       const params = {
         isLending: true,
         price: Number(price),
@@ -321,7 +346,7 @@ export const Dashboard = () => {
   const handleApprove = async () => {
     setApproving(true)
     const nftAddress = currentItem.asset_contract?.address
-    if (NFTsContract) {
+    if (currentItem.contract) {
       try {
         if (currentItem.originOwner !== account) {
           const params = {
@@ -331,11 +356,9 @@ export const Dashboard = () => {
         }
         let approvetx
         if (currentItem.asset_contract?.schema_name === 'ERC721') {
-          console.log(GameLandAddress, currentItem.nftId)
-
-          approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
+          approvetx = await currentItem.contract.approve(GameLandAddress, currentItem.nftId)
         } else {
-          approvetx = await NFTsContract[nftAddress].setApprovalForAll(GameLandAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(GameLandAddress, true)
         }
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         console.log(approvetx)

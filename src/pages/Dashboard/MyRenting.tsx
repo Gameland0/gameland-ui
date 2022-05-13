@@ -15,7 +15,7 @@ import { Nft as NftCard } from '../../components/Nft'
 import { Modal } from '../../components/Modal'
 import { Dlist } from '../Lend'
 import { SpanLabel } from '../Rent'
-import { formatAddress, ZeroAddress } from '../../utils'
+import { formatAddress, ZeroAddress, fetchReceipt } from '../../utils'
 import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { toastify } from '../../components/Toastify'
@@ -75,20 +75,40 @@ export const MyRenting = () => {
         toastify.error('Please connect an account.')
         return
       }
-      if (!nftContract || !gamelandContract) {
+      if (!currentItem.contract || !gamelandContract) {
         toastify.error('Contract not found.')
         return
       }
       setRepaying(true)
-      const owner = await nftContract.ownerOf(currentItem.nftId)
-      if (lowerCase(owner) !== lowerCase(gamelandContract.address)) {
-        const repaid = await gamelandContract
-          .connect(library.getSigner())
-          .returnnft(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId)
-        const { status } = await repaid.wait()
-        if (!status) {
-          throw Error('Failed to repay, please try again.')
-        }
+      // const owner = await nftContract.ownerOf(currentItem.nftId)
+      // if (lowerCase(owner) !== lowerCase(gamelandContract.address)) {
+      //   const repaid = await gamelandContract
+      //     .connect(library.getSigner())
+      //     .returnnft(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId)
+      //   const { status } = await repaid.wait()
+      //   if (!status) {
+      //     throw Error('Failed to repay, please try again.')
+      //   }
+      // }
+      const borrowStatus = await gamelandContract.borrow_status(currentItem.gamelandNftId)
+      console.log(
+        borrowStatus,
+        gamelandContract,
+        currentItem.nftId,
+        currentItem.contractAddress,
+        currentItem.gamelandNftId,
+        currentItem.id
+      )
+      const repaid = await gamelandContract.returnnft(
+        currentItem.nftId,
+        currentItem.contractAddress,
+        currentItem.gamelandNftId,
+        currentItem.id
+      )
+      const receipt = await fetchReceipt(repaid.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to repay, please try again.')
       }
       const params = {
         borrower: null,

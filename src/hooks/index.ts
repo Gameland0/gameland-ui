@@ -17,16 +17,11 @@ import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import { lowerCase } from 'lower-case'
 
-export const GameLandAddress = '0xD2d0AF0E4661BF8b1074854c899d6c12F2D9742B' // stable version
+export const GameLandAddress = '0x18da12d0346b5129c363d355b0765952652fd390' // stable version
 export const MyNFTAddress = '0xf2d47bbb40f9ffa447687b4708076f6ee3e9134c' // stable version
-export const ArchAddress = '0x2E7704C0aeE70BF604c0Ed93D72133F39935fE79'
-export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'
-
-if (
-  typeof MyNFTAddress === 'undefined' ||
-  typeof GameLandAddress === 'undefined' ||
-  typeof ArchAddress === 'undefined'
-) {
+// export const ArchAddress = '0x2E7704C0aeE70BF604c0Ed93D72133F39935fE79'
+// export const Greeter = '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44'
+if (typeof GameLandAddress === 'undefined') {
   throw new Error(`Seems contract not exist.`)
 }
 
@@ -57,6 +52,7 @@ export interface NFTData extends OpenseaData {
   image_original_url?: string
   sell_orders?: Record<string, any>[]
   contractAddress?: string
+  contract?: Record<string, any>
   gamelandNftId?: number
   asset_contract?: Record<string, any>
 }
@@ -156,11 +152,11 @@ export function useInactiveListener(suppress = false) {
   }, [active, error, suppress, activate])
 }
 
-export function useGreeterContract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-  return new Contract(Greeter, GreeterAbi, library?.getSigner())
-}
+// export function useGreeterContract() {
+//   const { library } = useActiveWeb3React()
+//   if (!library) return null
+//   return new Contract(Greeter, GreeterAbi, library?.getSigner())
+// }
 
 export function useGameLandContract() {
   const { library } = useActiveWeb3React()
@@ -175,15 +171,15 @@ export function useMyNftContract() {
   return new Contract(MyNFTAddress, MyNftAbi, library.getSigner())
 }
 
-export function useArchNftContract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-  return new Contract(ArchAddress, ArchNftAbi, library.getSigner())
-}
+// export function useArchNftContract() {
+//   const { library } = useActiveWeb3React()
+//   if (!library) return null
+//   return new Contract(ArchAddress, ArchNftAbi, library.getSigner())
+// }
 
 const ABIS: Record<string, any[]> = {}
 ABIS[lowerCase(MyNFTAddress)] = MyNftAbi
-ABIS[lowerCase(ArchAddress)] = ArchNftAbi
+// ABIS[lowerCase(ArchAddress)] = ArchNftAbi
 
 export function useNFTContract() {
   const contracts: Record<string, Contract> = {}

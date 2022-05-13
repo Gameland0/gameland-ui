@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import { NFTData, useActiveWeb3React, useGameLandContract, useMyNftContract, useStore } from '../hooks'
 import { toastify } from '../components/Toastify'
-import { formatAddress, getProgress, ZeroAddress, ZeroNftInfo } from '../utils'
+import { formatAddress, getProgress, ZeroAddress, fetchReceipt } from '../utils'
 import { formatEther } from '@ethersproject/units'
 import { isEmpty, isEqual } from 'lodash'
 import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
@@ -18,6 +18,7 @@ import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
 import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
+import { fetchAbi, getContract } from './Dashboard'
 
 export const Dlist = styled.div`
   flex-direction: column;
@@ -28,7 +29,7 @@ export const Dlist = styled.div`
 `
 
 export const Lend = () => {
-  const { account } = useActiveWeb3React()
+  const { account, library } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as NFTData)
   const [visible, setVisible] = useState(false)
   const gamelandContract = useGameLandContract()
@@ -53,22 +54,40 @@ export const Lend = () => {
     return _cost.plus(collateral).toString()
   }, [currentItem])
 
-  const handleShowModal = async (item: NftProps) => {
+  const handleShowModal = async (item: any) => {
+    const contractAddress = item.contractAddress ?? ''
+
+    const ABI = await fetchAbi(contractAddress)
+    const nftContract = getContract(library, contractAddress, ABI)
+
+    item.contract = nftContract
     setCurrentItem(item)
     setVisible(true)
     setExpired(false)
     setAwaiting(true)
+    // try {
+    //   const _borrowed = await gamelandContract?.check_the_borrow_status(item.gamelandNftId)
+    //   setBorrowed(_borrowed)
+    //   if (_borrowed) {
+    //     const _progress = getProgress(item.borrowAt as string, item.days as number)
+    //     setProgress(_progress)
+    //     setExpired(_progress >= 100)
+    //   } else {
+    //     let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
+    //     _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
+    //     console.log(isEqual(_lending, ZeroNftInfo))
+    //   }
+    // } catch (err: any) {
+    //   toastify.error(err.message)
+    // }
     try {
-      const _borrowed = await gamelandContract?.check_the_borrow_status(item.gamelandNftId)
+      const _borrowed = await gamelandContract?.borrow_or_not(item.gamelandNftId)
       setBorrowed(_borrowed)
       if (_borrowed) {
+        // if borrowed, show progress
         const _progress = getProgress(item.borrowAt as string, item.days as number)
         setProgress(_progress)
         setExpired(_progress >= 100)
-      } else {
-        let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
-        _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
-        console.log(isEqual(_lending, ZeroNftInfo))
       }
     } catch (err: any) {
       toastify.error(err.message)
@@ -82,22 +101,33 @@ export const Lend = () => {
         toastify.error('Please connect a account.')
         return
       }
-      if (!nftContract || !gamelandContract) {
+      if (!currentItem.contract || !gamelandContract) {
         toastify.error('Contract not found.')
         return
       }
       setWithdrawing(true)
-      const owner = await nftContract.ownerOf(currentItem.nftId)
-      if (lowerCase(owner) !== lowerCase(account)) {
-        const withdrawnft = await gamelandContract.withdrawnft(
-          currentItem.nftId,
-          currentItem.contractAddress,
-          currentItem.gamelandNftId
-        )
-        const { status } = await withdrawnft.wait()
-        if (!status) {
-          throw Error('Failed to lend.')
-        }
+      // const owner = await nftContract.ownerOf(currentItem.nftId)
+      // if (lowerCase(owner) !== lowerCase(account)) {
+      //   const withdrawnft = await gamelandContract.withdrawnft(
+      //     currentItem.nftId,
+      //     currentItem.contractAddress,
+      //     currentItem.gamelandNftId
+      //   )
+      //   const { status } = await withdrawnft.wait()
+      //   if (!status) {
+      //     throw Error('Failed to lend.')
+      //   }
+      // }
+      const withdrawnft = await gamelandContract.withdrawnft(
+        currentItem.nftId,
+        currentItem.contractAddress,
+        currentItem.gamelandNftId,
+        currentItem.id
+      )
+      const receipt = await fetchReceipt(withdrawnft.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to withdraw.')
       }
       const params = {
         isLending: false,

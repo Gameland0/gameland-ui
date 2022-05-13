@@ -30,7 +30,8 @@ export interface StoreData {
 export const StoreContext = createContext({} as StoreData)
 
 // export const baseUrl = 'https://testnet-api.gameland.network'
-export const baseUrl = process.env.NODE_ENV === 'development' ? '/api' : 'https://testnet-api.gameland.network'
+export const baseUrl =
+  process.env.NODE_ENV === 'development' ? 'http://localhost:8088' : 'https://testnet-api.gameland.network'
 export const http = axios.create({
   baseURL: baseUrl,
   timeout: 10000
@@ -40,7 +41,6 @@ export const http = axios.create({
 })
 export const fetcher = (...args: [any, ...any[]]) => http.get(...args).then((res) => res.data)
 export const fetcher2 = (url: string) => fetch(url).then((res) => res.json())
-
 export const Store = ({ children }: { children: JSX.Element }) => {
   const networkError = useNetworkValidator()
   const loading = useNetworkLoading()
@@ -52,6 +52,7 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     // 'http://localhost:8080/v1/nftports?chain=ethereum',
     fetcher
   )
+  console.log('debts', debts)
   const { data: contracts, mutate: mutateContracts } = useSWR(
     `/v0/contracts`,
     // 'http://localhost:8080/v1/nftports?chain=ethereum',
@@ -81,7 +82,7 @@ export const Store = ({ children }: { children: JSX.Element }) => {
       addresses += `&asset_contract_addresses=${item.address}`
     })
     // return ''
-    return `https://rinkeby-api.opensea.io/api/v1/assets?order_direction=asc&offset=${offset}&limit=${limit}${addresses}`
+    return `https://api.opensea.io/api/v1/assets?asset_contract_address=0xb95abd5fa9e71f1981505c3d9a7800c369b0718c`
   }, [contracts, limit, offset])
 
   useEffect(() => {
@@ -114,38 +115,46 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url])
 
+  // const nfts = useMemo(() => {
+  //   console.log('openseaData: ', debts, openseaData)
+  //   if (isEmpty(debts)) {
+  //     return []
+  //   }
+
+  //   const { assets } = openseaData as any
+  //   if (!assets.length) {
+  //     return
+  //   }
+  //   const { data: debtsData } = debts
+  //   // console.log(openseaData, debtsData)
+
+  //   if (!openseaData.assets.length) {
+  //     return
+  //   }
+
+  //   const result = assets.map((item: Record<string, any>) => {
+  //     if (!item || JSON.stringify(item) === '{}') {
+  //       return {}
+  //     }
+  //     const contractAddress = item.asset_contract.address
+  //     const tokenId = item.token_id
+  //     const match = debtsData.find((debt: Record<string, any>) => {
+  //       return debt.nftId === tokenId && debt.contractAddress === contractAddress
+  //     })
+
+  //     return Object.assign(item, match)
+  //   })
+
+  //   return result
+  // }, [debts, openseaData])
+
   const nfts = useMemo(() => {
-    console.log('openseaData: ', debts, openseaData)
-    if (isEmpty(openseaData) || !debts) {
+    if (isEmpty(debts)) {
       return []
     }
 
-    const { assets } = openseaData as any
-    if (!assets.length) {
-      return
-    }
-    const { data: debtsData } = debts
-    // console.log(openseaData, debtsData)
-
-    if (!openseaData.assets.length) {
-      return
-    }
-
-    const result = assets.map((item: Record<string, any>) => {
-      if (!item || JSON.stringify(item) === '{}') {
-        return {}
-      }
-      const contractAddress = item.asset_contract.address
-      const tokenId = item.token_id
-      const match = debtsData.find((debt: Record<string, any>) => {
-        return debt.nftId === tokenId && debt.contractAddress === contractAddress
-      })
-
-      return Object.assign(item, match)
-    })
-
-    return result
-  }, [debts, openseaData])
+    return debts.data
+  }, [debts])
 
   const [activatingConnector, setActivatingConnector] = React.useState<any>()
 

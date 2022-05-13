@@ -16,7 +16,7 @@ export const useFetchMyNfts = (offset: number, limit: number) => {
       addresses += `&asset_contract_addresses=${item.address}`
     })
 
-    return `https://rinkeby-api.opensea.io/api/v1/assets?order_direction=asc&offset=${offset}&limit=${limit}&owner=${account}${addresses}`
+    return `https://api.opensea.io/api/v1/assets?order_direction=asc&limit=${limit}&owner=${account}`
   }, [offset, limit, contracts, account])
 
   return useSWR(url, fetcher)
