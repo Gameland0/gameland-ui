@@ -51,6 +51,7 @@
     "start": "craco start",
     "mac":"HTTPS=true craco start",
     "build": "GENERATE_SOURCEMAP=false craco build",
+    "windownBuild": "set GENERATE_SOURCEMAP=false&& craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "sv": "cd build && http-server"
