@@ -25,7 +25,7 @@ function App() {
       <Alert
         message={
           <div className="container flex flex-center">
-            <a style={{ marginRight: '.5rem', textDecoration: 'underline' }} href="mailto:contact@bandot.io">
+            <a style={{ marginRight: '.5rem', textDecoration: 'underline' }} href="hello@gameland.network">
               Contact us
             </a>{' '}
             to support your NFT projects.
