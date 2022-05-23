@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import { KeyedMutator } from 'swr/dist/types'
 import { useNetworkLoading } from './NetworkLoading'
 import { useNetworkValidator } from './NetworkValidator'
+import { useGameLandContract } from '../../hooks'
 
 export interface StoreData {
   networkError: boolean
@@ -21,7 +22,6 @@ export interface StoreData {
   setLastBlockNumber: React.Dispatch<React.SetStateAction<string>>
   dispatchOpensea: React.DispatchWithoutAction
   contracts: any
-  mutateContracts: KeyedMutator<any>
 
   // rentingNfts: Record<string, any>
   // mutateRentingNfts: KeyedMutator<any>
@@ -47,17 +47,21 @@ export const Store = ({ children }: { children: JSX.Element }) => {
   const [offset, setOffset] = useState(0)
   const [limit, setLimit] = useState(50)
   const [lastBlockNumber, setLastBlockNumber] = useState('')
+  const gamelandContract = useGameLandContract()
   const { data: debts, mutate: mutateNfts } = useSWR(
     `/v0/opensea`,
     // 'http://localhost:8080/v1/nftports?chain=ethereum',
     fetcher
   )
   console.log('debts', debts)
-  const { data: contracts, mutate: mutateContracts } = useSWR(
-    `/v0/contracts`,
-    // 'http://localhost:8080/v1/nftports?chain=ethereum',
-    fetcher
-  )
+  // const { data: contracts, mutate: mutateContracts } = useSWR(
+  //   `/v0/contracts`,
+  //   // 'http://localhost:8080/v1/nftports?chain=ethereum',
+  //   fetcher
+  // )
+  const contracts = ''
+
+  console.log('contracts data', contracts)
   const { data: guilds, mutate: mutateGuilds } = useSWR(
     `/v0/guilds`,
     // 'http://localhost:8080/v1/nftports?chain=ethereum',
@@ -74,13 +78,12 @@ export const Store = ({ children }: { children: JSX.Element }) => {
   // const { data: openseaData, mutate: mutateOData } = useSWR(url, fetcher2)
 
   const url = useMemo(() => {
-    let addresses = ''
-    if (!contracts) {
-      return ''
-    }
-    contracts.data.forEach((item: any) => {
-      addresses += `&asset_contract_addresses=${item.address}`
-    })
+    // if (!contracts) {
+    //   return ''
+    // }
+    // contracts.data.forEach((item: any) => {
+    //   addresses += `&asset_contract_addresses=${item.address}`
+    // })
     // return ''
     return `https://api.opensea.io/api/v1/assets?asset_contract_address=0xb95abd5fa9e71f1981505c3d9a7800c369b0718c`
   }, [contracts, limit, offset])
@@ -172,7 +175,6 @@ export const Store = ({ children }: { children: JSX.Element }) => {
       setLastBlockNumber,
       dispatchOpensea,
       contracts,
-      mutateContracts,
       guilds,
       mutateGuilds
       // rentingNfts,

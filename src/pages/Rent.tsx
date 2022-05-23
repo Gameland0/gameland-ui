@@ -14,6 +14,7 @@ import { Nft as NftCard, NftProps } from '../components/Nft'
 // import { NftView } from '../components/NftView'
 import { FakeButton, RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
+import { useFetchMetadata } from '../hooks/useFetchMetadata'
 import { contractionId, formatAddress, ZeroAddress } from '../utils'
 import { http } from '../components/Store'
 import { BaseProps } from '../components/NumInput'
@@ -94,7 +95,6 @@ export const Rent = () => {
   // useEffect(() => {
   //   console.log(greeter?.setGreeting('hll'))
   // }, [greeter])
-
   const handleShowModal = async (item: NftProps) => {
     console.log(gamelandContract)
     if (!gamelandContract) {
@@ -103,16 +103,16 @@ export const Rent = () => {
     }
     setCurrentItem(item)
     setVisible(true)
-    if (await gamelandContract.check_the_borrow_status(item.gamelandNftId)) {
-      const borrowInfo = await gamelandContract.get_borrow_info(item.gamelandNftId)
+    // if (await gamelandContract?.borrow_or_not(item.gamelandNftId)) {
+    //   const borrowInfo = await gamelandContract.get_borrow_info(item.gamelandNftId)
 
-      const params = {
-        isBorrowed: true,
-        borrower: borrowInfo[0],
-        borrowAt: borrowInfo[1]
-      }
-      await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
-    }
+    //   const params = {
+    //     isBorrowed: true,
+    //     borrower: borrowInfo[0],
+    //     borrowAt: borrowInfo[1]
+    //   }
+    //   await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+    // }
   }
 
   const handleRent = async () => {
@@ -127,7 +127,7 @@ export const Rent = () => {
         toastify.error('Contract not found.')
         return
       }
-      const borrowed = await gamelandContract?.check_the_borrow_status(currentItem.gamelandNftId)
+      const borrowed = await gamelandContract?.borrow_or_not(currentItem.gamelandNftId)
       if (!borrowed) {
         setRenting(true)
 
@@ -139,7 +139,7 @@ export const Rent = () => {
 
         const rented = await gamelandContract
           ?.connect(library.getSigner())
-          .rent(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId, {
+          .rent(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId, currentItem.id, {
             value: parseEther(amount)
           })
         console.log(rented)
@@ -183,7 +183,7 @@ export const Rent = () => {
                 name={currentItem.name}
                 price={currentItem.price}
                 days={currentItem.days}
-                img={currentItem.image_preview_url}
+                img={currentItem.img}
                 unOperate={true}
                 asset_contract={currentItem.asset_contract}
               />
@@ -259,7 +259,7 @@ export const Rent = () => {
                   days={item.days}
                   collateral={item.collateral}
                   price={item.price}
-                  img={item.image_preview_url}
+                  img={item.img}
                   isLending={item.isLending}
                   asset_contract={item.asset_contract}
                 />

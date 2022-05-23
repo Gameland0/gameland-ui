@@ -8,13 +8,10 @@ export const useFetchMyNfts = (offset: number, limit: number) => {
   const { account } = useActiveWeb3React()
   const { contracts } = useStore()
   const url = useMemo(() => {
-    if (!contracts) {
-      return ''
-    }
-    let addresses = ''
-    contracts.data.forEach((item: any) => {
-      addresses += `&asset_contract_addresses=${item.address}`
-    })
+    // let addresses = ''
+    // contracts.data.forEach((item: any) => {
+    //   addresses += `&asset_contract_addresses=${item.address}`
+    // })
 
     return `https://api.opensea.io/api/v1/assets?order_direction=asc&limit=${limit}&owner=${account}`
   }, [offset, limit, contracts, account])

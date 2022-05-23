@@ -2,6 +2,7 @@ import { InjectedConnector } from '@web3-react/injected-connector'
 import { NetworkConnector } from '@web3-react/network-connector'
 import ChainId from '../utils/chainIdInfo'
 
+export const NFTDigits = 9
 export const supportedNetwork = [
   ChainId.mainnet
   // ChainId.ropsten,

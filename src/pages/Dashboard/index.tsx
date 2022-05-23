@@ -30,6 +30,7 @@ import { Loading } from '../../components/Loading'
 import { Empty } from '../../components/Empty'
 import { formatEther } from '@ethersproject/units'
 import { useFetchMyNfts } from '../../hooks/useFetchMyNfts'
+import { hashMessage } from 'ethers/lib/utils'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -68,7 +69,7 @@ export const fetchAbi = async (address: string) => {
 
 export const Dashboard = () => {
   const { account, library } = useActiveWeb3React()
-  const { contracts } = useStore()
+  const { nfts } = useStore()
   // const nftContract = useMyNftContract()
   const NFTsContract = useNFTContract()
   const gamelandContract = useGameLandContract()
@@ -81,19 +82,23 @@ export const Dashboard = () => {
   const [myNfts, setMyNfts] = useState<any[]>([])
 
   useEffect(() => {
-    console.log(_myNfts)
     if (!_myNfts) {
       return
     }
-    const _nfts = [...myNfts, ..._myNfts.assets]
-    setMyNfts(_nfts)
-    if (_myNfts.assets.length === limit) {
-      const _offset = offset + limit
-      setOffset(_offset)
-      mutateMyNfts(undefined)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_myNfts, offset])
+    const lendableNfts = _myNfts.assets.filter((item: any) => {
+      const repeated = nfts.find((debt: any) => {
+        return item.asset_contract.address === debt.contractAddress && item.token_id === debt.nftId
+      })
+      if (repeated && repeated.isBorrowed) {
+        return nfts.find((ele: any) => {
+          return item.asset_contract.address !== ele.contractAddress && item.token_id !== ele.nftId
+        })
+      } else {
+        return _myNfts
+      }
+    })
+    setMyNfts(lendableNfts)
+  }, [_myNfts, nfts])
 
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as NftProps)
@@ -119,7 +124,6 @@ export const Dashboard = () => {
   // const handlePageChange = (page: any) => {
   //   console.log(page)
   // }
-
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
@@ -139,16 +143,15 @@ export const Dashboard = () => {
     return lowerCase(nftOwner) !== lowerCase(account)
   }
   const handleNftClick = async (item: any) => {
-    console.log('item', item)
     setVisible(true)
     setExpired(false)
     setAwaiting(true)
 
     if (item.sell_orders) return
-
-    const contractId = contracts.data.find((c: any) => lowerCase(c.address) === lowerCase(item.asset_contract.address))
-    const gamelandNftId = fixDigitalId(contractId.id, item.token_id, 4) as unknown as number
-    item.gamelandNftId = gamelandNftId
+    const contract = await gamelandContract?.get_nft_programes()
+    const contractIndex = contract.findIndex((c: any) => lowerCase(c) === lowerCase(item.asset_contract.address))
+    const gamelandId = fixDigitalId(contractIndex, item.token_id, 9)
+    item.gamelandNftId = hashMessage(gamelandId)
     item.nftId = item.token_id
     item.contractAddress = item.asset_contract.address
     const contractAddress = item.asset_contract?.address
@@ -159,7 +162,7 @@ export const Dashboard = () => {
     if (nftContract !== null) {
       try {
         if (item.asset_contract?.schema_name === 'ERC721') {
-          const approveAddress = await await nftContract?.getApproved(item.token_id)
+          const approveAddress = await nftContract?.getApproved(item.token_id)
           console.log(approveAddress, approveAddress === ZeroAddress)
 
           if (lowerCase(approveAddress) === lowerCase(gamelandContract?.address as string)) {
@@ -181,7 +184,6 @@ export const Dashboard = () => {
   const handleLiquidation = async () => {
     if (gamelandContract) {
       setLiquidating(true)
-
       try {
         const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId)
         liquidated.wait()
@@ -219,12 +221,12 @@ export const Dashboard = () => {
           return
         }
         const contractAddress = currentItem.asset_contract?.address
-        if (!gamelandContract || !NFTsContract) {
+        if (!gamelandContract || !currentItem.contract) {
           toastify.error('Contract not found.')
           return
         }
         setWithdrawing(true)
-        const owner = await NFTsContract[contractAddress].ownerOf(currentItem.nftId)
+        const owner = await currentItem.contract[contractAddress].ownerOf(currentItem.nftId)
 
         if (lowerCase(owner) !== lowerCase(account)) {
           const withdrawnft = await gamelandContract.withdrawnft(
@@ -288,15 +290,6 @@ export const Dashboard = () => {
       }
       setLending(true)
       // const owner = await nftContract.ownerOf(currentItem.nftId)
-      console.log(
-        parseEther(price),
-        days,
-        currentItem.nftId,
-        parseEther(collateral),
-        currentItem.contractAddress,
-        currentItem.gamelandNftId
-      )
-
       const deposited = await gamelandContract.deposit(
         parseEther(price),
         days,
@@ -320,11 +313,7 @@ export const Dashboard = () => {
         days: Number(days),
         collateral: Number(collateral)
       }
-      console.log(params)
-
       const res: any = await http.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
-      console.log(res)
-
       setLending(false)
       if (res.data.code === 1) {
         toastify.success('succeed')
@@ -333,12 +322,50 @@ export const Dashboard = () => {
         setdays('')
         setVisible(false)
         mutateNfts(undefined, true)
+      } else if (res.data.code === 0) {
+        const param = {
+          price: Number(price),
+          days: Number(days),
+          collateral: Number(collateral),
+          nftId: currentItem.nftId,
+          gamelandNftId: currentItem.gamelandNftId,
+          img: currentItem.image_preview_url,
+          name: currentItem.name,
+          borrower: null,
+          borrowAt: null,
+          originOwner: currentItem.owner.address,
+          contractAddress: currentItem.contractAddress || '',
+          standard: currentItem.asset_contract?.schema_name
+        }
+        console.log(
+          Number(price),
+          Number(days),
+          Number(collateral),
+          currentItem.nftId,
+          currentItem.gamelandNftId,
+          currentItem.image_preview_url,
+          currentItem.name,
+          currentItem.owner.address,
+          currentItem.contractAddress || '',
+          currentItem.asset_contract?.schema_name
+        )
+        const res2: any = await http.post(`/v0/opensea/insert`, param)
+        if (res2.data.code === 0) {
+          toastify.success('succeed')
+          setPrice('')
+          setCollateral('')
+          setdays('')
+          setVisible(false)
+          mutateNfts(undefined, true)
+        } else {
+          throw res2.message || res2.data.message
+        }
       } else {
         throw res.message || res.data.message
       }
     } catch (err: any) {
-      console.log(err.message)
-      toastify.error(err.message)
+      // console.log(err.message)
+      // toastify.error(err.message)
       setLending(false)
     }
   }

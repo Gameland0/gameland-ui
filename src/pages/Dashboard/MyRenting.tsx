@@ -22,6 +22,7 @@ import { toastify } from '../../components/Toastify'
 import { http } from '../../components/Store'
 import { Empty } from '../../components/Empty'
 import { lowerCase } from 'lower-case'
+import { fetchAbi, getContract } from '../Dashboard'
 
 export const MyRenting = () => {
   const { library } = useActiveWeb3React()
@@ -33,7 +34,7 @@ export const MyRenting = () => {
   const [isApproved, setIsApproved] = useState(false)
   const { mutateNfts } = useStore()
 
-  const nftContract = useMyNftContract()
+  // const nftContract = useMyNftContract()
   const gamelandContract = useGameLandContract()
   const NFTsContract = useNFTContract()
 
@@ -48,11 +49,13 @@ export const MyRenting = () => {
 
   const handleNftClick = async (item: any) => {
     setVisible(true)
+    console.log(item)
+    const ABI = await fetchAbi(item.contractAddress)
+    console.log(item.contractAddress, ABI)
+    const nftContract = getContract(library, item.contractAddress, ABI)
+    item.contract = nftContract
     setCurrentItem(item)
-
     if (nftContract) {
-      console.log(item)
-
       try {
         const approveAddress = await nftContract.getApproved(item.nftId)
         console.log(approveAddress, approveAddress === ZeroAddress)
@@ -135,16 +138,16 @@ export const MyRenting = () => {
   const handleApprove = async () => {
     setApproving(true)
     const nftAddress = currentItem.asset_contract?.address
-    if (NFTsContract) {
+    if (currentItem.contract) {
       console.log(GameLandAddress, currentItem.nftId)
       try {
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
 
         let approvetx
         if (currentItem.asset_contract?.schema_name === 'ERC721') {
-          approvetx = await NFTsContract[nftAddress].approve(GameLandAddress, currentItem.nftId)
+          approvetx = await currentItem.contract.approve(GameLandAddress, currentItem.nftId)
         } else {
-          approvetx = await NFTsContract[nftAddress].setApprovalForAll(GameLandAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(GameLandAddress, true)
         }
         await approvetx.wait()
         setIsApproved(true)
@@ -225,7 +228,7 @@ export const MyRenting = () => {
                 name={item.name}
                 price={item.price}
                 days={item.days}
-                img={item.image_preview_url}
+                img={item.img}
                 nftId={item.nftId}
                 borrowAt={item.borrowAt}
                 isExpired={item.isExpired}

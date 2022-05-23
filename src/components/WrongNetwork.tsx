@@ -35,7 +35,7 @@ export const WrongNetwork: React.FC<ButtonProps> = ({ ...props }) => {
         // check if the chain to connect to is installed
         await ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x4' }] // chainId must be in hexadecimal numbers
+          params: [{ chainId: '0x1' }] // chainId must be in hexadecimal numbers
         })
       } catch (error: any) {
         // This error code indicates that the chain has not been added to MetaMask
@@ -46,9 +46,9 @@ export const WrongNetwork: React.FC<ButtonProps> = ({ ...props }) => {
               method: 'wallet_addEthereumChain',
               params: [
                 {
-                  chainName: 'Rinkeby testnet',
-                  chainId: '0x4',
-                  rpcUrls: ['https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161']
+                  chainName: 'Ethereum',
+                  chainId: '0x1',
+                  rpcUrls: ['https://mainnet.infura.io/v3/']
                 }
               ]
             })

@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import { NFTData, useActiveWeb3React, useGameLandContract, useMyNftContract, useStore } from '../hooks'
 import { toastify } from '../components/Toastify'
-import { formatAddress, getProgress, ZeroAddress, fetchReceipt } from '../utils'
+import { formatAddress, getProgress, ZeroAddress, fetchReceipt, fixDigitalId } from '../utils'
 import { formatEther } from '@ethersproject/units'
 import { isEmpty, isEqual } from 'lodash'
 import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
@@ -19,6 +19,7 @@ import { Loading } from '../components/Loading'
 import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
 import { fetchAbi, getContract } from './Dashboard'
+import { hashMessage } from 'ethers/lib/utils'
 
 export const Dlist = styled.div`
   flex-direction: column;
@@ -75,7 +76,7 @@ export const Lend = () => {
     //   } else {
     //     let _lending = await gamelandContract?.get_nft_allinfo(item.gamelandNftId)
     //     _lending = _lending && _lending.map((item: any) => formatEther(item).toString())
-    //     console.log(isEqual(_lending, ZeroNftInfo))
+    //     // console.log(isEqual(_lending, ZeroNftInfo))
     //   }
     // } catch (err: any) {
     //   toastify.error(err.message)
@@ -200,7 +201,7 @@ export const Lend = () => {
                 name={currentItem.name}
                 price={currentItem.price}
                 days={currentItem.days}
-                img={currentItem.image_url}
+                img={currentItem.img}
                 asset_contract={currentItem.asset_contract}
                 unOperate={true}
               />
@@ -277,7 +278,7 @@ export const Lend = () => {
                   price={item.price}
                   nftId={item.nftId}
                   borrowAt={item.borrowAt}
-                  img={item.image_preview_url}
+                  img={item.img}
                   isLending={item.isLending}
                   isBorrowed={item.isBorrowed}
                   withdrawable={item.withdrawable}
