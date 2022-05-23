@@ -37,7 +37,7 @@ export const Img: React.FC<ImgProps> = ({ src, size }) => {
     e.target.src = defaultImg
   }
   const _img = useMemo(() => {
-    if (src?.includes('googleusercontent')) return src + `=w${size}`
+    if (src?.includes('googleusercontent')) return src
 
     if (src?.startsWith('http')) return src
 

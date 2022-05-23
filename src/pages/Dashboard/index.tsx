@@ -100,31 +100,35 @@ export const Dashboard = () => {
 
     return data.map(async (item) => {
       try {
+        let contractIndex = contracts.findIndex((i: any) => {
+          return i.toLowerCase() === item.token_address.toLowerCase()
+        })
+
+        if (contractIndex >= 0) {
+          contractIndex = contractIndex + 1
+        } else {
+          return
+        }
+        const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
+        item.gamelandNftId = hashMessage(gamelandId)
         if (!item.metadata) {
-          let res: any
-          let metadata: any
-
-          if (item.token_uri && item.token_uri.startsWith('http')) {
-            try {
-              res = await fetch(item.token_uri, {
-                mode: 'no-cors' // 'cors' by default
-              })
-              if (res) {
-                metadata = await res.json()
-              }
-            } catch (error: any) {
-              metadata = {}
-              console.log(error)
-            }
-          } else if (item.token_uri.startsWith('data:application')) {
-            res = await fetch(item.token_uri)
-            const json = await res.json()
-            metadata = JSON.parse(json)
-          } else {
-            metadata = {}
+          const params = {
+            nftId: item.token_id,
+            contractAddress: item.token_address,
+            gamelandNftId: hashMessage(gamelandId)
           }
-
-          item.metadata = metadata
+          const res: any = await http2.get(`/v0/nft/${hashMessage(gamelandId)}`)
+          if (res.data.code === 1) {
+            if (res.data.data === null || res.data.data.length < 1) {
+              http2.post('/v0/nft', params)
+            } else if (res.data.data.length > 0) {
+              const metadata: any = {
+                name: res.data.data[0]?.name,
+                image: res.data.data[0]?.img
+              }
+              item.metadata = metadata
+            }
+          }
         } else if (typeof item.metadata === 'string') {
           try {
             const { name, image } = JSON.parse(item.metadata)
@@ -137,18 +141,6 @@ export const Dashboard = () => {
             item.metadata = {}
           }
         }
-
-        let contractIndex = contracts.findIndex((i: any) => {
-          return i.toLowerCase() === item.token_address.toLowerCase()
-        })
-
-        if (contractIndex >= 0) {
-          contractIndex = contractIndex + 1
-        } else {
-          return
-        }
-        const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
-        item.gamelandNftId = hashMessage(gamelandId)
         return item
       } catch (err: any) {
         console.log(err)
@@ -243,9 +235,7 @@ export const Dashboard = () => {
 
     // const constantAbi: any[] = ABIs[contractAddress]
     const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
-    console.log(ABI, contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
-
     item.contract = nftContract
     setCurrentItem(item)
     console.log(item)
@@ -574,7 +564,6 @@ export const Dashboard = () => {
                       price={item.price}
                       days={item.days}
                       img={item.metadata?.image}
-                      size={300}
                       nftId={item.token_id as string}
                       isLending={item.isLending}
                       isBorrowed={item.isBorrowed}
