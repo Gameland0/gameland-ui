@@ -19,6 +19,37 @@ const HeaderBox = styled.div`
   .logo svg {
     max-width: 15rem;
   }
+  .jumpButton {
+    display: flex;
+    height: 39px;
+    border: 1px solid #ccc;
+    color: #666;
+    border-radius: 1.25rem;
+    background: #ededed;
+    .polygon {
+      width: 4rem;
+      height: 37px;
+      margin: 0 8px 0 0;
+      text-align: center;
+      line-height: 37px;
+      cursor: pointer;
+      background: #fff;
+      color: #333333;
+      box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, 0.16);
+      border-radius: 24px 24px 24px 24px;
+      border-radius: 1.25rem;
+      border: 1px solid #ccc;
+    }
+    .eth {
+      width: 5rem;
+      height: 38px;
+      color: #666;
+      text-align: center;
+      color: #cccccc;
+      line-height: 37px;
+      cursor: pointer;
+    }
+  }
 `
 
 const activeClassName = 'ACTIVE'
@@ -76,6 +107,15 @@ const Link = styled(NavLink).attrs({
     color: var(--primary-color);
   }
 `
+const skipLinks = (type: string) => {
+  if (type === 'polygon') {
+    window.location.href = 'https://polygon.gameland.network'
+  }
+  if (type === 'eth') {
+    window.location.href = 'https://eth.gameland.network'
+  }
+}
+
 export const Header = () => {
   const { chainId } = useActiveWeb3React()
   const [visible, setVisible] = useState(false)
@@ -87,9 +127,7 @@ export const Header = () => {
   return (
     <HeaderBox>
       <div className="container flex flex-h-between flex-v-center">
-        <div className="logo">
-          {chainId === 137 ? <LogoNormal height="100"></LogoNormal> : <Logo height="100"></Logo>}
-        </div>
+        <div className="logo">{<Logo height="100"></Logo>}</div>
         {!isMobile ? (
           <>
             <div className="flex flex-h-between">
@@ -105,6 +143,14 @@ export const Header = () => {
               <Link to="/guilds">
                 <span>Guilds</span>
               </Link>
+            </div>
+            <div className="jumpButton">
+              <div className="polygon" onClick={() => skipLinks('polygon')}>
+                Polygon
+              </div>
+              <div className="eth" onClick={() => skipLinks('eth')}>
+                Ethereum
+              </div>
             </div>
             <div className="flex flex-h-between flex-v-center">
               <AccountBar key="accountbar" />
