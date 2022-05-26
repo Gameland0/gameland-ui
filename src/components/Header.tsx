@@ -144,14 +144,14 @@ export const Header = () => {
                 <span>Guilds</span>
               </Link>
             </div>
-            <div className="jumpButton">
+            {/* <div className="jumpButton">
               <div className="polygon" onClick={() => skipLinks('polygon')}>
                 Polygon
               </div>
               <div className="eth" onClick={() => skipLinks('eth')}>
                 Ethereum
               </div>
-            </div>
+            </div> */}
             <div className="flex flex-h-between flex-v-center">
               <AccountBar key="accountbar" />
             </div>
