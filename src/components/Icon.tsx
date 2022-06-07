@@ -13,8 +13,8 @@ interface ImgProps extends BaseProps {
 const ImgInner = styled.span`
   margin-right: 0.25rem;
   img {
-    width: 0.8rem;
-    height: 0.8rem;
+    width: 0.9rem;
+    height: 0.9rem;
     margin-bottom: 0.1rem;
   }
 `

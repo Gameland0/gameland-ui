@@ -46,7 +46,6 @@ export const fetcher = (url: string) => {
   return http.get(_url).then((res) => res.data)
 }
 export const fetcher2 = (url: string) => fetch(url).then((res) => res.json())
-
 export const Store = ({ children }: { children: JSX.Element }) => {
   const networkError = useNetworkValidator()
   const loading = useNetworkLoading()

@@ -45,3 +45,9 @@
   --success:#3EE0AE;
   --success-light:#72e6c1;
 }
+.blue{ 
+  color: #41ACEF;
+}
+.bigSize{
+  font-size: 24px;
+}
