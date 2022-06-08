@@ -1,0 +1,1294 @@
+[
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "nft_programe_address",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "daily_price",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "duration",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "collatoral",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isERC721",
+				"type": "bool"
+			}
+		],
+		"name": "Received",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "borrowindex",
+				"type": "uint256"
+			}
+		],
+		"name": "Rented",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "borrowindex",
+				"type": "uint256"
+			}
+		],
+		"name": "deleteborrow",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "nftindex",
+				"type": "uint256"
+			}
+		],
+		"name": "takedownnft",
+		"type": "event"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "due_date",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "pay_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "total_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "daily_price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "nft_owner",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "collatoral",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "time_now",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "expire_time",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "penalty",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "gameland_nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "exist",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct GameLand_assets.borrowInfo",
+				"name": "b",
+				"type": "tuple"
+			},
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "add_borrowInfo",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "borrower",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "due_date",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "total_amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "daily_price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "nft_owner",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "collatoral",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "expire_time",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "penalty",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "pay_type",
+				"type": "string"
+			}
+		],
+		"name": "add_borrowInfoforpar",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "nft_programe_address",
+				"type": "address"
+			}
+		],
+		"name": "add_nft_program",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "nft_name",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "form_contract",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "nft_owner",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nft_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "daily_price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "duration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "collatoral",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "borrow_status",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "time_now",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "penalty",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "gameland_nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "pay_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "exist",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct GameLand_assets.nfts",
+				"name": "n",
+				"type": "tuple"
+			},
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "add_nfts",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "nft_name",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "form_contract",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "nft_owner",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "nft_type",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "nft_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "daily_price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "duration",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "collatoral",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "penalty",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "pay_type",
+				"type": "string"
+			}
+		],
+		"name": "add_nftsforpar",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "nft_programe_address",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "sender",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "receiver",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "build_call",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "collatoralbalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_str",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "str",
+				"type": "string"
+			}
+		],
+		"name": "compareStr",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "delete_borrowInfo",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "delete_nfts",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "get_borrowInfo",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "due_date",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "pay_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "total_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "daily_price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "nft_owner",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "collatoral",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "time_now",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "expire_time",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "penalty",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "gameland_nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "exist",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct GameLand_assets.borrowInfo",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "get_borrowInfo_forindex",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "borrower",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "due_date",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "pay_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "total_amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "daily_price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "nft_owner",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "collatoral",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "time_now",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "expire_time",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "penalty",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "gameland_nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "exist",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct GameLand_assets.borrowInfo",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "get_borrow_list",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "get_borrowindex",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "get_gove",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "get_index",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "get_nft_programes",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "get_nfts",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "nft_name",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "form_contract",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "nft_owner",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nft_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "daily_price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "duration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "collatoral",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "borrow_status",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "time_now",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "penalty",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "gameland_nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "pay_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "exist",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct GameLand_assets.nfts",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "get_nfts_forindex",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "nft_name",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "form_contract",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "nft_owner",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nft_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "daily_price",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "duration",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "collatoral",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "borrow_status",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint256",
+						"name": "time_now",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "penalty",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "gameland_nft_id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "pay_type",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "exist",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct GameLand_assets.nfts",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "get_nfts_list",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "get_nftsindex",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_nft",
+				"type": "address"
+			}
+		],
+		"name": "is1155",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_nft",
+				"type": "address"
+			}
+		],
+		"name": "is721",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"name": "onERC1155BatchReceived",
+		"outputs": [
+			{
+				"internalType": "bytes4",
+				"name": "",
+				"type": "bytes4"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"name": "onERC1155Received",
+		"outputs": [
+			{
+				"internalType": "bytes4",
+				"name": "",
+				"type": "bytes4"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"name": "onERC721Received",
+		"outputs": [
+			{
+				"internalType": "bytes4",
+				"name": "",
+				"type": "bytes4"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "re",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "paytoaddress",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "borrow_status",
+				"type": "bool"
+			}
+		],
+		"name": "set_nfts_borrowstatus",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "setborrowInfolist",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "gameland_nft_id",
+				"type": "uint256"
+			}
+		],
+		"name": "setnftslist",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes4",
+				"name": "interfaceId",
+				"type": "bytes4"
+			}
+		],
+		"name": "supportsInterface",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_gove",
+				"type": "address"
+			}
+		],
+		"name": "updategove",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
+]

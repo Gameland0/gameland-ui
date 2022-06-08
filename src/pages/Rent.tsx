@@ -1,16 +1,18 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useCallback, useMemo, useState } from 'react'
 
 // import { useGreeterContract } from '../hooks'
 import { Row, Col } from 'antd'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
+import { Dialog } from '../components/Dialog'
 import BigNumber from 'bignumber.js'
 import { useActiveWeb3React, useGameLandContract, useStore } from '../hooks'
 import { toastify } from '../components/Toastify'
 // import { parseEther } from '@ethersproject/units'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
+import { NumInput } from '../components/DaysInput'
 // import { NftView } from '../components/NftView'
 import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
@@ -139,6 +141,7 @@ const ImgBox = styled.div`
   img {
     width: 600px;
     height: 600px;
+    border-radius: 20px 20px 20px 20px;
   }
 `
 const Title = styled.h1`
@@ -146,7 +149,6 @@ const Title = styled.h1`
   line-height: 1.5rem;
 `
 const Tips = styled.div`
-  width: 15rem;
   height: 2rem;
   text-align: right;
   font-size: 16px;
@@ -281,6 +283,8 @@ export const Rent = () => {
   const { library, account } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as NftProps)
   const [visible, setVisible] = useState(false)
+  const [prompt, setPrompt] = useState(false)
+  const [days, setdays] = useState('')
   const [description, setDescription] = useState('')
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
@@ -302,7 +306,7 @@ export const Rent = () => {
   // useEffect(() => {
   //   console.log(greeter?.setGreeting('hll'))
   // }, [greeter])
-
+  const handleDaysChange = useCallback((val) => setdays(val), [])
   const handleShowModal = async (item: NftProps) => {
     if (!gamelandContract) {
       toastify.error('Contract not found, please connect wallet.')
@@ -338,10 +342,10 @@ export const Rent = () => {
       await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
     }
   }
-
+  const handleShowPrompt = () => {
+    setPrompt(true)
+  }
   const handleRent = async () => {
-    console.log('rents')
-
     try {
       if (!library) {
         toastify.error('Please connect a account.')
@@ -375,8 +379,6 @@ export const Rent = () => {
           throw Error('Failed to rent.')
         }
       } else {
-        // borrower: borrowInfo[0]
-        // borrowAt: borrowInfo[1]
         const borrowInfo = await gamelandContract.borrow_status(currentItem.gamelandNftId)
         borrower = borrowInfo[0]
         toastify.warning('This NFT has been borrowed by someone else!')
@@ -406,7 +408,7 @@ export const Rent = () => {
   return (
     <div className="container">
       <RentBox>
-        <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose>
+        <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose closable={false}>
           <Row gutter={[24, 24]}>
             <Col span="12" xl={12} sm={24}>
               <ImgBox>
@@ -446,13 +448,14 @@ export const Rent = () => {
                   </span>
                 </div>
               </Dlist>
-              <Tips>tips:Maximum rental {currentItem.days} days</Tips>
-              <div>
-                <DaysInfo>Rent for {currentItem.days} days</DaysInfo>
+              <Tips>Available time for renting is for 1-{currentItem.days} days.</Tips>
+              <div className="daysInput">
+                {/* <DaysInfo>Rent for {currentItem.days} days</DaysInfo> */}
+                <NumInput validInt onChange={handleDaysChange} value={days} />
               </div>
               <br />
               <FakeButton
-                onClick={handleRent}
+                onClick={handleShowPrompt}
                 loading={renting}
                 block
                 disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
@@ -540,6 +543,13 @@ export const Rent = () => {
             </Details>
           </Row>
         </Modal>
+        <Dialog onCancel={() => setPrompt(false)} visible={prompt} destroyOnClose onOk={handleRent} closable={false}>
+          <p>
+            If the lease is not returned for more than 8 hours after the expiry of the lease time, the liquidated damage
+            will be deducted, and the security deposit of {currentItem.price} will be deducted for each overtime day
+            after that.
+          </p>
+        </Dialog>
         <Row gutter={[20, 20]}>
           {lendingNfts.length ? (
             lendingNfts.map((item, index) => (

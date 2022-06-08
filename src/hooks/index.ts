@@ -10,6 +10,9 @@ import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
 // import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
 import GameLandAbi from '../constants/Abis/GameLand.json'
+import AssetContractAbi from '../constants/Abis/assetContract.json'
+import ControlContractAbi from '../constants/Abis/controlContract.json'
+import erc721Abi from '../constants/Abis/erc721.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import { ABIs } from '../constants/Abis/ABIs'
@@ -17,6 +20,9 @@ import { GAMELADDRESS } from '../constants'
 
 export const GameLandAddress = GAMELADDRESS
 export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
+export const ControlContractAddress = '0x979eb2e664d5720b251375350881C27e0FC73833'
+export const AssetContractAddress = '0x9Ada7B5d61c1aEB0d2DD1724dc0993d74E6f3321'
+export const ERC721Address = '0x210371d0aDce24cA7E41c970D5f4a9B2A175c6b7'
 
 interface OpenseaData {
   token_id?: string
@@ -173,27 +179,33 @@ export function useGameLandContract() {
   return new Contract(GameLandAddress, GameLandAbi, library.getSigner())
 }
 
-// const ABIS: Record<string, any[]> = {}
-// ABIS[lowerCase(TSAddress)] = ABIs[TSAddress]
-// ABIS[lowerCase(ArchAddress)] = ArchNftAbi
-
 export function useTsContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
 
   return new Contract(TSAddress, ABIs[TSAddress], library.getSigner())
 }
-// export function useNFTContract() {
-//   const contracts: Record<string, Contract> = {}
-//   const { library } = useActiveWeb3React()
-//   if (!library) return null
-//   console.log(ABIs)
 
-//   Object.keys(ABIs).forEach((address) => {
-//     contracts[address] = new Contract(address, ABIs[address], library?.getSigner())
-//   })
-//   return contracts
-// }
+export function useAssetContract() {
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+
+  return new Contract(AssetContractAddress, AssetContractAbi, library.getSigner())
+}
+
+export function useERC721Contract() {
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+
+  return new Contract(ERC721Address, erc721Abi, library.getSigner())
+}
+
+export function useControlContract() {
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+
+  return new Contract(ControlContractAddress, ControlContractAbi, library.getSigner())
+}
 
 export interface ListenerOptions {
   // how often this data should be fetched, by default 1
