@@ -26,9 +26,9 @@ const CloseBtn = styled.div`
 export const Modal: React.FC<ModalProps> = ({ children, ...props }) => {
   return (
     <AModal
-      width={1296}
+      width={'75rem'}
       closeIcon={<CloseBtn />}
-      bodyStyle={{ background: '#fff', color: '#404040', padding: '3rem' }}
+      bodyStyle={{ background: '#fff', color: '#404040', padding: '4rem' }}
       closable
       {...props}
     >

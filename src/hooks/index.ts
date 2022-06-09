@@ -22,7 +22,7 @@ export const GameLandAddress = GAMELADDRESS
 export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
 export const ControlContractAddress = '0x979eb2e664d5720b251375350881C27e0FC73833'
 export const AssetContractAddress = '0x9Ada7B5d61c1aEB0d2DD1724dc0993d74E6f3321'
-export const ERC721Address = '0x210371d0aDce24cA7E41c970D5f4a9B2A175c6b7'
+export const ERC721Address = '0xaaE8DfD6727Eb98ab19E352ef84927f9C6819073'
 
 interface OpenseaData {
   token_id?: string

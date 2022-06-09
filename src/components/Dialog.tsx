@@ -22,32 +22,11 @@ const CloseBtn = styled.div`
     font-weight: bold;
   }
 `
-const Title = styled.div`
-  width: 700px;
-  height: 4rem;
-  line-height: 4rem;
-  border-radius: 0.25rem;
-  background: #f3f5f7;
-  text-align: center;
-  position: absolute;
-  right: 0;
-  top: -3rem;
-  &:after {
-    content: 'Prompt';
-    height: 2.5rem;
-    line-height: 4rem;
-    font-size: 1.5rem;
-    display: block;
-    color: #333333;
-    font-weight: bold;
-  }
-`
 export const Dialog: React.FC<ModalProps> = ({ children, ...props }) => {
   return (
     <AModal
-      width={700}
+      width={716}
       closeIcon={<CloseBtn />}
-      title={<Title />}
       bodyStyle={{ background: '#fff', color: '#404040', padding: '3rem' }}
       closable
       {...props}

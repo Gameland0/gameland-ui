@@ -81,7 +81,7 @@ export const NumInput: React.FC<NumInputProps> = ({
       )}
       <input
         autoComplete="off"
-        className="num-input"
+        className="day-input"
         onChange={handleChange}
         placeholder="Please enter rental days"
         value={_value}

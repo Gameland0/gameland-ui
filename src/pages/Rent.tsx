@@ -70,10 +70,10 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   padding: 0 1rem;
   line-height: 2.5rem;
   font-size: 0.875rem;
-  width: 35.1rem;
+  width: 30rem;
   color: #fff;
   background: #35caa9;
-  margin-left: 20px;
+  margin-left: 2.5rem;
   border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
 
   &:hover {
@@ -121,43 +121,45 @@ export const DaysInfo: React.FC<DaysInfoProps> = ({ progress, children }) => {
   )
 }
 const Dlist = styled.div`
-  width: 562px;
-  height: 290px;
+  width: 30rem;
+  height: 18.125rem;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: space-between;
   margin-top: 32px;
-  margin-left: 20px;
+  margin-left: 2.5rem;
   border-radius: 20px 20px 20px 20px;
   border: 1px solid #e5e5e5;
-  padding: 24px 40px;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
   div {
     display: flex;
-    margin-bottom: 0.5rem;
     justify-content: space-between;
     font-size: 16px;
   }
 `
 const ImgBox = styled.div`
   img {
-    width: 600px;
-    height: 600px;
+    width: 35rem;
+    height: 35rem;
     border-radius: 20px 20px 20px 20px;
   }
 `
 const Title = styled.h1`
-  margin-left: 20px;
+  margin-left: 2.5rem;
   line-height: 1.5rem;
 `
 const Tips = styled.div`
-  height: 2rem;
+  width: 188px;
+  height: 3rem;
   text-align: right;
   font-size: 16px;
   font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   font-weight: 400;
-  color: #d0d0d0;
+  color: #35caa9;
   position: absolute;
-  top: 23rem;
-  right: 20px;
+  top: 24.5rem;
+  right: 2rem;
+  z-index: 9;
 `
 
 export const SpanLabel = styled.span`
@@ -278,13 +280,70 @@ const Details = styled.div`
     }
   }
 `
+export const ContentBox = styled.div`
+  .title {
+    width: 100%;
+    font-size: 24px;
+    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+    font-weight: bold;
+    color: #333333;
+    text-align: center;
+  }
+  p {
+    margin-top: 2rem;
+    font-size: 1.1rem;
+    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+    font-weight: 400;
+    color: #666666;
+  }
+  .button {
+    width: 100%;
+    margin-top: 3rem;
+    display: flex;
+    justify-content: center;
+    .cancel {
+      width: 150px;
+      height: 56px;
+      background: #eaeaea;
+      border-radius: 10px 10px 10px 10px;
+      font-size: 18px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      font-weight: 400;
+      color: #999999;
+      text-align: center;
+      line-height: 56px;
+      cursor: pointer;
+      &:hover {
+        background: #f5f2f2;
+      }
+    }
+    .ok {
+      width: 150px;
+      height: 56px;
+      background: #35caa9;
+      border-radius: 10px 10px 10px 10px;
+      font-size: 18px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      font-weight: 400;
+      color: #fff;
+      text-align: center;
+      line-height: 56px;
+      cursor: pointer;
+      margin-left: 3rem;
+
+      &:hover {
+        background: var(--second-light-color);
+      }
+    }
+  }
+`
 
 export const Rent = () => {
   const { library, account } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as NftProps)
   const [visible, setVisible] = useState(false)
   const [prompt, setPrompt] = useState(false)
-  const [days, setdays] = useState('')
+  const [LeaseDays, setdays] = useState('')
   const [description, setDescription] = useState('')
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
@@ -343,6 +402,20 @@ export const Rent = () => {
     }
   }
   const handleShowPrompt = () => {
+    if (!LeaseDays) {
+      toastify.error('Please enter rental days.')
+      return
+    }
+    if (Number(LeaseDays) < 1) {
+      toastify.error('Minimum rental days is 1 day.')
+      return
+    }
+    if (currentItem.days) {
+      if (Number(LeaseDays) > currentItem.days) {
+        toastify.error(`Maximum rental days are ${currentItem.days} days.`)
+        return
+      }
+    }
     setPrompt(true)
   }
   const handleRent = async () => {
@@ -361,7 +434,7 @@ export const Rent = () => {
         setRenting(true)
 
         const collateral = new BigNumber(currentItem.collateral as unknown as string)
-        const days = new BigNumber(currentItem.days as unknown as string)
+        const days = new BigNumber(LeaseDays as unknown as string)
         const price = new BigNumber(currentItem.price as unknown as string)
         const cost = days.times(price)
         const amount = collateral.plus(cost).toString()
@@ -431,15 +504,21 @@ export const Rent = () => {
                   </span>
                 </div>
                 <div>
-                  <SpanLabel>price</SpanLabel>
-                  <span className="blue">
-                    <span className="bigSize">{currentItem.price}</span>
-                    <Icon /> / day
+                  <SpanLabel>penalty</SpanLabel>
+                  <span>
+                    2 <Icon />
                   </span>
                 </div>
                 <div>
                   <SpanLabel>days</SpanLabel>
                   <span>{currentItem.days}</span>
+                </div>
+                <div>
+                  <SpanLabel>price</SpanLabel>
+                  <span className="blue">
+                    <span className="bigSize">{currentItem.price}</span>
+                    <Icon /> / day
+                  </span>
                 </div>
                 <div>
                   <SpanLabel>Total</SpanLabel>
@@ -448,10 +527,10 @@ export const Rent = () => {
                   </span>
                 </div>
               </Dlist>
+              <div className="divider"></div>
               <Tips>Available time for renting is for 1-{currentItem.days} days.</Tips>
               <div className="daysInput">
-                {/* <DaysInfo>Rent for {currentItem.days} days</DaysInfo> */}
-                <NumInput validInt onChange={handleDaysChange} value={days} />
+                <NumInput validInt onChange={handleDaysChange} value={LeaseDays} />
               </div>
               <br />
               <FakeButton
@@ -543,12 +622,30 @@ export const Rent = () => {
             </Details>
           </Row>
         </Modal>
-        <Dialog onCancel={() => setPrompt(false)} visible={prompt} destroyOnClose onOk={handleRent} closable={false}>
-          <p>
-            If the lease is not returned for more than 8 hours after the expiry of the lease time, the liquidated damage
-            will be deducted, and the security deposit of {currentItem.price} will be deducted for each overtime day
-            after that.
-          </p>
+        <Dialog
+          footer={null}
+          onCancel={() => setPrompt(false)}
+          visible={prompt}
+          destroyOnClose
+          onOk={handleRent}
+          closable={false}
+        >
+          <ContentBox>
+            <div className="title">Prompt</div>
+            <p>
+              If the lease is not returned for more than 8 hours after the expiry of the lease time, the liquidated
+              damage will be deducted, and the security deposit of {currentItem.price} will be deducted for each
+              overtime day after that.
+            </p>
+            <div className="button">
+              <div className="cancel" onClick={() => setPrompt(false)}>
+                cancel
+              </div>
+              <div className="ok" onClick={handleRent}>
+                OK
+              </div>
+            </div>
+          </ContentBox>
         </Dialog>
         <Row gutter={[20, 20]}>
           {lendingNfts.length ? (

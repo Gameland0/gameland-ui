@@ -6,11 +6,13 @@ import { Contract } from '@ethersproject/contracts'
 import { hashMessage } from 'ethers/lib/utils'
 
 import { Modal } from '../../components/Modal'
+import { Dialog } from '../../components/Dialog'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
 import { GameLandAddress, useActiveWeb3React, useGameLandContract, useStore } from '../../hooks'
 import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
+import { ContentBox } from '../Rent'
 import { http2 } from '../../components/Store'
 import { MyRenting } from './MyRenting'
 import { lowerCase } from 'lower-case'
@@ -75,7 +77,8 @@ export const Dashboard = () => {
 
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as NftProps)
-
+  const [prompt, setPrompt] = useState(false)
+  const [penalty, setPenalty] = useState('')
   const [price, setPrice] = useState('')
   const [days, setdays] = useState('')
   const [collateral, setCollateral] = useState('')
@@ -267,7 +270,16 @@ export const Dashboard = () => {
     }
     setAwaiting(false)
   }
-
+  const handleShowPrompt = () => {
+    if (!penalty) {
+      toastify.error('Please enter rental penalty.')
+      return
+    }
+    if (Number(penalty) < 1) {
+      toastify.error('Minimum rental days is 1 day.')
+      return
+    }
+  }
   const handleLiquidation = async () => {
     if (gamelandContract) {
       setLiquidating(true)
@@ -368,6 +380,7 @@ export const Dashboard = () => {
   const handlePriceChange = useCallback((val) => setPrice(val), [])
   const handleDaysChange = useCallback((val) => setdays(val), [])
   const handleCollateralChange = useCallback((val) => setCollateral(val), [])
+  const handlePenaltyChange = useCallback((val) => setPenalty(val), [])
 
   const handleLend = async () => {
     try {
@@ -396,24 +409,29 @@ export const Dashboard = () => {
       if (!receipt.status) {
         throw Error('Failed to deposit.')
       }
-
       const params = {
         nftId: currentItem.token_id,
-        contractAddress: currentItem.token_address,
-        gamelandNftId: currentItem.gamelandNftId,
-        originOwner: currentItem.owner_of,
-        standard: currentItem.contract_type,
         isLending: true,
         price: Number(price),
         days: Number(days),
         collateral: Number(collateral),
-        metadata: JSON.stringify(currentItem.metadata)
+        originOwner: account,
+        contractAddress: currentItem.token_address,
+        standard: currentItem.contract_type,
+        metadata: JSON.stringify(currentItem.metadata) || '',
+        gamelandNftId: currentItem.gamelandNftId,
+        createdAt: new Date().toJSON(),
+        updatedAt: new Date().toJSON(),
+        penalty: penalty,
+        pay_type: 'ETH',
+        lendIndex: deposited.value._hex,
+        expire_blocktime: new Date().valueOf(),
+        name: currentItem.name,
+        img: currentItem.image_preview_url
       }
       console.log(params)
-
       const res: any = await http2.post(`/v0/opensea/`, params)
       console.log(res)
-
       setLending(false)
       if (res.data.code === 1) {
         toastify.success('succeed')
@@ -451,6 +469,7 @@ export const Dashboard = () => {
         }
 
         setIsApproved(true)
+        setPrompt(true)
       } catch (err: any) {
         toastify.error(err.message)
       }
@@ -504,6 +523,10 @@ export const Dashboard = () => {
                     <NumInput onChange={handleCollateralChange} value={collateral} />
                   </div>
                   <div>
+                    <span>Enter Penalty.</span>
+                    <NumInput onChange={handlePenaltyChange} value={penalty} />
+                  </div>
+                  <div>
                     <span>Enter price per day.</span>
                     <NumInput onChange={handlePriceChange} value={price} />
                   </div>
@@ -547,7 +570,17 @@ export const Dashboard = () => {
           </Col>
         </Row>
       </Modal>
-
+      <Dialog footer={null} onCancel={() => setPrompt(false)} visible={prompt} destroyOnClose closable={false}>
+        <ContentBox>
+          <div className="title">Prompt</div>
+          <p>
+            You can only liquidate and deduct the penalty fee if the lease is not returned for more than 8 hours after
+            the lease time expires, and the daily price will be deducted from the mortgage for every subsequent day The
+            penalty formula is ((price per day*days)+mortgage amount)*the ratio you set, and the range of penalty
+            settings is 0~20%
+          </p>
+        </ContentBox>
+      </Dialog>
       <MyTabs defaultActiveKey="1">
         <TabPaneBox tab={<span className="clearGap">My NFT</span>} key="1">
           <MyNftBox>
