@@ -4,7 +4,6 @@ import { NFTData, useStore } from '../hooks'
 import { Img } from './Img'
 import { BaseProps } from './NumInput'
 import { toastify } from './Toastify'
-import { CardBox, Details } from './Nft'
 import BigNumber from 'bignumber.js'
 import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
@@ -14,6 +13,29 @@ import { Icon } from '../components/Icon'
 const Tips = styled.span`
   color: #aaa;
   font-size: 0.875rem;
+`
+export const CardBox = styled.div`
+  position: relative;
+  width: 11.75rem;
+  height: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1%);
+  }
+`
+export const Details = styled.div`
+  position: relative;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem 1rem;
+  p {
+    margin-bottom: 0.3rem;
+  }
 `
 export const PriceLabel = styled.span`
   margin-right: 0.25rem;
@@ -31,9 +53,10 @@ interface LabelProps {
   days: number
   right?: boolean
   collateral?: number
+  type: any
 }
 
-const Labels: React.FC<LabelProps> = ({ price, name, days, collateral }) => {
+const Labels: React.FC<LabelProps> = ({ price, name, days, collateral, type }) => {
   const total = useMemo(() => {
     if (!days || !price || !collateral) {
       return 0
@@ -44,6 +67,7 @@ const Labels: React.FC<LabelProps> = ({ price, name, days, collateral }) => {
   return (
     <div style={{ overflow: 'hidden' }}>
       <p>{name}</p>
+      <Standard>{type}</Standard>
       <PriceLabel>
         {total} <Icon />
       </PriceLabel>
@@ -53,21 +77,20 @@ const Labels: React.FC<LabelProps> = ({ price, name, days, collateral }) => {
 }
 const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   display: block;
+  width: 11.75rem;
   height: 2.5rem;
   cursor: pointer;
-  border-radius: 1.25rem;
+  border-radius: 0px 0px 10px 10px;
   padding: 0 1rem;
   line-height: 2.5rem;
   font-size: 0.875rem;
-  width: ${({ block }) => (block ? '100%' : 'auto')};
-  color: ${({ theme }) => (theme === 'ghost' ? 'var(--second-color)' : 'white')};
-  background: ${({ theme }) => (theme === 'ghost' ? 'transparent' : 'var(--second-color)')};
-  border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
+  background: rgba(212, 212, 212, 0.1);
+  color: #d0d0d0;
+  border: none;
 
   &:hover {
-    background: ${({ theme }) => (theme === 'ghost' ? 'transparent' : 'var(--second-light-color)')};
-    color: ${({ theme }) => (theme === 'ghost' ? 'var(--second-light-color)' : 'white')};
-    border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-light-color)` : '1px solid transparent')};
+    background: rgba(53, 202, 169, 0.1);
+    color: #35caa9;
   }
   &[disabled],
   &:disabled {
@@ -125,11 +148,17 @@ export const RentCard: React.FC<RentProps> = ({
       <Img src={img} alt="" />
       <Details className="flex flex-h-between">
         <div>
-          <Labels collateral={collateral} name={name} nftId={nftId} price={price} days={days as number} />
-          <Standard color={contract_type === 'ERC721' ? 'processing' : 'orange'}>{contract_type}</Standard>
+          <Labels
+            collateral={collateral}
+            name={name}
+            nftId={nftId}
+            price={price}
+            days={days as number}
+            type={contract_type}
+          />
         </div>
-        {!unOperate ? <Operate isLending={isLending} onClick={() => onclick} /> : null}
       </Details>
+      {!unOperate ? <Operate isLending={isLending} onClick={() => onclick} /> : null}
     </CardBox>
   )
 }
@@ -145,6 +174,8 @@ const Type = styled.div`
   border-top-right-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
 `
-export const Standard = styled(Tag)`
-  margin-top: 0.5rem;
+export const Standard = styled.div`
+  color: #d0d0d0;
+  font-size: 14px;
+  margin-bottom: 0.5rem;
 `

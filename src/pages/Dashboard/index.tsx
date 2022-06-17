@@ -4,11 +4,18 @@ import styled from 'styled-components'
 import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
 import { hashMessage } from 'ethers/lib/utils'
-
+import BigNumber from 'bignumber.js'
 import { Modal } from '../../components/Modal'
 import { Dialog } from '../../components/Dialog'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
-import { GameLandAddress, useActiveWeb3React, useGameLandContract, useStore } from '../../hooks'
+import {
+  AssetContractAddress,
+  useActiveWeb3React,
+  useGameLandContract,
+  useStore,
+  useAssetContract,
+  useControlContract
+} from '../../hooks'
 import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
@@ -62,12 +69,12 @@ export const fetchAbi = async (address: string) => {
 export const Dashboard = () => {
   const { account, library } = useActiveWeb3React()
   const { mutateDebts, nfts } = useStore()
-  // const nftContract = useMyNftContract()
-  // const NFTsContract = useNFTContract()
+  const AssetContract = useAssetContract()
+  const ControlContract = useControlContract()
   const gamelandContract = useGameLandContract()
   // const myNft = useMyNfts()
   // const [totalPage, setTotalPage] = useState(0)
-  const [offset, setOffset] = useState(0)
+  const [offset, setOffset] = useState('')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [limit, setLimit] = useState(12)
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts(offset, limit)
@@ -98,8 +105,6 @@ export const Dashboard = () => {
     if (!data || !data.length) {
       return []
     }
-
-    console.log(data)
 
     return data.map(async (item) => {
       try {
@@ -152,7 +157,7 @@ export const Dashboard = () => {
   }
 
   useEffect(() => {
-    if (offset === 0) {
+    if (!offset) {
       setPrevDisabled(true)
     } else {
       setPrevDisabled(false)
@@ -169,8 +174,6 @@ export const Dashboard = () => {
     } else {
       setNextDisabled(false)
     }
-
-    console.log(_myNfts, nfts)
     const lendableNfts = _myNfts.result.filter((item: any) => {
       return (
         nfts.findIndex(
@@ -184,27 +187,26 @@ export const Dashboard = () => {
       const _nfts = fetchMetadata(lendableNfts, contracts)
       contracts
         ? Promise.all(_nfts).then((vals) => {
-            console.log(vals)
             setMyNfts(vals)
           })
         : setMyNfts([])
     }
     syncFn()
     // if (_myNfts.result.length === limit) {
-    //   const _offset = offset + limit
-    //   setOffset(_offset)
-    //   mutateMyNfts(undefined)
+    // const _offset = _myNfts.cursor
+    // setOffset(_offset)
+    // mutateMyNfts(undefined)
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_myNfts, offset])
 
   const handleNext = () => {
-    const _offset = offset + limit
+    const _offset = _myNfts.cursor
     setOffset(_offset)
     mutateMyNfts(undefined)
   }
   const handlePrev = () => {
-    const _offset = offset - limit
+    const _offset = ''
     setOffset(_offset)
     mutateMyNfts(undefined)
   }
@@ -269,16 +271,6 @@ export const Dashboard = () => {
       }
     }
     setAwaiting(false)
-  }
-  const handleShowPrompt = () => {
-    if (!penalty) {
-      toastify.error('Please enter rental penalty.')
-      return
-    }
-    if (Number(penalty) < 1) {
-      toastify.error('Minimum rental days is 1 day.')
-      return
-    }
   }
   const handleLiquidation = async () => {
     if (gamelandContract) {
@@ -384,8 +376,16 @@ export const Dashboard = () => {
 
   const handleLend = async () => {
     try {
-      if (!gamelandContract) {
-        toastify.error('Contract not found.')
+      if (Number(penalty) < 1) {
+        toastify.error('Minimum scale is 1.')
+        return
+      }
+      if (Number(penalty) > 20) {
+        toastify.error('maximum scale is 20.')
+        return
+      }
+      if (!penalty) {
+        toastify.error('Please enter rental penalty.')
         return
       }
       if (!account) {
@@ -395,20 +395,31 @@ export const Dashboard = () => {
       setLending(true)
       // const owner = await nftContract.ownerOf(currentItem.nftId)
       console.log(price, days, currentItem.token_id, collateral, currentItem.token_address, currentItem.gamelandNftId)
-
-      const deposited = await gamelandContract.deposit(
+      const Collateral = new BigNumber(collateral as unknown as string)
+      const Day = new BigNumber(days as unknown as string)
+      const Price = new BigNumber(price as unknown as string)
+      const cost = Day.times(Price)
+      const PenaltyProportion = new BigNumber(penalty as unknown as string).times(new BigNumber('0.01'))
+      const amount = Collateral.plus(cost)
+      const Penalty = amount.times(PenaltyProportion).toString()
+      const deposited = await ControlContract?.deposit(
+        currentItem.name,
+        currentItem.contract_type,
+        currentItem.token_id,
         parseEther(price),
         days,
-        currentItem.token_id,
         parseEther(collateral),
-        currentItem.token_address,
-        currentItem.gamelandNftId
+        parseEther(Penalty),
+        currentItem.gamelandNftId,
+        currentItem.contractAddress,
+        'ETH'
       )
 
       const receipt = await fetchReceipt(deposited.hash, library)
       if (!receipt.status) {
         throw Error('Failed to deposit.')
       }
+      const index = await AssetContract?.get_nftsindex(currentItem.gamelandNftId)
       const params = {
         nftId: currentItem.token_id,
         isLending: true,
@@ -416,16 +427,16 @@ export const Dashboard = () => {
         days: Number(days),
         collateral: Number(collateral),
         originOwner: account,
-        contractAddress: currentItem.token_address,
+        contractAddress: currentItem.contractAddress,
         standard: currentItem.contract_type,
         metadata: JSON.stringify(currentItem.metadata) || '',
         gamelandNftId: currentItem.gamelandNftId,
         createdAt: new Date().toJSON(),
         updatedAt: new Date().toJSON(),
-        penalty: penalty,
+        penalty: Penalty,
         pay_type: 'ETH',
-        lendIndex: deposited.value._hex,
-        expire_blocktime: new Date().valueOf(),
+        lendIndex: index.toString(),
+        expire_blocktime: Math.floor(new Date().valueOf() / 1000),
         name: currentItem.name,
         img: currentItem.image_preview_url
       }
@@ -456,10 +467,10 @@ export const Dashboard = () => {
     if (currentItem.contract) {
       try {
         let approvetx
-        if (currentItem.contract_type === 'ERC721' && !!currentItem.contract?.approve) {
-          approvetx = await currentItem.contract.approve(GameLandAddress, currentItem.token_id)
+        if (currentItem.contract_type === 'ERC721' && currentItem.contract?.approve) {
+          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.token_id)
         } else {
-          approvetx = await currentItem.contract.setApprovalForAll(GameLandAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         console.log(approvetx)
@@ -493,6 +504,7 @@ export const Dashboard = () => {
               withdrawable={withdrawable}
               unOperate={true}
               contract_type={currentItem.contract_type}
+              borrowDay={currentItem.borrowDay}
             />
           </Col>
 
@@ -605,6 +617,7 @@ export const Dashboard = () => {
                       sell_orders={item.sell_orders}
                       collateral={item.collateral}
                       contract_type={item.contract_type}
+                      borrowDay={item.borrowDay}
                     ></NftCard>
                   </Col>
                 ))

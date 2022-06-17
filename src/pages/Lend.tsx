@@ -6,7 +6,7 @@ import { Row, Col, Button, Popconfirm } from 'antd'
 import { Nft } from '../components/Nft'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
-import { NFTData, useActiveWeb3React, useGameLandContract, useStore } from '../hooks'
+import { NFTData, useActiveWeb3React, useGameLandContract, useStore, useControlContract } from '../hooks'
 import { toastify } from '../components/Toastify'
 import { fetchReceipt, formatAddress, getProgress, ZeroAddress } from '../utils'
 import { isEmpty } from 'lodash'
@@ -29,9 +29,10 @@ export const Dlist = styled.div`
 
 export const Lend = () => {
   const { account, library } = useActiveWeb3React()
-  const [currentItem, setCurrentItem] = useState({} as NFTData)
+  const [currentItem, setCurrentItem] = useState({} as any)
   const [visible, setVisible] = useState(false)
   const gamelandContract = useGameLandContract()
+  const ControlContract = useControlContract()
   const myLendingNfts = useMyLendingNfts()
   const [expired, setExpired] = useState(false)
   const [liquidating, setLiquidating] = useState(false)
@@ -57,26 +58,12 @@ export const Lend = () => {
     setExpired(false)
     setAwaiting(true)
 
-    const contractAddress = item.contractAddress ?? ''
-
-    const ABI = await fetchAbi(contractAddress)
-    const nftContract = getContract(library, contractAddress, ABI)
-
-    item.contract = nftContract
     setCurrentItem(item)
-
-    try {
-      const _borrowed = await gamelandContract?.borrow_or_not(item.gamelandNftId)
-      setBorrowed(_borrowed)
-      if (_borrowed) {
-        // if borrowed, show progress
-        const _progress = getProgress(item.borrowAt as string, item.days as number)
-        setProgress(_progress)
-        setExpired(_progress >= 100)
-      }
-    } catch (err: any) {
-      toastify.error(err.message)
+    if (item.isBorrowed) {
+      setBorrowed(true)
     }
+    const _progress = getProgress(item.borrowAt as string, item.borrowDay as number)
+    setProgress(_progress)
     setAwaiting(false)
   }
 
@@ -87,17 +74,12 @@ export const Lend = () => {
         return
       }
 
-      if (!currentItem.contract || !gamelandContract) {
+      if (!ControlContract) {
         toastify.error('Contract not found.')
         return
       }
       setWithdrawing(true)
-      const withdrawnft = await gamelandContract.withdrawnft(
-        currentItem.nftId,
-        currentItem.contractAddress,
-        currentItem.gamelandNftId,
-        currentItem.id
-      )
+      const withdrawnft = await ControlContract.withdrawnft(currentItem.lendIndex)
       const receipt = await fetchReceipt(withdrawnft.hash, library)
       const { status } = receipt
       if (!status) {
@@ -125,7 +107,7 @@ export const Lend = () => {
       setLiquidating(true)
 
       try {
-        const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId, currentItem.id)
+        const liquidated = await ControlContract?.confiscation(currentItem.lendIndex, currentItem.rentIndex)
         const receipt = await fetchReceipt(liquidated.hash, library)
         const { status } = receipt
         if (!status) {
@@ -173,6 +155,7 @@ export const Lend = () => {
                 img={currentItem.metadata?.image}
                 contract_type={currentItem.standard}
                 unOperate={true}
+                borrowDay={currentItem.borrowDay}
               />
             </Col>
             <Col span="12" xl={12} sm={24}>
@@ -249,6 +232,7 @@ export const Lend = () => {
                   onClick={() => handleShowModal(item)}
                   name={item.metadata?.name}
                   days={item.days}
+                  borrowDay={item.borrowDay}
                   collateral={item.collateral}
                   price={item.price}
                   nftId={item.nftId}

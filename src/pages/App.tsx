@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react'
+import React, { useState } from 'react'
 import './App.less'
 import './Global.css'
 import { Header } from '../components/Header'
@@ -16,24 +16,54 @@ import { Guilds } from './Guilds'
 const Wrap = styled.div`
   min-height: 30rem;
 `
-
+const Popups = styled.div`
+  height: 40px;
+  background-color: #f0fcff;
+  border: 1px solid #bfedff;
+  position: sticky;
+  top: 6.25rem;
+  z-index: 99;
+  .close {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+  }
+`
+const Filling = styled.div`
+  height: 3rem;
+  background: #fff;
+  position: sticky;
+  top: 8.75rem;
+  z-index: 99;
+`
 function App() {
+  const [visible, setVisible] = useState(true)
+  const close = () => {
+    setVisible(false)
+  }
   return (
     <div className="App">
       <Header />
-
-      <Alert
-        message={
+      {visible ? (
+        <Popups>
           <div className="container flex flex-center">
             <a style={{ marginRight: '.5rem', textDecoration: 'underline' }} href="mailto:hello@gameland.network">
               Contact us
             </a>{' '}
             to support your NFT projects.
           </div>
-        }
-        closable
-        type="info"
-      />
+          <div className="close" onClick={close}>
+            x
+          </div>
+        </Popups>
+      ) : (
+        <div className="sticky"></div>
+      )}
+      <Filling></Filling>
       <Web3Manager>
         <Wrap className="">
           <Switch>

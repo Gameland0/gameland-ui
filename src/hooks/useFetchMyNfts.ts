@@ -5,13 +5,11 @@ import { useActiveWeb3React, useStore } from '.'
 import { fetcher, http } from '../components/Store'
 import { MORALIS_KEY } from '../constants'
 
-export const useFetchMyNfts = (offset: number, limit: number) => {
+export const useFetchMyNfts = (cursor: string, limit: number) => {
   const { account } = useActiveWeb3React()
   const { contracts } = useStore()
 
   const url = useMemo(() => {
-    console.log(contracts)
-
     if (!contracts) {
       return ''
     }
@@ -27,11 +25,11 @@ export const useFetchMyNfts = (offset: number, limit: number) => {
 
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
 
-    return `/moralis/${account}/nft?chain=polygon&format=decimal&limit=${limit}${addresses}`
+    return `/moralis/${account}/nft?chain=polygon&format=decimal&cursor=${cursor}&limit=${limit}${addresses}`
 
     // return `${MORALIS_API}/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offset, limit, account, contracts])
+  }, [cursor, limit, account, contracts])
 
   return useSWR(url, fetcher)
 }

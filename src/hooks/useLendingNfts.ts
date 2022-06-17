@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { NFTData, useStore } from '.'
-export const useLendingNfts = (): NFTData[] => {
+export const useLendingNfts = (): any[] => {
   const { nfts } = useStore()
 
   return useMemo(() => {

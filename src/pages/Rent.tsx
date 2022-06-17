@@ -7,11 +7,13 @@ import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import { Dialog } from '../components/Dialog'
 import BigNumber from 'bignumber.js'
-import { useActiveWeb3React, useGameLandContract, useStore } from '../hooks'
+import { useActiveWeb3React, useGameLandContract, useStore, useControlContract, useAssetContract } from '../hooks'
 import { toastify } from '../components/Toastify'
-// import { parseEther } from '@ethersproject/units'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
+import polygonIcon from '../assets/polygon_icon.svg'
+import search from '../assets/search_bar_icon_search.svg'
+import arrow from '../assets/icon_select.svg'
 import { NumInput } from '../components/DaysInput'
 // import { NftView } from '../components/NftView'
 import { Tag, Spin } from 'antd'
@@ -27,7 +29,57 @@ import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
 
 export const RentBox = styled.div`
-  margin: 3rem 0;
+  margin: 1rem 0 6rem 0;
+`
+const Sort = styled.div`
+  height: 3.75rem;
+  display: flex;
+  background: #fff;
+  justify-content: space-between;
+  position: sticky;
+  top: 11.7rem;
+  z-index: 99;
+  .total {
+    font-size: 16px;
+    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+    font-weight: 400;
+    color: #999999;
+    line-height: 3.75rem;
+  }
+  .filter {
+    width: 18.75rem;
+    height: 3.75rem;
+    border-radius: 10px 10px 10px 10px;
+    border: 2px solid #e5e5e5;
+    position: relative;
+    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+    font-weight: bold;
+    color: #333333;
+    line-height: 3.75rem;
+    padding-left: 2rem;
+    cursor: pointer;
+  }
+  .sortSelect {
+    width: 18.75rem;
+    height: 122px;
+    background: #fff;
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+    border-radius: 10px 10px 10px 10px;
+    padding: 0 2rem;
+    position: absolute;
+    top: 4.5rem;
+    right: 0;
+    z-index: 99;
+    div {
+      height: 61px;
+      font-size: 18px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      font-weight: 400;
+      color: #333333;
+      line-height: 61px;
+      cursor: pointer;
+    }
+  }
 `
 export const DayInfoBox = styled.div<{ progress?: number }>`
   width: 35.1rem;
@@ -340,32 +392,111 @@ export const ContentBox = styled.div`
 
 export const Rent = () => {
   const { library, account } = useActiveWeb3React()
-  const [currentItem, setCurrentItem] = useState({} as NftProps)
+  const [currentItem, setCurrentItem] = useState({} as any)
   const [visible, setVisible] = useState(false)
   const [prompt, setPrompt] = useState(false)
+  const [Min, setMin] = useState('')
+  const [Max, setMax] = useState('')
   const [LeaseDays, setdays] = useState('')
+  const [collection, setCollection] = useState('')
+  const [filterMenu, setFilterMenu] = useState(false)
+  const [collectionFilterResult, setCollectionFilterResult] = useState([] as any)
+  const [currencyMenu, setCurrencyMenu] = useState(false)
   const [description, setDescription] = useState('')
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const lendingNfts = useLendingNfts()
   const { mutateDebts } = useStore()
   const gamelandContract = useGameLandContract()
+  const AssetContract = useAssetContract()
+  const ControlContract = useControlContract()
   const [renting, setRenting] = useState(false)
-  useEffect(() => console.log(lendingNfts), [lendingNfts])
+  useEffect(() => {
+    const filterCollection = () => {
+      const arr: any[] = []
+      console.log(collection)
+      lendingNfts.map((item: any) => {
+        if (item.contractAddress.indexOf(collection) !== -1 && collection !== '') {
+          arr.push(item)
+          setCollectionFilterResult(arr)
+        } else {
+          setCollectionFilterResult([])
+        }
+      })
+    }
+    filterCollection()
+  }, [collection])
+
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
     }
     const collateral = currentItem.collateral as number
+    const Penalty = new BigNumber(currentItem.penalty as unknown as string)
     const _cost = new BigNumber(currentItem.price as number).times(currentItem.days as number)
-    return _cost.plus(collateral).toString()
+    return _cost.plus(collateral).plus(Penalty).toString()
   }, [currentItem])
-  // const greeter = useGreeterContract()
 
-  // useEffect(() => {
-  //   console.log(greeter?.setGreeting('hll'))
-  // }, [greeter])
+  const compare = (sortby: any) => {
+    return function (obj1: any, obj2: any) {
+      const val1 = new BigNumber(obj1.price as number)
+        .times(obj1.days as number)
+        .plus(obj1.collateral as number)
+        .toString()
+      const val2 = new BigNumber(obj2.price as number)
+        .times(obj2.days as number)
+        .plus(obj2.collateral as number)
+        .toString()
+      if (val1 < val2) {
+        if (sortby == 'lift') return -1
+        return 1
+      } else if (val1 > val2) {
+        if (sortby == 'lift') return 1
+        return -1
+      } else {
+        return 0
+      }
+    }
+  }
+
+  const ascending = () => {
+    lendingNfts.sort(compare('lift'))
+  }
+
+  const descending = () => {
+    lendingNfts.sort(compare(''))
+  }
+
   const handleDaysChange = useCallback((val) => setdays(val), [])
+  const handleMinChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    if (Number(val) <= 0 || isNaN(Number(val))) {
+      setMin('')
+      return
+    }
+    setMin(val)
+  }, [])
+
+  const handleMaxChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    if (Number(val) <= 0 || isNaN(Number(val))) {
+      setMax('')
+      return
+    }
+    setMax(val)
+  }, [])
+
+  const handleCollectionChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    //   console.log(item.indexOf(val))
+    // })
+    // for (let i = 0; i < lendingNfts.length; i++) {
+    //   console.log(i)
+    //   console.log(lendingNfts[i].indexOf(val))
+    // }
+    setCollection(val)
+  }, [])
+
   const handleShowModal = async (item: NftProps) => {
     if (!gamelandContract) {
       toastify.error('Contract not found, please connect wallet.')
@@ -424,42 +555,36 @@ export const Rent = () => {
         toastify.error('Please connect a account.')
         return
       }
-      if (!gamelandContract) {
+      if (!ControlContract) {
         toastify.error('Contract not found.')
         return
       }
-      const borrowed = await gamelandContract?.borrow_or_not(currentItem.gamelandNftId)
-      let borrower: undefined | string = undefined
-      if (!borrowed) {
-        setRenting(true)
+      setRenting(true)
 
-        const collateral = new BigNumber(currentItem.collateral as unknown as string)
-        const days = new BigNumber(LeaseDays as unknown as string)
-        const price = new BigNumber(currentItem.price as unknown as string)
-        const cost = days.times(price)
-        const amount = collateral.plus(cost).toString()
-        console.log(parseEther(amount))
+      const collateral = new BigNumber(currentItem.collateral as unknown as string)
+      const days = new BigNumber(LeaseDays as unknown as string)
+      const price = new BigNumber(currentItem.price as unknown as string)
+      const cost = days.times(price)
+      const Penalty = new BigNumber(currentItem.penalty as unknown as string)
+      const amount = collateral.plus(cost).plus(Penalty).toString()
+      console.log(parseEther(amount))
 
-        const rented = await gamelandContract
-          ?.connect(library.getSigner())
-          .rent(currentItem.nftId, currentItem.contractAddress, currentItem.gamelandNftId, currentItem.id, {
-            value: parseEther(amount)
-          })
-        console.log(rented)
-        const receipt = await fetchReceipt(rented.hash, library)
-        const { status } = receipt
-        if (!status) {
-          throw Error('Failed to rent.')
-        }
-      } else {
-        const borrowInfo = await gamelandContract.borrow_status(currentItem.gamelandNftId)
-        borrower = borrowInfo[0]
-        toastify.warning('This NFT has been borrowed by someone else!')
+      const rented = await ControlContract?.connect(library.getSigner()).rent(currentItem.lendIndex, LeaseDays, {
+        value: parseEther(amount)
+      })
+      console.log(rented)
+      const receipt = await fetchReceipt(rented.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to rent.')
       }
+      const index = await AssetContract?.get_borrowindex(currentItem.gamelandNftId)
       const params = {
         isBorrowed: true,
-        borrower: borrower || account,
-        borrowAt: new Date().toJSON()
+        borrower: account,
+        borrowAt: new Date().toJSON(),
+        borrowDay: LeaseDays,
+        rentIndex: index.toString()
       }
       const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
 
@@ -480,195 +605,273 @@ export const Rent = () => {
 
   return (
     <div className="container">
-      <RentBox>
-        <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose closable={false}>
-          <Row gutter={[24, 24]}>
-            <Col span="12" xl={12} sm={24}>
-              <ImgBox>
-                <img src={currentItem.metadata?.image} alt="" />
-              </ImgBox>
-            </Col>
-            <Col span="12" xl={12} sm={24}>
-              <Title>{currentItem.metadata?.name}</Title>
-              <Dlist className="flex">
-                <div>
-                  <SpanLabel>Owner</SpanLabel>
-                  <span title={currentItem.originOwner}>
-                    {formatAddress(currentItem.originOwner || ZeroAddress, 4)}
-                  </span>
-                </div>
-                <div>
-                  <SpanLabel>Collateral</SpanLabel>
-                  <span>
-                    {currentItem.collateral} <Icon />
-                  </span>
-                </div>
-                <div>
-                  <SpanLabel>penalty</SpanLabel>
-                  <span>
-                    2 <Icon />
-                  </span>
-                </div>
-                <div>
-                  <SpanLabel>days</SpanLabel>
-                  <span>{currentItem.days}</span>
-                </div>
-                <div>
-                  <SpanLabel>price</SpanLabel>
-                  <span className="blue">
-                    <span className="bigSize">{currentItem.price}</span>
-                    <Icon /> / day
-                  </span>
-                </div>
-                <div>
-                  <SpanLabel>Total</SpanLabel>
-                  <span className="blue bigSize">
-                    {total} <Icon />
-                  </span>
-                </div>
-              </Dlist>
-              <div className="divider"></div>
-              <Tips>Available time for renting is for 1-{currentItem.days} days.</Tips>
-              <div className="daysInput">
-                <NumInput validInt onChange={handleDaysChange} value={LeaseDays} />
+      <Row>
+        <Col span="6">
+          <div className="MenuBar">
+            {/* <div className="price">
+              <h2>Price</h2>
+              <div className="currencyType" onClick={() => setCurrencyMenu(!currencyMenu)}>
+                <img src={polygonIcon} className="polygonIcon" />
+                MATIC
+                <img src={arrow} className="arrowIcon" />
               </div>
-              <br />
-              <FakeButton
-                onClick={handleShowPrompt}
-                loading={renting}
-                block
-                disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
-              >
-                Rent
-              </FakeButton>
-              <br />
-              <p className=" text-center">
-                <span className="tips">
-                  {lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))
-                    ? 'Unable to rent your own NFT'
-                    : undefined}
+              {currencyMenu ? (
+                <div className="select">
+                  <div onClick={() => setCurrencyMenu(false)}>
+                    <img src={polygonIcon} className="polygonIcon" />
+                    MATIC
+                  </div>
+                </div>
+              ) : (
+                ''
+              )}
+              <input onChange={handleMinChange} value={Min} placeholder="Min" />
+              <div className="to">to</div>
+              <input onChange={handleMaxChange} value={Max} placeholder="Max" />
+              <div className={Min && Max ? 'apply true' : 'apply flase'}>Apply</div>
+            </div> */}
+            <div className="collection">
+              <h2>Collection</h2>
+              <div className="search">
+                <span>
+                  <img src={search} />
                 </span>
-              </p>
-            </Col>
-          </Row>
-          <Row>
-            <Description>
-              <h2 className="h2">Description</h2>
-              <div className="border"></div>
-              <div className="describe">{description}</div>
-            </Description>
-          </Row>
-          <Row>
-            {SpecificAttribute.length ? (
-              <Properties>
-                <h2 className="h2">Properties</h2>
-                <hr className="border" />
-                <div className="rare">
-                  {SpecificAttribute.map((item: any, index: any) => (
-                    <div key={index} className={(index + 1) % 2 == 0 ? '' : 'bg'}>
-                      <span>{item.trait_type}</span>
-                      <b>{item.value}</b>
-                    </div>
+                <input onChange={handleCollectionChange} value={collection} placeholder="search" />
+              </div>
+              {collectionFilterResult ? (
+                <div className="result">
+                  {collectionFilterResult.map((item: any, index: any) => (
+                    <div key={index}>{formatAddress(item.contractAddress || ZeroAddress, 4)}</div>
                   ))}
                 </div>
-              </Properties>
-            ) : (
-              ''
-            )}
-          </Row>
-          <Row>
-            {RareAttribute.length ? (
-              <StatsBox>
-                <h2 className="h2">Stats</h2>
-                <hr className="border" />
-                <div className="attribute">
-                  {RareAttribute.map((item: any, index: any) => (
-                    <div key={index} className={(index + 1) % 2 == 0 ? '' : 'bg'}>
-                      <span>{item.trait_type}</span>
-                      <p>
-                        <span>{item.value}</span>
-                        {item.max_value ? <span> of {item.max_value}</span> : ''}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </StatsBox>
-            ) : (
-              ''
-            )}
-          </Row>
-          <Row>
-            <Details>
-              <h2 className="h2">Details</h2>
-              <hr className="border" />
-              <div className="attribute">
-                <div className="bg">
-                  <span>Contract Address</span>
-                  <span> {formatAddress(currentItem.contractAddress || ZeroAddress, 4)}</span>
-                </div>
-                <div>
-                  <span>Token ID</span>
-                  <span> {currentItem.nftId}</span>
-                </div>
-                <div className="bg">
-                  <span>Token Standard</span>
-                  <span> {currentItem.standard}</span>
-                </div>
-                <div>
-                  <span>Blockchain</span>
-                  <span>Polygon</span>
-                </div>
-              </div>
-            </Details>
-          </Row>
-        </Modal>
-        <Dialog
-          footer={null}
-          onCancel={() => setPrompt(false)}
-          visible={prompt}
-          destroyOnClose
-          onOk={handleRent}
-          closable={false}
-        >
-          <ContentBox>
-            <div className="title">Prompt</div>
-            <p>
-              If the lease is not returned for more than 8 hours after the expiry of the lease time, the liquidated
-              damage will be deducted, and the security deposit of {currentItem.price} will be deducted for each
-              overtime day after that.
-            </p>
-            <div className="button">
-              <div className="cancel" onClick={() => setPrompt(false)}>
-                cancel
-              </div>
-              <div className="ok" onClick={handleRent}>
-                OK
-              </div>
+              ) : (
+                ''
+              )}
             </div>
-          </ContentBox>
-        </Dialog>
-        <Row gutter={[20, 20]}>
-          {lendingNfts.length ? (
-            lendingNfts.map((item, index) => (
-              <Col key={index} span="6" xl={6} md={8} sm={12} xs={24}>
-                <RentCard
-                  nftId={item.nftId}
-                  onClick={() => handleShowModal(item)}
-                  name={item.metadata?.name}
-                  days={item.days}
-                  collateral={item.collateral}
-                  price={item.price}
-                  img={item.metadata?.image}
-                  isLending={item.isLending}
-                  contract_type={item.standard}
-                />
-              </Col>
-            ))
-          ) : (
-            <Empty text="Ooops, looks like nothing here." />
-          )}
-        </Row>
-      </RentBox>
+          </div>
+        </Col>
+        <Col span="18">
+          <Sort>
+            <div className="total">{lendingNfts.length} results</div>
+            <div className="filter" onClick={() => setFilterMenu(!filterMenu)}>
+              Rencently Listed
+              <img src={arrow} className="arrowIcon" />
+            </div>
+            {filterMenu ? (
+              <div className="sortSelect">
+                <div
+                  className="border-bottom"
+                  onClick={() => {
+                    ascending()
+                    setFilterMenu(false)
+                  }}
+                >
+                  Price: Low to High
+                </div>
+                <div
+                  onClick={() => {
+                    descending()
+                    setFilterMenu(false)
+                  }}
+                >
+                  Price: High to Low
+                </div>
+              </div>
+            ) : (
+              ''
+            )}
+          </Sort>
+          <RentBox>
+            <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose closable={false}>
+              <Row gutter={[24, 24]}>
+                <Col span="12" xl={12} sm={24}>
+                  <ImgBox>
+                    <img src={currentItem.metadata?.image} alt="" />
+                  </ImgBox>
+                </Col>
+                <Col span="12" xl={12} sm={24}>
+                  <Title>{currentItem.metadata?.name}</Title>
+                  <Dlist className="flex">
+                    <div>
+                      <SpanLabel>Owner</SpanLabel>
+                      <span title={currentItem.originOwner}>
+                        {formatAddress(currentItem.originOwner || ZeroAddress, 4)}
+                      </span>
+                    </div>
+                    <div>
+                      <SpanLabel>Collateral</SpanLabel>
+                      <span>
+                        {currentItem.collateral} <Icon />
+                      </span>
+                    </div>
+                    <div>
+                      <SpanLabel>penalty</SpanLabel>
+                      <span>
+                        {currentItem.penalty} <Icon />
+                      </span>
+                    </div>
+                    <div>
+                      <SpanLabel>days</SpanLabel>
+                      <span>{currentItem.days}</span>
+                    </div>
+                    <div>
+                      <SpanLabel>price</SpanLabel>
+                      <span className="blue">
+                        <span className="bigSize">{currentItem.price}</span>
+                        <Icon /> / day
+                      </span>
+                    </div>
+                    <div>
+                      <SpanLabel>Total</SpanLabel>
+                      <span className="blue bigSize">
+                        {total} <Icon />
+                      </span>
+                    </div>
+                  </Dlist>
+                  <div className="divider"></div>
+                  <Tips>Available time for renting is for 1-{currentItem.days} days.</Tips>
+                  <div className="daysInput">
+                    <NumInput validInt onChange={handleDaysChange} value={LeaseDays} />
+                  </div>
+                  <br />
+                  <FakeButton
+                    onClick={handleShowPrompt}
+                    loading={renting}
+                    block
+                    disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
+                  >
+                    Rent
+                  </FakeButton>
+                  <br />
+                  <p className=" text-center">
+                    <span className="tips">
+                      {lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))
+                        ? 'Unable to rent your own NFT'
+                        : undefined}
+                    </span>
+                  </p>
+                </Col>
+              </Row>
+              <Row>
+                <Description>
+                  <h2 className="h2">Description</h2>
+                  <div className="border"></div>
+                  <div className="describe">{description}</div>
+                </Description>
+              </Row>
+              <Row>
+                {SpecificAttribute.length ? (
+                  <Properties>
+                    <h2 className="h2">Properties</h2>
+                    <hr className="border" />
+                    <div className="rare">
+                      {SpecificAttribute.map((item: any, index: any) => (
+                        <div key={index} className={(index + 1) % 2 == 0 ? '' : 'bg'}>
+                          <span>{item.trait_type}</span>
+                          <b>{item.value}</b>
+                        </div>
+                      ))}
+                    </div>
+                  </Properties>
+                ) : (
+                  ''
+                )}
+              </Row>
+              <Row>
+                {RareAttribute.length ? (
+                  <StatsBox>
+                    <h2 className="h2">Stats</h2>
+                    <hr className="border" />
+                    <div className="attribute">
+                      {RareAttribute.map((item: any, index: any) => (
+                        <div key={index} className={(index + 1) % 2 == 0 ? '' : 'bg'}>
+                          <span>{item.trait_type}</span>
+                          <p>
+                            <span>{item.value}</span>
+                            {item.max_value ? <span> of {item.max_value}</span> : ''}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </StatsBox>
+                ) : (
+                  ''
+                )}
+              </Row>
+              <Row>
+                <Details>
+                  <h2 className="h2">Details</h2>
+                  <hr className="border" />
+                  <div className="attribute">
+                    <div className="bg">
+                      <span>Contract Address</span>
+                      <span> {formatAddress(currentItem.contractAddress || ZeroAddress, 4)}</span>
+                    </div>
+                    <div>
+                      <span>Token ID</span>
+                      <span> {currentItem.nftId}</span>
+                    </div>
+                    <div className="bg">
+                      <span>Token Standard</span>
+                      <span> {currentItem.standard}</span>
+                    </div>
+                    <div>
+                      <span>Blockchain</span>
+                      <span>Polygon</span>
+                    </div>
+                  </div>
+                </Details>
+              </Row>
+            </Modal>
+            <Dialog
+              footer={null}
+              onCancel={() => setPrompt(false)}
+              visible={prompt}
+              destroyOnClose
+              onOk={handleRent}
+              closable={false}
+            >
+              <ContentBox>
+                <div className="title">Prompt</div>
+                <p>
+                  If the lease is not returned for more than 8 hours after the expiry of the lease time, the liquidated
+                  damage will be deducted, and the security deposit of {currentItem.price} will be deducted for each
+                  overtime day after that.
+                </p>
+                <div className="button">
+                  <div className="cancel" onClick={() => setPrompt(false)}>
+                    cancel
+                  </div>
+                  <div className="ok" onClick={handleRent}>
+                    OK
+                  </div>
+                </div>
+              </ContentBox>
+            </Dialog>
+            <Row gutter={[14, 14]}>
+              {lendingNfts.length ? (
+                lendingNfts.map((item, index) => (
+                  <Col key={index}>
+                    <RentCard
+                      nftId={item.nftId}
+                      onClick={() => handleShowModal(item)}
+                      name={item.metadata?.name}
+                      days={item.days}
+                      collateral={item.collateral}
+                      price={item.price}
+                      img={item.metadata?.image}
+                      isLending={item.isLending}
+                      contract_type={item.standard}
+                    />
+                  </Col>
+                ))
+              ) : (
+                <Empty text="Ooops, looks like nothing here." />
+              )}
+            </Row>
+          </RentBox>
+        </Col>
+      </Row>
     </div>
   )
 }

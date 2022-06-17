@@ -62,7 +62,7 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
 }
 @media screen and (min-width: 1400px) {
   .container{
-    width: 1200px;
+    width: 1600px;
   }
 }
 .clearGap{
@@ -106,6 +106,9 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   left: 50%;
   margin-left: -50px;
 }
+.border-bottom{
+  border-bottom: 2px solid #f5f5f5;
+}
 .h2 {
   width: 9rem;
   font-size: 24px;
@@ -125,6 +128,13 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
 }
 .bg{
   background: #F4F9FB;
+}
+.sticky{
+  height: 40px;
+  position: sticky;
+  top: 6.25rem;
+  background: #fff;
+  z-index: 99;
 }
 .daysInput{
   width: 30rem;
@@ -160,4 +170,155 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   top: 24.7rem;
   right: 15rem;
   z-index: 9;
+}
+.arrowIcon{
+  width: 1rem;
+  height: 1rem;
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  margin-top: -8px;
+}
+.polygonIcon {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  margin-top: -10px;
+}
+.MenuBar{
+  width: 22.5rem;
+  min-height: 35rem;
+  background: #fff;
+  border-radius: 10px 10px 10px 10px;
+  border: 2px solid #e5e5e5;
+  padding: 0 2rem;
+  position: fixed;
+  z-index: 99;
+  .price {
+    margin-top: 3rem;
+    position: relative;
+    .currencyType {
+      width: 18.5rem;
+      height: 3.75rem;
+      border-radius: 10px 10px 10px 10px;
+      border: 2px solid #e5e5e5;
+      line-height: 3.75rem;
+      font-size: 18px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      font-weight: 400;
+      color: #666666;
+      padding-left: 3.75rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      cursor: pointer;
+    }
+    .select{
+      width: 18.5rem;
+      background: #fff;
+      box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+      border-radius: 10px 10px 10px 10px;
+      padding: 0 0 0 3.75rem;
+      position: absolute;
+      top: 7rem;
+      right: -4px;
+      z-index: 99;
+      div {
+        height: 61px;
+        font-size: 18px;
+        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+        font-weight: 400;
+        color: #333333;
+        line-height: 61px;
+        cursor: pointer;
+      }
+    }
+    .to {
+      font-size: 18px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      color: #999999;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    input {
+      width: 200px;
+      height: 60px;
+      border-radius: 10px 10px 10px 10px;
+      border: 2px solid #e5e5e5;
+      margin-left: 3rem;
+      font-size: 18px;
+      outline: none;
+      text-align: center;
+      ::-webkit-input-placeholder {
+        font-size: 18px;
+        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+        font-weight: 400;
+        color: #d0d0d0;
+      }
+    }
+    .apply {
+      width: 18.5rem;
+      height: 3.75rem;
+      border-radius: 10px 10px 10px 10px;
+      font-size: 18px;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      font-weight: bold;
+      color: #fff;
+      text-align: center;
+      line-height: 3.75rem;
+      margin-top: 24px;
+    }
+    .flase {
+      background: rgba(53, 202, 169, 0.5);
+      cursor: not-allowed;
+    }
+    .true {
+      background: rgba(53, 202, 169, 1);
+      cursor: pointer;
+    }
+  }
+  .collection {
+    margin-top: 3rem;
+    .search {
+      width: 18.5rem;
+      height: 3.75rem;
+      border-radius: 10px 10px 10px 10px;
+      border: 2px solid #e5e5e5;
+      position: relative;
+      span {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        margin-top: -0.7rem;
+      }
+      input {
+        width: 12rem;
+        height: 100%;
+        border: 1px solid var(--border-color);
+        outline: none;
+        font-size: 18px;
+        margin-left: 2.5rem;
+        line-height: 40px;
+        ::-webkit-input-placeholder {
+          font-size: 18px;
+          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+          font-weight: 400;
+          color: #d0d0d0;
+        }
+      }
+    }
+    .result {
+      margin-top: 2rem;
+      padding-left: 1.5rem;
+      div {
+        height: 1.5rem;
+        font-size: 16px;
+        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+        font-weight: 400;
+        color: #333333;
+        margin-bottom: 1rem;
+      }
+    }
+  }
 }

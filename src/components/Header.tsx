@@ -4,17 +4,21 @@ import { NavLink } from 'react-router-dom'
 import { AccountBar } from './AccountBar'
 import { ReactComponent as Logo } from '../assets/logo.svg'
 import { ReactComponent as LogoNormal } from '../assets/logo-normal.svg'
+import search from '../assets/search_bar_icon_search.svg'
 import { Grid, Drawer } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
 import { useActiveWeb3React } from '../hooks'
 const { useBreakpoint } = Grid
 
 const HeaderBox = styled.div`
+  position: sticky;
+  top: 0;
   height: 100px;
-  // background: linear-gradient(180deg, #292929 0%, #585858 100%);
+  background: #fff;
   box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   border-bottom: 1px solid var(--primary-color);
+  z-index: 99;
 
   .logo svg {
     max-width: 15rem;
@@ -48,6 +52,34 @@ const HeaderBox = styled.div`
       color: #cccccc;
       line-height: 37px;
       cursor: pointer;
+    }
+  }
+`
+const HeadSearch = styled.div`
+  width: 348px;
+  height: 40px;
+  background: #f5f5f5;
+  border-radius: 24px 24px 24px 24px;
+  position: relative;
+  span {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    margin-top: -0.7rem;
+  }
+  input {
+    width: 16rem;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    outline: none;
+    font-size: 16px;
+    background-color: #f5f5f5;
+    margin-left: 2rem;
+    ::-webkit-input-placeholder {
+      font-size: 14px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      font-weight: 400;
+      color: #d0d0d0;
     }
   }
 `
@@ -128,6 +160,12 @@ export const Header = () => {
     <HeaderBox>
       <div className="container flex flex-h-between flex-v-center">
         <div className="logo">{<Logo height="100"></Logo>}</div>
+        {/* <HeadSearch>
+          <span>
+            <img src={search} />
+          </span>
+          <input placeholder="Search items,collections,and accounts" className="input-placeholder" />
+        </HeadSearch> */}
         {!isMobile ? (
           <>
             <div className="flex flex-h-between">

@@ -1,7 +1,7 @@
 import { lowerCase } from 'lower-case'
 import { useMemo } from 'react'
 import { NFTData, useActiveWeb3React, useStore } from '.'
-export const useMyLendingNfts = (): NFTData[] => {
+export const useMyLendingNfts = (): any[] => {
   const { nfts } = useStore()
   const { account } = useActiveWeb3React()
 

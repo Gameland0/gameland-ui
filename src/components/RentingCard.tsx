@@ -18,6 +18,7 @@ export interface RentingProps extends NFTData {
   unOperate?: boolean
   isExpired?: boolean
   borrowAt: string
+  borrowDay: number
 }
 const ProgressBar = styled.div<{ right?: boolean }>`
   position: relative;
@@ -55,17 +56,18 @@ export interface ProgressLabelProps {
   nftId: string
   price?: number
   isExpired?: boolean
+  borrowDay: number
   days: number
   borrowAt: string
   right?: boolean
   sellOrders?: Record<string, any>[]
 }
 
-export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt }) => {
+export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt, borrowDay }) => {
   console.log(borrowAt, days)
 
-  const progress = useMemo(() => getProgress(borrowAt, days), [borrowAt, days])
-  const dayLeft = useMemo(() => getTimeLeftText(borrowAt, days), [days, borrowAt])
+  const progress = useMemo(() => getProgress(borrowAt, borrowDay), [borrowAt, borrowDay])
+  const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
 
   return (
     <div style={{ overflow: 'hidden' }}>
@@ -119,7 +121,8 @@ export const RentingCard: React.FC<RentingProps> = ({
   borrowAt,
   nftId,
   img,
-  contract_type
+  contract_type,
+  borrowDay
 }) => {
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
@@ -127,7 +130,14 @@ export const RentingCard: React.FC<RentingProps> = ({
       <Img src={img} alt="" />
       <Details className="flex flex-h-between">
         <div>
-          <ProgressLabels borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
+          <ProgressLabels
+            borrowAt={borrowAt}
+            name={name}
+            nftId={nftId}
+            price={price}
+            days={days as number}
+            borrowDay={borrowDay as number}
+          />
           <Standard color="processing">{contract_type}</Standard>
         </div>
         {!unOperate ? <Operate isExpired={isExpired} onClick={() => onclick} /> : null}

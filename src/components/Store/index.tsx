@@ -3,7 +3,7 @@ import { isEmpty } from 'lodash'
 import React, { createContext, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { KeyedMutator } from 'swr/dist/types'
-import { useGameLandContract } from '../../hooks'
+import { useAssetContract, useGameLandContract } from '../../hooks'
 import { useNetworkLoading } from './NetworkLoading'
 import { useNetworkValidator } from './NetworkValidator'
 
@@ -53,14 +53,12 @@ export const Store = ({ children }: { children: JSX.Element }) => {
   const [contracts, setContracts] = useState([])
   const { data: debts, mutate: mutateDebts } = useSWR(`/v0/opensea`, fetcher)
   const gamelandContract = useGameLandContract()
+  const AssetContract = useAssetContract()
 
   useEffect(() => {
-    console.log(gamelandContract)
-
     if (!gamelandContract) return
     const syncFn = async () => {
       const res = await gamelandContract.get_nft_programes()
-      console.log(res)
 
       if (res.length) {
         setContracts(res)
@@ -68,8 +66,7 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     }
 
     syncFn()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gamelandContract?.address])
+  }, [AssetContract?.address])
 
   const nfts = useMemo(() => {
     if (isEmpty(debts)) {

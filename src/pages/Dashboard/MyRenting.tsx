@@ -1,5 +1,13 @@
 import React, { useMemo, useState } from 'react'
-import { GameLandAddress, NFTData, useActiveWeb3React, useGameLandContract, useMyRenting, useStore } from '../../hooks'
+import {
+  useControlContract,
+  AssetContractAddress,
+  useActiveWeb3React,
+  useAssetContract,
+  useGameLandContract,
+  useMyRenting,
+  useStore
+} from '../../hooks'
 import { Row, Col, Button } from 'antd'
 import { RentingCard } from '../../components/RentingCard'
 import { Nft as NftCard } from '../../components/Nft'
@@ -21,7 +29,7 @@ import { hashMessage } from 'ethers/lib/utils'
 export const MyRenting = () => {
   const { library, account } = useActiveWeb3React()
   const myRenting = useMyRenting()
-  const [currentItem, setCurrentItem] = useState({} as NFTData)
+  const [currentItem, setCurrentItem] = useState({} as any)
   const [visible, setVisible] = useState(false)
   const [repaying, setRepaying] = useState(false)
   const [approving, setApproving] = useState(false)
@@ -29,7 +37,8 @@ export const MyRenting = () => {
   const { mutateDebts } = useStore()
 
   const gamelandContract = useGameLandContract()
-  // const NFTsContract = useNFTContract()
+  const AssetContract = useAssetContract()
+  const ControlContract = useControlContract()
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -51,8 +60,6 @@ export const MyRenting = () => {
         storedAbi = value
       }
     }
-
-    // const constantAbi: any[] = ABIs[contractAddress]
     const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
 
@@ -65,9 +72,7 @@ export const MyRenting = () => {
 
       try {
         const approveAddress = await nftContract.getApproved(item.nftId)
-        console.log(approveAddress, approveAddress === ZeroAddress)
-
-        if (approveAddress === gamelandContract?.address) {
+        if (approveAddress === AssetContractAddress) {
           setIsApproved(true)
         } else {
           setIsApproved(false)
@@ -85,28 +90,13 @@ export const MyRenting = () => {
         toastify.error('Please connect an account.')
         return
       }
-      if (!currentItem.contract || !gamelandContract) {
+      if (!ControlContract) {
         toastify.error('Contract not found.')
         return
       }
       setRepaying(true)
 
-      const borrowStatus = await gamelandContract.borrow_status(currentItem.gamelandNftId)
-      console.log(
-        borrowStatus,
-        gamelandContract,
-        currentItem.nftId,
-        currentItem.contractAddress,
-        currentItem.gamelandNftId,
-        currentItem.id
-      )
-
-      const repaid = await gamelandContract.returnnft(
-        currentItem.nftId,
-        currentItem.contractAddress,
-        currentItem.gamelandNftId,
-        currentItem.id
-      )
+      const repaid = await ControlContract.returnnft(currentItem.lendIndex, currentItem.rentIndex)
       const receipt = await fetchReceipt(repaid.hash, library)
       const { status } = receipt
       if (!status) {
@@ -138,14 +128,13 @@ export const MyRenting = () => {
   const handleApprove = async () => {
     setApproving(true)
     if (currentItem.contract) {
-      console.log(GameLandAddress, currentItem.contract)
       try {
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         let approvetx
         if (currentItem.standard === 'ERC721' && !!currentItem.contract.approve) {
-          approvetx = await currentItem.contract.approve(GameLandAddress, currentItem.nftId)
+          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.nftId)
         } else {
-          approvetx = await currentItem.contract.setApprovalForAll(GameLandAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
         // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         const receipt = await fetchReceipt(approvetx.hash, library)
@@ -175,6 +164,7 @@ export const MyRenting = () => {
               nftId={currentItem.nftId}
               unOperate={true}
               contract_type={currentItem.standard}
+              borrowDay={currentItem.borrowDay}
             />
           </Col>
 
@@ -242,6 +232,7 @@ export const MyRenting = () => {
                 borrowAt={item.borrowAt}
                 isExpired={item.isExpired}
                 contract_type={item.standard}
+                borrowDay={item.borrowDay}
               ></RentingCard>
             </Col>
           ))

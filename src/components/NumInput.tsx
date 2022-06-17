@@ -44,7 +44,6 @@ export const NumInput: React.FC<NumInputProps> = ({
   const _onMax = useMemo(() => onMaxClick, [onMaxClick])
   const handleChange = useCallback(
     (e) => {
-      // console.log(e.currentTarget.value, validNumber(e.currentTarget.value, 0));
       const val = e.currentTarget.value
 
       if (validInt) {

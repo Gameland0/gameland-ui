@@ -57,6 +57,7 @@ export interface NftProps extends NFTData {
   unOperate?: boolean
   withdrawable?: boolean
   size?: number
+  borrowDay: number
 }
 interface LabelProps {
   name: string
@@ -153,7 +154,8 @@ const Operate: React.FC<OperateProps> = ({
   price,
   days,
   borrowAt,
-  sellOrders
+  sellOrders,
+  borrowDay
 }) => {
   return (
     <OperateWrap>
@@ -161,7 +163,15 @@ const Operate: React.FC<OperateProps> = ({
         <Tag text="On sale" />
       ) : isLending ? (
         isBorrowed ? (
-          <ProgressLabels right borrowAt={borrowAt} name={name} nftId={nftId} price={price} days={days as number} />
+          <ProgressLabels
+            right
+            borrowAt={borrowAt}
+            name={name}
+            nftId={nftId}
+            price={price}
+            days={days as number}
+            borrowDay={borrowDay}
+          />
         ) : (
           <FakeButton type="ghost">Withdraw</FakeButton>
         )
@@ -206,7 +216,8 @@ export const Nft: React.FC<NftProps> = ({
   nftId,
   borrowAt,
   sell_orders,
-  contract_type
+  contract_type,
+  borrowDay
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -238,6 +249,7 @@ export const Nft: React.FC<NftProps> = ({
             nftId={nftId}
             name={name}
             price={price}
+            borrowDay={borrowDay}
             days={days as number}
             borrowAt={borrowAt || ''}
             isLending={isLending}
