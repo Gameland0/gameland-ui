@@ -400,6 +400,7 @@ export const Rent = () => {
   const [LeaseDays, setdays] = useState('')
   const [collection, setCollection] = useState('')
   const [filterMenu, setFilterMenu] = useState(false)
+  const [showNotFound, setShowNotFound] = useState(false)
   const [collectionFilterResult, setCollectionFilterResult] = useState([] as any)
   const [currencyMenu, setCurrencyMenu] = useState(false)
   const [description, setDescription] = useState('')
@@ -414,19 +415,83 @@ export const Rent = () => {
   useEffect(() => {
     const filterCollection = () => {
       const arr: any[] = []
-      console.log(collection)
       lendingNfts.map((item: any) => {
-        if (item.contractAddress.indexOf(collection) !== -1 && collection !== '') {
+        if (item.contractName.indexOf(collection) !== -1 && collection !== '') {
           arr.push(item)
           setCollectionFilterResult(arr)
+          setShowNotFound(false)
         } else {
           setCollectionFilterResult([])
+          setShowNotFound(true)
         }
       })
+      if (collection === '') {
+        setShowNotFound(false)
+      }
+      if (lendingNfts.length == 0) {
+        if (collection) {
+          setShowNotFound(true)
+        }
+      }
     }
     filterCollection()
   }, [collection])
 
+  // useEffect(() => {
+  //   const getRentList = async () => {
+  //     if (AssetContract) {
+  //       const gamelandNftIdList = await AssetContract.get_nfts_list()
+  //       const gamelandNftIdArr = gamelandNftIdList.map((item: any) => {
+  //         return item._hex
+  //       })
+  //       if (nfts) {
+  //         const newArr = gamelandNftIdArr.filter((item: any) => {
+  //           return item !== '0x00'
+  //         })
+  //         nfts.map((item: any) => {
+  //           removeByValue(newArr, item.gamelandNftId)
+  //         })
+  //         for (let i = 0; i < newArr.length; i++) {
+  //           const list = await AssetContract.get_nfts(newArr[i])
+  //           const index = await AssetContract.get_nftsindex(newArr[i])
+  //           const contract = new Contract(list.form_contract, erc721Abi, library?.getSigner())
+  //           const tokenURI = await contract.tokenURI(list.nft_id)
+  //           const { data } = await http.get(tokenURI)
+  //           const price = new BigNumber(Number(list.daily_price.toString())).dividedBy(
+  //             new BigNumber(1000000000000000000)
+  //           )
+  //           const collateral = new BigNumber(Number(list.collatoral.toString())).dividedBy(
+  //             new BigNumber(1000000000000000000)
+  //           )
+  //           const penalty = new BigNumber(Number(list.penalty.toString())).dividedBy(new BigNumber(1000000000000000000))
+  //           const params = {
+  //             nftId: list.nft_id.toString(),
+  //             isLending: true,
+  //             price: Number(price.toString()),
+  //             days: Number(list.duration.toString()),
+  //             collateral: Number(collateral.toString()),
+  //             originOwner: list.nft_owner,
+  //             contractAddress: list.form_contract,
+  //             standard: list.nft_type,
+  //             metadata: '',
+  //             gamelandNftId: list.gameland_nft_id._hex,
+  //             createdAt: new Date().toJSON(),
+  //             updatedAt: new Date().toJSON(),
+  //             penalty: Number(penalty.toString()),
+  //             pay_type: list.pay_type,
+  //             lendIndex: index.toString(),
+  //             expire_blocktime: Math.floor(new Date().valueOf() / 1000),
+  //             name: list.nft_name,
+  //             img: data.image
+  //           }
+  //           console.log(params)
+  //           const res: any = await http2.post(`/v0/opensea/`, params)
+  //         }
+  //       }
+  //     }
+  //   }
+  //   getRentList()
+  // }, [])
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
@@ -638,15 +703,16 @@ export const Rent = () => {
                 </span>
                 <input onChange={handleCollectionChange} value={collection} placeholder="search" />
               </div>
-              {collectionFilterResult ? (
+              {collectionFilterResult && collectionFilterResult.length ? (
                 <div className="result">
                   {collectionFilterResult.map((item: any, index: any) => (
-                    <div key={index}>{formatAddress(item.contractAddress || ZeroAddress, 4)}</div>
+                    <div key={index}>{item.contractName}</div>
                   ))}
                 </div>
               ) : (
                 ''
               )}
+              {showNotFound ? <div className="notFound">No items found</div> : ''}
             </div>
           </div>
         </Col>

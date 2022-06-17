@@ -83,7 +83,7 @@ export const Dashboard = () => {
   const [nextDisabled, setNextDisabled] = useState(true)
 
   const [visible, setVisible] = useState(false)
-  const [currentItem, setCurrentItem] = useState({} as NftProps)
+  const [currentItem, setCurrentItem] = useState({} as any)
   const [prompt, setPrompt] = useState(false)
   const [penalty, setPenalty] = useState('')
   const [price, setPrice] = useState('')
@@ -437,8 +437,9 @@ export const Dashboard = () => {
         pay_type: 'ETH',
         lendIndex: index.toString(),
         expire_blocktime: Math.floor(new Date().valueOf() / 1000),
-        name: currentItem.name,
-        img: currentItem.image_preview_url
+        name: currentItem.metadata.name,
+        img: currentItem.metadata.image,
+        contractName: currentItem.name
       }
       console.log(params)
       const res: any = await http2.post(`/v0/opensea/`, params)
