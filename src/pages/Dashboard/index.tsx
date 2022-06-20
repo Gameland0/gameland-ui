@@ -72,16 +72,12 @@ export const Dashboard = () => {
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
   const gamelandContract = useGameLandContract()
-  // const myNft = useMyNfts()
-  // const [totalPage, setTotalPage] = useState(0)
-  const [offset, setOffset] = useState('')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [cursor, setCursor] = useState('')
   const [limit, setLimit] = useState(12)
-  const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts(offset, limit)
+  const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts(cursor, limit)
   const [myNfts, setMyNfts] = useState<any[]>([])
   const [prevDisabled, setPrevDisabled] = useState(true)
   const [nextDisabled, setNextDisabled] = useState(true)
-
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as any)
   const [prompt, setPrompt] = useState(false)
@@ -96,8 +92,6 @@ export const Dashboard = () => {
   const [expired, setExpired] = useState(false)
   const [withdrawable, setWithdrawable] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
 
@@ -157,12 +151,12 @@ export const Dashboard = () => {
   }
 
   useEffect(() => {
-    if (!offset) {
+    if (!cursor) {
       setPrevDisabled(true)
     } else {
       setPrevDisabled(false)
     }
-  }, [offset])
+  }, [cursor])
 
   useEffect(() => {
     if (!_myNfts) {
@@ -198,16 +192,16 @@ export const Dashboard = () => {
     // mutateMyNfts(undefined)
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_myNfts, offset])
+  }, [_myNfts, cursor])
 
   const handleNext = () => {
-    const _offset = _myNfts.cursor
-    setOffset(_offset)
+    const _cursor = _myNfts.cursor
+    setCursor(_cursor)
     mutateMyNfts(undefined)
   }
   const handlePrev = () => {
-    const _offset = ''
-    setOffset(_offset)
+    const _cursor = ''
+    setCursor(_cursor)
     mutateMyNfts(undefined)
   }
 
