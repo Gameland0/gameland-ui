@@ -148,6 +148,7 @@ export const Lend = () => {
           <Row gutter={[24, 24]}>
             <Col span="12" xl={12} sm={24}>
               <Nft
+                penalty={currentItem.penalty}
                 nftId={currentItem.nftId}
                 name={currentItem.metadata?.name}
                 price={currentItem.price}
@@ -242,6 +243,7 @@ export const Lend = () => {
                   isBorrowed={item.isBorrowed}
                   withdrawable={item.withdrawable}
                   contract_type={item.standard}
+                  penalty={item.penalty}
                 />
               </Col>
             ))

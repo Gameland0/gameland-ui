@@ -92,7 +92,7 @@ export const Dashboard = () => {
   const [expired, setExpired] = useState(false)
   const [withdrawable, setWithdrawable] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
-  const [minting, setMinting] = useState(false)
+  // const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
 
   const fetchMetadata = (data: any[], contracts: Contract) => {
@@ -248,14 +248,14 @@ export const Dashboard = () => {
           const approveAddress = await nftContract?.getApproved(item.token_id)
           console.log(approveAddress, approveAddress === ZeroAddress)
 
-          if (lowerCase(approveAddress) === lowerCase(gamelandContract?.address as string)) {
+          if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
             setIsApproved(true)
           } else {
             setIsApproved(false)
           }
         } else if (!!nftContract?.isApprovedForAll) {
           // check ERC1155 approve
-          const isApproved = await nftContract?.isApprovedForAll(gamelandContract?.address, account)
+          const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
           console.log(isApproved)
 
           isApproved ? setIsApproved(true) : setIsApproved(false)
@@ -388,7 +388,6 @@ export const Dashboard = () => {
       }
       setLending(true)
       // const owner = await nftContract.ownerOf(currentItem.nftId)
-      console.log(price, days, currentItem.token_id, collateral, currentItem.token_address, currentItem.gamelandNftId)
       const Collateral = new BigNumber(collateral as unknown as string)
       const Day = new BigNumber(days as unknown as string)
       const Price = new BigNumber(price as unknown as string)
@@ -397,7 +396,7 @@ export const Dashboard = () => {
       const amount = Collateral.plus(cost)
       const Penalty = amount.times(PenaltyProportion).toString()
       const deposited = await ControlContract?.deposit(
-        currentItem.name,
+        currentItem.metadata.name,
         currentItem.contract_type,
         currentItem.token_id,
         parseEther(price),
@@ -405,8 +404,8 @@ export const Dashboard = () => {
         parseEther(collateral),
         parseEther(Penalty),
         currentItem.gamelandNftId,
-        currentItem.contractAddress,
-        'ETH'
+        currentItem.token_address,
+        'eth'
       )
 
       const receipt = await fetchReceipt(deposited.hash, library)
@@ -421,14 +420,14 @@ export const Dashboard = () => {
         days: Number(days),
         collateral: Number(collateral),
         originOwner: account,
-        contractAddress: currentItem.contractAddress,
+        contractAddress: currentItem.token_address,
         standard: currentItem.contract_type,
         metadata: JSON.stringify(currentItem.metadata) || '',
         gamelandNftId: currentItem.gamelandNftId,
         createdAt: new Date().toJSON(),
         updatedAt: new Date().toJSON(),
         penalty: Penalty,
-        pay_type: 'ETH',
+        pay_type: 'eth',
         lendIndex: index.toString(),
         expire_blocktime: Math.floor(new Date().valueOf() / 1000),
         name: currentItem.metadata.name,
@@ -467,7 +466,6 @@ export const Dashboard = () => {
         } else {
           approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
-        // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         console.log(approvetx)
         const receipt = await fetchReceipt(approvetx.hash, library)
         if (!receipt.status) {
@@ -485,7 +483,7 @@ export const Dashboard = () => {
 
   return (
     <div className="container">
-      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
+      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible} closable={false}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <NftCard
@@ -500,6 +498,7 @@ export const Dashboard = () => {
               unOperate={true}
               contract_type={currentItem.contract_type}
               borrowDay={currentItem.borrowDay}
+              penalty={0}
             />
           </Col>
 
@@ -613,6 +612,7 @@ export const Dashboard = () => {
                       collateral={item.collateral}
                       contract_type={item.contract_type}
                       borrowDay={item.borrowDay}
+                      penalty={0}
                     ></NftCard>
                   </Col>
                 ))

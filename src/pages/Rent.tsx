@@ -11,7 +11,7 @@ import { useActiveWeb3React, useGameLandContract, useStore, useControlContract, 
 import { toastify } from '../components/Toastify'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
-import polygonIcon from '../assets/polygon_icon.svg'
+// import polygonIcon from '../assets/polygon_icon.svg'
 import search from '../assets/search_bar_icon_search.svg'
 import arrow from '../assets/icon_select.svg'
 import { NumInput } from '../components/DaysInput'
@@ -20,7 +20,7 @@ import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
 import { RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
-import { fetchReceipt, formatAddress, ZeroAddress } from '../utils'
+import { fetchReceipt, formatAddress, ZeroAddress, formatting } from '../utils'
 import { http2, http } from '../components/Store'
 import { Icon } from '../components/Icon'
 import { BaseProps } from '../components/NumInput'
@@ -29,16 +29,17 @@ import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
 
 export const RentBox = styled.div`
-  margin: 1rem 0 6rem 0;
+  margin: 4rem 0 6rem 3rem;
 `
 const Sort = styled.div`
+  width: 67.6%;
   height: 3.75rem;
   display: flex;
   background: #fff;
   justify-content: space-between;
-  position: sticky;
-  top: 11.7rem;
+  position: fixed;
   z-index: 99;
+  margin-left: 3rem;
   .total {
     font-size: 16px;
     font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
@@ -47,7 +48,7 @@ const Sort = styled.div`
     line-height: 3.75rem;
   }
   .filter {
-    width: 18.75rem;
+    width: 30.8%;
     height: 3.75rem;
     border-radius: 10px 10px 10px 10px;
     border: 2px solid #e5e5e5;
@@ -60,7 +61,7 @@ const Sort = styled.div`
     cursor: pointer;
   }
   .sortSelect {
-    width: 18.75rem;
+    width: 30.8%;
     height: 122px;
     background: #fff;
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -182,7 +183,6 @@ const Dlist = styled.div`
   border-radius: 20px 20px 20px 20px;
   border: 1px solid #e5e5e5;
   padding: 1rem 2rem;
-  box-sizing: border-box;
   div {
     display: flex;
     justify-content: space-between;
@@ -201,17 +201,16 @@ const Title = styled.h1`
   line-height: 1.5rem;
 `
 const Tips = styled.div`
-  width: 188px;
+  width: 11.75rem;
   height: 3rem;
+  line-height: 1.6rem;
   text-align: right;
   font-size: 16px;
-  font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   font-weight: 400;
   color: #35caa9;
   position: absolute;
-  top: 24.5rem;
+  top: 0.7rem;
   right: 2rem;
-  z-index: 9;
 `
 
 export const SpanLabel = styled.span`
@@ -232,7 +231,7 @@ const Description = styled.div`
   margin-top: 2rem;
   .describe {
     max-height: 113px;
-    font-size: 24px;
+    font-size: 18px;
     font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     font-weight: 400;
     color: #333333;
@@ -298,7 +297,6 @@ const StatsBox = styled.div`
       span {
         font-size: 18px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-        font-weight: 400;
         color: #333333;
       }
     }
@@ -326,7 +324,6 @@ const Details = styled.div`
       span {
         font-size: 18px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-        font-weight: 400;
         color: #333333;
       }
     }
@@ -402,7 +399,7 @@ export const Rent = () => {
   const [filterMenu, setFilterMenu] = useState(false)
   const [showNotFound, setShowNotFound] = useState(false)
   const [collectionFilterResult, setCollectionFilterResult] = useState([] as any)
-  const [currencyMenu, setCurrencyMenu] = useState(false)
+  // const [currencyMenu, setCurrencyMenu] = useState(false)
   const [description, setDescription] = useState('')
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
@@ -553,19 +550,22 @@ export const Rent = () => {
 
   const handleCollectionChange = useCallback((ele) => {
     const val = ele.currentTarget.value
-    //   console.log(item.indexOf(val))
-    // })
-    // for (let i = 0; i < lendingNfts.length; i++) {
-    //   console.log(i)
-    //   console.log(lendingNfts[i].indexOf(val))
-    // }
     setCollection(val)
   }, [])
 
-  const handleShowModal = async (item: NftProps) => {
+  const handleShowModal = async (item: any) => {
     if (!gamelandContract) {
       toastify.error('Contract not found, please connect wallet.')
       return
+    }
+    const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
+    console.log(Number(item.lendIndex), Number(index.toString()))
+    console.log(Number(item.lendIndex) !== Number(index.toString()))
+    if (Number(item.lendIndex) != Number(index.toString())) {
+      const params = {
+        lendIndex: index.toString()
+      }
+      await http2.put(`/v0/opensea/${item.gamelandNftId}`, params)
     }
     setCurrentItem(item)
     setVisible(true)
@@ -586,16 +586,6 @@ export const Rent = () => {
     })
     setRareAttribute(RareAttribute)
     setSpecificAttribute(SpecificAttribute)
-    if (await gamelandContract.borrow_or_not(item.gamelandNftId)) {
-      const borrowInfo = await gamelandContract.borrow_status(item.gamelandNftId)
-
-      const params = {
-        isBorrowed: true,
-        borrower: borrowInfo[0],
-        borrowAt: borrowInfo[1]
-      }
-      await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
-    }
   }
   const handleShowPrompt = () => {
     if (!LeaseDays) {
@@ -670,7 +660,7 @@ export const Rent = () => {
 
   return (
     <div className="container">
-      <Row>
+      <Row gutter={0}>
         <Col span="6">
           <div className="MenuBar">
             {/* <div className="price">
@@ -794,10 +784,10 @@ export const Rent = () => {
                       </span>
                     </div>
                   </Dlist>
-                  <div className="divider"></div>
-                  <Tips>Available time for renting is for 1-{currentItem.days} days.</Tips>
                   <div className="daysInput">
                     <NumInput validInt onChange={handleDaysChange} value={LeaseDays} />
+                    <div className="divider"></div>
+                    <Tips>Available time for renting is for 1-{currentItem.days} days.</Tips>
                   </div>
                   <br />
                   <FakeButton
@@ -851,7 +841,9 @@ export const Rent = () => {
                     <div className="attribute">
                       {RareAttribute.map((item: any, index: any) => (
                         <div key={index} className={(index + 1) % 2 == 0 ? '' : 'bg'}>
-                          <span>{item.trait_type}</span>
+                          <b>
+                            <span>{item.trait_type}</span>
+                          </b>
                           <p>
                             <span>{item.value}</span>
                             {item.max_value ? <span> of {item.max_value}</span> : ''}
@@ -870,19 +862,19 @@ export const Rent = () => {
                   <hr className="border" />
                   <div className="attribute">
                     <div className="bg">
-                      <span>Contract Address</span>
+                      <span className="b">Contract Address</span>
                       <span> {formatAddress(currentItem.contractAddress || ZeroAddress, 4)}</span>
                     </div>
                     <div>
-                      <span>Token ID</span>
+                      <span className="b">Token ID</span>
                       <span> {currentItem.nftId}</span>
                     </div>
                     <div className="bg">
-                      <span>Token Standard</span>
+                      <span className="b">Token Standard</span>
                       <span> {currentItem.standard}</span>
                     </div>
                     <div>
-                      <span>Blockchain</span>
+                      <span className="b">Blockchain</span>
                       <span>Polygon</span>
                     </div>
                   </div>
@@ -928,6 +920,7 @@ export const Rent = () => {
                       img={item.metadata?.image}
                       isLending={item.isLending}
                       contract_type={item.standard}
+                      penalty={item.penalty}
                     />
                   </Col>
                 ))

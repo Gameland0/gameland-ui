@@ -10,7 +10,7 @@ import { Dashboard } from './Dashboard'
 import { Lend } from './Lend'
 import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
-import { Alert } from 'antd'
+// import { Alert } from 'antd'
 import { Guilds } from './Guilds'
 
 const Wrap = styled.div`

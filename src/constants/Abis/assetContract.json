@@ -155,7 +155,7 @@
 			{
 				"components": [
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "borrower",
 						"type": "address"
 					},
@@ -180,7 +180,7 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "nft_owner",
 						"type": "address"
 					},
@@ -239,7 +239,7 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
+				"internalType": "address payable",
 				"name": "borrower",
 				"type": "address"
 			},
@@ -259,7 +259,7 @@
 				"type": "uint256"
 			},
 			{
-				"internalType": "address",
+				"internalType": "address payable",
 				"name": "nft_owner",
 				"type": "address"
 			},
@@ -316,6 +316,19 @@
 	{
 		"inputs": [
 			{
+				"internalType": "address[]",
+				"name": "nft_programe_address",
+				"type": "address[]"
+			}
+		],
+		"name": "add_nft_programforarray",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"components": [
 					{
 						"internalType": "string",
@@ -328,7 +341,7 @@
 						"type": "address"
 					},
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "nft_owner",
 						"type": "address"
 					},
@@ -422,7 +435,7 @@
 				"type": "address"
 			},
 			{
-				"internalType": "address",
+				"internalType": "address payable",
 				"name": "nft_owner",
 				"type": "address"
 			},
@@ -578,6 +591,151 @@
 	{
 		"inputs": [
 			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "u",
+				"type": "address"
+			}
+		],
+		"name": "erc20allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "re",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "usdt",
+				"type": "address"
+			}
+		],
+		"name": "erc20approve",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "dz",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "u",
+				"type": "address"
+			}
+		],
+		"name": "erc20getBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "usdt",
+				"type": "address"
+			}
+		],
+		"name": "erc20transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "usdt",
+				"type": "address"
+			}
+		],
+		"name": "erc20transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "uint256",
 				"name": "gameland_nft_id",
 				"type": "uint256"
@@ -588,7 +746,7 @@
 			{
 				"components": [
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "borrower",
 						"type": "address"
 					},
@@ -613,7 +771,7 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "nft_owner",
 						"type": "address"
 					},
@@ -669,7 +827,7 @@
 			{
 				"components": [
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "borrower",
 						"type": "address"
 					},
@@ -694,7 +852,7 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "nft_owner",
 						"type": "address"
 					},
@@ -836,7 +994,7 @@
 						"type": "address"
 					},
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "nft_owner",
 						"type": "address"
 					},
@@ -927,7 +1085,7 @@
 						"type": "address"
 					},
 					{
-						"internalType": "address",
+						"internalType": "address payable",
 						"name": "nft_owner",
 						"type": "address"
 					},
@@ -1180,7 +1338,7 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
+				"internalType": "address payable",
 				"name": "re",
 				"type": "address"
 			},
@@ -1191,13 +1349,7 @@
 			}
 		],
 		"name": "paytoaddress",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "success",
-				"type": "bool"
-			}
-		],
+		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},

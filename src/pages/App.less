@@ -19,8 +19,11 @@ ul,li{
 h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   color: #404040;
 }
+.b{
+  font-weight: bold;
+}
 .container{
-  width: 62.5%;
+  width: 94%;
   height: 100%;
   margin: 0 auto;
 }
@@ -50,21 +53,22 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   border-radius: 1.5rem;
   background-color: white;
 }
-@media screen and (min-width: 240px) {
-  .container{
-    width: 80%;
-  }
-}
-@media screen and (min-width: 1200px) {
-  .container{
-    width: 1000px;
-  }
-}
-@media screen and (min-width: 1400px) {
-  .container{
-    width: 1600px;
-  }
-}
+// @media screen and (min-width: 240px) {
+//   .container{
+//     width: 80%;
+//   }
+// }
+// @media screen and (min-width: 1200px) {
+//   .container{
+//     width: 62.5rem;
+//   }
+// }
+// @media screen and (min-width: 1400px) {
+//   .container{
+//     width: 100rem;
+//     // width: 62.5%;
+//   }
+// }
 .clearGap{
   margin: 0;
 }
@@ -167,8 +171,8 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   height: 44px;
   opacity: 1;
   border: 2px solid #35CAA9;
-  top: 24.7rem;
-  right: 15rem;
+  top: 1rem;
+  right: 14.5rem;
   z-index: 9;
 }
 .arrowIcon{
@@ -188,7 +192,7 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   margin-top: -10px;
 }
 .MenuBar{
-  width: 22.5rem;
+  width: 25%;
   min-height: 35rem;
   background: #fff;
   border-radius: 10px 10px 10px 10px;
@@ -196,6 +200,7 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   padding: 0 2rem;
   position: fixed;
   z-index: 99;
+  box-sizing: border-box;
   .price {
     margin-top: 3rem;
     position: relative;
@@ -281,7 +286,7 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   .collection {
     margin-top: 3rem;
     .search {
-      width: 18.5rem;
+      width: 100%;
       height: 3.75rem;
       border-radius: 10px 10px 10px 10px;
       border: 2px solid #e5e5e5;
@@ -293,11 +298,12 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
         margin-top: -0.7rem;
       }
       input {
-        width: 12rem;
+        width: 85%;
         height: 100%;
         border: 1px solid var(--border-color);
         outline: none;
         font-size: 18px;
+        background: none;
         margin-left: 2.5rem;
         line-height: 40px;
         ::-webkit-input-placeholder {
@@ -321,7 +327,6 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
       }
     }
     .notFound {
-      width: 18.5rem;
       height: 3.75rem;
       background: #fff;
       box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);

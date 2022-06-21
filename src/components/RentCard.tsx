@@ -44,6 +44,7 @@ export interface RentProps extends NFTData {
   onClick?: () => void
   unOperate?: boolean
   isLending?: boolean
+  penalty: number
 }
 interface LabelProps {
   name: string
@@ -51,19 +52,20 @@ interface LabelProps {
   price?: number
   isExpired?: boolean
   days: number
+  penalty: number
   right?: boolean
   collateral?: number
   type: any
 }
 
-const Labels: React.FC<LabelProps> = ({ price, name, days, collateral, type }) => {
+const Labels: React.FC<LabelProps> = ({ price, name, days, collateral, type, penalty }) => {
   const total = useMemo(() => {
     if (!days || !price || !collateral) {
       return 0
     }
     const _cost = new BigNumber(price as number).times(days as number)
-    return _cost.plus(collateral).toString()
-  }, [price, days, collateral])
+    return _cost.plus(collateral).plus(penalty).toString()
+  }, [price, days, collateral, penalty])
   return (
     <div style={{ overflow: 'hidden' }}>
       <p>{name}</p>
@@ -132,7 +134,8 @@ export const RentCard: React.FC<RentProps> = ({
   onClick,
   isLending,
   nftId,
-  contract_type
+  contract_type,
+  penalty
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -153,6 +156,7 @@ export const RentCard: React.FC<RentProps> = ({
             name={name}
             nftId={nftId}
             price={price}
+            penalty={penalty}
             days={days as number}
             type={contract_type}
           />

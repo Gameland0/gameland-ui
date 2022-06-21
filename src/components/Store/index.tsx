@@ -32,7 +32,7 @@ export const http = axios.create({
 })
 export const http2 = axios.create({
   timeout: 10000,
-  baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : ''
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089'
 })
 export const fetcher = (url: string) => {
   let _url
@@ -41,7 +41,9 @@ export const fetcher = (url: string) => {
       ? 'https://deep-index.moralis.io/api/v2' + url.substring(8)
       : 'https://polygon-api.gameland.network' + url
   } else {
-    _url = url
+    _url = url.startsWith('/moralis')
+      ? 'https://deep-index.moralis.io/api/v2' + url.substring(8)
+      : 'http://localhost:8089' + url
   }
   return http.get(_url).then((res) => res.data)
 }

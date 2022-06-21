@@ -20,11 +20,11 @@ import BigNumber from 'bignumber.js'
 import { toastify } from '../../components/Toastify'
 import { http2 } from '../../components/Store'
 import { Empty } from '../../components/Empty'
-import { lowerCase } from 'lower-case'
+// import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
 import { ABIs } from '../../constants/Abis/ABIs'
 import { Icon } from '../../components/Icon'
-import { hashMessage } from 'ethers/lib/utils'
+// import { hashMessage } from 'ethers/lib/utils'
 
 export const MyRenting = () => {
   const { library, account } = useActiveWeb3React()
@@ -129,14 +129,12 @@ export const MyRenting = () => {
     setApproving(true)
     if (currentItem.contract) {
       try {
-        // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         let approvetx
         if (currentItem.standard === 'ERC721' && !!currentItem.contract.approve) {
           approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.nftId)
         } else {
           approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
-        // const approvetx = await nftContract.approve(GameLandAddress, currentItem.nftId)
         const receipt = await fetchReceipt(approvetx.hash, library)
         const { status } = receipt
         if (!status) {
@@ -153,7 +151,7 @@ export const MyRenting = () => {
 
   return (
     <div>
-      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
+      <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible} closable={false}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <NftCard
@@ -165,6 +163,7 @@ export const MyRenting = () => {
               unOperate={true}
               contract_type={currentItem.standard}
               borrowDay={currentItem.borrowDay}
+              penalty={currentItem.penalty}
             />
           </Col>
 

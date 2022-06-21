@@ -58,12 +58,14 @@ export interface NftProps extends NFTData {
   withdrawable?: boolean
   size?: number
   borrowDay: number
+  penalty: number
 }
 interface LabelProps {
   name: string
   isLending?: boolean
   nftId: string
   price?: number
+  penalty: number
   days?: number
   collateral?: number
   withdrawable?: boolean
@@ -73,13 +75,13 @@ const LabelsWrap = styled.div`
   width: 100%;
   flex-direction: column;
 `
-const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, price, days, collateral }) => {
+const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, price, days, collateral, penalty }) => {
   const total = useMemo(() => {
     if (!days || !price || !collateral) {
       return 0
     }
     const _cost = new BigNumber(price as number).times(days as number)
-    return _cost.plus(collateral).toString()
+    return _cost.plus(collateral).plus(penalty).toString()
   }, [price, days, collateral])
   return (
     <LabelsWrap>
@@ -217,7 +219,8 @@ export const Nft: React.FC<NftProps> = ({
   borrowAt,
   sell_orders,
   contract_type,
-  borrowDay
+  borrowDay,
+  penalty
 }) => {
   const { networkError } = useStore()
   const handleClick = () => {
@@ -241,6 +244,7 @@ export const Nft: React.FC<NftProps> = ({
             nftId={nftId}
             price={price}
             days={days}
+            penalty={penalty}
           />
           <Standard color={contract_type === 'ERC721' ? 'processing' : 'orange'}>{contract_type}</Standard>
         </div>

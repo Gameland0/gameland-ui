@@ -1,14 +1,12 @@
 import { useState, useEffect, useContext } from 'react'
 import { useWeb3React } from '@web3-react/core'
 import { Contract } from '@ethersproject/contracts'
-
 import { injected } from '../connectors'
 import { StoreContext } from '../components/Store'
 import { isMobile } from 'react-device-detect'
 import { Web3Provider } from '@ethersproject/providers'
 import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
-// import MyNftAbi from '../artifacts/contracts/MyNFT.sol/MyNFT.json'
 import GameLandAbi from '../constants/Abis/GameLand.json'
 import AssetContractAbi from '../constants/Abis/assetContract.json'
 import ControlContractAbi from '../constants/Abis/controlContract.json'
@@ -20,8 +18,8 @@ import { GAMELADDRESS } from '../constants'
 
 export const GameLandAddress = GAMELADDRESS
 export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
-export const ControlContractAddress = '0x979eb2e664d5720b251375350881C27e0FC73833'
-export const AssetContractAddress = '0x9Ada7B5d61c1aEB0d2DD1724dc0993d74E6f3321'
+export const ControlContractAddress = '0x8eE6cc04a148BA0dDaAB360ee05A7212390DCf74'
+export const AssetContractAddress = '0x4d57cBfFacc67F04605e13a1Eb9A1E69F9EDDBE8'
 export const ERC721Address = '0xaaE8DfD6727Eb98ab19E352ef84927f9C6819073'
 
 interface OpenseaData {
@@ -166,12 +164,6 @@ export function useInactiveListener(suppress = false) {
   }, [active, error, suppress, activate])
 }
 
-// export function useGreeterContract() {
-//   const { library } = useActiveWeb3React()
-//   if (!library) return null
-//   return new Contract(Greeter, GreeterAbi, library?.getSigner())
-// }
-
 export function useGameLandContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
@@ -222,8 +214,3 @@ export interface Call {
 }
 
 export { useMyNfts, useMyRenting }
-
-// export function useReceipt(transaction: TransactionResponse) {
-//   const {hash }
-//   return ''
-// }
