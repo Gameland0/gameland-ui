@@ -9,7 +9,6 @@ export const useMyRenting = (): NFTData[] => {
 
   return useMemo(() => {
     if (!account || isEmpty(nfts)) return []
-    console.log(account, nfts)
 
     return nfts
       .filter((item: any) => {

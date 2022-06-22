@@ -111,7 +111,6 @@ export function getProgress(borrowAt: string, days: number) {
   const now = new Date().valueOf()
   const timeLeft = deadline - now
   const spend = _days - timeLeft
-
   if (timeLeft <= 0) {
     return 100
   }

@@ -85,7 +85,6 @@ const Sort = styled.div`
   }
 `
 export const DayInfoBox = styled.div<{ progress?: number }>`
-  width: 35.1rem;
   margin-top: 1rem;
   height: 5rem;
   line-height: 5rem;
@@ -103,7 +102,7 @@ export const DayInfoBox = styled.div<{ progress?: number }>`
     position: absolute;
     display: block;
     content: '';
-    width: ${({ progress }) => (progress ? progress + 'rem' : 'auto')};
+    width: ${({ progress }) => (progress ? progress + '%' : 'auto')};
     height: 100%;
     background: var(--in-progress);
     z-index: 1;

@@ -108,10 +108,9 @@ export const Lend = () => {
     setAwaiting(true)
 
     setCurrentItem(item)
-    if (item.isBorrowed) {
-      setBorrowed(true)
-    }
+    setBorrowed(item.isBorrowed)
     const _progress = getProgress(item.borrowAt as string, item.borrowDay as number)
+    console.log(_progress)
     setProgress(_progress)
     setAwaiting(false)
   }
