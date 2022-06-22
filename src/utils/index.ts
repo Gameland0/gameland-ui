@@ -40,7 +40,7 @@ export const formatAddress = (address: string, places = 4): string => {
   return `${start}...${end}`
 }
 
-export const formatting = (address: string, places = 4): string => {
+export const formatting = (address: string, places = 5): string => {
   const len = address.length
   const start = address.substring(0, places)
   const end = address.substring(len - places, len)

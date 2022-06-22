@@ -119,13 +119,13 @@ export const DayInfoBox = styled.div<{ progress?: number }>`
 `
 const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   display: block;
-  height: 5rem;
+  height: 12%;
   cursor: pointer;
   border-radius: 1.25rem;
   padding: 0 1rem;
   line-height: 2.5rem;
   font-size: 0.875rem;
-  width: 30rem;
+  width: 93%;
   color: #fff;
   background: #35caa9;
   margin-left: 2.5rem;
@@ -176,11 +176,11 @@ export const DaysInfo: React.FC<DaysInfoProps> = ({ progress, children }) => {
   )
 }
 const Dlist = styled.div`
-  width: 30rem;
-  height: 18.125rem;
+  width: 92%;
+  height: 40%;
   flex-direction: column;
   justify-content: space-between;
-  margin-top: 32px;
+  margin-top: 2rem;
   margin-left: 2.5rem;
   border-radius: 20px 20px 20px 20px;
   border: 1px solid #e5e5e5;
@@ -193,8 +193,8 @@ const Dlist = styled.div`
 `
 const ImgBox = styled.div`
   img {
-    width: 35rem;
-    height: 35rem;
+    width: 95%;
+    height: 95%;
     border-radius: 20px 20px 20px 20px;
   }
 `
@@ -203,16 +203,16 @@ const Title = styled.h1`
   line-height: 1.5rem;
 `
 const Tips = styled.div`
-  width: 11.75rem;
+  width: 40%;
   height: 3rem;
-  line-height: 1.6rem;
+  line-height: 1.4rem;
   text-align: right;
   font-size: 16px;
   font-weight: 400;
   color: #35caa9;
   position: absolute;
-  top: 0.7rem;
-  right: 2rem;
+  top: 7%;
+  right: 5%;
 `
 
 export const SpanLabel = styled.span`
@@ -877,7 +877,7 @@ export const Rent = () => {
                     </div>
                     <div>
                       <span className="b">Token ID</span>
-                      <span> {currentItem.nftId}</span>
+                      <span> {currentItem.nftId?.length > 10 ? formatting(currentItem.nftId) : currentItem.nftId}</span>
                     </div>
                     <div className="bg">
                       <span className="b">Token Standard</span>

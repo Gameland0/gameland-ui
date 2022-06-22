@@ -2,6 +2,8 @@ import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { NFTData, useStore } from '../hooks'
 import { Img } from './Img'
+import rentIcon from '../assets/icon_shopping_cart_default.svg'
+import hoverIcon from '../assets/icon_shopping_cart.svg'
 import { BaseProps } from './NumInput'
 import { toastify } from './Toastify'
 import BigNumber from 'bignumber.js'
@@ -79,7 +81,6 @@ const Labels: React.FC<LabelProps> = ({ price, name, days, collateral, type, pen
 }
 const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   display: block;
-  width: 11.75rem;
   height: 2.5rem;
   cursor: pointer;
   border-radius: 0px 0px 10px 10px;
@@ -87,17 +88,29 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   line-height: 2.5rem;
   font-size: 0.875rem;
   background: rgba(212, 212, 212, 0.1);
-  color: #d0d0d0;
+  color: #35caa9;
   border: none;
+  position: relative;
 
   &:hover {
-    background: rgba(53, 202, 169, 0.1);
-    color: #35caa9;
+    background: #35caa9;
+    color: #fff;
+    .icon {
+      background-image: url(${hoverIcon});
+    }
   }
   &[disabled],
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+  }
+  .icon {
+    width: 20px;
+    height: 20px;
+    background-image: url(${rentIcon});
+    position: absolute;
+    top: 10px;
+    left: 63px;
   }
 `
 
@@ -121,7 +134,16 @@ interface OperateProps {
   onClick?: () => void
 }
 const Operate: React.FC<OperateProps> = ({ isLending }) => {
-  return <>{isLending ? <FakeButton theme="ghost">Rent</FakeButton> : null}</>
+  return (
+    <>
+      {isLending ? (
+        <FakeButton theme="ghost">
+          <div className="icon"></div>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rent
+        </FakeButton>
+      ) : null}
+    </>
+  )
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const RentCard: React.FC<RentProps> = ({
