@@ -405,6 +405,7 @@ export const Rent = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const lendingNfts = useLendingNfts()
+  const [lendNfts, setLendNfts] = useState(lendingNfts)
   const { mutateDebts } = useStore()
   const gamelandContract = useGameLandContract()
   const AssetContract = useAssetContract()
@@ -421,9 +422,13 @@ export const Rent = () => {
           setShowNotFound(false)
         } else {
           setCollectionFilterResult([])
-          setShowNotFound(true)
         }
       })
+      if (arr.length) {
+        setCollectionFilterResult(arr)
+      } else {
+        setShowNotFound(true)
+      }
       if (collection === '') {
         setShowNotFound(false)
       }
@@ -533,11 +538,20 @@ export const Rent = () => {
   }
 
   const ascending = () => {
-    lendingNfts.sort(compare('lift'))
+    const Nfts = lendingNfts.sort(compare('lift'))
+    setLendNfts(Nfts)
   }
 
   const descending = () => {
-    lendingNfts.sort(compare(''))
+    const Nfts = lendingNfts.sort(compare(''))
+    setLendNfts(Nfts)
+  }
+
+  const collectionFilter = (collection: any) => {
+    const Nfts = lendingNfts.filter((item) => {
+      return item.contractName === collection
+    })
+    setLendNfts(Nfts)
   }
 
   const handleDaysChange = useCallback((val) => setdays(val), [])
@@ -705,7 +719,9 @@ export const Rent = () => {
               {collectionFilterResult && collectionFilterResult.length ? (
                 <div className="result">
                   {collectionFilterResult.map((item: any, index: any) => (
-                    <div key={index}>{item.contractName}</div>
+                    <div key={index} onClick={() => collectionFilter(item.contractName)}>
+                      {item.contractName}
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -916,8 +932,8 @@ export const Rent = () => {
               </ContentBox>
             </Dialog>
             <Row gutter={[14, 14]}>
-              {lendingNfts.length ? (
-                lendingNfts.map((item, index) => (
+              {lendNfts.length ? (
+                lendNfts.map((item, index) => (
                   <Col key={index}>
                     <RentCard
                       nftId={item.nftId}
