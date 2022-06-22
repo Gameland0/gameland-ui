@@ -51,7 +51,6 @@ export const MyRenting = () => {
 
   const handleNftClick = async (item: any) => {
     setVisible(true)
-
     const contractAddress = item.contractAddress ?? ''
     const localAbi = localStorage.getItem(contractAddress.toLowerCase())
     let storedAbi
@@ -62,14 +61,18 @@ export const MyRenting = () => {
     }
     const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
-
     item.contract = nftContract
     setCurrentItem(item)
-    console.log(item)
+
+    const index = await AssetContract?.get_borrowindex(item.gamelandNftId)
+    if (Number(item.rentIndex) != Number(index.toString())) {
+      const params = {
+        rentIndex: index.toString()
+      }
+      await http2.put(`/v0/opensea/${item.gamelandNftId}`, params)
+    }
 
     if (nftContract) {
-      console.log(item)
-
       try {
         const approveAddress = await nftContract.getApproved(item.nftId)
         if (approveAddress === AssetContractAddress) {
@@ -106,9 +109,10 @@ export const MyRenting = () => {
       const params = {
         borrower: null,
         borrowAt: null,
-        isBorrowed: null,
-        isLending: null,
-        withdrawable: true
+        isBorrowed: false,
+        isLending: true,
+        borrowDay: 0,
+        rentIndex: ''
       }
       const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {

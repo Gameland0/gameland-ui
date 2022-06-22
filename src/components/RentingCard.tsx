@@ -64,8 +64,6 @@ export interface ProgressLabelProps {
 }
 
 export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt, borrowDay }) => {
-  console.log(borrowAt, days)
-
   const progress = useMemo(() => getProgress(borrowAt, borrowDay), [borrowAt, borrowDay])
   const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
 

@@ -11,6 +11,7 @@ import { useActiveWeb3React, useGameLandContract, useStore, useControlContract, 
 import { toastify } from '../components/Toastify'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 import { Nft as NftCard, NftProps } from '../components/Nft'
+import { Contract } from '@ethersproject/contracts'
 // import polygonIcon from '../assets/polygon_icon.svg'
 import search from '../assets/search_bar_icon_search.svg'
 import arrow from '../assets/icon_select.svg'
@@ -27,6 +28,7 @@ import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
+import { fetchAbi } from './Dashboard/index'
 
 export const RentBox = styled.div`
   margin: 4rem 0 6rem 3rem;
@@ -409,6 +411,7 @@ export const Rent = () => {
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
   const [renting, setRenting] = useState(false)
+  const { nfts } = useStore()
   useEffect(() => {
     const filterCollection = () => {
       const arr: any[] = []
@@ -434,61 +437,70 @@ export const Rent = () => {
     filterCollection()
   }, [collection])
 
-  // useEffect(() => {
-  //   const getRentList = async () => {
-  //     if (AssetContract) {
-  //       const gamelandNftIdList = await AssetContract.get_nfts_list()
-  //       const gamelandNftIdArr = gamelandNftIdList.map((item: any) => {
-  //         return item._hex
-  //       })
-  //       if (nfts) {
-  //         const newArr = gamelandNftIdArr.filter((item: any) => {
-  //           return item !== '0x00'
-  //         })
-  //         nfts.map((item: any) => {
-  //           removeByValue(newArr, item.gamelandNftId)
-  //         })
-  //         for (let i = 0; i < newArr.length; i++) {
-  //           const list = await AssetContract.get_nfts(newArr[i])
-  //           const index = await AssetContract.get_nftsindex(newArr[i])
-  //           const contract = new Contract(list.form_contract, erc721Abi, library?.getSigner())
-  //           const tokenURI = await contract.tokenURI(list.nft_id)
-  //           const { data } = await http.get(tokenURI)
-  //           const price = new BigNumber(Number(list.daily_price.toString())).dividedBy(
-  //             new BigNumber(1000000000000000000)
-  //           )
-  //           const collateral = new BigNumber(Number(list.collatoral.toString())).dividedBy(
-  //             new BigNumber(1000000000000000000)
-  //           )
-  //           const penalty = new BigNumber(Number(list.penalty.toString())).dividedBy(new BigNumber(1000000000000000000))
-  //           const params = {
-  //             nftId: list.nft_id.toString(),
-  //             isLending: true,
-  //             price: Number(price.toString()),
-  //             days: Number(list.duration.toString()),
-  //             collateral: Number(collateral.toString()),
-  //             originOwner: list.nft_owner,
-  //             contractAddress: list.form_contract,
-  //             standard: list.nft_type,
-  //             metadata: '',
-  //             gamelandNftId: list.gameland_nft_id._hex,
-  //             createdAt: new Date().toJSON(),
-  //             updatedAt: new Date().toJSON(),
-  //             penalty: Number(penalty.toString()),
-  //             pay_type: list.pay_type,
-  //             lendIndex: index.toString(),
-  //             expire_blocktime: Math.floor(new Date().valueOf() / 1000),
-  //             name: list.nft_name,
-  //             img: data.image
-  //           }
-  //           console.log(params)
-  //           const res: any = await http2.post(`/v0/opensea/`, params)
-  //         }
-  //       }
-  //     }
-  //   }
-  //   getRentList()
-  // }, [])
+  const removeByValue = (arr: any, val: any) => {
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] == val) {
+        arr.splice(i, 1)
+        break
+      }
+    }
+  }
+  useEffect(() => {
+    const getRentList = async () => {
+      if (AssetContract) {
+        const gamelandNftIdList = await AssetContract.get_nfts_list()
+        const gamelandNftIdArr = gamelandNftIdList.map((item: any) => {
+          return item._hex
+        })
+        if (nfts) {
+          const newArr = gamelandNftIdArr.filter((item: any) => {
+            return item !== '0x00'
+          })
+          nfts.map((item: any) => {
+            removeByValue(newArr, item.gamelandNftId)
+          })
+          for (let i = 0; i < newArr.length; i++) {
+            const list = await AssetContract.get_nfts(newArr[i])
+            const index = await AssetContract.get_nftsindex(newArr[i])
+            const ABI = await fetchAbi(list.form_contract)
+            const contract = new Contract(list.form_contract, ABI, library?.getSigner())
+            const tokenURI = await contract.tokenURI(list.nft_id)
+            const { data } = await http.get(tokenURI)
+            const price = new BigNumber(Number(list.daily_price.toString())).dividedBy(
+              new BigNumber(1000000000000000000)
+            )
+            const collateral = new BigNumber(Number(list.collatoral.toString())).dividedBy(
+              new BigNumber(1000000000000000000)
+            )
+            const penalty = new BigNumber(Number(list.penalty.toString())).dividedBy(new BigNumber(1000000000000000000))
+            const params = {
+              nftId: list.nft_id.toString(),
+              isLending: true,
+              price: Number(price.toString()),
+              days: Number(list.duration.toString()),
+              collateral: Number(collateral.toString()),
+              originOwner: list.nft_owner,
+              contractAddress: list.form_contract,
+              standard: list.nft_type,
+              metadata: '',
+              gamelandNftId: list.gameland_nft_id._hex,
+              createdAt: new Date().toJSON(),
+              updatedAt: new Date().toJSON(),
+              penalty: Number(penalty.toString()),
+              pay_type: list.pay_type,
+              lendIndex: index.toString(),
+              expire_blocktime: Math.floor(new Date().valueOf() / 1000),
+              name: list.nft_name,
+              img: data.image
+            }
+            console.log(params)
+            await http2.post(`/v0/opensea/`, params)
+          }
+        }
+      }
+    }
+    getRentList()
+  }, [])
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
@@ -559,8 +571,6 @@ export const Rent = () => {
       return
     }
     const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
-    console.log(Number(item.lendIndex), Number(index.toString()))
-    console.log(Number(item.lendIndex) !== Number(index.toString()))
     if (Number(item.lendIndex) != Number(index.toString())) {
       const params = {
         lendIndex: index.toString()
