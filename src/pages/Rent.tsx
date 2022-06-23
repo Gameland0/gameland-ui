@@ -176,7 +176,7 @@ export const DaysInfo: React.FC<DaysInfoProps> = ({ progress, children }) => {
 }
 const Dlist = styled.div`
   width: 92%;
-  height: 40%;
+  height: 43%;
   flex-direction: column;
   justify-content: space-between;
   margin-top: 2rem;
@@ -257,8 +257,9 @@ const Properties = styled.div`
     flex-wrap: wrap;
     padding: 0 66px;
     margin-top: 9rem;
+    justify-content: center;
     div {
-      width: 210px;
+      width: 11rem;
       height: 110px;
       margin: 28px;
       background: linear-gradient(180deg, #f4f9fb 0%, #f4f9fb 100%);
@@ -637,6 +638,7 @@ export const Rent = () => {
         toastify.error('Contract not found.')
         return
       }
+      setPrompt(false)
       setRenting(true)
 
       const collateral = new BigNumber(currentItem.collateral as unknown as string)

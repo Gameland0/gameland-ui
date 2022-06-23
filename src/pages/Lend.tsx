@@ -97,9 +97,10 @@ export const Lend = () => {
     if (isEmpty(currentItem)) {
       return 0
     }
+    const penalty = currentItem.penalty as number
     const collateral = currentItem.collateral as number
     const _cost = new BigNumber(currentItem.price as number).times(currentItem.days as number)
-    return _cost.plus(collateral).toString()
+    return _cost.plus(collateral).plus(penalty).toString()
   }, [currentItem])
 
   const handleShowModal = async (item: any) => {
@@ -229,6 +230,12 @@ export const Lend = () => {
                       <SpanLabel>Collateral</SpanLabel>
                       <span>
                         {currentItem.collateral} <Icon />
+                      </span>
+                    </div>
+                    <div>
+                      <SpanLabel>penalty</SpanLabel>
+                      <span>
+                        {currentItem.penalty} <Icon />
                       </span>
                     </div>
                     <div>
