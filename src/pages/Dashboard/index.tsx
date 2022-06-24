@@ -158,16 +158,25 @@ export const Dashboard = () => {
     }
   }, [cursor])
 
+  // useEffect(() => {
+  //   ControlContract?.add_nft_programforarray([
+  //     '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
+  //     '0x51ac4a13054d5d7e1fa795439821484177e7e828',
+  //     '0x5b30cc4def69ae2dfcddbc7ebafea82cedae0190',
+  //     '0x85bc2e8aaad5dbc347db49ea45d95486279ed918',
+  //     '0x22d5f9b75c524fec1d6619787e582644cd4d7422'
+  //   ])
+  // }, [])
+
   useEffect(() => {
     if (!_myNfts) {
       return
     }
-
-    if (_myNfts.result.length < limit) {
-      setNextDisabled(true)
-    } else {
-      setNextDisabled(false)
-    }
+    // if (_myNfts.result.length < limit) {
+    //   setNextDisabled(true)
+    // } else {
+    //   setNextDisabled(false)
+    // }
     const lendableNfts = _myNfts.result.filter((item: any) => {
       return (
         nfts.findIndex(
@@ -177,8 +186,11 @@ export const Dashboard = () => {
       )
     })
     const syncFn = async () => {
-      const contracts = await gamelandContract?.get_nft_programes()
-      const _nfts = fetchMetadata(lendableNfts, contracts)
+      const contracts = await AssetContract?.get_nft_programes()
+      const haveNfts = lendableNfts.filter((item: any) => {
+        return contracts.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+      })
+      const _nfts = fetchMetadata(haveNfts, contracts)
       contracts
         ? Promise.all(_nfts).then((vals) => {
             setMyNfts(vals)
@@ -186,13 +198,7 @@ export const Dashboard = () => {
         : setMyNfts([])
     }
     syncFn()
-    // if (_myNfts.result.length === limit) {
-    // const _offset = _myNfts.cursor
-    // setOffset(_offset)
-    // mutateMyNfts(undefined)
-    // }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_myNfts, cursor])
+  }, [_myNfts])
 
   const handleNext = () => {
     const _cursor = _myNfts.cursor

@@ -10,8 +10,8 @@ import BigNumber from 'bignumber.js'
 import { useActiveWeb3React, useGameLandContract, useStore, useControlContract, useAssetContract } from '../hooks'
 import { toastify } from '../components/Toastify'
 import { useLendingNfts } from '../hooks/useLendingNfts'
-import { Nft as NftCard, NftProps } from '../components/Nft'
-import { Contract } from '@ethersproject/contracts'
+// import { Nft as NftCard, NftProps } from '../components/Nft'
+// import { Contract } from '@ethersproject/contracts'
 // import polygonIcon from '../assets/polygon_icon.svg'
 import search from '../assets/search_bar_icon_search.svg'
 import arrow from '../assets/icon_select.svg'
@@ -31,17 +31,17 @@ import { Empty } from '../components/Empty'
 import { fetchAbi } from './Dashboard/index'
 
 export const RentBox = styled.div`
-  margin: 4rem 0 6rem 3rem;
+  margin: 5rem 0 6rem 1rem;
 `
 const Sort = styled.div`
-  width: 67.6%;
+  width: 69%;
   height: 3.75rem;
   display: flex;
   background: #fff;
   justify-content: space-between;
   position: fixed;
   z-index: 99;
-  margin-left: 3rem;
+  margin-left: 1rem;
   .total {
     font-size: 16px;
     font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
@@ -413,25 +413,32 @@ export const Rent = () => {
   const ControlContract = useControlContract()
   const [renting, setRenting] = useState(false)
   const { nfts } = useStore()
+
   useEffect(() => {
     const filterCollection = () => {
       const arr: any[] = []
       lendingNfts.map((item: any) => {
-        if (item.contractName.indexOf(collection) !== -1 && collection !== '') {
-          arr.push(item)
-          setCollectionFilterResult(arr)
-          setShowNotFound(false)
-        } else {
-          setCollectionFilterResult([])
+        if (item.contractName) {
+          if (item.contractName.indexOf(collection) !== -1 && collection !== '') {
+            arr.push(item)
+          } else {
+            setCollectionFilterResult([])
+          }
         }
       })
       if (arr.length) {
-        setCollectionFilterResult(arr)
+        const res = new Map()
+        const newArr = arr.filter((item: any) => {
+          return !res.has(item.contractName) && res.set(item.contractName, 1)
+        })
+        setCollectionFilterResult(newArr)
+        setShowNotFound(false)
       } else {
         setShowNotFound(true)
       }
       if (collection === '') {
         setShowNotFound(false)
+        setCollectionFilterResult([])
       }
       if (lendingNfts.length == 0) {
         if (collection) {
@@ -441,6 +448,10 @@ export const Rent = () => {
     }
     filterCollection()
   }, [collection])
+
+  useEffect(() => {
+    setLendNfts(lendingNfts)
+  }, [lendingNfts])
 
   const removeByValue = (arr: any, val: any) => {
     for (let i = 0; i < arr.length; i++) {
@@ -457,7 +468,7 @@ export const Rent = () => {
         const gamelandNftIdArr = gamelandNftIdList.map((item: any) => {
           return item._hex
         })
-        if (nfts) {
+        if (nfts.length) {
           const newArr = gamelandNftIdArr.filter((item: any) => {
             return item !== '0x00'
           })
@@ -467,10 +478,11 @@ export const Rent = () => {
           for (let i = 0; i < newArr.length; i++) {
             const list = await AssetContract.get_nfts(newArr[i])
             const index = await AssetContract.get_nftsindex(newArr[i])
-            const ABI = await fetchAbi(list.form_contract)
-            const contract = new Contract(list.form_contract, ABI, library?.getSigner())
-            const tokenURI = await contract.tokenURI(list.nft_id)
-            const { data } = await http.get(tokenURI)
+            // const ABI = await fetchAbi(list.form_contract)
+            // const contract = new Contract(list.form_contract, ABI, library?.getSigner())
+            // const tokenURI = await contract?.tokenURI(list.nft_id)
+            // console.log(tokenURI)
+            // const { data } = await http.get(tokenURI)
             const price = new BigNumber(Number(list.daily_price.toString())).dividedBy(
               new BigNumber(1000000000000000000)
             )
@@ -495,10 +507,10 @@ export const Rent = () => {
               pay_type: list.pay_type,
               lendIndex: index.toString(),
               expire_blocktime: Math.floor(new Date().valueOf() / 1000),
-              name: list.nft_name,
-              img: data.image
+              // img: data.image,
+              contractName: list.nft_name
             }
-            console.log(params)
+            // console.log(params)
             await http2.post(`/v0/opensea/`, params)
           }
         }
@@ -585,6 +597,7 @@ export const Rent = () => {
       return
     }
     const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
+    console.log(index)
     if (Number(item.lendIndex) != Number(index.toString())) {
       const params = {
         lendIndex: index.toString()
@@ -593,23 +606,29 @@ export const Rent = () => {
     }
     setCurrentItem(item)
     setVisible(true)
-    http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
-    const nftAttributeData = await http.get(
-      `https://api.nftport.xyz/v0/nfts/${item.contractAddress}/${item.nftId}?chain=polygon`
-    )
-    // console.log(nftAttributeData.data.nft.metadata)
-    setDescription(nftAttributeData.data.nft.metadata.description)
-    const RareAttribute: any[] = []
-    const SpecificAttribute: any[] = []
-    nftAttributeData.data.nft.metadata.attributes.map((item: any) => {
-      if (item.display_type) {
-        RareAttribute.push(item)
-      } else {
-        SpecificAttribute.push(item)
+    const getAttribute = async () => {
+      http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
+      const nftAttributeData = await http.get(
+        `https://api.nftport.xyz/v0/nfts/${item.contractAddress}/${item.nftId}?chain=polygon`
+      )
+      console.log(nftAttributeData)
+      if (nftAttributeData.status !== 200 || !nftAttributeData) {
+        getAttribute()
       }
-    })
-    setRareAttribute(RareAttribute)
-    setSpecificAttribute(SpecificAttribute)
+      setDescription(nftAttributeData.data.nft.metadata.description)
+      const RareAttribute: any[] = []
+      const SpecificAttribute: any[] = []
+      nftAttributeData.data.nft.metadata.attributes.map((item: any) => {
+        if (item.display_type) {
+          RareAttribute.push(item)
+        } else {
+          SpecificAttribute.push(item)
+        }
+      })
+      setRareAttribute(RareAttribute)
+      setSpecificAttribute(SpecificAttribute)
+    }
+    getAttribute()
   }
   const handleShowPrompt = () => {
     if (!LeaseDays) {

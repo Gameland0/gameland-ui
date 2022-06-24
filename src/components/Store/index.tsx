@@ -3,7 +3,7 @@ import { isEmpty } from 'lodash'
 import React, { createContext, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { KeyedMutator } from 'swr/dist/types'
-import { useAssetContract, useGameLandContract } from '../../hooks'
+import { useAssetContract } from '../../hooks'
 import { useNetworkLoading } from './NetworkLoading'
 import { useNetworkValidator } from './NetworkValidator'
 
@@ -54,19 +54,17 @@ export const Store = ({ children }: { children: JSX.Element }) => {
   const [lastBlockNumber, setLastBlockNumber] = useState('')
   const [contracts, setContracts] = useState([])
   const { data: debts, mutate: mutateDebts } = useSWR(`/v0/opensea`, fetcher)
-  const gamelandContract = useGameLandContract()
   const AssetContract = useAssetContract()
 
   useEffect(() => {
-    if (!gamelandContract) return
+    if (!AssetContract) return
     const syncFn = async () => {
-      const res = await gamelandContract.get_nft_programes()
+      const res = await AssetContract.get_nft_programes()
 
       if (res.length) {
         setContracts(res)
       }
     }
-
     syncFn()
   }, [AssetContract?.address])
 

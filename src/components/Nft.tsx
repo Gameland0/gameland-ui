@@ -39,6 +39,17 @@ export const CardBox = styled.div`
   &:hover {
     transform: translateY(-1%);
   }
+  .overTime {
+    width: 75px;
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    color: #000;
+    background: red;
+    text-align: center;
+    border-radius: 25px;
+    z-index: 10;
+  }
 `
 export const Details = styled.div`
   position: relative;

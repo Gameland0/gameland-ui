@@ -25,7 +25,7 @@ export const useFetchMyNfts = (cursor: string, limit: number) => {
 
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
 
-    return `/moralis/${account}/nft?chain=polygon&format=decimal&cursor=${cursor}&limit=${limit}${addresses}`
+    return `/moralis/${account}/nft?chain=polygon&format=decimal`
 
     // return `${MORALIS_API}/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
     // eslint-disable-next-line react-hooks/exhaustive-deps

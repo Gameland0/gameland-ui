@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   useControlContract,
   AssetContractAddress,
@@ -35,8 +35,6 @@ export const MyRenting = () => {
   const [approving, setApproving] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
   const { mutateDebts } = useStore()
-
-  const gamelandContract = useGameLandContract()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
 
@@ -229,7 +227,6 @@ export const MyRenting = () => {
           </Col>
         </Row>
       </Modal>
-
       <Row gutter={[20, 20]}>
         {myRenting.length ? (
           myRenting.map((item: any) => (

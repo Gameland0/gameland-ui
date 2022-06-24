@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { NFTData } from '../hooks'
 import { getProgress, getTimeLeftText } from '../utils'
@@ -122,9 +122,21 @@ export const RentingCard: React.FC<RentingProps> = ({
   contract_type,
   borrowDay
 }) => {
+  const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
+  const [overTime, setOverTime] = useState(false)
+
+  useEffect(() => {
+    if (!dayLeft) return
+    if (dayLeft.length <= 5) {
+      const hs = parseInt(dayLeft)
+      if (hs < 8) {
+        setOverTime(true)
+      }
+    }
+  }, [dayLeft])
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
-      {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt="" /> */}
+      {overTime ? <div className="overTime">over time</div> : ''}
       <Img src={img} alt="" />
       <Details className="flex flex-h-between">
         <div>

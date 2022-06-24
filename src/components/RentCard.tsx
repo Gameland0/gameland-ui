@@ -18,7 +18,7 @@ const Tips = styled.span`
 `
 export const CardBox = styled.div`
   position: relative;
-  width: 11.75rem;
+  width: 12rem;
   height: 100%;
   background: #fff;
   border: 1px solid #ddd;
