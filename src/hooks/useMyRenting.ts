@@ -15,7 +15,7 @@ export const useMyRenting = (): NFTData[] => {
         return item.isBorrowed && lowerCase(item.borrower) === lowerCase(account)
       })
       .map((item: any) => {
-        item.metadata = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata
+        item.metadata = typeof item.metadata === 'string' && item.metadata ? JSON.parse(item.metadata) : item.metadata
         return item
       })
   }, [account, nfts])

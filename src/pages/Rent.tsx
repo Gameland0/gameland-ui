@@ -519,7 +519,7 @@ export const Rent = () => {
               lendIndex: index.toString(),
               expire_blocktime: Math.floor(new Date().valueOf() / 1000),
               // img: data.image,
-              contractName: list.nft_name
+              name: list.nft_name
             }
             // console.log(params)
             await http2.post(`/v0/opensea/`, params)
@@ -549,10 +549,10 @@ export const Rent = () => {
         .times(obj2.days as number)
         .plus(obj2.collateral as number)
         .toString()
-      if (val1 < val2) {
+      if (Number(val1) < Number(val2)) {
         if (sortby == 'lift') return -1
         return 1
-      } else if (val1 > val2) {
+      } else if (Number(val1) > Number(val2)) {
         if (sortby == 'lift') return 1
         return -1
       } else {
@@ -607,6 +607,7 @@ export const Rent = () => {
       toastify.error('Contract not found, please connect wallet.')
       return
     }
+    setdays('')
     const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
     if (Number(item.lendIndex) != Number(index.toString())) {
       const params = {
@@ -847,7 +848,7 @@ export const Rent = () => {
                   </div>
                   <br />
                   {LeaseDays ? (
-                    <RentButton>Rent</RentButton>
+                    <RentButton onClick={handleShowPrompt}>Rent</RentButton>
                   ) : (
                     <FakeButton
                       onClick={handleShowPrompt}

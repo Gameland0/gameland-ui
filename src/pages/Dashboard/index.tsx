@@ -111,7 +111,8 @@ export const Dashboard = () => {
         } else {
           return
         }
-        const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
+        const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
+        // const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
         item.gamelandNftId = hashMessage(gamelandId)
         if (!item.metadata) {
           const params = {

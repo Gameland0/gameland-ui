@@ -184,16 +184,16 @@ export const formatContribute = (num: number | string, decimals: number) => {
   return String(Math.floor(Number(num) * decimalPlace))
 }
 
-export const fixDigitalId = (first: number, id: number | string, digits: number) => {
-  const len = String(id).length
-  if (len === digits) {
-    return `${first}${id}`
-  }
-  let fixId = id
-  for (let i = len; i < digits; i++) {
-    fixId = `0` + fixId
-  }
-  return `${first}${fixId}`
+export const fixDigitalId = (first: number, id: number | string, account: any) => {
+  // const len = String(id).length
+  // if (len === digits) {
+  //   return `${first}${id}`
+  // }
+  // let fixId = id
+  // for (let i = len; i < digits; i++) {
+  //   fixId = `0` + fixId
+  // }
+  return `${account}${first}${id}`
 }
 
 export const shortNumbers = (num: string | number, digits = 10) => {

@@ -62,11 +62,8 @@ export const MyRenting = () => {
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
-    console.log(item.gamelandNftId)
     const index = await AssetContract?.get_borrowindex(item.gamelandNftId)
-    console.log(index)
-    const info = await AssetContract?.get_borrowInfo_forindex(1)
-    console.log(info)
+    // const info = await AssetContract?.get_borrowInfo_forindex(3)
     if (Number(item.rentIndex) != Number(index.toString())) {
       const params = {
         rentIndex: index.toString()
