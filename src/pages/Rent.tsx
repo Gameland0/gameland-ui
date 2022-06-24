@@ -119,6 +119,25 @@ export const DayInfoBox = styled.div<{ progress?: number }>`
 const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   display: block;
   height: 12%;
+  border-radius: 1.25rem;
+  padding: 0 1rem;
+  line-height: 2.5rem;
+  font-size: 0.875rem;
+  width: 93%;
+  color: #fff;
+  background: ${({ value }) => (value ? 'rgba(53, 202, 169, 1)' : 'rgba(53, 202, 169, 0.5)')};
+  margin-left: 2.5rem;
+  border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
+
+  &[disabled],
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`
+const RentButton = styled.button`
+  display: block;
+  height: 12%;
   cursor: pointer;
   border-radius: 1.25rem;
   padding: 0 1rem;
@@ -126,20 +145,9 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   font-size: 0.875rem;
   width: 93%;
   color: #fff;
-  background: #35caa9;
+  background: rgba(53, 202, 169, 1);
+  border: none;
   margin-left: 2.5rem;
-  border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
-
-  &:hover {
-    background: ${({ theme }) => (theme === 'ghost' ? 'transparent' : 'var(--second-light-color)')};
-    color: ${({ theme }) => (theme === 'ghost' ? 'var(--second-light-color)' : 'white')};
-    border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-light-color)` : '1px solid transparent')};
-  }
-  &[disabled],
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
 `
 
 interface FakeButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, BaseProps {
@@ -176,10 +184,10 @@ export const DaysInfo: React.FC<DaysInfoProps> = ({ progress, children }) => {
 }
 const Dlist = styled.div`
   width: 92%;
-  height: 43%;
+  height: 44%;
   flex-direction: column;
   justify-content: space-between;
-  margin-top: 2rem;
+  margin-top: 5.5%;
   margin-left: 2.5rem;
   border-radius: 20px 20px 20px 20px;
   border: 1px solid #e5e5e5;
@@ -192,8 +200,8 @@ const Dlist = styled.div`
 `
 const ImgBox = styled.div`
   img {
-    width: 95%;
-    height: 95%;
+    width: 91%;
+    height: 91%;
     border-radius: 20px 20px 20px 20px;
   }
 `
@@ -203,14 +211,15 @@ const Title = styled.h1`
 `
 const Tips = styled.div`
   width: 40%;
-  height: 3rem;
-  line-height: 1.4rem;
+  height: 3.5rem;
+  font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+  line-height: 3.5rem;
   text-align: right;
   font-size: 16px;
   font-weight: 400;
   color: #35caa9;
   position: absolute;
-  top: 7%;
+  top: 0%;
   right: 5%;
 `
 
@@ -285,6 +294,7 @@ const StatsBox = styled.div`
   border-radius: 20px 20px 20px 20px;
   position: relative;
   margin-top: 4rem;
+  padding-bottom: 24px;
 
   .attribute {
     width: 100%;
@@ -312,6 +322,7 @@ const Details = styled.div`
   border-radius: 20px 20px 20px 20px;
   position: relative;
   margin-top: 4rem;
+  padding-bottom: 24px;
 
   .attribute {
     width: 100%;
@@ -597,7 +608,6 @@ export const Rent = () => {
       return
     }
     const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
-    console.log(index)
     if (Number(item.lendIndex) != Number(index.toString())) {
       const params = {
         lendIndex: index.toString()
@@ -608,25 +618,25 @@ export const Rent = () => {
     setVisible(true)
     const getAttribute = async () => {
       http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
-      const nftAttributeData = await http.get(
-        `https://api.nftport.xyz/v0/nfts/${item.contractAddress}/${item.nftId}?chain=polygon`
-      )
-      console.log(nftAttributeData)
-      if (nftAttributeData.status !== 200 || !nftAttributeData) {
-        getAttribute()
+      try {
+        const nftAttributeData = await http.get(
+          `https://api.nftport.xyz/v0/nfts/${item.contractAddress}/${item.nftId}?chain=polygon`
+        )
+        setDescription(nftAttributeData.data.nft.metadata.description)
+        const RareAttribute: any[] = []
+        const SpecificAttribute: any[] = []
+        nftAttributeData.data.nft.metadata.attributes.map((item: any) => {
+          if (item.display_type) {
+            RareAttribute.push(item)
+          } else {
+            SpecificAttribute.push(item)
+          }
+        })
+        setRareAttribute(RareAttribute)
+        setSpecificAttribute(SpecificAttribute)
+      } catch (error) {
+        // handleShowModal(item)
       }
-      setDescription(nftAttributeData.data.nft.metadata.description)
-      const RareAttribute: any[] = []
-      const SpecificAttribute: any[] = []
-      nftAttributeData.data.nft.metadata.attributes.map((item: any) => {
-        if (item.display_type) {
-          RareAttribute.push(item)
-        } else {
-          SpecificAttribute.push(item)
-        }
-      })
-      setRareAttribute(RareAttribute)
-      setSpecificAttribute(SpecificAttribute)
     }
     getAttribute()
   }
@@ -833,17 +843,22 @@ export const Rent = () => {
                   <div className="daysInput">
                     <NumInput validInt onChange={handleDaysChange} value={LeaseDays} />
                     <div className="divider"></div>
-                    <Tips>Available time for renting is for 1-{currentItem.days} days.</Tips>
+                    <Tips>Available time 1-{currentItem.days} days.</Tips>
                   </div>
                   <br />
-                  <FakeButton
-                    onClick={handleShowPrompt}
-                    loading={renting}
-                    block
-                    disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
-                  >
-                    Rent
-                  </FakeButton>
+                  {LeaseDays ? (
+                    <RentButton>Rent</RentButton>
+                  ) : (
+                    <FakeButton
+                      onClick={handleShowPrompt}
+                      loading={renting}
+                      value={LeaseDays}
+                      block
+                      disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
+                    >
+                      Rent
+                    </FakeButton>
+                  )}
                   <br />
                   <p className=" text-center">
                     <span className="tips">

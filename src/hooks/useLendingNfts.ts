@@ -8,7 +8,7 @@ export const useLendingNfts = (): any[] => {
     return nfts
       .filter((item: any) => !item.isBorrowed && item.isLending)
       .map((item: any) => {
-        item.metadata = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata
+        item.metadata = typeof item.metadata === 'string' && item.metadata ? JSON.parse(item.metadata) : item.metadata
         return item
       })
   }, [nfts])

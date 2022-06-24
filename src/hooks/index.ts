@@ -18,7 +18,7 @@ import { GAMELADDRESS } from '../constants'
 
 export const GameLandAddress = GAMELADDRESS
 export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
-export const ControlContractAddress = '0x8eE6cc04a148BA0dDaAB360ee05A7212390DCf74'
+export const ControlContractAddress = '0x206C09D2c4aD787a279635a4A1926CCB38adD535'
 export const AssetContractAddress = '0x4d57cBfFacc67F04605e13a1Eb9A1E69F9EDDBE8'
 export const ERC721Address = '0xaaE8DfD6727Eb98ab19E352ef84927f9C6819073'
 

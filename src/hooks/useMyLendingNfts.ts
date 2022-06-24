@@ -10,7 +10,7 @@ export const useMyLendingNfts = (): any[] => {
     return nfts
       .filter((item: any) => lowerCase(item.originOwner) === lowerCase(account))
       .map((item: any) => {
-        item.metadata = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata
+        item.metadata = typeof item.metadata === 'string' && item.metadata ? JSON.parse(item.metadata) : item.metadata
         return item
       })
   }, [account, nfts])

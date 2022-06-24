@@ -62,8 +62,11 @@ export const MyRenting = () => {
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
-
+    console.log(item.gamelandNftId)
     const index = await AssetContract?.get_borrowindex(item.gamelandNftId)
+    console.log(index)
+    const info = await AssetContract?.get_borrowInfo_forindex(1)
+    console.log(info)
     if (Number(item.rentIndex) != Number(index.toString())) {
       const params = {
         rentIndex: index.toString()
@@ -98,7 +101,7 @@ export const MyRenting = () => {
         return
       }
       setRepaying(true)
-
+      console.log(currentItem.lendIndex, currentItem.rentIndex)
       const repaid = await ControlContract.returnnft(currentItem.lendIndex, currentItem.rentIndex)
       const receipt = await fetchReceipt(repaid.hash, library)
       const { status } = receipt
@@ -124,8 +127,11 @@ export const MyRenting = () => {
         throw res.message || res.data.message
       }
     } catch (err: any) {
-      console.log(err.message)
-      toastify.error(err.message)
+      if (err.data) {
+        toastify.error(err.data.message)
+      } else {
+        toastify.error(err.message)
+      }
       setRepaying(false)
     }
   }

@@ -105,14 +105,17 @@ export const Lend = () => {
 
   const handleShowModal = async (item: any) => {
     setVisible(true)
-    setExpired(false)
     setAwaiting(true)
-
     setCurrentItem(item)
     setBorrowed(item.isBorrowed)
     const _progress = getProgress(item.borrowAt as string, item.borrowDay as number)
-    console.log(_progress)
     setProgress(_progress)
+    console.log(_progress)
+    if (item.isBorrowed) {
+      setExpired(_progress >= 100)
+    } else {
+      setExpired(false)
+    }
     setAwaiting(false)
   }
 
