@@ -53,22 +53,7 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   border-radius: 1.5rem;
   background-color: white;
 }
-// @media screen and (min-width: 240px) {
-//   .container{
-//     width: 80%;
-//   }
-// }
-// @media screen and (min-width: 1200px) {
-//   .container{
-//     width: 62.5rem;
-//   }
-// }
-// @media screen and (min-width: 1400px) {
-//   .container{
-//     width: 100rem;
-//     // width: 62.5%;
-//   }
-// }
+
 .clearGap{
   margin: 0;
 }
@@ -141,13 +126,13 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
   z-index: 99;
 }
 .daysInput{
-  width: 93%;
-  height: 4rem;
-  line-height: 4rem;
+  width: 100%;
+  height: 60px;
+  line-height: 60px;
+  margin: 1.5rem 0 0 0;
   border-radius: 1rem;
   border-radius: 20px 20px 20px 20px;
   border: 2px solid #35caa9;
-  margin: 2rem 0 0 2.5rem;
   background: white;
   font-size: 3.1%;
   position: relative;
@@ -338,5 +323,27 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
       line-height: 3.75rem;
       padding-left: 24px;
     }
+  }
+}
+
+@media screen and (min-width:  1440px) {
+  .container{
+    width: 82rem;
+  }
+  .MenuBar{
+    width: 320px;
+  }
+}
+@media screen and (min-width: 1920px) {
+  .container{
+    width: 100rem;
+  }
+  .daysInput {
+    height: 78px;
+    line-height: 78px;
+    margin: 2rem 0 0 0;
+  }
+  .MenuBar{
+    width: 360px;
   }
 }

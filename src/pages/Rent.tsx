@@ -7,6 +7,7 @@ import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import { Dialog } from '../components/Dialog'
 import BigNumber from 'bignumber.js'
+import { Img } from '../components/Img'
 import { useActiveWeb3React, useGameLandContract, useStore, useControlContract, useAssetContract } from '../hooks'
 import { toastify } from '../components/Toastify'
 import { useLendingNfts } from '../hooks/useLendingNfts'
@@ -34,7 +35,6 @@ export const RentBox = styled.div`
   margin: 5rem 0 6rem 1rem;
 `
 const Sort = styled.div`
-  width: 69%;
   height: 3.75rem;
   display: flex;
   background: #fff;
@@ -42,6 +42,16 @@ const Sort = styled.div`
   position: fixed;
   z-index: 99;
   margin-left: 1rem;
+
+  @media screen and (min-width: 1152px) {
+    width: 785px;
+  }
+  @media screen and (min-width: 1440px) {
+    width: 968px;
+  }
+  @media screen and (min-width: 1920px) {
+    width: 1188px;
+  }
   .total {
     font-size: 16px;
     font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
@@ -123,12 +133,17 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   padding: 0 1rem;
   line-height: 2.5rem;
   font-size: 0.875rem;
-  width: 93%;
+  width: 100%;
   color: #fff;
   background: ${({ value }) => (value ? 'rgba(53, 202, 169, 1)' : 'rgba(53, 202, 169, 0.5)')};
-  margin-left: 2.5rem;
   border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
 
+  @media screen and (min-width: 1920px) {
+    height: 78px;
+    line-height: 78px;
+    font-size: 18px;
+    margin-top: 8px;
+  }
   &[disabled],
   &:disabled {
     cursor: not-allowed;
@@ -143,11 +158,17 @@ const RentButton = styled.button`
   padding: 0 1rem;
   line-height: 2.5rem;
   font-size: 0.875rem;
-  width: 93%;
+  width: 100%;
   color: #fff;
   background: rgba(53, 202, 169, 1);
   border: none;
-  margin-left: 2.5rem;
+
+  @media screen and (min-width: 1920px) {
+    height: 78px;
+    line-height: 78px;
+    font-size: 18px;
+    margin-top: 8px;
+  }
 `
 
 interface FakeButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, BaseProps {
@@ -183,15 +204,20 @@ export const DaysInfo: React.FC<DaysInfoProps> = ({ progress, children }) => {
   )
 }
 const Dlist = styled.div`
-  width: 92%;
-  height: 44%;
+  width: 100%;
   flex-direction: column;
   justify-content: space-between;
-  margin-top: 5.5%;
-  margin-left: 2.5rem;
+  margin-top: 24px;
   border-radius: 20px 20px 20px 20px;
   border: 1px solid #e5e5e5;
   padding: 1rem 2rem;
+  @media screen and (min-width: 1440px) {
+    height: 44%;
+  }
+  @media screen and (min-width: 1920px) {
+    margin-top: 32px;
+    height: 280px;
+  }
   div {
     display: flex;
     justify-content: space-between;
@@ -206,7 +232,6 @@ const ImgBox = styled.div`
   }
 `
 const Title = styled.h1`
-  margin-left: 2.5rem;
   line-height: 1.5rem;
 `
 const Tips = styled.div`
@@ -231,7 +256,7 @@ export const SpanLabel = styled.span`
   color: #333333;
 `
 const Description = styled.div`
-  width: 75rem;
+  width: 100%;
   height: 16.43rem;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -254,7 +279,7 @@ const Description = styled.div`
   }
 `
 const Properties = styled.div`
-  width: 75rem;
+  width: 100%;
   min-height: 28rem;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -287,7 +312,7 @@ const Properties = styled.div`
 `
 
 const StatsBox = styled.div`
-  width: 75rem;
+  width: 100%;
   min-height: 14rem;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -315,7 +340,7 @@ const StatsBox = styled.div`
   }
 `
 const Details = styled.div`
-  width: 75rem;
+  width: 100%;
   min-height: 12rem;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -461,6 +486,7 @@ export const Rent = () => {
   }, [collection])
 
   useEffect(() => {
+    console.log(lendingNfts)
     setLendNfts(lendingNfts)
   }, [lendingNfts])
 
@@ -616,6 +642,7 @@ export const Rent = () => {
       await http2.put(`/v0/opensea/${item.gamelandNftId}`, params)
     }
     setCurrentItem(item)
+    console.log(item)
     setVisible(true)
     const getAttribute = async () => {
       http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
@@ -799,7 +826,7 @@ export const Rent = () => {
               <Row gutter={[24, 24]}>
                 <Col span="12" xl={12} sm={24}>
                   <ImgBox>
-                    <img src={currentItem.metadata?.image} alt="" />
+                    <Img src={currentItem.metadata?.image} alt="" />
                   </ImgBox>
                 </Col>
                 <Col span="12" xl={12} sm={24}>
@@ -831,6 +858,7 @@ export const Rent = () => {
                       <SpanLabel>price</SpanLabel>
                       <span className="blue">
                         <span className="bigSize">{currentItem.price}</span>
+                        &nbsp;&nbsp;
                         <Icon /> / day
                       </span>
                     </div>

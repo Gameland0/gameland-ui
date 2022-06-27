@@ -18,7 +18,6 @@ const Tips = styled.span`
 `
 export const CardBox = styled.div`
   position: relative;
-  width: 12rem;
   height: 100%;
   background: #fff;
   border: 1px solid #ddd;
@@ -27,6 +26,15 @@ export const CardBox = styled.div`
   overflow: hidden;
   transition: all 0.3s ease;
 
+  @media screen and (min-width: 1152px) {
+    width: 7.44rem;
+  }
+  @media screen and (min-width: 1440px) {
+    width: 9.35rem;
+  }
+  @media screen and (min-width: 1920px) {
+    width: 11.6rem;
+  }
   &:hover {
     transform: translateY(-1%);
   }
@@ -110,7 +118,16 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
     background-image: url(${rentIcon});
     position: absolute;
     top: 10px;
-    left: 63px;
+  }
+  @media screen and (min-width: 1440px) {
+    .icon {
+      left: 43px;
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    .icon {
+      left: 63px;
+    }
   }
 `
 
