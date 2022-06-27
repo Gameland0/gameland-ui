@@ -95,7 +95,7 @@ export const Dashboard = () => {
   // const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
 
-  const fetchMetadata = (data: any[], contracts: Contract) => {
+  const fetchMetadata = (data: any[], contracts: any) => {
     if (!data || !data.length) {
       return []
     }
@@ -187,10 +187,40 @@ export const Dashboard = () => {
       )
     })
     const syncFn = async () => {
-      const contracts = await AssetContract?.get_nft_programes()
+      const contracts = [
+        '0x94e42811db93ef7831595b6ff9360491b987dfbd',
+        '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
+        '0xc65fd3945e26c15e03176810d35506956b036f39',
+        // '0xb9aee1ad85bed213b53329f060a13328eb26b7a0',
+        '0xc1f39f52bcbb4b32af4a587da015316205005987',
+        '0x584666e270341cee2c2d41c23821a568a9068ac8',
+        '0xb19dd661f076998e3b0456935092a233e12c2280',
+        '0xfde7aca6aca283a5578471ca1000745a6ce8ce81',
+        '0x416641eac164f996759b03f224005c3422b0d650',
+        '0xe7e16f2da731265778f87cb8d7850e31b84b7b86',
+        '0xcf30aeebf2ef45fbc27e4761e2b842313dfbf99b',
+        '0xcab4f7f57af24cef0a46eed4150a23b36c29d6cc',
+        '0x67ad4650b50bb4646e93faeccf6b3796e8780f18',
+        '0x5dd90959c25b62dffa67021c4bbde928a0bd6863',
+        '0x631998e91476da5b870d741192fc5cbc55f5a52e',
+        '0xc7a096b4c6610ba3a836070333ff7922b9866a36',
+        '0xb862aec93f0169249935f82fd98e6a494f53c287',
+        '0x9c09596d3d3691ea971f0b40b8cad44186868267',
+        '0xd9c5449efb3f99952f73e824688724aafb81de6e',
+        '0x8eb9be04b1df6596afa72c796f7f410aa1adba8b',
+        '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
+        '0x51ac4a13054d5d7e1fa795439821484177e7e828',
+        '0x5b30cc4def69ae2dfcddbc7ebafea82cedae0190',
+        '0x85bc2e8aaad5dbc347db49ea45d95486279ed918',
+        '0x6d3584ef37c43374151f5aa7928f7201914ea811',
+        '0xDcd8a43dF87722181840616187c5DA03836ed8db',
+        '0x22d5f9b75c524fec1d6619787e582644cd4d7422',
+        '0x8a57d0cb88e5dea66383b64669aa98c1ab48f03e'
+      ]
       const haveNfts = lendableNfts.filter((item: any) => {
         return contracts.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
       })
+      console.log(haveNfts)
       const _nfts = fetchMetadata(haveNfts, contracts)
       contracts
         ? Promise.all(_nfts).then((vals) => {
