@@ -72,9 +72,10 @@ export const Dashboard = () => {
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
   const gamelandContract = useGameLandContract()
-  const [cursor, setCursor] = useState('')
+  const [cursor, setCursor] = useState(1)
+  const [currentNft, setCurrentNft] = useState([] as any)
   const [limit, setLimit] = useState(12)
-  const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts(cursor, limit)
+  const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
   const [myNfts, setMyNfts] = useState<any[]>([])
   const [prevDisabled, setPrevDisabled] = useState(true)
   const [nextDisabled, setNextDisabled] = useState(true)
@@ -151,14 +152,6 @@ export const Dashboard = () => {
     })
   }
 
-  useEffect(() => {
-    if (!cursor) {
-      setPrevDisabled(true)
-    } else {
-      setPrevDisabled(false)
-    }
-  }, [cursor])
-
   // useEffect(() => {
   //   ControlContract?.add_nft_programforarray([
   //     '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
@@ -173,11 +166,6 @@ export const Dashboard = () => {
     if (!_myNfts) {
       return
     }
-    // if (_myNfts.result.length < limit) {
-    //   setNextDisabled(true)
-    // } else {
-    //   setNextDisabled(false)
-    // }
     const lendableNfts = _myNfts.result.filter((item: any) => {
       return (
         nfts.findIndex(
@@ -220,7 +208,6 @@ export const Dashboard = () => {
       const haveNfts = lendableNfts.filter((item: any) => {
         return contracts.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
       })
-      console.log(haveNfts)
       const _nfts = fetchMetadata(haveNfts, contracts)
       contracts
         ? Promise.all(_nfts).then((vals) => {
@@ -231,14 +218,32 @@ export const Dashboard = () => {
     syncFn()
   }, [_myNfts])
 
+  useEffect(() => {
+    const page = Math.ceil(myNfts.length / limit)
+    if (cursor <= page) {
+      const nfts = myNfts.slice((cursor - 1) * limit, cursor * limit)
+      setCurrentNft(nfts)
+    }
+
+    if (cursor < page) {
+      setNextDisabled(false)
+    } else {
+      setNextDisabled(true)
+    }
+
+    if (cursor > 1) {
+      setPrevDisabled(false)
+    } else {
+      setPrevDisabled(true)
+    }
+  }, [cursor, myNfts])
+
   const handleNext = () => {
-    const _cursor = _myNfts.cursor
-    setCursor(_cursor)
+    setCursor(cursor + 1)
     mutateMyNfts(undefined)
   }
   const handlePrev = () => {
-    const _cursor = ''
-    setCursor(_cursor)
+    setCursor(cursor - 1)
     mutateMyNfts(undefined)
   }
 
@@ -632,8 +637,8 @@ export const Dashboard = () => {
                 <div className="container flex flex-center">
                   <ConnectWallet size="large" />
                 </div>
-              ) : myNfts && myNfts.length ? (
-                myNfts.map((item: any, index) => (
+              ) : currentNft && currentNft.length ? (
+                currentNft.map((item: any, index: any) => (
                   <Col span="6" xl={6} lg={8} md={12} sm={12} xs={24} key={index} onClick={() => handleNftClick(item)}>
                     <NftCard
                       name={item.metadata?.name}

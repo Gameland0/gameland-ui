@@ -135,6 +135,7 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   font-size: 0.875rem;
   width: 100%;
   color: #fff;
+  cursor: not-allowed;
   background: ${({ value }) => (value ? 'rgba(53, 202, 169, 1)' : 'rgba(53, 202, 169, 0.5)')};
   border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
 
@@ -143,11 +144,6 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
     line-height: 78px;
     font-size: 18px;
     margin-top: 8px;
-  }
-  &[disabled],
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
   }
 `
 const RentButton = styled.button`
@@ -669,10 +665,7 @@ export const Rent = () => {
     getAttribute()
   }
   const handleShowPrompt = () => {
-    if (!LeaseDays) {
-      toastify.error('Please enter rental days.')
-      return
-    }
+    if (!LeaseDays) return
     if (Number(LeaseDays) < 1) {
       toastify.error('Minimum rental days is 1 day.')
       return
