@@ -74,7 +74,7 @@ export const Dashboard = () => {
   const gamelandContract = useGameLandContract()
   const [cursor, setCursor] = useState(1)
   const [currentNft, setCurrentNft] = useState([] as any)
-  const [limit, setLimit] = useState(12)
+  const [limit, setLimit] = useState(48)
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
   const [myNfts, setMyNfts] = useState<any[]>([])
   const [prevDisabled, setPrevDisabled] = useState(true)

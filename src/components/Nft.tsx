@@ -85,6 +85,13 @@ const LabelsWrap = styled.div`
   display: flex;
   width: 100%;
   flex-direction: column;
+  p {
+    display: block;
+    width: 50%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `
 const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, price, days, collateral, penalty }) => {
   const total = useMemo(() => {
