@@ -31,7 +31,6 @@ export const CardBox = styled.div`
   height: 100%;
   background: #fff;
   border: 1px solid #ddd;
-  cursor: pointer;
   border-radius: 1rem;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -65,6 +64,8 @@ const Days = styled.span`
 `
 export interface NftProps extends NFTData {
   onClick?: () => void
+  onLend?: () => void
+  onSend?: () => void
   unOperate?: boolean
   withdrawable?: boolean
   size?: number
@@ -85,6 +86,13 @@ const LabelsWrap = styled.div`
   display: flex;
   width: 100%;
   flex-direction: column;
+  p {
+    display: block;
+    width: 50%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `
 const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, price, days, collateral, penalty }) => {
   const total = useMemo(() => {
@@ -114,24 +122,33 @@ const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, pr
 }
 const FakeButtonBox = styled.div<{ type?: string }>`
   display: block;
-  height: 2rem;
-  padding: ${({ type }) => (type === 'ghost' ? '0 .5rem' : '0 1rem')};
-  line-height: 2rem;
-  font-size: ${({ type }) => (type === 'ghost' ? '0.75rem' : '0.875rem')};
-  color: ${({ type }) => (type === 'ghost' ? '#404040' : 'var(--primary-color)')};
-  text-align: center;
-  border-radius: 1.25rem;
-  background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'white')};
-  border: ${({ type }) => (type === 'ghost' ? `1px solid #ccc` : '1px solid var(--primary-color)')};
-
-  &:hover {
+  margin-top: -8px;
+  .button {
+    display: block;
+    height: 2rem;
+    padding: ${({ type }) => (type === 'ghost' ? '0 .5rem' : '0 1rem')};
+    line-height: 2rem;
+    font-size: ${({ type }) => (type === 'ghost' ? '0.75rem' : '0.875rem')};
+    color: ${({ type }) => (type === 'ghost' ? '#404040' : 'var(--primary-color)')};
+    text-align: center;
+    cursor: pointer;
+    border-radius: 1.25rem;
     background: ${({ type }) => (type === 'ghost' ? 'transparent' : 'white')};
+    border: ${({ type }) => (type === 'ghost' ? `1px solid #ccc` : '1px solid var(--primary-color)')};
+    margin-bottom: 8px;
+
+    &:hover {
+      background-color: #41acef;
+      color: white;
+    }
   }
 `
 
 interface FakeButtonProps extends BaseProps {
   type?: 'fill' | 'ghost'
+  onLend?: () => void
   onClick?: () => void
+  onSend?: () => void
 }
 export const FakeButton: React.FC<FakeButtonProps> = ({ type, children }) => {
   return <FakeButtonBox type={type}>{children}</FakeButtonBox>
@@ -139,6 +156,8 @@ export const FakeButton: React.FC<FakeButtonProps> = ({ type, children }) => {
 interface OperateProps extends ProgressLabelProps {
   isLending?: boolean
   onClick?: () => void
+  onLend?: () => void
+  onSend?: () => void
   isBorrowed?: boolean
   withdrawable?: boolean
 }
@@ -166,6 +185,8 @@ const Operate: React.FC<OperateProps> = ({
   nftId,
   price,
   days,
+  onLend,
+  onSend,
   borrowAt,
   sellOrders,
   borrowDay
@@ -191,7 +212,14 @@ const Operate: React.FC<OperateProps> = ({
       ) : withdrawable ? (
         <FakeButton type="ghost">Withdraw</FakeButton>
       ) : (
-        <FakeButton type="fill">Lend</FakeButton>
+        <FakeButton type="fill">
+          <button className="button" onClick={onLend}>
+            Lend
+          </button>
+          <button className="button" onClick={onSend}>
+            send
+          </button>
+        </FakeButton>
       )}
     </OperateWrap>
   )
@@ -222,6 +250,8 @@ export const Nft: React.FC<NftProps> = ({
   price,
   days,
   onClick,
+  onLend,
+  onSend,
   isLending,
   withdrawable,
   isBorrowed,
@@ -240,6 +270,20 @@ export const Nft: React.FC<NftProps> = ({
       return
     }
     onClick && onClick()
+  }
+  const Lend = () => {
+    if (networkError) {
+      toastify.error('Please connect to valid network.')
+      return
+    }
+    onLend && onLend()
+  }
+  const send = () => {
+    if (networkError) {
+      toastify.error('Please connect to valid network.')
+      return
+    }
+    onSend && onSend()
   }
   return (
     <CardBox className="flex flex-column" onClick={handleClick}>
@@ -270,6 +314,8 @@ export const Nft: React.FC<NftProps> = ({
             isLending={isLending}
             isBorrowed={isBorrowed}
             onClick={() => onclick}
+            onLend={Lend}
+            onSend={send}
             withdrawable={withdrawable}
             sellOrders={sell_orders}
           />

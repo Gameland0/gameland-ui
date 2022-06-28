@@ -12,6 +12,7 @@ const ChainId: Record<string, number> = {
   rinkeby: 4,
   goerli: 5,
   kovan: 42,
+  bsc: 56,
   aurora: 1313161554,
   'Aurora Testnet': 1313161555,
   localnode: 1337,

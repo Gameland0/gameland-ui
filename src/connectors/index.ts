@@ -12,7 +12,7 @@ export const supportedNetwork = [
   // ChainId.aurora,
   // ChainId['Aurora Testnet'],
   // ChainId.localnode,
-  ChainId.polygon
+  ChainId.bsc
 ]
 
 const RPC_URL = POLYGON_RPC_URL

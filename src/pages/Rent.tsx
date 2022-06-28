@@ -549,7 +549,7 @@ export const Rent = () => {
         }
       }
     }
-    getRentList()
+    // getRentList()
   }, [])
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {

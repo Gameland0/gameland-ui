@@ -30,12 +30,55 @@ import { useFetchMyNfts } from '../../hooks/useFetchMyNfts'
 import { Pagination } from '../../components/Pagination'
 import { ConnectWallet } from '../../components/ConnectWallet'
 import { fetchReceipt, fixDigitalId, ZeroAddress } from '../../utils'
-import { NFTDigits, OPENSEA_URL, POLYGONSCAN_KEY } from '../../constants'
+import { NFTDigits, OPENSEA_URL, BSCSCAN_KEY } from '../../constants'
 import { ABIs } from '../../constants/Abis/ABIs'
 
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
   margin-top: 2rem;
+`
+const SendBox = styled.div`
+  .title {
+    width: 100%;
+    font-size: 24px;
+    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+    font-weight: bold;
+    color: #333333;
+    text-align: center;
+  }
+  .input {
+    width: 100%;
+    height: 3rem;
+    border-radius: 20px 20px 20px 20px;
+    border: 1px solid #e5e5e5;
+    input {
+      width: 100%;
+      height: 100%;
+      padding-left: 10px;
+      font-size: 20px;
+      border-radius: 20px 20px 20px 20px;
+      outline: none;
+      border: none;
+    }
+  }
+  .button {
+    width: 16rem;
+    height: 4rem;
+    font-size: 24px;
+    color: #fff;
+    text-align: center;
+    line-height: 4rem;
+    border-radius: 20px 20px 20px 20px;
+    margin: 2rem 0 1rem 12rem;
+  }
+  .false {
+    background: rgba(73, 168, 224, 0.5);
+    cursor: not-allowed;
+  }
+  .ture {
+    background: rgba(73, 168, 224, 1);
+    cursor: pointer;
+  }
 `
 const MyNftBox = styled.div``
 
@@ -47,9 +90,9 @@ export const getContract = (library: Web3Provider | undefined, address: string, 
 export const fetchAbi = async (address: string) => {
   if (!address) return
   try {
-    const apiKey = POLYGONSCAN_KEY
+    const apiKey = BSCSCAN_KEY
     const data = await fetch(
-      `https://api.polygonscan.com/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
+      `https://api.bscscan.com/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
       {
         method: 'GET',
         mode: 'cors'
@@ -79,9 +122,11 @@ export const Dashboard = () => {
   const [myNfts, setMyNfts] = useState<any[]>([])
   const [prevDisabled, setPrevDisabled] = useState(true)
   const [nextDisabled, setNextDisabled] = useState(true)
+  const [toAddress, setToAddress] = useState('')
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as any)
   const [prompt, setPrompt] = useState(false)
+  const [showSend, setShowSend] = useState(false)
   const [penalty, setPenalty] = useState('')
   const [price, setPrice] = useState('')
   const [days, setdays] = useState('')
@@ -93,6 +138,7 @@ export const Dashboard = () => {
   const [expired, setExpired] = useState(false)
   const [withdrawable, setWithdrawable] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
+  const [isSendApproved, setIsSendApproved] = useState(false)
   // const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
 
@@ -116,23 +162,23 @@ export const Dashboard = () => {
         // const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
         item.gamelandNftId = hashMessage(gamelandId)
         if (!item.metadata) {
-          const params = {
-            nftId: item.token_id,
-            contractAddress: item.token_address,
-            gamelandNftId: hashMessage(gamelandId)
-          }
-          const res: any = await http2.get(`/v0/nft/${hashMessage(gamelandId)}`)
-          if (res.data.code === 1) {
-            if (res.data.data === null || res.data.data.length < 1) {
-              http2.post('/v0/nft', params)
-            } else if (res.data.data.length > 0) {
-              const metadata: any = {
-                name: res.data.data[0]?.name,
-                image: res.data.data[0]?.img
-              }
-              item.metadata = metadata
-            }
-          }
+          // const params = {
+          //   nftId: item.token_id,
+          //   contractAddress: item.token_address,
+          //   gamelandNftId: hashMessage(gamelandId)
+          // }
+          // const res: any = await http2.get(`/v0/nft/${hashMessage(gamelandId)}`)
+          // if (res.data.code === 1) {
+          //   if (res.data.data === null || res.data.data.length < 1) {
+          //     http2.post('/v0/nft', params)
+          //   } else if (res.data.data.length > 0) {
+          //     const metadata: any = {
+          //       name: res.data.data[0]?.name,
+          //       image: res.data.data[0]?.img
+          //     }
+          //     item.metadata = metadata
+          //   }
+          // }
         } else if (typeof item.metadata === 'string') {
           try {
             const { name, image } = JSON.parse(item.metadata)
@@ -176,34 +222,10 @@ export const Dashboard = () => {
     })
     const syncFn = async () => {
       const contracts = [
-        '0x94e42811db93ef7831595b6ff9360491b987dfbd',
-        '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
-        '0xc65fd3945e26c15e03176810d35506956b036f39',
-        // '0xb9aee1ad85bed213b53329f060a13328eb26b7a0',
-        '0xc1f39f52bcbb4b32af4a587da015316205005987',
-        '0x584666e270341cee2c2d41c23821a568a9068ac8',
-        '0xb19dd661f076998e3b0456935092a233e12c2280',
-        '0xfde7aca6aca283a5578471ca1000745a6ce8ce81',
-        '0x416641eac164f996759b03f224005c3422b0d650',
-        '0xe7e16f2da731265778f87cb8d7850e31b84b7b86',
-        '0xcf30aeebf2ef45fbc27e4761e2b842313dfbf99b',
-        '0xcab4f7f57af24cef0a46eed4150a23b36c29d6cc',
-        '0x67ad4650b50bb4646e93faeccf6b3796e8780f18',
-        '0x5dd90959c25b62dffa67021c4bbde928a0bd6863',
-        '0x631998e91476da5b870d741192fc5cbc55f5a52e',
-        '0xc7a096b4c6610ba3a836070333ff7922b9866a36',
-        '0xb862aec93f0169249935f82fd98e6a494f53c287',
-        '0x9c09596d3d3691ea971f0b40b8cad44186868267',
-        '0xd9c5449efb3f99952f73e824688724aafb81de6e',
-        '0x8eb9be04b1df6596afa72c796f7f410aa1adba8b',
-        '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
-        '0x51ac4a13054d5d7e1fa795439821484177e7e828',
-        '0x5b30cc4def69ae2dfcddbc7ebafea82cedae0190',
-        '0x85bc2e8aaad5dbc347db49ea45d95486279ed918',
-        '0x6d3584ef37c43374151f5aa7928f7201914ea811',
-        '0xDcd8a43dF87722181840616187c5DA03836ed8db',
-        '0x22d5f9b75c524fec1d6619787e582644cd4d7422',
-        '0x8a57d0cb88e5dea66383b64669aa98c1ab48f03e'
+        '0x13b5816396c5095a145af6994688e6e53fda6095',
+        '0x7e00338097ad4397a39af5e2b36012348fd87d8b',
+        '0x4cd0ce1d5e10afbcaa565a0fe2a810ef0eb9b7e2',
+        '0xeea8bd31da9a2169c38968958b6df216381b0f08'
       ]
       const haveNfts = lendableNfts.filter((item: any) => {
         return contracts.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
@@ -224,13 +246,11 @@ export const Dashboard = () => {
       const nfts = myNfts.slice((cursor - 1) * limit, cursor * limit)
       setCurrentNft(nfts)
     }
-
     if (cursor < page) {
       setNextDisabled(false)
     } else {
       setNextDisabled(true)
     }
-
     if (cursor > 1) {
       setPrevDisabled(false)
     } else {
@@ -247,6 +267,10 @@ export const Dashboard = () => {
     mutateMyNfts(undefined)
   }
 
+  const handleToAddressChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setToAddress(val)
+  }, [])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const checkWithdrawAble = (nftOwner: string, account: string) => {
     console.log(nftOwner, account)
@@ -279,11 +303,8 @@ export const Dashboard = () => {
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
-    console.log(item)
 
     if (nftContract !== null) {
-      console.log(!!nftContract?.getApproved, !!nftContract?.isApprovedForAll)
-
       try {
         // check ERC721 approve
         if (item.contract_type === 'ERC721' && !!nftContract?.getApproved) {
@@ -307,6 +328,24 @@ export const Dashboard = () => {
       }
     }
     setAwaiting(false)
+  }
+
+  const handleSendNft = async (item: any) => {
+    setShowSend(true)
+    setToAddress('')
+    if (item.sell_orders) return
+    const contractAddress = item.token_address ?? ''
+    const localAbi = localStorage.getItem(contractAddress.toLowerCase())
+    let storedAbi
+    for (const [key, value] of Object.entries(ABIs)) {
+      if (key.toLowerCase() === contractAddress.toLowerCase()) {
+        storedAbi = value
+      }
+    }
+    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
+    const nftContract = getContract(library, contractAddress, ABI)
+    item.contract = nftContract
+    setCurrentItem(item)
   }
   const handleLiquidation = async () => {
     if (gamelandContract) {
@@ -497,7 +536,20 @@ export const Dashboard = () => {
       setLending(false)
     }
   }
-
+  const sendNFT = async () => {
+    if (currentItem.contract) {
+      try {
+        const approvetx = await currentItem.contract.transferFrom(account, toAddress, currentItem.token_id)
+        const receipt = await fetchReceipt(approvetx.hash, library)
+        if (!receipt.status) {
+          throw new Error('failed')
+        }
+        setShowSend(false)
+      } catch (err: any) {
+        toastify.error(err.message)
+      }
+    }
+  }
   const handleApprove = async () => {
     setApproving(true)
     if (currentItem.contract) {
@@ -521,6 +573,27 @@ export const Dashboard = () => {
       }
     }
     setApproving(false)
+  }
+
+  const sendApprove = async () => {
+    if (!toAddress) return
+    if (currentItem.contract) {
+      try {
+        let approvetx
+        if (currentItem.contract_type === 'ERC721' && currentItem.contract?.approve) {
+          approvetx = await currentItem.contract.approve(toAddress, currentItem.token_id)
+        } else {
+          approvetx = await currentItem.contract.setApprovalForAll(toAddress, true)
+        }
+        const receipt = await fetchReceipt(approvetx.hash, library)
+        if (!receipt.status) {
+          throw new Error('failed')
+        }
+        setIsSendApproved(true)
+      } catch (err: any) {
+        toastify.error(err.message)
+      }
+    }
   }
 
   return (
@@ -629,6 +702,24 @@ export const Dashboard = () => {
           </p>
         </ContentBox>
       </Dialog>
+      <Dialog footer={null} onCancel={() => setShowSend(false)} visible={showSend} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">Transfer your NFT</div>
+          <h2>Address</h2>
+          <div className="input">
+            <input placeholder="To address" onChange={handleToAddressChange} value={toAddress} />
+          </div>
+          {isSendApproved ? (
+            <div className="button ture" onClick={sendNFT}>
+              Send
+            </div>
+          ) : (
+            <div className={toAddress ? 'button ture' : 'button false'} onClick={sendApprove}>
+              Approve
+            </div>
+          )}
+        </SendBox>
+      </Dialog>
       <MyTabs defaultActiveKey="1">
         <TabPaneBox tab={<span className="clearGap">My NFT</span>} key="1">
           <MyNftBox>
@@ -639,7 +730,7 @@ export const Dashboard = () => {
                 </div>
               ) : currentNft && currentNft.length ? (
                 currentNft.map((item: any, index: any) => (
-                  <Col span="6" xl={6} lg={8} md={12} sm={12} xs={24} key={index} onClick={() => handleNftClick(item)}>
+                  <Col span="6" xl={6} lg={8} md={12} sm={12} xs={24} key={index}>
                     <NftCard
                       name={item.metadata?.name}
                       price={item.price}
@@ -647,6 +738,8 @@ export const Dashboard = () => {
                       img={item.metadata?.image}
                       nftId={item.token_id as string}
                       isLending={item.isLending}
+                      onLend={() => handleNftClick(item)}
+                      onSend={() => handleSendNft(item)}
                       isBorrowed={item.isBorrowed}
                       withdrawable={item.withdrawable}
                       borrowAt={item.borrowAt}

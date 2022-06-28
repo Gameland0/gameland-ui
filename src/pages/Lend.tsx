@@ -90,7 +90,7 @@ export const Lend = () => {
         }
       }
     }
-    getLendList()
+    // getLendList()
   }, [])
 
   const total = useMemo(() => {

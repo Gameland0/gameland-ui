@@ -6,10 +6,10 @@ export const NFTDigits = 9 // asume the NFT basic number is 100000
 
 export const MORALIS_KEY = 'xXnq9dJMxd0VrXQ08mHhJpOIaKSHVq37LJ8OWdhxlSoObQeCeDwWGOH2iOD99Ayu'
 export const MORALIS_API = 'https://deep-index.moralis.io/api/v2'
-export const POLYGONSCAN_KEY = 'D2X13TWY3D9KYC7TQ7C6X2RYD3ZN3379Q6'
-export const POLYGON_CHAIN_ID = 137 // 137
-export const POLYGON_CHAIN_ID_HEX = '0x89' // 137
-export const POLYGON_RPC_URL = 'https://rpc-mainnet.maticvigil.com/v1/a5ba02a72ebb3e9794e7d00984d4b39a0f5c85ed'
+export const BSCSCAN_KEY = 'TRD87KJKSHXEGV7WK8U3RREWJYRSSHMX9T'
+export const POLYGON_CHAIN_ID = 56 // 137
+export const POLYGON_CHAIN_ID_HEX = '0x38' // 137
+export const POLYGON_RPC_URL = 'https://bsc-dataseed.binance.org'
 export const MUMBAI_CHAIN_ID = 80001
 export const MUMBAI_CHAIN_ID_HEX = '0x13881'
 export const MUMBAI_RPC_URL = 'https://rpc-mumbai.maticvigil.com'
