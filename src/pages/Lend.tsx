@@ -159,7 +159,7 @@ export const Lend = () => {
       setLiquidating(true)
 
       try {
-        const liquidated = await ControlContract?.confiscation(currentItem.lendIndex, currentItem.rentIndex)
+        const liquidated = await ControlContract?.confiscation(currentItem.lendIndex, currentItem.gamelandNftId)
         const receipt = await fetchReceipt(liquidated.hash, library)
         const { status } = receipt
         if (!status) {

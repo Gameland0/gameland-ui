@@ -5,6 +5,7 @@ import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
 import { hashMessage } from 'ethers/lib/utils'
 import BigNumber from 'bignumber.js'
+import loadding from '../../assets/loading.svg'
 import { Modal } from '../../components/Modal'
 import { Dialog } from '../../components/Dialog'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
@@ -20,7 +21,7 @@ import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { ContentBox } from '../Rent'
-import { http2 } from '../../components/Store'
+import { http2, http } from '../../components/Store'
 import { MyRenting } from './MyRenting'
 import { lowerCase } from 'lower-case'
 import { parseEther } from '@ethersproject/units'
@@ -70,14 +71,22 @@ const SendBox = styled.div`
     line-height: 4rem;
     border-radius: 20px 20px 20px 20px;
     margin: 2rem 0 1rem 12rem;
+    position: relative;
   }
   .false {
-    background: rgba(73, 168, 224, 0.5);
+    background: rgba(53, 202, 169, 0.5);
     cursor: not-allowed;
   }
   .ture {
-    background: rgba(73, 168, 224, 1);
+    background: rgba(53, 202, 169, 1);
     cursor: pointer;
+  }
+  .loadding {
+    width: 64px;
+    height: 64px;
+    position: absolute;
+    top: 0px;
+    rigth: 0px;
   }
 `
 const MyNftBox = styled.div``
@@ -117,7 +126,7 @@ export const Dashboard = () => {
   const gamelandContract = useGameLandContract()
   const [cursor, setCursor] = useState(1)
   const [currentNft, setCurrentNft] = useState([] as any)
-  const [limit, setLimit] = useState(12)
+  const [limit, setLimit] = useState(48)
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
   const [myNfts, setMyNfts] = useState<any[]>([])
   const [prevDisabled, setPrevDisabled] = useState(true)
@@ -159,33 +168,17 @@ export const Dashboard = () => {
           return
         }
         const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
-        // const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
         item.gamelandNftId = hashMessage(gamelandId)
         if (!item.metadata) {
-          // const params = {
-          //   nftId: item.token_id,
-          //   contractAddress: item.token_address,
-          //   gamelandNftId: hashMessage(gamelandId)
-          // }
-          // const res: any = await http2.get(`/v0/nft/${hashMessage(gamelandId)}`)
-          // if (res.data.code === 1) {
-          //   if (res.data.data === null || res.data.data.length < 1) {
-          //     http2.post('/v0/nft', params)
-          //   } else if (res.data.data.length > 0) {
-          //     const metadata: any = {
-          //       name: res.data.data[0]?.name,
-          //       image: res.data.data[0]?.img
-          //     }
-          //     item.metadata = metadata
-          //   }
-          // }
+          try {
+            const { data } = await http.get(item.token_uri)
+            item.metadata = data
+          } catch (error) {
+            item.metadata = []
+          }
         } else if (typeof item.metadata === 'string') {
           try {
-            const { name, image } = JSON.parse(item.metadata)
-            item.metadata = {
-              name,
-              image
-            }
+            item.metadata = JSON.parse(item.metadata)
           } catch (err: any) {
             console.log(err)
             item.metadata = {}
@@ -222,10 +215,17 @@ export const Dashboard = () => {
     })
     const syncFn = async () => {
       const contracts = [
-        '0x13b5816396c5095a145af6994688e6e53fda6095',
-        '0x7e00338097ad4397a39af5e2b36012348fd87d8b',
-        '0x4cd0ce1d5e10afbcaa565a0fe2a810ef0eb9b7e2',
-        '0xeea8bd31da9a2169c38968958b6df216381b0f08'
+        // '0x13b5816396c5095a145af6994688e6e53fda6095',
+        // '0x7e00338097ad4397a39af5e2b36012348fd87d8b',
+        // '0x85f0e02cb992aa1f9f47112f815f519ef1a59e2d',
+        // '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
+        // '0x4cd0ce1d5e10afbcaa565a0fe2a810ef0eb9b7e2',
+        // '0xeea8bd31da9a2169c38968958b6df216381b0f08',
+        '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
+        '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
+        '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
+        '0x1B26e0F75c623fE9357dBC6c1871AB745fACcF04',
+        '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6'
       ]
       const haveNfts = lendableNfts.filter((item: any) => {
         return contracts.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
@@ -285,7 +285,7 @@ export const Dashboard = () => {
     setVisible(true)
     setExpired(false)
     setAwaiting(true)
-
+    console.log(item)
     if (item.sell_orders) return
 
     const contractAddress = item.token_address ?? ''
@@ -309,8 +309,6 @@ export const Dashboard = () => {
         // check ERC721 approve
         if (item.contract_type === 'ERC721' && !!nftContract?.getApproved) {
           const approveAddress = await nftContract?.getApproved(item.token_id)
-          console.log(approveAddress, approveAddress === ZeroAddress)
-
           if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
             setIsApproved(true)
           } else {
@@ -539,14 +537,17 @@ export const Dashboard = () => {
   const sendNFT = async () => {
     if (currentItem.contract) {
       try {
+        setLending(true)
         const approvetx = await currentItem.contract.transferFrom(account, toAddress, currentItem.token_id)
         const receipt = await fetchReceipt(approvetx.hash, library)
         if (!receipt.status) {
           throw new Error('failed')
         }
+        setLending(false)
         setShowSend(false)
       } catch (err: any) {
         toastify.error(err.message)
+        setLending(false)
       }
     }
   }
@@ -579,6 +580,7 @@ export const Dashboard = () => {
     if (!toAddress) return
     if (currentItem.contract) {
       try {
+        setLending(true)
         let approvetx
         if (currentItem.contract_type === 'ERC721' && currentItem.contract?.approve) {
           approvetx = await currentItem.contract.approve(toAddress, currentItem.token_id)
@@ -589,9 +591,11 @@ export const Dashboard = () => {
         if (!receipt.status) {
           throw new Error('failed')
         }
+        setLending(false)
         setIsSendApproved(true)
       } catch (err: any) {
         toastify.error(err.message)
+        setLending(false)
       }
     }
   }
@@ -712,10 +716,12 @@ export const Dashboard = () => {
           {isSendApproved ? (
             <div className="button ture" onClick={sendNFT}>
               Send
+              {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
             </div>
           ) : (
             <div className={toAddress ? 'button ture' : 'button false'} onClick={sendApprove}>
               Approve
+              {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
             </div>
           )}
         </SendBox>

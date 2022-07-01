@@ -22,7 +22,7 @@ const ImgInner = styled.span`
 export const Icon: React.FC<ImgProps> = () => {
   return (
     <ImgInner>
-      <img src={defaultImg} alt="" />
+      <img src="https://storage.nfte.ai/icon/currency/bnb.svg" alt="" />
     </ImgInner>
   )
 }

@@ -630,39 +630,29 @@ export const Rent = () => {
       return
     }
     setdays('')
-    const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
-    if (Number(item.lendIndex) != Number(index.toString())) {
-      const params = {
-        lendIndex: index.toString()
-      }
-      await http2.put(`/v0/opensea/${item.gamelandNftId}`, params)
-    }
+    // const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
+    // if (Number(item.lendIndex) != Number(index.toString())) {
+    //   const params = {
+    //     lendIndex: index.toString()
+    //   }
+    //   await http2.put(`/v0/opensea/${item.gamelandNftId}`, params) description
+    // }
+    setDescription(item.metadata.description)
     setCurrentItem(item)
     console.log(item)
     setVisible(true)
-    const getAttribute = async () => {
-      http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
-      try {
-        const nftAttributeData = await http.get(
-          `https://api.nftport.xyz/v0/nfts/${item.contractAddress}/${item.nftId}?chain=polygon`
-        )
-        setDescription(nftAttributeData.data.nft.metadata.description)
-        const RareAttribute: any[] = []
-        const SpecificAttribute: any[] = []
-        nftAttributeData.data.nft.metadata.attributes.map((item: any) => {
-          if (item.display_type) {
-            RareAttribute.push(item)
-          } else {
-            SpecificAttribute.push(item)
-          }
-        })
-        setRareAttribute(RareAttribute)
-        setSpecificAttribute(SpecificAttribute)
-      } catch (error) {
-        // handleShowModal(item)
+    console.log(typeof item.metadata.attributes === 'object')
+    if (typeof item.metadata.attributes === 'object') {
+      console.log(item.metadata.attributes)
+      const arr: any[] = []
+      for (const key in item.metadata.attributes) {
+        arr.push({ trait_type: key, value: item.metadata.attributes[key] })
       }
+      setSpecificAttribute(arr)
+    } else {
+      setSpecificAttribute(item.metadata.attributes)
     }
-    getAttribute()
+    // http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
   }
   const handleShowPrompt = () => {
     if (!LeaseDays) return
@@ -958,7 +948,7 @@ export const Rent = () => {
                     </div>
                     <div>
                       <span className="b">Blockchain</span>
-                      <span>Polygon</span>
+                      <span>BSC</span>
                     </div>
                   </div>
                 </Details>

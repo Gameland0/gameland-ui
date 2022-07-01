@@ -99,7 +99,7 @@ export const MyRenting = () => {
       }
       setRepaying(true)
       console.log(currentItem.lendIndex, currentItem.rentIndex)
-      const repaid = await ControlContract.returnnft(currentItem.lendIndex, currentItem.rentIndex)
+      const repaid = await ControlContract.returnnft(currentItem.lendIndex, currentItem.gamelandNftId)
       const receipt = await fetchReceipt(repaid.hash, library)
       const { status } = receipt
       if (!status) {
