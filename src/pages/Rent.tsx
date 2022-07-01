@@ -482,7 +482,7 @@ export const Rent = () => {
   }, [collection])
 
   useEffect(() => {
-    console.log(lendingNfts)
+    // console.log(lendingNfts)
     setLendNfts(lendingNfts)
   }, [lendingNfts])
 
@@ -666,6 +666,7 @@ export const Rent = () => {
   }
   const handleShowPrompt = () => {
     if (!LeaseDays) return
+    if (currentItem.originOwner.toLowerCase() === account?.toLowerCase()) return
     if (Number(LeaseDays) < 1) {
       toastify.error('Minimum rental days is 1 day.')
       return

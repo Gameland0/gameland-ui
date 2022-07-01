@@ -20,7 +20,7 @@ import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { ContentBox } from '../Rent'
-import { http2 } from '../../components/Store'
+import { http2, http } from '../../components/Store'
 import { MyRenting } from './MyRenting'
 import { lowerCase } from 'lower-case'
 import { parseEther } from '@ethersproject/units'
@@ -116,21 +116,27 @@ export const Dashboard = () => {
         // const gamelandId = fixDigitalId(contractIndex, item.token_id, NFTDigits)
         item.gamelandNftId = hashMessage(gamelandId)
         if (!item.metadata) {
-          const params = {
-            nftId: item.token_id,
-            contractAddress: item.token_address,
-            gamelandNftId: hashMessage(gamelandId)
-          }
-          const res: any = await http2.get(`/v0/nft/${hashMessage(gamelandId)}`)
-          if (res.data.code === 1) {
-            if (res.data.data === null || res.data.data.length < 1) {
-              http2.post('/v0/nft', params)
-            } else if (res.data.data.length > 0) {
-              const metadata: any = {
-                name: res.data.data[0]?.name,
-                image: res.data.data[0]?.img
+          if (item.token_uri) {
+            try {
+              const data = await http.get(item.token_uri)
+            } catch (error) {
+              http.defaults.headers.common['X-Api-Key'] = 'dO5hsUP3'
+              const { data } = await http.get(
+                `https://polygonapi.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+              )
+              item.metadata = {
+                name: data.data.name,
+                image: data.data.image_uri
               }
-              item.metadata = metadata
+            }
+          } else {
+            http.defaults.headers.common['X-Api-Key'] = 'dO5hsUP3'
+            const { data } = await http.get(
+              `https://polygonapi.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+            )
+            item.metadata = {
+              name: data.data.name,
+              image: data.data.image_uri
             }
           }
         } else if (typeof item.metadata === 'string') {
