@@ -288,14 +288,11 @@ export const Dashboard = () => {
     console.log(item)
 
     if (nftContract !== null) {
-      console.log(!!nftContract?.getApproved, !!nftContract?.isApprovedForAll)
-
       try {
         // check ERC721 approve
         if (item.contract_type === 'ERC721' && !!nftContract?.getApproved) {
           const approveAddress = await nftContract?.getApproved(item.token_id)
-          console.log(approveAddress, approveAddress === ZeroAddress)
-
+          console.log(approveAddress)
           if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
             setIsApproved(true)
           } else {

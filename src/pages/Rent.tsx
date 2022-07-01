@@ -869,7 +869,7 @@ export const Rent = () => {
                     <Tips>Available time 1-{currentItem.days} days.</Tips>
                   </div>
                   <br />
-                  {LeaseDays ? (
+                  {LeaseDays && lowerCase(String(account)) !== lowerCase(String(currentItem.originOwner)) ? (
                     <RentButton onClick={handleShowPrompt}>Rent</RentButton>
                   ) : (
                     <FakeButton
