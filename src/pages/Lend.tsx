@@ -6,7 +6,7 @@ import { Row, Col, Button, Popconfirm } from 'antd'
 import { Nft } from '../components/Nft'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
-import { useActiveWeb3React, useGameLandContract, useStore, useControlContract, useAssetContract } from '../hooks'
+import { useActiveWeb3React, useStore, useControlContract, useAssetContract } from '../hooks'
 import { toastify } from '../components/Toastify'
 import { fetchReceipt, formatAddress, getProgress, ZeroAddress } from '../utils'
 import { filter, isEmpty } from 'lodash'
@@ -17,13 +17,41 @@ import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
 import { Empty } from '../components/Empty'
 import { fetchAbi, getContract } from './Dashboard'
-import { Icon } from '../components/Icon'
+import { BNBIcon } from '../components/BNBIcon'
+import { BUSDIcon } from '../components/BUSDIcon'
 
 export const Dlist = styled.div`
   flex-direction: column;
+  position: relative;
   margin-top: 1rem;
   div {
     margin-bottom: 0.5rem;
+  }
+  .currentSelection {
+    height: 36px;
+    margin: 8px 0 0 0;
+    padding: 0 0 0 16px;
+    line-height: 36px;
+    border-radius: 20px;
+    background: #fff;
+    position: relative;
+    cursor: pointer;
+  }
+  .Options {
+    width: 100%;
+    height: 60px;
+    background: #fff;
+    border-radius: 16px;
+    position: absolute;
+    bottom: -68px;
+    z-index: 99;
+    div {
+      cursor: pointer;
+      padding: 0 0 0 16px;
+      &:hover {
+        background: #8cd8f8;
+      }
+    }
   }
 `
 
@@ -31,7 +59,6 @@ export const Lend = () => {
   const { account, library } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as any)
   const [visible, setVisible] = useState(false)
-  const gamelandContract = useGameLandContract()
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
   const myLendingNfts = useMyLendingNfts()
@@ -99,7 +126,7 @@ export const Lend = () => {
     }
     const penalty = currentItem.penalty as number
     const collateral = currentItem.collateral as number
-    const _cost = new BigNumber(currentItem.price as number).times(currentItem.days as number)
+    const _cost = new BigNumber(currentItem.price as number).times(currentItem.borrowDay as number)
     return _cost.plus(collateral).plus(penalty).toString()
   }, [currentItem])
 
@@ -155,17 +182,20 @@ export const Lend = () => {
   }
 
   const handleLiquidation = async () => {
-    if (gamelandContract) {
+    if (ControlContract) {
       setLiquidating(true)
-
       try {
-        const liquidated = await ControlContract?.confiscation(currentItem.lendIndex, currentItem.gamelandNftId)
+        let liquidated
+        if (currentItem.pay_type === 'eth') {
+          liquidated = await ControlContract.confiscation(currentItem.lendIndex, currentItem.gamelandNftId)
+        } else {
+          liquidated = await ControlContract.confiscation_usdt(currentItem.lendIndex, currentItem.gamelandNftId)
+        }
         const receipt = await fetchReceipt(liquidated.hash, library)
         const { status } = receipt
         if (!status) {
           throw Error('Failed to confiscated.')
         }
-        console.log(liquidated)
         const params = {
           isLending: false,
           isBorrowed: false,
@@ -209,6 +239,7 @@ export const Lend = () => {
                 contract_type={currentItem.standard}
                 unOperate={true}
                 borrowDay={currentItem.borrowDay}
+                pay_type={currentItem.pay_type}
               />
             </Col>
             <Col span="12" xl={12} sm={24}>
@@ -232,34 +263,39 @@ export const Lend = () => {
                     <div>
                       <SpanLabel>Collateral</SpanLabel>
                       <span>
-                        {currentItem.collateral} <Icon />
+                        {currentItem.collateral}&nbsp;&nbsp;
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                     <div>
                       <SpanLabel>penalty</SpanLabel>
                       <span>
-                        {currentItem.penalty} <Icon />
+                        {currentItem.penalty}&nbsp;&nbsp;
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                     <div>
                       <SpanLabel>price</SpanLabel>
                       <span>
-                        {currentItem.price} <Icon /> / day
+                        {currentItem.price}
+                        &nbsp;&nbsp;
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
                       </span>
                     </div>
                     <div>
                       <SpanLabel>days</SpanLabel>
-                      <span>{currentItem.days}</span>
+                      <span>{currentItem.borrowDay}</span>
                     </div>
                     <div>
                       <SpanLabel>Total</SpanLabel>
                       <span>
-                        {total} <Icon />
+                        {total}&nbsp;&nbsp;
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                   </Dlist>
                   <div>
-                    <DaysInfo progress={progress}>Rent for {currentItem.days} days</DaysInfo>
+                    <DaysInfo progress={progress}>Rent for {currentItem.borrowDay} days</DaysInfo>
                   </div>
                 </>
               ) : (
@@ -302,6 +338,7 @@ export const Lend = () => {
                   withdrawable={item.withdrawable}
                   contract_type={item.standard}
                   penalty={item.penalty}
+                  pay_type={item.pay_type}
                 />
               </Col>
             ))

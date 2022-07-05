@@ -23,7 +23,8 @@ import { Empty } from '../../components/Empty'
 // import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
 import { ABIs } from '../../constants/Abis/ABIs'
-import { Icon } from '../../components/Icon'
+import { BNBIcon } from '../../components/BNBIcon'
+import { BUSDIcon } from '../../components/BUSDIcon'
 // import { hashMessage } from 'ethers/lib/utils'
 
 export const MyRenting = () => {
@@ -37,14 +38,14 @@ export const MyRenting = () => {
   const { mutateDebts } = useStore()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
-
+  console.log(myRenting)
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
     }
     const penalty = currentItem.penalty as number
     const collateral = currentItem.collateral as number
-    const _cost = new BigNumber(currentItem.price as number).times(currentItem.days as number)
+    const _cost = new BigNumber(currentItem.price as number).times(currentItem.borrowDay as number)
     return _cost.plus(collateral).plus(penalty).toString()
   }, [currentItem])
 
@@ -98,14 +99,17 @@ export const MyRenting = () => {
         return
       }
       setRepaying(true)
-      console.log(currentItem.lendIndex, currentItem.rentIndex)
-      const repaid = await ControlContract.returnnft(currentItem.lendIndex, currentItem.gamelandNftId)
+      let repaid
+      if (currentItem.pay_type === 'eth') {
+        repaid = await ControlContract.returnnft(currentItem.lendIndex, currentItem.gamelandNftId)
+      } else {
+        repaid = await ControlContract.returnnft_usdt(currentItem.lendIndex, currentItem.gamelandNftId)
+      }
       const receipt = await fetchReceipt(repaid.hash, library)
       const { status } = receipt
       if (!status) {
         throw Error('Failed to repay, please try again.')
       }
-
       const params = {
         borrower: null,
         borrowAt: null,
@@ -171,6 +175,7 @@ export const MyRenting = () => {
               contract_type={currentItem.standard}
               borrowDay={currentItem.borrowDay}
               penalty={currentItem.penalty}
+              pay_type={currentItem.pay_type}
             />
           </Col>
 
@@ -187,29 +192,33 @@ export const MyRenting = () => {
               <div>
                 <SpanLabel>Collateral</SpanLabel>
                 <span>
-                  {currentItem.collateral} <Icon />
+                  {currentItem.collateral}&nbsp;&nbsp;
+                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                 </span>
               </div>
               <div>
                 <SpanLabel>penalty</SpanLabel>
                 <span>
-                  {currentItem.penalty} <Icon />
+                  {currentItem.penalty}&nbsp;&nbsp;
+                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                 </span>
               </div>
               <div>
                 <SpanLabel>price</SpanLabel>
                 <span>
-                  {currentItem.price} <Icon /> / day
+                  {currentItem.price}&nbsp;
+                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
                 </span>
               </div>
               <div>
                 <SpanLabel>days</SpanLabel>
-                <span>{currentItem.days}</span>
+                <span>{currentItem.borrowDay}</span>
               </div>
               <div>
                 <SpanLabel>Total</SpanLabel>
                 <span>
-                  {total} <Icon />
+                  {total}&nbsp;&nbsp;
+                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                 </span>
               </div>
             </Dlist>

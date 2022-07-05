@@ -9,7 +9,8 @@ import { toastify } from './Toastify'
 import BigNumber from 'bignumber.js'
 import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
-import { Icon } from '../components/Icon'
+import { BNBIcon } from '../components/BNBIcon'
+import { BUSDIcon } from '../components/BUSDIcon'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Tips = styled.span`
@@ -55,6 +56,7 @@ export interface RentProps extends NFTData {
   unOperate?: boolean
   isLending?: boolean
   penalty: number
+  pay_type: string
 }
 interface LabelProps {
   name: string
@@ -63,12 +65,13 @@ interface LabelProps {
   isExpired?: boolean
   days: number
   penalty: number
+  pay_type: string
   right?: boolean
   collateral?: number
   type: any
 }
 
-const Labels: React.FC<LabelProps> = ({ price, name, days, collateral, type, penalty }) => {
+const Labels: React.FC<LabelProps> = ({ price, name, days, collateral, type, penalty, pay_type }) => {
   const total = useMemo(() => {
     if (!days || !price || !collateral) {
       return 0
@@ -80,10 +83,11 @@ const Labels: React.FC<LabelProps> = ({ price, name, days, collateral, type, pen
     <div style={{ overflow: 'hidden' }}>
       <p>{name}</p>
       <Standard>{type}</Standard>
-      <PriceLabel>
-        {total} <Icon />
+      {/* <PriceLabel>
+        {total}&nbsp;
+        {pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
       </PriceLabel>
-      <Tips>{days} days</Tips>
+      <Tips>{days} days</Tips> */}
     </div>
   )
 }
@@ -174,6 +178,7 @@ export const RentCard: React.FC<RentProps> = ({
   isLending,
   nftId,
   contract_type,
+  pay_type,
   penalty
 }) => {
   const { networkError } = useStore()
@@ -198,6 +203,7 @@ export const RentCard: React.FC<RentProps> = ({
             penalty={penalty}
             days={days as number}
             type={contract_type}
+            pay_type={pay_type}
           />
         </div>
       </Details>

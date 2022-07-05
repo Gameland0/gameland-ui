@@ -11,6 +11,7 @@ import GameLandAbi from '../constants/Abis/GameLand.json'
 import AssetContractAbi from '../constants/Abis/assetContract.json'
 import ControlContractAbi from '../constants/Abis/controlContract.json'
 import erc721Abi from '../constants/Abis/erc721.json'
+import BUSD from '../constants/Abis/busd.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import { ABIs } from '../constants/Abis/ABIs'
@@ -18,8 +19,9 @@ import { GAMELADDRESS } from '../constants'
 
 export const GameLandAddress = GAMELADDRESS
 export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
-export const ControlContractAddress = '0x206C09D2c4aD787a279635a4A1926CCB38adD535'
-export const AssetContractAddress = '0x4d57cBfFacc67F04605e13a1Eb9A1E69F9EDDBE8'
+export const ControlContractAddress = '0xf0Bccbd3516e655d2EBA7836EAF78108a306AAcF'
+export const AssetContractAddress = '0x0B7b14E00017a6f46E180086Ffce54b1a5FC7dDc'
+export const ERC20Address = '0xe9e7cea3dedca5984780bafc599bd69add087d56'
 export const ERC721Address = '0xaaE8DfD6727Eb98ab19E352ef84927f9C6819073'
 
 interface OpenseaData {
@@ -176,6 +178,13 @@ export function useTsContract() {
   if (!library) return null
 
   return new Contract(TSAddress, ABIs[TSAddress], library.getSigner())
+}
+
+export function useERC20Contract() {
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+
+  return new Contract(ERC20Address, BUSD, library.getSigner())
 }
 
 export function useAssetContract() {

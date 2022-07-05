@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import axios from 'axios'
 import { Row, Col, Tabs, Button, Popconfirm } from 'antd'
 import styled from 'styled-components'
 import { Web3Provider } from '@ethersproject/providers'
@@ -6,6 +7,7 @@ import { Contract } from '@ethersproject/contracts'
 import { hashMessage } from 'ethers/lib/utils'
 import BigNumber from 'bignumber.js'
 import loadding from '../../assets/loading.svg'
+import arrow from '../../assets/icon_select.svg'
 import { Modal } from '../../components/Modal'
 import { Dialog } from '../../components/Dialog'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
@@ -148,6 +150,8 @@ export const Dashboard = () => {
   const [withdrawable, setWithdrawable] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
   const [isSendApproved, setIsSendApproved] = useState(false)
+  const [options, setOptions] = useState(false)
+  const [currentSelection, setCurrentSelection] = useState('BNB')
   // const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
 
@@ -161,7 +165,6 @@ export const Dashboard = () => {
         let contractIndex = contracts.findIndex((i: any) => {
           return i.toLowerCase() === item.token_address.toLowerCase()
         })
-
         if (contractIndex >= 0) {
           contractIndex = contractIndex + 1
         } else {
@@ -178,7 +181,20 @@ export const Dashboard = () => {
           }
         } else if (typeof item.metadata === 'string') {
           try {
-            item.metadata = JSON.parse(item.metadata)
+            if (!JSON.parse(item.metadata).name || !JSON.parse(item.metadata).image) {
+              const getdata = axios.create({
+                timeout: 10000,
+                headers: {
+                  'X-Api-Key': 'dO5hsUP3'
+                }
+              })
+              const { data } = await getdata.get(
+                `https://bnbapi.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+              )
+              item.metadata = JSON.parse(data.data.metadata_json)
+            } else {
+              item.metadata = JSON.parse(item.metadata)
+            }
           } catch (err: any) {
             console.log(err)
             item.metadata = {}
@@ -193,11 +209,11 @@ export const Dashboard = () => {
 
   // useEffect(() => {
   //   ControlContract?.add_nft_programforarray([
-  //     '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
-  //     '0x51ac4a13054d5d7e1fa795439821484177e7e828',
-  //     '0x5b30cc4def69ae2dfcddbc7ebafea82cedae0190',
-  //     '0x85bc2e8aaad5dbc347db49ea45d95486279ed918',
-  //     '0x22d5f9b75c524fec1d6619787e582644cd4d7422'
+  //     '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
+  //     '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
+  //     '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
+  //     '0x1B26e0F75c623fE9357dBC6c1871AB745fACcF04',
+  //     '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6'
   //   ])
   // }, [])
 
@@ -215,12 +231,6 @@ export const Dashboard = () => {
     })
     const syncFn = async () => {
       const contracts = [
-        // '0x13b5816396c5095a145af6994688e6e53fda6095',
-        // '0x7e00338097ad4397a39af5e2b36012348fd87d8b',
-        // '0x85f0e02cb992aa1f9f47112f815f519ef1a59e2d',
-        // '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
-        // '0x4cd0ce1d5e10afbcaa565a0fe2a810ef0eb9b7e2',
-        // '0xeea8bd31da9a2169c38968958b6df216381b0f08',
         '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
         '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
         '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
@@ -285,7 +295,6 @@ export const Dashboard = () => {
     setVisible(true)
     setExpired(false)
     setAwaiting(true)
-    console.log(item)
     if (item.sell_orders) return
 
     const contractAddress = item.token_address ?? ''
@@ -297,7 +306,6 @@ export const Dashboard = () => {
         storedAbi = value
       }
     }
-
     // const constantAbi: any[] = ABIs[contractAddress]
     const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
@@ -307,8 +315,9 @@ export const Dashboard = () => {
     if (nftContract !== null) {
       try {
         // check ERC721 approve
-        if (item.contract_type === 'ERC721' && !!nftContract?.getApproved) {
+        if (item.contract_type === 'ERC721' && nftContract?.getApproved) {
           const approveAddress = await nftContract?.getApproved(item.token_id)
+          console.log(approveAddress)
           if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
             setIsApproved(true)
           } else {
@@ -473,6 +482,12 @@ export const Dashboard = () => {
       const cost = Day.times(Price)
       const PenaltyProportion = new BigNumber(penalty as unknown as string).times(new BigNumber('0.01'))
       const amount = Collateral.plus(cost)
+      let type
+      if (currentSelection === 'BNB') {
+        type = 'eth'
+      } else {
+        type = 'usdt'
+      }
       const Penalty = amount.times(PenaltyProportion).toString()
       const deposited = await ControlContract?.deposit(
         currentItem.metadata.name,
@@ -484,7 +499,7 @@ export const Dashboard = () => {
         parseEther(Penalty),
         currentItem.gamelandNftId,
         currentItem.token_address,
-        'eth'
+        type
       )
 
       const receipt = await fetchReceipt(deposited.hash, library)
@@ -506,7 +521,7 @@ export const Dashboard = () => {
         createdAt: new Date().toJSON(),
         updatedAt: new Date().toJSON(),
         penalty: Penalty,
-        pay_type: 'eth',
+        pay_type: type,
         lendIndex: index.toString(),
         expire_blocktime: Math.floor(new Date().valueOf() / 1000),
         name: currentItem.metadata.name,
@@ -618,6 +633,7 @@ export const Dashboard = () => {
               contract_type={currentItem.contract_type}
               borrowDay={currentItem.borrowDay}
               penalty={0}
+              pay_type={currentItem.pay_type}
             />
           </Col>
 
@@ -658,6 +674,35 @@ export const Dashboard = () => {
                   <div>
                     <span>Enter renting days.</span>
                     <NumInput validInt onChange={handleDaysChange} value={days} />
+                  </div>
+                  <div>
+                    <span>choose type.</span>
+                    <div className="currentSelection" onClick={() => setOptions(!options)}>
+                      {currentSelection}
+                      <img src={arrow} className="arrowIcon" />
+                    </div>
+                    {options ? (
+                      <div className="Options">
+                        <div
+                          onClick={() => {
+                            setCurrentSelection('BNB')
+                            setOptions(false)
+                          }}
+                        >
+                          BNB
+                        </div>
+                        <div
+                          onClick={() => {
+                            setCurrentSelection('BUSD')
+                            setOptions(false)
+                          }}
+                        >
+                          BUSD
+                        </div>
+                      </div>
+                    ) : (
+                      ''
+                    )}
                   </div>
                 </Dlist>
                 <br />
@@ -754,6 +799,7 @@ export const Dashboard = () => {
                       contract_type={item.contract_type}
                       borrowDay={item.borrowDay}
                       penalty={0}
+                      pay_type={item.pay_type}
                     ></NftCard>
                   </Col>
                 ))

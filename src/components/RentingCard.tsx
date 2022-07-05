@@ -77,6 +77,20 @@ export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isEx
     </div>
   )
 }
+export const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt, borrowDay }) => {
+  const progress = useMemo(() => getProgress(borrowAt, borrowDay), [borrowAt, borrowDay])
+  const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
+
+  return (
+    <div style={{ overflow: 'hidden' }}>
+      {right || <p>{name}</p>}
+      <ProgressBar right={right}>
+        <InProgress progress={progress} isExpired={isExpired} />
+      </ProgressBar>
+      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem' }}>{isExpired ? 'Expired' : dayLeft}</p>
+    </div>
+  )
+}
 const FakeButtonBox = styled.div<{ type?: string }>`
   display: block;
   height: 2rem;
@@ -129,7 +143,7 @@ export const RentingCard: React.FC<RentingProps> = ({
     if (!dayLeft) return
     if (dayLeft.length <= 5) {
       const hs = parseInt(dayLeft)
-      if (hs < 8) {
+      if (hs < 1) {
         setOverTime(true)
       }
     }

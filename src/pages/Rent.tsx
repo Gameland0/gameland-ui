@@ -8,7 +8,14 @@ import { Modal } from '../components/Modal'
 import { Dialog } from '../components/Dialog'
 import BigNumber from 'bignumber.js'
 import { Img } from '../components/Img'
-import { useActiveWeb3React, useGameLandContract, useStore, useControlContract, useAssetContract } from '../hooks'
+import {
+  useActiveWeb3React,
+  useStore,
+  useControlContract,
+  ControlContractAddress,
+  useERC20Contract,
+  useAssetContract
+} from '../hooks'
 import { toastify } from '../components/Toastify'
 import { useLendingNfts } from '../hooks/useLendingNfts'
 // import { Nft as NftCard, NftProps } from '../components/Nft'
@@ -24,7 +31,8 @@ import { RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
 import { fetchReceipt, formatAddress, ZeroAddress, formatting } from '../utils'
 import { http2, http } from '../components/Store'
-import { Icon } from '../components/Icon'
+import { BNBIcon } from '../components/BNBIcon'
+import { BUSDIcon } from '../components/BUSDIcon'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
@@ -440,7 +448,7 @@ export const Rent = () => {
   const lendingNfts = useLendingNfts()
   const [lendNfts, setLendNfts] = useState(lendingNfts)
   const { mutateDebts } = useStore()
-  const gamelandContract = useGameLandContract()
+  const ERC20Contract = useERC20Contract()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
   const [renting, setRenting] = useState(false)
@@ -557,9 +565,12 @@ export const Rent = () => {
     }
     const collateral = currentItem.collateral as number
     const Penalty = new BigNumber(currentItem.penalty as unknown as string)
-    const _cost = new BigNumber(currentItem.price as number).times(currentItem.days as number)
+    const _cost = new BigNumber(currentItem.price as number).times(Number(LeaseDays))
+    if (!LeaseDays) {
+      return 0
+    }
     return _cost.plus(collateral).plus(Penalty).toString()
-  }, [currentItem])
+  }, [LeaseDays])
 
   const compare = (sortby: any) => {
     return function (obj1: any, obj2: any) {
@@ -625,25 +636,23 @@ export const Rent = () => {
   }, [])
 
   const handleShowModal = async (item: any) => {
-    if (!gamelandContract) {
+    if (!AssetContract) {
       toastify.error('Contract not found, please connect wallet.')
       return
     }
     setdays('')
-    // const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
-    // if (Number(item.lendIndex) != Number(index.toString())) {
-    //   const params = {
-    //     lendIndex: index.toString()
-    //   }
-    //   await http2.put(`/v0/opensea/${item.gamelandNftId}`, params) description
-    // }
+    const index = await AssetContract.get_nftsindex(item.gamelandNftId)
+    if (Number(item.lendIndex) != Number(index.toString())) {
+      const params = {
+        lendIndex: index.toString()
+      }
+      await http2.put(`/v0/opensea/${item.gamelandNftId}`, params)
+    }
     setDescription(item.metadata.description)
     setCurrentItem(item)
     console.log(item)
     setVisible(true)
-    console.log(typeof item.metadata.attributes === 'object')
-    if (typeof item.metadata.attributes === 'object') {
-      console.log(item.metadata.attributes)
+    if (item.metadata.attributes.constructor === Object) {
       const arr: any[] = []
       for (const key in item.metadata.attributes) {
         arr.push({ trait_type: key, value: item.metadata.attributes[key] })
@@ -656,6 +665,7 @@ export const Rent = () => {
   }
   const handleShowPrompt = () => {
     if (!LeaseDays) return
+    if (lowerCase(String(account)) === lowerCase(String(currentItem.originOwner))) return
     if (Number(LeaseDays) < 1) {
       toastify.error('Minimum rental days is 1 day.')
       return
@@ -687,11 +697,21 @@ export const Rent = () => {
       const cost = days.times(price)
       const Penalty = new BigNumber(currentItem.penalty as unknown as string)
       const amount = collateral.plus(cost).plus(Penalty).toString()
-      console.log(parseEther(amount))
-
-      const rented = await ControlContract?.connect(library.getSigner()).rent(currentItem.lendIndex, LeaseDays, {
-        value: parseEther(amount)
-      })
+      let rented
+      if (currentItem.pay_type === 'eth') {
+        rented = await ControlContract?.connect(library.getSigner()).rent(currentItem.lendIndex, LeaseDays, {
+          value: parseEther(amount)
+        })
+      } else {
+        // const allowance = await ERC20Contract?.allowance(account, ControlContractAddress)
+        // console.log(allowance.toString())
+        const approvetx = await ERC20Contract?.approve(ControlContractAddress, parseEther(amount))
+        const approvereceipt = await fetchReceipt(approvetx.hash, library)
+        if (!approvereceipt.status) {
+          throw new Error('failed')
+        }
+        rented = await ControlContract?.connect(library.getSigner()).rent_usdt(currentItem.lendIndex, LeaseDays)
+      }
       console.log(rented)
       const receipt = await fetchReceipt(rented.hash, library)
       const { status } = receipt
@@ -824,17 +844,19 @@ export const Rent = () => {
                     <div>
                       <SpanLabel>Collateral</SpanLabel>
                       <span>
-                        {currentItem.collateral} <Icon />
+                        {currentItem.collateral}&nbsp;&nbsp;
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                     <div>
                       <SpanLabel>penalty</SpanLabel>
                       <span>
-                        {currentItem.penalty} <Icon />
+                        {currentItem.penalty}&nbsp;&nbsp;
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                     <div>
-                      <SpanLabel>days</SpanLabel>
+                      <SpanLabel>Max days</SpanLabel>
                       <span>{currentItem.days}</span>
                     </div>
                     <div>
@@ -842,13 +864,14 @@ export const Rent = () => {
                       <span className="blue">
                         <span className="bigSize">{currentItem.price}</span>
                         &nbsp;&nbsp;
-                        <Icon /> / day
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
                       </span>
                     </div>
                     <div>
                       <SpanLabel>Total</SpanLabel>
                       <span className="blue bigSize">
-                        {total} <Icon />
+                        {total}&nbsp;&nbsp;
+                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                   </Dlist>
@@ -858,19 +881,15 @@ export const Rent = () => {
                     <Tips>Available time 1-{currentItem.days} days.</Tips>
                   </div>
                   <br />
-                  {LeaseDays ? (
-                    <RentButton onClick={handleShowPrompt}>Rent</RentButton>
-                  ) : (
-                    <FakeButton
-                      onClick={handleShowPrompt}
-                      loading={renting}
-                      value={LeaseDays}
-                      block
-                      disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
-                    >
-                      Rent
-                    </FakeButton>
-                  )}
+                  <FakeButton
+                    onClick={handleShowPrompt}
+                    loading={renting}
+                    value={LeaseDays}
+                    block
+                    disabled={lowerCase(String(account)) === lowerCase(String(currentItem.originOwner)) || renting}
+                  >
+                    Rent
+                  </FakeButton>
                   <br />
                   <p className=" text-center">
                     <span className="tips">
@@ -994,6 +1013,7 @@ export const Rent = () => {
                       isLending={item.isLending}
                       contract_type={item.standard}
                       penalty={item.penalty}
+                      pay_type={item.pay_type}
                     />
                   </Col>
                 ))

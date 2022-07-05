@@ -5,7 +5,8 @@ import { Img } from './Img'
 import { BaseProps } from './NumInput'
 import { ProgressLabelProps, ProgressLabels } from './RentingCard'
 import { toastify } from './Toastify'
-import { Icon } from '../components/Icon'
+import { BNBIcon } from '../components/BNBIcon'
+import { BUSDIcon } from '../components/BUSDIcon'
 import Default from '../assets/default.png'
 import Blade from '../assets/blade.png'
 import Chaos from '../assets/chaos.png'
@@ -71,6 +72,7 @@ export interface NftProps extends NFTData {
   size?: number
   borrowDay: number
   penalty: number
+  pay_type: string
 }
 interface LabelProps {
   name: string
@@ -78,6 +80,7 @@ interface LabelProps {
   nftId: string
   price?: number
   penalty: number
+  pay_type: string
   days?: number
   collateral?: number
   withdrawable?: boolean
@@ -94,7 +97,17 @@ const LabelsWrap = styled.div`
     text-overflow: ellipsis;
   }
 `
-const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, price, days, collateral, penalty }) => {
+const Labels: React.FC<LabelProps> = ({
+  name,
+  isLending,
+  withdrawable,
+  pay_type,
+  nftId,
+  price,
+  days,
+  collateral,
+  penalty
+}) => {
   const total = useMemo(() => {
     if (!days || !price || !collateral) {
       return 0
@@ -108,7 +121,8 @@ const Labels: React.FC<LabelProps> = ({ name, isLending, withdrawable, nftId, pr
       {isLending || withdrawable ? (
         <div>
           <PriceLabel>
-            {total} <Icon />
+            {total}&nbsp;
+            {pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
           </PriceLabel>
           <Days>{days} days</Days>
         </div>
@@ -261,6 +275,7 @@ export const Nft: React.FC<NftProps> = ({
   sell_orders,
   contract_type,
   borrowDay,
+  pay_type,
   penalty
 }) => {
   const { networkError } = useStore()
@@ -298,8 +313,9 @@ export const Nft: React.FC<NftProps> = ({
             isLending={isLending}
             nftId={nftId}
             price={price}
-            days={days}
+            days={borrowDay}
             penalty={penalty}
+            pay_type={pay_type}
           />
           <Standard color={contract_type === 'ERC721' ? 'processing' : 'orange'}>{contract_type}</Standard>
         </div>
