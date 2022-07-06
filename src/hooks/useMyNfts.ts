@@ -1,12 +1,11 @@
 import { lowerCase } from 'lower-case'
 import { useMemo } from 'react'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { NFTData, useActiveWeb3React, useGameLandContract, useStore } from '.'
+import { NFTData, useActiveWeb3React, useStore } from '.'
 
 export const useMyNfts = (): NFTData[] => {
   const { nfts } = useStore()
   const { account } = useActiveWeb3React()
-  // const gameland = useGameLandContract()
 
   return useMemo(() => {
     if (!nfts) return []

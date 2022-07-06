@@ -11,14 +11,7 @@ import arrow from '../../assets/icon_select.svg'
 import { Modal } from '../../components/Modal'
 import { Dialog } from '../../components/Dialog'
 import { Nft as NftCard, NftProps } from '../../components/Nft'
-import {
-  AssetContractAddress,
-  useActiveWeb3React,
-  useGameLandContract,
-  useStore,
-  useAssetContract,
-  useControlContract
-} from '../../hooks'
+import { useActiveWeb3React, useStore, useAssetContract, useControlContract } from '../../hooks'
 import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
@@ -33,7 +26,7 @@ import { useFetchMyNfts } from '../../hooks/useFetchMyNfts'
 import { Pagination } from '../../components/Pagination'
 import { ConnectWallet } from '../../components/ConnectWallet'
 import { fetchReceipt, fixDigitalId, ZeroAddress } from '../../utils'
-import { NFTDigits, OPENSEA_URL, BSCSCAN_KEY } from '../../constants'
+import { BSCAssetContractAddress, OPENSEA_URL, BSCSCAN_KEY } from '../../constants'
 import { ABIs } from '../../constants/Abis/ABIs'
 
 const { TabPane } = Tabs
@@ -125,7 +118,6 @@ export const Dashboard = () => {
   const { mutateDebts, nfts } = useStore()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
-  const gamelandContract = useGameLandContract()
   const [cursor, setCursor] = useState(1)
   const [currentNft, setCurrentNft] = useState([] as any)
   const [limit, setLimit] = useState(48)
@@ -143,8 +135,6 @@ export const Dashboard = () => {
   const [days, setdays] = useState('')
   const [collateral, setCollateral] = useState('')
   const [lending, setLending] = useState(false)
-  const [withdrawing, setWithdrawing] = useState(false)
-  const [liquidating, setLiquidating] = useState(false)
   const [approving, setApproving] = useState(false)
   const [expired, setExpired] = useState(false)
   const [withdrawable, setWithdrawable] = useState(false)
@@ -282,14 +272,6 @@ export const Dashboard = () => {
     setToAddress(val)
   }, [])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const checkWithdrawAble = (nftOwner: string, account: string) => {
-    console.log(nftOwner, account)
-
-    if (!nftOwner || !account) {
-      return false
-    }
-    return lowerCase(nftOwner) !== lowerCase(account)
-  }
 
   const handleNftClick = async (item: any) => {
     setVisible(true)
@@ -306,7 +288,6 @@ export const Dashboard = () => {
         storedAbi = value
       }
     }
-    // const constantAbi: any[] = ABIs[contractAddress]
     const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
@@ -318,14 +299,14 @@ export const Dashboard = () => {
         if (item.contract_type === 'ERC721' && nftContract?.getApproved) {
           const approveAddress = await nftContract?.getApproved(item.token_id)
           console.log(approveAddress)
-          if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
+          if (lowerCase(approveAddress) === lowerCase(BSCAssetContractAddress as string)) {
             setIsApproved(true)
           } else {
             setIsApproved(false)
           }
         } else if (!!nftContract?.isApprovedForAll) {
           // check ERC1155 approve
-          const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
+          const isApproved = await nftContract?.isApprovedForAll(BSCAssetContractAddress, account)
           console.log(isApproved)
 
           isApproved ? setIsApproved(true) : setIsApproved(false)
@@ -353,103 +334,6 @@ export const Dashboard = () => {
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
-  }
-  const handleLiquidation = async () => {
-    if (gamelandContract) {
-      setLiquidating(true)
-
-      try {
-        const liquidated = await gamelandContract.confiscation(currentItem.gamelandNftId, currentItem.id)
-        const receipt = await fetchReceipt(liquidated.hash, library)
-        const { status } = receipt
-        if (!status) {
-          throw Error('Failed to confiscated.')
-        }
-        console.log(liquidated)
-        const params = {
-          isLending: false,
-          isBorrowed: false,
-          borrower: '',
-          originOwner: currentItem.borrower,
-          price: 0,
-          days: 0,
-          collateral: 0,
-          borrowAt: null
-        }
-        const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
-        if (res.data.code === 1) {
-          toastify.success('succeed')
-          setLiquidating(false)
-          setVisible(false)
-          mutateDebts(undefined, true)
-        }
-      } catch (err: any) {
-        console.log(err.message)
-        toastify.error(err.message || err.data.message)
-        setLiquidating(false)
-      }
-    }
-  }
-
-  const handleWithdraw = async () => {
-    if (gamelandContract) {
-      try {
-        if (!account) {
-          toastify.error('Please connect a account.')
-          return
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const contractAddress = currentItem.token_address ?? ''
-        if (!gamelandContract || !currentItem.contract) {
-          toastify.error('Contract not found.')
-          return
-        }
-        setWithdrawing(true)
-        const owner = await currentItem.contract.ownerOf(currentItem.nftId)
-        // const owner = await NFTsContract[contractAddress].ownerOf(currentItem.nftId)
-
-        if (lowerCase(owner) !== lowerCase(account)) {
-          const withdrawnft = await gamelandContract.withdrawnft(
-            currentItem.nftId,
-            currentItem.contractAddress,
-            currentItem.gamelandNftId,
-            currentItem.id
-          )
-          const receipt = await fetchReceipt(withdrawnft.hash, library)
-          const { status } = receipt
-          if (!status) {
-            throw Error('Failed to withdraw.')
-          }
-        }
-        const params = {
-          isLending: false,
-          price: 0,
-          days: 0,
-          collateral: 0,
-          withdrawable: false,
-          borrower: null,
-          borrowAt: null
-        }
-        const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
-        console.log(owner, res)
-
-        if (res.data.code === 1) {
-          console.log(res.data.message)
-
-          toastify.success('succeed')
-          mutateDebts(undefined, true)
-          setWithdrawable(false)
-          setVisible(false)
-          setWithdrawing(false)
-        } else {
-          throw res.message || res.data.message || 'Server down.'
-        }
-      } catch (err: any) {
-        console.log(err)
-        toastify.error(err.message)
-        setWithdrawing(false)
-      }
-    }
   }
   const handlePriceChange = useCallback((val) => setPrice(val), [])
   const handleDaysChange = useCallback((val) => setdays(val), [])
@@ -572,9 +456,9 @@ export const Dashboard = () => {
       try {
         let approvetx
         if (currentItem.contract_type === 'ERC721' && currentItem.contract?.approve) {
-          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.token_id)
+          approvetx = await currentItem.contract.approve(BSCAssetContractAddress, currentItem.token_id)
         } else {
-          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(BSCAssetContractAddress, true)
         }
         console.log(approvetx)
         const receipt = await fetchReceipt(approvetx.hash, library)
@@ -652,10 +536,6 @@ export const Dashboard = () => {
               </a>
             ) : awaiting ? (
               <Loading />
-            ) : withdrawable ? (
-              <Button block shape="round" loading={withdrawing} onClick={handleWithdraw} size="large">
-                Withdraw
-              </Button>
             ) : isApproved ? (
               <>
                 <Dlist className="flex">
@@ -724,17 +604,6 @@ export const Dashboard = () => {
                 <Button className="lend" shape="round" block onClick={handleApprove} loading={approving} size="large">
                   Approve
                 </Button>
-              </div>
-            )}
-            {expired && (
-              <div>
-                <br />
-
-                <Popconfirm title="Are you sure to liquidation your NFT?" onConfirm={handleLiquidation}>
-                  <Button shape="round" danger block loading={liquidating} size="large">
-                    Liquidation
-                  </Button>
-                </Popconfirm>
               </div>
             )}
           </Col>

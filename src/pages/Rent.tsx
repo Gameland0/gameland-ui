@@ -1,30 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useEffect, useCallback, useMemo, useState } from 'react'
-
-// import { useGreeterContract } from '../hooks'
 import { Row, Col } from 'antd'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import { Dialog } from '../components/Dialog'
 import BigNumber from 'bignumber.js'
 import { Img } from '../components/Img'
-import {
-  useActiveWeb3React,
-  useStore,
-  useControlContract,
-  ControlContractAddress,
-  useERC20Contract,
-  useAssetContract
-} from '../hooks'
+import { useActiveWeb3React, useStore, useControlContract, useERC20Contract, useAssetContract } from '../hooks'
 import { toastify } from '../components/Toastify'
 import { useLendingNfts } from '../hooks/useLendingNfts'
-// import { Nft as NftCard, NftProps } from '../components/Nft'
-// import { Contract } from '@ethersproject/contracts'
-// import polygonIcon from '../assets/polygon_icon.svg'
 import search from '../assets/search_bar_icon_search.svg'
 import arrow from '../assets/icon_select.svg'
 import { NumInput } from '../components/DaysInput'
-// import { NftView } from '../components/NftView'
 import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
 import { RentCard } from '../components/RentCard'
@@ -37,7 +23,8 @@ import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
-import { fetchAbi } from './Dashboard/index'
+
+import { BSCControlContractAddress } from '../constants'
 
 export const RentBox = styled.div`
   margin: 5rem 0 6rem 1rem;
@@ -154,27 +141,6 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
     margin-top: 8px;
   }
 `
-const RentButton = styled.button`
-  display: block;
-  height: 12%;
-  cursor: pointer;
-  border-radius: 1.25rem;
-  padding: 0 1rem;
-  line-height: 2.5rem;
-  font-size: 0.875rem;
-  width: 100%;
-  color: #fff;
-  background: rgba(53, 202, 169, 1);
-  border: none;
-
-  @media screen and (min-width: 1920px) {
-    height: 78px;
-    line-height: 78px;
-    font-size: 18px;
-    margin-top: 8px;
-  }
-`
-
 interface FakeButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, BaseProps {
   theme?: 'fill' | 'ghost'
   loading?: boolean
@@ -519,11 +485,6 @@ export const Rent = () => {
           for (let i = 0; i < newArr.length; i++) {
             const list = await AssetContract.get_nfts(newArr[i])
             const index = await AssetContract.get_nftsindex(newArr[i])
-            // const ABI = await fetchAbi(list.form_contract)
-            // const contract = new Contract(list.form_contract, ABI, library?.getSigner())
-            // const tokenURI = await contract?.tokenURI(list.nft_id)
-            // console.log(tokenURI)
-            // const { data } = await http.get(tokenURI)
             const price = new BigNumber(Number(list.daily_price.toString())).dividedBy(
               new BigNumber(1000000000000000000)
             )
@@ -551,7 +512,6 @@ export const Rent = () => {
               // img: data.image,
               name: list.nft_name
             }
-            // console.log(params)
             await http2.post(`/v0/opensea/`, params)
           }
         }
@@ -705,7 +665,7 @@ export const Rent = () => {
       } else {
         // const allowance = await ERC20Contract?.allowance(account, ControlContractAddress)
         // console.log(allowance.toString())
-        const approvetx = await ERC20Contract?.approve(ControlContractAddress, parseEther(amount))
+        const approvetx = await ERC20Contract?.approve(BSCControlContractAddress, parseEther(amount))
         const approvereceipt = await fetchReceipt(approvetx.hash, library)
         if (!approvereceipt.status) {
           throw new Error('failed')
@@ -844,14 +804,16 @@ export const Rent = () => {
                     <div>
                       <SpanLabel>Collateral</SpanLabel>
                       <span>
-                        {currentItem.collateral}&nbsp;&nbsp;
+                        {currentItem.collateral}&nbsp;
+                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                     <div>
                       <SpanLabel>penalty</SpanLabel>
                       <span>
-                        {currentItem.penalty}&nbsp;&nbsp;
+                        {currentItem.penalty}&nbsp;
+                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
@@ -862,15 +824,18 @@ export const Rent = () => {
                     <div>
                       <SpanLabel>price</SpanLabel>
                       <span className="blue">
-                        <span className="bigSize">{currentItem.price}</span>
-                        &nbsp;&nbsp;
+                        <span className="bigSize">
+                          {currentItem.price}&nbsp;
+                          {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
+                        </span>
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
                       </span>
                     </div>
                     <div>
                       <SpanLabel>Total</SpanLabel>
                       <span className="blue bigSize">
-                        {total}&nbsp;&nbsp;
+                        {total}&nbsp;
+                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>

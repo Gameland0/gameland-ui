@@ -9,8 +9,8 @@ import { toastify } from './Toastify'
 import BigNumber from 'bignumber.js'
 import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
-import { BNBIcon } from '../components/BNBIcon'
-import { BUSDIcon } from '../components/BUSDIcon'
+// import { BNBIcon } from '../components/BNBIcon'
+// import { BUSDIcon } from '../components/BUSDIcon'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Tips = styled.span`

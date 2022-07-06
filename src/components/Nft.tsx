@@ -64,7 +64,7 @@ const ProgressBar = styled.div<{ right?: boolean }>`
   width: 6rem;
   position: absolute;
   right: 0rem;
-  top: 1rem;
+  top: 8px;
   background: white;
   border-radius: 2px;
   background: #e3e5e7;
@@ -127,7 +127,7 @@ const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, borrowAt
       <ProgressBar right={right}>
         <InProgress progress={progress} isExpired={isExpired} />
       </ProgressBar>
-      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem', marginTop: '24px' }}>
+      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem', marginTop: '22px' }}>
         {isExpired ? 'Expired' : dayLeft}
       </p>
     </div>

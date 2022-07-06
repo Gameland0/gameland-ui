@@ -1,13 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  useControlContract,
-  AssetContractAddress,
-  useActiveWeb3React,
-  useAssetContract,
-  useGameLandContract,
-  useMyRenting,
-  useStore
-} from '../../hooks'
+import { useControlContract, useActiveWeb3React, useAssetContract, useMyRenting, useStore } from '../../hooks'
 import { Row, Col, Button } from 'antd'
 import { RentingCard } from '../../components/RentingCard'
 import { Nft as NftCard } from '../../components/Nft'
@@ -25,6 +17,7 @@ import { fetchAbi, getContract } from '.'
 import { ABIs } from '../../constants/Abis/ABIs'
 import { BNBIcon } from '../../components/BNBIcon'
 import { BUSDIcon } from '../../components/BUSDIcon'
+import { BSCAssetContractAddress } from '../../constants'
 // import { hashMessage } from 'ethers/lib/utils'
 
 export const MyRenting = () => {
@@ -38,7 +31,6 @@ export const MyRenting = () => {
   const { mutateDebts } = useStore()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
-  console.log(myRenting)
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
@@ -75,8 +67,8 @@ export const MyRenting = () => {
     if (nftContract) {
       try {
         const approveAddress = await nftContract.getApproved(item.nftId)
-        console.log(approveAddress, AssetContractAddress)
-        if (approveAddress === AssetContractAddress) {
+        console.log(approveAddress, BSCAssetContractAddress)
+        if (approveAddress === BSCAssetContractAddress) {
           setIsApproved(true)
         } else {
           setIsApproved(false)
@@ -142,9 +134,9 @@ export const MyRenting = () => {
       try {
         let approvetx
         if (currentItem.standard === 'ERC721' && !!currentItem.contract.approve) {
-          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.nftId)
+          approvetx = await currentItem.contract.approve(BSCAssetContractAddress, currentItem.nftId)
         } else {
-          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(BSCAssetContractAddress, true)
         }
         const receipt = await fetchReceipt(approvetx.hash, library)
         const { status } = receipt
@@ -192,14 +184,16 @@ export const MyRenting = () => {
               <div>
                 <SpanLabel>Collateral</SpanLabel>
                 <span>
-                  {currentItem.collateral}&nbsp;&nbsp;
+                  {currentItem.collateral}&nbsp;
+                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                   {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                 </span>
               </div>
               <div>
                 <SpanLabel>penalty</SpanLabel>
                 <span>
-                  {currentItem.penalty}&nbsp;&nbsp;
+                  {currentItem.penalty}&nbsp;
+                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                   {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                 </span>
               </div>
@@ -207,6 +201,7 @@ export const MyRenting = () => {
                 <SpanLabel>price</SpanLabel>
                 <span>
                   {currentItem.price}&nbsp;
+                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                   {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
                 </span>
               </div>
@@ -217,7 +212,8 @@ export const MyRenting = () => {
               <div>
                 <SpanLabel>Total</SpanLabel>
                 <span>
-                  {total}&nbsp;&nbsp;
+                  {total}&nbsp;
+                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                   {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                 </span>
               </div>

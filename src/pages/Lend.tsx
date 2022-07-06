@@ -1,7 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-
-// import { useGreeterContract } from '../hooks'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Row, Col, Button, Popconfirm } from 'antd'
 import { Nft } from '../components/Nft'
 import styled from 'styled-components'
@@ -11,12 +9,11 @@ import { toastify } from '../components/Toastify'
 import { fetchReceipt, formatAddress, getProgress, ZeroAddress } from '../utils'
 import { filter, isEmpty } from 'lodash'
 import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
-import { http2, Store } from '../components/Store'
+import { http2 } from '../components/Store'
 import BigNumber from 'bignumber.js'
 import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
 import { Empty } from '../components/Empty'
-import { fetchAbi, getContract } from './Dashboard'
 import { BNBIcon } from '../components/BNBIcon'
 import { BUSDIcon } from '../components/BUSDIcon'
 
@@ -117,7 +114,7 @@ export const Lend = () => {
         }
       }
     }
-    // getLendList()
+    getLendList()
   }, [])
 
   const total = useMemo(() => {
@@ -253,22 +250,24 @@ export const Lend = () => {
                     <div>
                       <SpanLabel>Collateral</SpanLabel>
                       <span>
-                        {currentItem.collateral}&nbsp;&nbsp;
+                        {currentItem.collateral}&nbsp;
+                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                     <div>
                       <SpanLabel>penalty</SpanLabel>
                       <span>
-                        {currentItem.penalty}&nbsp;&nbsp;
+                        {currentItem.penalty}&nbsp;
+                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>
                     <div>
                       <SpanLabel>price</SpanLabel>
                       <span>
-                        {currentItem.price}
-                        &nbsp;&nbsp;
+                        {currentItem.price}&nbsp;
+                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
                       </span>
                     </div>
@@ -279,7 +278,8 @@ export const Lend = () => {
                     <div>
                       <SpanLabel>Total</SpanLabel>
                       <span>
-                        {total}&nbsp;&nbsp;
+                        {total}&nbsp;
+                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
                         {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
                       </span>
                     </div>

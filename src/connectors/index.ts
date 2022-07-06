@@ -1,11 +1,11 @@
 import { InjectedConnector } from '@web3-react/injected-connector'
 import { NetworkConnector } from '@web3-react/network-connector'
-import { POLYGON_CHAIN_ID, POLYGON_RPC_URL } from '../constants'
+import { BSC_CHAIN_ID, BSC_RPC_URL } from '../constants'
 import ChainId from '../utils/chainIdInfo'
 
 export const supportedNetwork = [
   // ChainId.mainnet,
-  // ChainId.ropsten,
+  // ChainId.polygon,
   // ChainId.rinkeby,
   // ChainId.goerli,
   // ChainId.kovan,
@@ -15,9 +15,8 @@ export const supportedNetwork = [
   ChainId.bsc
 ]
 
-const RPC_URL = POLYGON_RPC_URL
-const chainId = POLYGON_CHAIN_ID
-const CHAIN_ID = chainId
+const RPC_URL = BSC_RPC_URL
+const CHAIN_ID = BSC_CHAIN_ID
 
 export const injected = new InjectedConnector({
   supportedChainIds: supportedNetwork

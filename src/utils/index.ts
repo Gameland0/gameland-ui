@@ -162,13 +162,13 @@ export function getTimeOutLeftText(borrowAt: any) {
     return 'Expired'
   } else if (timeLeft > HOUR) {
     const _hour = Math.floor(timeLeft / HOUR)
-    return `${_hour} hs (Return Tolerance Time)`
+    return `Grace period ends at ${_hour} hous`
   } else if (timeLeft > MINUTE) {
     const _minutes = Math.floor(timeLeft / MINUTE)
-    return `${_minutes} mins (Return Tolerance Time)`
+    return `Grace period ends at ${_minutes} Minute`
   } else if (timeLeft > SECOND) {
     const _seconds = Math.floor(timeLeft / SECOND)
-    return `${_seconds} secs (Return Tolerance Time)`
+    return `Grace period ends at ${_seconds} second`
   }
 }
 

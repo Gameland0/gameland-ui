@@ -15,14 +15,15 @@ import BUSD from '../constants/Abis/busd.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import { ABIs } from '../constants/Abis/ABIs'
-import { GAMELADDRESS } from '../constants'
+import {
+  BSCControlContractAddress,
+  BSCAssetContractAddress,
+  BUSDAddress,
+  POLYGONControlContractAddress,
+  POLYGONAssetContractAddress
+} from '../constants'
 
-export const GameLandAddress = GAMELADDRESS
 export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
-export const ControlContractAddress = '0xf0Bccbd3516e655d2EBA7836EAF78108a306AAcF'
-export const AssetContractAddress = '0x0B7b14E00017a6f46E180086Ffce54b1a5FC7dDc'
-export const ERC20Address = '0xe9e7cea3dedca5984780bafc599bd69add087d56'
-export const ERC721Address = '0xaaE8DfD6727Eb98ab19E352ef84927f9C6819073'
 
 interface OpenseaData {
   token_id?: string
@@ -166,13 +167,6 @@ export function useInactiveListener(suppress = false) {
   }, [active, error, suppress, activate])
 }
 
-export function useGameLandContract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-
-  return new Contract(GameLandAddress, GameLandAbi, library.getSigner())
-}
-
 export function useTsContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
@@ -184,28 +178,21 @@ export function useERC20Contract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
 
-  return new Contract(ERC20Address, BUSD, library.getSigner())
+  return new Contract(BUSDAddress, BUSD, library.getSigner())
 }
 
 export function useAssetContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
 
-  return new Contract(AssetContractAddress, AssetContractAbi, library.getSigner())
-}
-
-export function useERC721Contract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-
-  return new Contract(ERC721Address, erc721Abi, library.getSigner())
+  return new Contract(BSCAssetContractAddress, AssetContractAbi, library.getSigner())
 }
 
 export function useControlContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
 
-  return new Contract(ControlContractAddress, ControlContractAbi, library.getSigner())
+  return new Contract(BSCControlContractAddress, ControlContractAbi, library.getSigner())
 }
 
 export interface ListenerOptions {

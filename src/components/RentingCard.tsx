@@ -150,7 +150,7 @@ export const RentingCard: React.FC<RentingProps> = ({
   }, [dayLeft])
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
-      {overTime ? <div className="overTime">over time</div> : ''}
+      {overTime ? <div className="overTime">Expired</div> : ''}
       <Img src={img} alt="" />
       <Details className="flex flex-h-between">
         <div>
