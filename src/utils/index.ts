@@ -117,6 +117,16 @@ export function getProgress(borrowAt: string, days: number) {
   return ((spend / _days) * 100).toFixed(2) as unknown as number
 }
 
+export const getTimeOutProgress = (borrowAt: any) => {
+  const localtime = new Date(borrowAt).valueOf() / 1000 + 115200
+  const currentTime = Math.floor(new Date().valueOf() / 1000)
+  const surplus = Number(localtime) - currentTime
+  if (surplus <= 0) {
+    return 100
+  }
+  return (100 - (surplus / 28800) * 100).toFixed(2) as unknown as number
+}
+
 export function getTimeLeftText(borrowAt: string, days: number) {
   const duration = days * DAYS
   const deadline = new Date(borrowAt).valueOf() + duration
@@ -140,6 +150,28 @@ export function getTimeLeftText(borrowAt: string, days: number) {
     return `${_seconds} secs.`
   }
 }
+
+export function getTimeOutLeftText(borrowAt: any) {
+  const localtime = new Date(borrowAt).valueOf() / 1000 + 115200
+  const currentTime = Math.floor(new Date().valueOf() / 1000)
+  const timeLeft = localtime - currentTime
+  const SECOND = 1
+  const MINUTE = 60 * SECOND
+  const HOUR = 60 * MINUTE
+  if (timeLeft <= 0) {
+    return 'Expired'
+  } else if (timeLeft > HOUR) {
+    const _hour = Math.floor(timeLeft / HOUR)
+    return `${_hour} hs (Return Tolerance Time)`
+  } else if (timeLeft > MINUTE) {
+    const _minutes = Math.floor(timeLeft / MINUTE)
+    return `${_minutes} mins (Return Tolerance Time)`
+  } else if (timeLeft > SECOND) {
+    const _seconds = Math.floor(timeLeft / SECOND)
+    return `${_seconds} secs (Return Tolerance Time)`
+  }
+}
+
 export function handleFetchQueue(urls: string[], max: number, callback: (r: any) => void) {
   const urlAmount = urls.length
   const requestsQueue: any[] = []

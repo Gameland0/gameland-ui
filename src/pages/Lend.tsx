@@ -196,17 +196,7 @@ export const Lend = () => {
         if (!status) {
           throw Error('Failed to confiscated.')
         }
-        const params = {
-          isLending: false,
-          isBorrowed: false,
-          borrower: '',
-          originOwner: currentItem.borrower,
-          price: 0,
-          days: 0,
-          collateral: 0,
-          borrowAt: null
-        }
-        const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+        const res: any = await http2.delete(`/v0/opensea/${currentItem.id}`)
         if (res.data.code === 1) {
           toastify.success('succeed')
           setLiquidating(false)

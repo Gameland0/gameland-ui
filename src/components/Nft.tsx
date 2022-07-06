@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { NFTData, useStore } from '../hooks'
 import { Img } from './Img'
 import { BaseProps } from './NumInput'
-import { ProgressLabelProps, ProgressLabels } from './RentingCard'
+import { ProgressLabelProps, ProgressLabels, InProgressProps } from './RentingCard'
 import { toastify } from './Toastify'
 import { BNBIcon } from '../components/BNBIcon'
 import { BUSDIcon } from '../components/BUSDIcon'
@@ -24,7 +24,7 @@ import Wizards from '../assets/Wizards.png'
 import Woof from '../assets/Woof.jpeg'
 import BigNumber from 'bignumber.js'
 import { PriceLabel, Standard } from './RentCard'
-import { shortNumbers } from '../utils'
+import { shortNumbers, getTimeLeftText, getTimeOutProgress, getTimeOutLeftText } from '../utils'
 
 export const CardBox = styled.div`
   position: relative;
@@ -59,10 +59,30 @@ export const Details = styled.div`
     margin-bottom: 0.3rem;
   }
 `
+const ProgressBar = styled.div<{ right?: boolean }>`
+  position: relative;
+  width: 6rem;
+  position: absolute;
+  right: 0rem;
+  top: 1rem;
+  background: white;
+  border-radius: 2px;
+  background: #e3e5e7;
+  height: 4px;
+  overflow: hidden;
+`
+const InProgressBox = styled.div<InProgressProps>`
+  background: ${({ isExpired }) => (isExpired ? 'var(--warning)' : 'var(--in-progress)')};
+  width: ${({ progress }) => (progress ? progress + '%' : 0)};
+  height: 4px;
+`
 const Days = styled.span`
   color: #aaa;
   font-size: 0.875rem;
 `
+const InProgress: React.FC<InProgressProps> = ({ progress }) => {
+  return <InProgressBox progress={progress}></InProgressBox>
+}
 export interface NftProps extends NFTData {
   onClick?: () => void
   onLend?: () => void
@@ -97,6 +117,22 @@ const LabelsWrap = styled.div`
     text-overflow: ellipsis;
   }
 `
+const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, borrowAt }) => {
+  const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
+  const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt), [borrowAt])
+  console.log(progress, dayLeft)
+  return (
+    <div style={{ overflow: 'hidden' }}>
+      {right || <p>{name}</p>}
+      <ProgressBar right={right}>
+        <InProgress progress={progress} isExpired={isExpired} />
+      </ProgressBar>
+      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem', marginTop: '24px' }}>
+        {isExpired ? 'Expired' : dayLeft}
+      </p>
+    </div>
+  )
+}
 const Labels: React.FC<LabelProps> = ({
   name,
   isLending,
@@ -205,21 +241,45 @@ const Operate: React.FC<OperateProps> = ({
   sellOrders,
   borrowDay
 }) => {
+  const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
+  const [overTime, setOverTime] = useState(false)
+  useEffect(() => {
+    if (!dayLeft) return
+    if (!nftId) return
+    console.log(dayLeft)
+    if (dayLeft === 'Expired') {
+      setOverTime(true)
+      const currentTime = Math.floor(new Date().valueOf() / 1000) + 28800
+      localStorage.setItem(nftId, currentTime.toString())
+    }
+  }, [dayLeft])
   return (
     <OperateWrap>
       {sellOrders ? (
         <Tag text="On sale" />
       ) : isLending ? (
         isBorrowed ? (
-          <ProgressLabels
-            right
-            borrowAt={borrowAt}
-            name={name}
-            nftId={nftId}
-            price={price}
-            days={days as number}
-            borrowDay={borrowDay}
-          />
+          overTime ? (
+            <Return
+              right
+              borrowAt={borrowAt}
+              name={name}
+              nftId={nftId}
+              price={price}
+              days={days as number}
+              borrowDay={borrowDay}
+            />
+          ) : (
+            <ProgressLabels
+              right
+              borrowAt={borrowAt}
+              name={name}
+              nftId={nftId}
+              price={price}
+              days={days as number}
+              borrowDay={borrowDay}
+            />
+          )
         ) : (
           <FakeButton type="ghost">Withdraw</FakeButton>
         )
@@ -300,10 +360,25 @@ export const Nft: React.FC<NftProps> = ({
     }
     onSend && onSend()
   }
+  const src = img?.slice(-4)
   return (
     <CardBox className="flex flex-column" onClick={handleClick}>
       {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} /> */}
-      <Img src={img} alt={name} />
+      {src === '.mp4' || src === 'webm' ? (
+        <video
+          width="320"
+          height="240"
+          muted
+          autoPlay={true}
+          loop
+          role="application"
+          preload="auto"
+          webkit-playsinline="true"
+          src={img}
+        ></video>
+      ) : (
+        <Img src={img} alt={name} />
+      )}
       <Details>
         <div>
           <Labels

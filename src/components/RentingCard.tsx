@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { NFTData } from '../hooks'
-import { getProgress, getTimeLeftText } from '../utils'
+import { NFTData, useActiveWeb3React } from '../hooks'
+import { getProgress, getTimeLeftText, getTimeOutProgress, getTimeOutLeftText } from '../utils'
 import { Img } from './Img'
 import { BaseProps } from './NumInput'
 import { CardBox, Details } from './Nft'
@@ -44,7 +44,7 @@ const InProgressBox = styled.div<InProgressProps>`
   width: ${({ progress }) => (progress ? progress + '%' : 0)};
   height: 4px;
 `
-interface InProgressProps {
+export interface InProgressProps {
   progress: number
   isExpired?: boolean
 }
@@ -77,10 +77,10 @@ export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isEx
     </div>
   )
 }
-export const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt, borrowDay }) => {
-  const progress = useMemo(() => getProgress(borrowAt, borrowDay), [borrowAt, borrowDay])
-  const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
-
+export const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, borrowAt }) => {
+  const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
+  const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt), [borrowAt])
+  console.log(progress, dayLeft)
   return (
     <div style={{ overflow: 'hidden' }}>
       {right || <p>{name}</p>}
@@ -138,14 +138,14 @@ export const RentingCard: React.FC<RentingProps> = ({
 }) => {
   const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
   const [overTime, setOverTime] = useState(false)
-
   useEffect(() => {
     if (!dayLeft) return
-    if (dayLeft.length <= 5) {
-      const hs = parseInt(dayLeft)
-      if (hs < 1) {
-        setOverTime(true)
-      }
+    if (!nftId) return
+    console.log(dayLeft)
+    if (dayLeft === 'Expired') {
+      setOverTime(true)
+      const currentTime = Math.floor(new Date().valueOf() / 1000) + 28800
+      localStorage.setItem(nftId, currentTime.toString())
     }
   }, [dayLeft])
   return (
@@ -154,14 +154,25 @@ export const RentingCard: React.FC<RentingProps> = ({
       <Img src={img} alt="" />
       <Details className="flex flex-h-between">
         <div>
-          <ProgressLabels
-            borrowAt={borrowAt}
-            name={name}
-            nftId={nftId}
-            price={price}
-            days={days as number}
-            borrowDay={borrowDay as number}
-          />
+          {overTime ? (
+            <Return
+              borrowAt={borrowAt}
+              name={name}
+              nftId={nftId}
+              price={price}
+              days={days as number}
+              borrowDay={borrowDay as number}
+            />
+          ) : (
+            <ProgressLabels
+              borrowAt={borrowAt}
+              name={name}
+              nftId={nftId}
+              price={price}
+              days={days as number}
+              borrowDay={borrowDay as number}
+            />
+          )}
           <Standard color="processing">{contract_type}</Standard>
         </div>
         {!unOperate ? <Operate isExpired={isExpired} onClick={() => onclick} /> : null}
