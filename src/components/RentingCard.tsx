@@ -80,7 +80,7 @@ export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isEx
 export const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, borrowAt }) => {
   const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
   const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt), [borrowAt])
-  console.log(progress, dayLeft)
+  // console.log(progress, dayLeft)
   return (
     <div style={{ overflow: 'hidden' }}>
       {right || <p>{name}</p>}
@@ -141,7 +141,7 @@ export const RentingCard: React.FC<RentingProps> = ({
   useEffect(() => {
     if (!dayLeft) return
     if (!nftId) return
-    console.log(dayLeft)
+    // console.log(dayLeft)
     if (dayLeft === 'Expired') {
       setOverTime(true)
       const currentTime = Math.floor(new Date().valueOf() / 1000) + 28800

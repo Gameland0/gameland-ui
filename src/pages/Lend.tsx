@@ -6,16 +6,15 @@ import styled from 'styled-components'
 import { Modal } from '../components/Modal'
 import { useActiveWeb3React, useStore, useControlContract, useAssetContract } from '../hooks'
 import { toastify } from '../components/Toastify'
-import { fetchReceipt, formatAddress, getProgress, ZeroAddress } from '../utils'
+import { fetchReceipt, formatAddress, getProgress, ZeroAddress, ChainHttp, ChainCurrencyName } from '../utils'
 import { filter, isEmpty } from 'lodash'
 import { useMyLendingNfts } from '../hooks/useMyLendingNfts'
-import { http2 } from '../components/Store'
+import { bschttp, polygonhttp } from '../components/Store'
 import BigNumber from 'bignumber.js'
 import { SpanLabel, DaysInfo, RentBox } from './Rent'
 import { Loading } from '../components/Loading'
 import { Empty } from '../components/Empty'
-import { BNBIcon } from '../components/BNBIcon'
-import { BUSDIcon } from '../components/BUSDIcon'
+import { Icon } from '../components/Icon'
 
 export const Dlist = styled.div`
   flex-direction: column;
@@ -53,7 +52,7 @@ export const Dlist = styled.div`
 `
 
 export const Lend = () => {
-  const { account, library } = useActiveWeb3React()
+  const { account, library, chainId } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as any)
   const [visible, setVisible] = useState(false)
   const ControlContract = useControlContract()
@@ -64,9 +63,9 @@ export const Lend = () => {
   const [borrowed, setBorrowed] = useState(false)
   const [progress, setProgress] = useState(0)
   const [withdrawing, setWithdrawing] = useState(false)
-  const { mutateDebts } = useStore()
   const [awaiting, setAwaiting] = useState(false)
   const { nfts } = useStore()
+  const http2 = ChainHttp(chainId)
 
   useEffect(() => {
     const getLendList = async () => {
@@ -81,7 +80,7 @@ export const Lend = () => {
         nfts.map(async (item: any) => {
           const index = newArr.indexOf(item.gamelandNftId)
           if (index < 0) {
-            await http2.delete(`/v0/opensea/${item.id}`)
+            await http2?.delete(`/v0/opensea/${item.id}`)
           }
         })
       }
@@ -99,7 +98,7 @@ export const Lend = () => {
               borrowDay: borrow.due_date.toString(),
               rentIndex: index.toString()
             }
-            await http2.put(`/v0/opensea/${newArr[i]}`, params)
+            await http2?.put(`/v0/opensea/${newArr[i]}`, params)
           } else if (nfts[j].isBorrowed && !list.borrow_status && nfts[j].gamelandNftId === newArr[i]) {
             const params = {
               borrower: null,
@@ -109,7 +108,7 @@ export const Lend = () => {
               rentIndex: '',
               isLending: true
             }
-            await http2.put(`/v0/opensea/${newArr[i]}`, params)
+            await http2?.put(`/v0/opensea/${newArr[i]}`, params)
           }
         }
       }
@@ -134,7 +133,6 @@ export const Lend = () => {
     setBorrowed(item.isBorrowed)
     const _progress = getProgress(item.borrowAt as string, item.borrowDay as number)
     setProgress(_progress)
-    console.log(_progress)
     if (item.isBorrowed) {
       setExpired(_progress >= 100)
     } else {
@@ -162,12 +160,12 @@ export const Lend = () => {
         throw Error('Failed to withdraw.')
       }
 
-      const res: any = await http2.delete(`/v0/opensea/${currentItem.id}`)
+      const res: any = await http2?.delete(`/v0/opensea/${currentItem.id}`)
       if (res.data.code === 1) {
         toastify.success('succeed')
         setWithdrawing(false)
         setVisible(false)
-        mutateDebts(undefined, true)
+        location.reload()
       } else {
         throw res.message || res.data.message || 'Service error.'
       }
@@ -193,12 +191,12 @@ export const Lend = () => {
         if (!status) {
           throw Error('Failed to confiscated.')
         }
-        const res: any = await http2.delete(`/v0/opensea/${currentItem.id}`)
+        const res: any = await http2?.delete(`/v0/opensea/${currentItem.id}`)
         if (res.data.code === 1) {
           toastify.success('succeed')
           setLiquidating(false)
           setVisible(false)
-          mutateDebts(undefined, true)
+          location.reload()
         } else {
           throw Error(res)
         }
@@ -251,24 +249,24 @@ export const Lend = () => {
                       <SpanLabel>Collateral</SpanLabel>
                       <span>
                         {currentItem.collateral}&nbsp;
-                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                        {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                        <Icon type={currentItem.pay_type} />
                       </span>
                     </div>
                     <div>
                       <SpanLabel>penalty</SpanLabel>
                       <span>
                         {currentItem.penalty}&nbsp;
-                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                        {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                        <Icon type={currentItem.pay_type} />
                       </span>
                     </div>
                     <div>
                       <SpanLabel>price</SpanLabel>
                       <span>
                         {currentItem.price}&nbsp;
-                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
+                        {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                        <Icon type={currentItem.pay_type} /> / day
                       </span>
                     </div>
                     <div>
@@ -279,8 +277,8 @@ export const Lend = () => {
                       <SpanLabel>Total</SpanLabel>
                       <span>
                         {total}&nbsp;
-                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                        {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                        <Icon type={currentItem.pay_type} />
                       </span>
                     </div>
                   </Dlist>

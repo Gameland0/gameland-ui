@@ -6,31 +6,37 @@ import { Nft as NftCard } from '../../components/Nft'
 import { Modal } from '../../components/Modal'
 import { Dlist } from '../Lend'
 import { SpanLabel } from '../Rent'
-import { fetchReceipt, formatAddress, ZeroAddress } from '../../utils'
+import { fetchReceipt, formatAddress, ZeroAddress, ChainHttp, ChainCurrencyName } from '../../utils'
 import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { toastify } from '../../components/Toastify'
-import { http2 } from '../../components/Store'
+import { bschttp, polygonhttp } from '../../components/Store'
 import { Empty } from '../../components/Empty'
 // import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
 import { ABIs } from '../../constants/Abis/ABIs'
-import { BNBIcon } from '../../components/BNBIcon'
-import { BUSDIcon } from '../../components/BUSDIcon'
-import { BSCAssetContractAddress } from '../../constants'
+import { Icon } from '../../components/Icon'
+import { BSCAssetContractAddress, POLYGONAssetContractAddress } from '../../constants'
 // import { hashMessage } from 'ethers/lib/utils'
 
 export const MyRenting = () => {
-  const { library, account } = useActiveWeb3React()
+  const { library, account, chainId } = useActiveWeb3React()
   const myRenting = useMyRenting()
   const [currentItem, setCurrentItem] = useState({} as any)
   const [visible, setVisible] = useState(false)
   const [repaying, setRepaying] = useState(false)
   const [approving, setApproving] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
-  const { mutateDebts } = useStore()
+  // const { BSCmutateDebts } = useStore()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
+  const http2 = ChainHttp(chainId)
+  let AssetContractAddress: any
+  if (chainId === 56) {
+    AssetContractAddress = BSCAssetContractAddress
+  } else if (chainId === 137) {
+    AssetContractAddress = POLYGONAssetContractAddress
+  }
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
@@ -51,7 +57,13 @@ export const MyRenting = () => {
         storedAbi = value
       }
     }
-    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
+    let chain
+    if (chainId === 56) {
+      chain = 'bscscan'
+    } else if (chainId === 137) {
+      chain = 'polygonscan'
+    }
+    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain)
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
@@ -61,14 +73,14 @@ export const MyRenting = () => {
       const params = {
         rentIndex: index.toString()
       }
-      await http2.put(`/v0/opensea/${item.gamelandNftId}`, params)
+      await http2?.put(`/v0/opensea/${item.gamelandNftId}`, params)
     }
 
     if (nftContract) {
       try {
         const approveAddress = await nftContract.getApproved(item.nftId)
-        console.log(approveAddress, BSCAssetContractAddress)
-        if (approveAddress === BSCAssetContractAddress) {
+        // console.log(approveAddress, BSCAssetContractAddress)
+        if (approveAddress === AssetContractAddress) {
           setIsApproved(true)
         } else {
           setIsApproved(false)
@@ -80,7 +92,6 @@ export const MyRenting = () => {
   }
 
   const handleRepay = async () => {
-    console.log('repay')
     try {
       if (!library || !account) {
         toastify.error('Please connect an account.')
@@ -110,10 +121,9 @@ export const MyRenting = () => {
         borrowDay: 0,
         rentIndex: ''
       }
-      const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http2?.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
-        mutateDebts(undefined, true)
         setRepaying(false)
         setVisible(false)
       } else {
@@ -134,9 +144,9 @@ export const MyRenting = () => {
       try {
         let approvetx
         if (currentItem.standard === 'ERC721' && !!currentItem.contract.approve) {
-          approvetx = await currentItem.contract.approve(BSCAssetContractAddress, currentItem.nftId)
+          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.nftId)
         } else {
-          approvetx = await currentItem.contract.setApprovalForAll(BSCAssetContractAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
         const receipt = await fetchReceipt(approvetx.hash, library)
         const { status } = receipt
@@ -185,24 +195,24 @@ export const MyRenting = () => {
                 <SpanLabel>Collateral</SpanLabel>
                 <span>
                   {currentItem.collateral}&nbsp;
-                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                  {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                  <Icon type={currentItem.pay_type} />
                 </span>
               </div>
               <div>
                 <SpanLabel>penalty</SpanLabel>
                 <span>
                   {currentItem.penalty}&nbsp;
-                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                  {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                  <Icon type={currentItem.pay_type} />
                 </span>
               </div>
               <div>
                 <SpanLabel>price</SpanLabel>
                 <span>
                   {currentItem.price}&nbsp;
-                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
+                  {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                  <Icon type={currentItem.pay_type} /> / day
                 </span>
               </div>
               <div>
@@ -213,8 +223,8 @@ export const MyRenting = () => {
                 <SpanLabel>Total</SpanLabel>
                 <span>
                   {total}&nbsp;
-                  {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                  {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                  {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                  <Icon type={currentItem.pay_type} />
                 </span>
               </div>
             </Dlist>

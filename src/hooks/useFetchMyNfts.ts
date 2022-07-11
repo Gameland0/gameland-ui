@@ -6,30 +6,22 @@ import { fetcher, http } from '../components/Store'
 import { MORALIS_KEY } from '../constants'
 
 export const useFetchMyNfts = (): any => {
-  const { account } = useActiveWeb3React()
-  const { contracts } = useStore()
+  const { account, chainId } = useActiveWeb3React()
 
   const url = useMemo(() => {
-    if (!contracts) {
+    if (!account || !chainId) {
       return ''
     }
-    if (!account) {
-      return ''
+    let chain
+    if (chainId === 56) {
+      chain = 'bsc'
+    } else if (chainId === 137) {
+      chain = 'polygon'
     }
-
-    let addresses = ''
-
-    contracts.forEach((item: any) => {
-      addresses += `&token_addresses=${item}`
-    })
-
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
 
-    return `/moralis/${account}/nft?chain=bsc&format=decimal`
-
-    // return `${MORALIS_API}/${account}/nft?chain=polygon&format=decimal&limit=${limit}&offset=${offset}${addresses}`
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account, contracts])
+    return `/moralis/${account}/nft?chain=${chain}&format=decimal`
+  }, [account, chainId])
 
   return useSWR(url, fetcher)
 }

@@ -22,7 +22,7 @@ const Popups = styled.div`
   border: 1px solid #bfedff;
   position: sticky;
   top: 6.25rem;
-  z-index: 99;
+  z-index: 10;
   .close {
     width: 40px;
     height: 40px;
@@ -38,7 +38,7 @@ const Filling = styled.div`
   background: #fff;
   position: sticky;
   top: 8.75rem;
-  z-index: 99;
+  z-index: 10;
 `
 function App() {
   const [visible, setVisible] = useState(true)

@@ -1,13 +1,14 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { NavLink } from 'react-router-dom'
 import { AccountBar } from './AccountBar'
 import { ReactComponent as Logo } from '../assets/logo_BSC.svg'
-import { ReactComponent as LogoNormal } from '../assets/logo-normal.svg'
-import search from '../assets/search_bar_icon_search.svg'
+import PolygonImg from '../assets/polygon.svg'
+import BSCImg from '../assets/binance.svg'
 import { Grid, Drawer } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
 import { useActiveWeb3React } from '../hooks'
+import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
 const { useBreakpoint } = Grid
 
 const HeaderBox = styled.div`
@@ -16,42 +17,67 @@ const HeaderBox = styled.div`
   height: 100px;
   background: #fff;
   box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
   border-bottom: 1px solid var(--primary-color);
   z-index: 99;
 
   .logo svg {
     max-width: 15rem;
   }
-  .jumpButton {
-    display: flex;
-    height: 39px;
-    border: 1px solid #ccc;
-    color: #666;
-    border-radius: 1.25rem;
-    background: #ededed;
-    .polygon {
-      width: 4rem;
-      height: 37px;
-      margin: 0 8px 0 0;
-      text-align: center;
-      line-height: 37px;
-      cursor: pointer;
-      background: #fff;
-      color: #333333;
-      box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, 0.16);
-      border-radius: 24px 24px 24px 24px;
-      border-radius: 1.25rem;
-      border: 1px solid #ccc;
-    }
-    .eth {
-      width: 5rem;
-      height: 38px;
+  .chain {
+    height: 60px;
+    margin-top: 20px;
+    .jumpButton {
+      display: flex;
+      padding: 8px 16px 0 8px;
+      width: 142px;
+      height: 40px;
+      border: none;
       color: #666;
-      text-align: center;
-      color: #cccccc;
-      line-height: 37px;
+      border-radius: 25px;
+      background: #f4f7f9;
       cursor: pointer;
+      img {
+        width: 24px;
+        height: 24px;
+      }
+      .chainName {
+        color: #2b2f33;
+        font-size: 16px;
+        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+        font-weight: 700;
+        margin: -2px 0 0 6px;
+      }
+      .menu {
+        width: 180px;
+        background-clip: padding-box;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 1px 8px rgba(0, 0, 0, 0.12);
+        position: fixed;
+        top: 80px;
+        right: 234px;
+        display: none;
+        div {
+          display: flex;
+          height: 40px;
+          padding: 8px 16px 0 8px;
+          color: #2b2f33;
+          font-size: 16px;
+          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+          font-weight: 700;
+          img {
+            margin-right: 10px;
+          }
+          &:hover {
+            background-color: #f4f7f9;
+          }
+        }
+      }
+    }
+    &:hover {
+      .menu {
+        display: block;
+      }
     }
   }
 `
@@ -139,23 +165,61 @@ const Link = styled(NavLink).attrs({
     color: var(--primary-color);
   }
 `
-const skipLinks = (type: string) => {
-  if (type === 'polygon') {
-    window.location.href = 'https://polygon.gameland.network'
-  }
-  if (type === 'eth') {
-    window.location.href = 'https://eth.gameland.network'
+const handleClick = async (CHAIN_ID_HEX: any, RPC_URL: any) => {
+  const { ethereum } = window as any
+  if (ethereum) {
+    try {
+      // check if the chain to connect to is installed
+      await ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: CHAIN_ID_HEX }] // chainId must be in hexadecimal numbers
+      })
+    } catch (error: any) {
+      // This error code indicates that the chain has not been added to MetaMask
+      // if it is not, then install it into the user MetaMask
+      if (error.code === 4902) {
+        try {
+          await ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainName: 'Matic network',
+                chainId: CHAIN_ID_HEX,
+                rpcUrls: [RPC_URL]
+              }
+            ]
+          })
+        } catch (addError) {
+          console.error(addError)
+        }
+      }
+      console.error(error)
+    }
+  } else {
+    // if no window.ethereum then MetaMask is not installed
+    alert('MetaMask is not installed. Please consider installing it: https://metamask.io/download.html')
   }
 }
 
 export const Header = () => {
   const { chainId } = useActiveWeb3React()
   const [visible, setVisible] = useState(false)
+  const [chainName, setChainName] = useState('')
+  const [chainImg, setChainImg] = useState('')
   const screens = useBreakpoint()
   const isMobile = useMemo(() => {
     return !(screens.lg ?? true)
   }, [screens])
 
+  useEffect(() => {
+    if (chainId === 56) {
+      setChainName('BNB chain')
+      setChainImg(BSCImg)
+    } else if (chainId === 137) {
+      setChainName('Polygon')
+      setChainImg(PolygonImg)
+    }
+  }, [chainId])
   return (
     <HeaderBox>
       <div className="container flex flex-h-between flex-v-center">
@@ -168,7 +232,7 @@ export const Header = () => {
         </HeadSearch> */}
         {!isMobile ? (
           <>
-            <div className="flex flex-h-between">
+            <div className="flex flex-h-between hidden">
               <Link exact to="/">
                 <span>Rent</span>
               </Link>
@@ -182,14 +246,34 @@ export const Header = () => {
                 <span>Guilds</span>
               </Link>
             </div>
-            {/* <div className="jumpButton">
-              <div className="polygon" onClick={() => skipLinks('polygon')}>
-                Polygon
+            <div className="chain">
+              <div className="jumpButton">
+                <img src={chainImg} alt="" />
+                <div className="chainName">{chainName}</div>
+                <div className="menu">
+                  <div
+                    onClick={() => {
+                      handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
+                      setChainName('Polygon')
+                      setChainImg(PolygonImg)
+                    }}
+                  >
+                    <img src={PolygonImg} />
+                    Polygon
+                  </div>
+                  <div
+                    onClick={() => {
+                      handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
+                      setChainName('BNB chain')
+                      setChainImg(BSCImg)
+                    }}
+                  >
+                    <img src={BSCImg} alt="" />
+                    BNB chain
+                  </div>
+                </div>
               </div>
-              <div className="eth" onClick={() => skipLinks('eth')}>
-                Ethereum
-              </div>
-            </div> */}
+            </div>
             <div className="flex flex-h-between flex-v-center">
               <AccountBar key="accountbar" />
             </div>

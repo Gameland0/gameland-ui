@@ -23,7 +23,7 @@ export const WrongNetwork: React.FC<ButtonProps> = ({ ...props }) => {
           handleClick()
         },
         onCancel() {
-          console.log('Cancel')
+          // console.log('Cancel')
         }
       })
     }

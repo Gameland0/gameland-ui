@@ -7,23 +7,21 @@ import { isMobile } from 'react-device-detect'
 import { Web3Provider } from '@ethersproject/providers'
 import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
-import GameLandAbi from '../constants/Abis/GameLand.json'
 import AssetContractAbi from '../constants/Abis/assetContract.json'
 import ControlContractAbi from '../constants/Abis/controlContract.json'
-import erc721Abi from '../constants/Abis/erc721.json'
+// import erc721Abi from '../constants/Abis/erc721.json'
 import BUSD from '../constants/Abis/busd.json'
+import WETH from '../constants/Abis/WETH.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
-import { ABIs } from '../constants/Abis/ABIs'
 import {
   BSCControlContractAddress,
   BSCAssetContractAddress,
   BUSDAddress,
   POLYGONControlContractAddress,
-  POLYGONAssetContractAddress
+  POLYGONAssetContractAddress,
+  WETHaddress
 } from '../constants'
-
-export const TSAddress = '0x5931351f118e8be5A112AFf93463f44B5411dB6f'
 
 interface OpenseaData {
   token_id?: string
@@ -75,14 +73,9 @@ export function useStore() {
 // localnode: 1337,
 // polygon: 137
 export declare enum ChainId {
-  ROPSTEN = 3,
-  RINKEBY = 4,
-  GÖRLI = 5,
-  KOVAN = 42,
-  AURORA = 1313161554,
-  AURORA_TESTNET = 1313161555,
   ETHEREUM = 1,
-  POLYGON = 137
+  POLYGON = 137,
+  BSC = 56
 }
 
 export function useActiveWeb3React(): Web3ReactContextInterface<Web3Provider> & { chainId?: ChainId } {
@@ -167,32 +160,34 @@ export function useInactiveListener(suppress = false) {
   }, [active, error, suppress, activate])
 }
 
-export function useTsContract() {
-  const { library } = useActiveWeb3React()
-  if (!library) return null
-
-  return new Contract(TSAddress, ABIs[TSAddress], library.getSigner())
-}
-
 export function useERC20Contract() {
-  const { library } = useActiveWeb3React()
+  const { library, chainId } = useActiveWeb3React()
   if (!library) return null
-
-  return new Contract(BUSDAddress, BUSD, library.getSigner())
+  if (chainId === 56) {
+    return new Contract(BUSDAddress, BUSD, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract(WETHaddress, WETH, library.getSigner())
+  }
 }
 
 export function useAssetContract() {
-  const { library } = useActiveWeb3React()
+  const { library, chainId } = useActiveWeb3React()
   if (!library) return null
-
-  return new Contract(BSCAssetContractAddress, AssetContractAbi, library.getSigner())
+  if (chainId === 56) {
+    return new Contract(BSCAssetContractAddress, AssetContractAbi, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract(POLYGONAssetContractAddress, AssetContractAbi, library.getSigner())
+  }
 }
 
 export function useControlContract() {
-  const { library } = useActiveWeb3React()
+  const { library, chainId } = useActiveWeb3React()
   if (!library) return null
-
-  return new Contract(BSCControlContractAddress, ControlContractAbi, library.getSigner())
+  if (chainId === 56) {
+    return new Contract(BSCControlContractAddress, ControlContractAbi, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract(POLYGONControlContractAddress, ControlContractAbi, library.getSigner())
+  }
 }
 
 export interface ListenerOptions {

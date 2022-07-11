@@ -2,6 +2,7 @@ import { getAddress } from '@ethersproject/address'
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { TransactionReceipt } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
+import { bschttp, polygonhttp } from '../components/Store'
 
 export const NetworkContextName = 'GAMELAND'
 
@@ -74,7 +75,7 @@ export const validNumber = (number: string, min: number): boolean => {
   }
 
   const numReg = /^(\.|[0-9])*(\.)?[0-9]*$/
-  console.log(numReg.test(number))
+  // console.log(numReg.test(number))
 
   if (numReg.test(number)) {
     return true
@@ -94,7 +95,7 @@ export const validIntNumber = (number: string): boolean => {
   }
 
   const numReg = /^[1-9]\d*$/
-  console.log(numReg.test(number))
+  // console.log(numReg.test(number))
 
   if (numReg.test(number)) {
     return true
@@ -104,7 +105,28 @@ export const validIntNumber = (number: string): boolean => {
 
   return false
 }
-
+export const ChainHttp = (chain: any) => {
+  if (chain === 56) {
+    return bschttp
+  } else if (chain === 137) {
+    return polygonhttp
+  }
+}
+export const ChainCurrencyName = (chain: any, type: any) => {
+  if (chain === 56) {
+    if (type === 'eth') {
+      return 'BNB'
+    } else {
+      return 'BUSD'
+    }
+  } else if (chain === 137) {
+    if (type === 'eth') {
+      return 'MATIC'
+    } else {
+      return 'WETH'
+    }
+  }
+}
 export function getProgress(borrowAt: string, days: number) {
   const _days = days * DAYS
   const deadline = new Date(borrowAt).valueOf() + days * DAYS
@@ -240,7 +262,7 @@ export const fetchReceipt = async (transactionHash: string, provider: any): Prom
   const getReceipt = async (hash: string, provider: Web3Provider): Promise<TransactionReceipt> => {
     const receipt = await provider.getTransactionReceipt(hash)
     if (receipt && receipt.blockNumber) {
-      console.log(receipt)
+      // console.log(receipt)
       return receipt
     } else {
       return getReceipt(hash, provider)

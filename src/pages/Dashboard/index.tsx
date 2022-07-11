@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import axios from 'axios'
-import { Row, Col, Tabs, Button, Popconfirm } from 'antd'
+import { Row, Col, Tabs, Button } from 'antd'
 import styled from 'styled-components'
 import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
@@ -10,13 +10,13 @@ import loadding from '../../assets/loading.svg'
 import arrow from '../../assets/icon_select.svg'
 import { Modal } from '../../components/Modal'
 import { Dialog } from '../../components/Dialog'
-import { Nft as NftCard, NftProps } from '../../components/Nft'
+import { Nft as NftCard } from '../../components/Nft'
 import { useActiveWeb3React, useStore, useAssetContract, useControlContract } from '../../hooks'
 import { NumInput } from '../../components/NumInput'
 import { toastify, ToastContainer } from '../../components/Toastify'
 import { Dlist } from '../Lend'
 import { ContentBox } from '../Rent'
-import { http2, http } from '../../components/Store'
+import { bschttp, polygonhttp, http } from '../../components/Store'
 import { MyRenting } from './MyRenting'
 import { lowerCase } from 'lower-case'
 import { parseEther } from '@ethersproject/units'
@@ -25,8 +25,14 @@ import { Empty } from '../../components/Empty'
 import { useFetchMyNfts } from '../../hooks/useFetchMyNfts'
 import { Pagination } from '../../components/Pagination'
 import { ConnectWallet } from '../../components/ConnectWallet'
-import { fetchReceipt, fixDigitalId, ZeroAddress } from '../../utils'
-import { BSCAssetContractAddress, OPENSEA_URL, BSCSCAN_KEY } from '../../constants'
+import { fetchReceipt, fixDigitalId } from '../../utils'
+import {
+  BSCAssetContractAddress,
+  OPENSEA_URL,
+  BSCSCAN_KEY,
+  POLYGONSCAN_KEY,
+  POLYGONAssetContractAddress
+} from '../../constants'
 import { ABIs } from '../../constants/Abis/ABIs'
 
 const { TabPane } = Tabs
@@ -88,15 +94,19 @@ const MyNftBox = styled.div``
 
 export const getContract = (library: Web3Provider | undefined, address: string, abi: any[]) => {
   if (!library) return null
-
   return new Contract(address, abi, library.getSigner())
 }
-export const fetchAbi = async (address: string) => {
+export const fetchAbi = async (address: string, chain: any) => {
   if (!address) return
   try {
-    const apiKey = BSCSCAN_KEY
+    let apiKey
+    if (chain === 'bscscan') {
+      apiKey = BSCSCAN_KEY
+    } else if (chain === 'polygonscan') {
+      apiKey = POLYGONSCAN_KEY
+    }
     const data = await fetch(
-      `https://api.bscscan.com/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
+      `https://api.${chain}.com/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
       {
         method: 'GET',
         mode: 'cors'
@@ -106,7 +116,6 @@ export const fetchAbi = async (address: string) => {
     const { result } = dataJson
 
     localStorage.setItem(address.toLowerCase(), result)
-
     return result
   } catch (e: any) {
     console.log(e.message)
@@ -114,18 +123,19 @@ export const fetchAbi = async (address: string) => {
   }
 }
 export const Dashboard = () => {
-  const { account, library } = useActiveWeb3React()
-  const { mutateDebts, nfts } = useStore()
+  const { account, library, chainId } = useActiveWeb3React()
+  const { nfts } = useStore()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
   const [cursor, setCursor] = useState(1)
-  const [currentNft, setCurrentNft] = useState([] as any)
   const [limit, setLimit] = useState(48)
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
   const [myNfts, setMyNfts] = useState<any[]>([])
+  const [currentNft, setCurrentNft] = useState([] as any)
   const [prevDisabled, setPrevDisabled] = useState(true)
   const [nextDisabled, setNextDisabled] = useState(true)
   const [toAddress, setToAddress] = useState('')
+  const [Amount, setAmount] = useState('')
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as any)
   const [prompt, setPrompt] = useState(false)
@@ -141,15 +151,23 @@ export const Dashboard = () => {
   const [isApproved, setIsApproved] = useState(false)
   const [isSendApproved, setIsSendApproved] = useState(false)
   const [options, setOptions] = useState(false)
-  const [currentSelection, setCurrentSelection] = useState('BNB')
+  const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   // const [minting, setMinting] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
+  let http2: any
+  let AssetContractAddress: any
+  if (chainId === 56) {
+    http2 = bschttp
+    AssetContractAddress = BSCAssetContractAddress
+  } else if (chainId === 137) {
+    http2 = polygonhttp
+    AssetContractAddress = POLYGONAssetContractAddress
+  }
 
   const fetchMetadata = (data: any[], contracts: any) => {
     if (!data || !data.length) {
       return []
     }
-
     return data.map(async (item) => {
       try {
         let contractIndex = contracts.findIndex((i: any) => {
@@ -162,32 +180,36 @@ export const Dashboard = () => {
         }
         const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
         item.gamelandNftId = hashMessage(gamelandId)
+        const getdata = axios.create({
+          timeout: 10000,
+          headers: {
+            'X-Api-Key': 'dO5hsUP3'
+          }
+        })
+        let chain
+        if (chainId === 56) {
+          chain = 'bnb'
+        } else if (chainId === 137) {
+          chain = 'polygon'
+        }
         if (!item.metadata) {
           try {
             const { data } = await http.get(item.token_uri)
             item.metadata = data
           } catch (error) {
-            item.metadata = []
+            const { data } = await getdata.get(
+              `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+            )
+            item.metadata = JSON.parse(data.data.metadata_json)
           }
         } else if (typeof item.metadata === 'string') {
-          try {
-            if (!JSON.parse(item.metadata).name || !JSON.parse(item.metadata).image) {
-              const getdata = axios.create({
-                timeout: 10000,
-                headers: {
-                  'X-Api-Key': 'dO5hsUP3'
-                }
-              })
-              const { data } = await getdata.get(
-                `https://bnbapi.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
-              )
-              item.metadata = JSON.parse(data.data.metadata_json)
-            } else {
-              item.metadata = JSON.parse(item.metadata)
-            }
-          } catch (err: any) {
-            console.log(err)
-            item.metadata = {}
+          if (!JSON.parse(item.metadata).name || !JSON.parse(item.metadata).image) {
+            const { data } = await getdata.get(
+              `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+            )
+            item.metadata = JSON.parse(data.data.metadata_json)
+          } else {
+            item.metadata = JSON.parse(item.metadata)
           }
         }
         return item
@@ -209,6 +231,7 @@ export const Dashboard = () => {
 
   useEffect(() => {
     if (!_myNfts) {
+      setMyNfts([])
       return
     }
     const lendableNfts = _myNfts.result.filter((item: any) => {
@@ -220,13 +243,46 @@ export const Dashboard = () => {
       )
     })
     const syncFn = async () => {
-      const contracts = [
-        '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
-        '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
-        '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
-        '0x1B26e0F75c623fE9357dBC6c1871AB745fACcF04',
-        '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6'
-      ]
+      let contracts: any
+      if (chainId === 56) {
+        contracts = [
+          '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
+          '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
+          '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
+          '0x1B26e0F75c623fE9357dBC6c1871AB745fACcF04',
+          '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6'
+        ]
+      } else if (chainId === 137) {
+        contracts = [
+          '0x94e42811db93ef7831595b6ff9360491b987dfbd',
+          '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
+          '0xc65fd3945e26c15e03176810d35506956b036f39',
+          '0xc1f39f52bcbb4b32af4a587da015316205005987',
+          '0x584666e270341cee2c2d41c23821a568a9068ac8',
+          '0xb19dd661f076998e3b0456935092a233e12c2280',
+          '0xfde7aca6aca283a5578471ca1000745a6ce8ce81',
+          '0x416641eac164f996759b03f224005c3422b0d650',
+          '0xe7e16f2da731265778f87cb8d7850e31b84b7b86',
+          '0xcf30aeebf2ef45fbc27e4761e2b842313dfbf99b',
+          '0xcab4f7f57af24cef0a46eed4150a23b36c29d6cc',
+          '0x67ad4650b50bb4646e93faeccf6b3796e8780f18',
+          '0x5dd90959c25b62dffa67021c4bbde928a0bd6863',
+          '0x631998e91476da5b870d741192fc5cbc55f5a52e',
+          '0xc7a096b4c6610ba3a836070333ff7922b9866a36',
+          '0xb862aec93f0169249935f82fd98e6a494f53c287',
+          '0x9c09596d3d3691ea971f0b40b8cad44186868267',
+          '0xd9c5449efb3f99952f73e824688724aafb81de6e',
+          '0x8eb9be04b1df6596afa72c796f7f410aa1adba8b',
+          '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
+          '0x51ac4a13054d5d7e1fa795439821484177e7e828',
+          '0x5b30cc4def69ae2dfcddbc7ebafea82cedae0190',
+          '0x85bc2e8aaad5dbc347db49ea45d95486279ed918',
+          '0x6d3584ef37c43374151f5aa7928f7201914ea811',
+          '0xDcd8a43dF87722181840616187c5DA03836ed8db',
+          '0x22d5f9b75c524fec1d6619787e582644cd4d7422',
+          '0x8a57d0cb88e5dea66383b64669aa98c1ab48f03e'
+        ]
+      }
       const haveNfts = lendableNfts.filter((item: any) => {
         return contracts.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
       })
@@ -234,6 +290,7 @@ export const Dashboard = () => {
       contracts
         ? Promise.all(_nfts).then((vals) => {
             setMyNfts(vals)
+            setCurrentNft(vals)
           })
         : setMyNfts([])
     }
@@ -271,6 +328,10 @@ export const Dashboard = () => {
     const val = ele.currentTarget.value
     setToAddress(val)
   }, [])
+  const handleAmount = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setAmount(val)
+  }, [])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
   const handleNftClick = async (item: any) => {
@@ -278,7 +339,6 @@ export const Dashboard = () => {
     setExpired(false)
     setAwaiting(true)
     if (item.sell_orders) return
-
     const contractAddress = item.token_address ?? ''
 
     const localAbi = localStorage.getItem(contractAddress.toLowerCase())
@@ -288,7 +348,13 @@ export const Dashboard = () => {
         storedAbi = value
       }
     }
-    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
+    let chain
+    if (chainId === 56) {
+      chain = 'bscscan'
+    } else if (chainId === 137) {
+      chain = 'polygonscan'
+    }
+    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain)
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
@@ -298,16 +364,15 @@ export const Dashboard = () => {
         // check ERC721 approve
         if (item.contract_type === 'ERC721' && nftContract?.getApproved) {
           const approveAddress = await nftContract?.getApproved(item.token_id)
-          console.log(approveAddress)
-          if (lowerCase(approveAddress) === lowerCase(BSCAssetContractAddress as string)) {
+          if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
             setIsApproved(true)
           } else {
             setIsApproved(false)
           }
         } else if (!!nftContract?.isApprovedForAll) {
           // check ERC1155 approve
-          const isApproved = await nftContract?.isApprovedForAll(BSCAssetContractAddress, account)
-          console.log(isApproved)
+          const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
+          // console.log(isApproved)
 
           isApproved ? setIsApproved(true) : setIsApproved(false)
         }
@@ -330,10 +395,17 @@ export const Dashboard = () => {
         storedAbi = value
       }
     }
-    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress)
+    let chain
+    if (chainId === 56) {
+      chain = 'bscscan'
+    } else if (chainId === 137) {
+      chain = 'polygonscan'
+    }
+    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain)
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
+    console.log(item)
   }
   const handlePriceChange = useCallback((val) => setPrice(val), [])
   const handleDaysChange = useCallback((val) => setdays(val), [])
@@ -367,7 +439,7 @@ export const Dashboard = () => {
       const PenaltyProportion = new BigNumber(penalty as unknown as string).times(new BigNumber('0.01'))
       const amount = Collateral.plus(cost)
       let type
-      if (currentSelection === 'BNB') {
+      if (currentSelection === 'BNB' || currentSelection === 'MATIC') {
         type = 'eth'
       } else {
         type = 'usdt'
@@ -412,9 +484,7 @@ export const Dashboard = () => {
         img: currentItem.metadata.image,
         contractName: currentItem.name
       }
-      console.log(params)
       const res: any = await http2.post(`/v0/opensea/`, params)
-      console.log(res)
       setLending(false)
       if (res.data.code === 1) {
         toastify.success('succeed')
@@ -422,8 +492,8 @@ export const Dashboard = () => {
         setCollateral('')
         setdays('')
         setVisible(false)
-        mutateDebts(undefined, true)
         mutateMyNfts(undefined, true)
+        location.reload()
       } else {
         throw res.message || res.data.message
       }
@@ -444,6 +514,7 @@ export const Dashboard = () => {
         }
         setLending(false)
         setShowSend(false)
+        location.reload()
       } catch (err: any) {
         toastify.error(err.message)
         setLending(false)
@@ -456,11 +527,11 @@ export const Dashboard = () => {
       try {
         let approvetx
         if (currentItem.contract_type === 'ERC721' && currentItem.contract?.approve) {
-          approvetx = await currentItem.contract.approve(BSCAssetContractAddress, currentItem.token_id)
+          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.token_id)
         } else {
-          approvetx = await currentItem.contract.setApprovalForAll(BSCAssetContractAddress, true)
+          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
-        console.log(approvetx)
+        // console.log(approvetx)
         const receipt = await fetchReceipt(approvetx.hash, library)
         if (!receipt.status) {
           throw new Error('failed')
@@ -565,19 +636,19 @@ export const Dashboard = () => {
                       <div className="Options">
                         <div
                           onClick={() => {
-                            setCurrentSelection('BNB')
+                            setCurrentSelection(chainId === 56 ? 'BNB' : 'MATIC')
                             setOptions(false)
                           }}
                         >
-                          BNB
+                          {chainId === 56 ? 'BNB' : 'MATIC'}
                         </div>
                         <div
                           onClick={() => {
-                            setCurrentSelection('BUSD')
+                            setCurrentSelection(chainId === 56 ? 'BUSD' : 'wETH')
                             setOptions(false)
                           }}
                         >
-                          BUSD
+                          {chainId === 56 ? 'BUSD' : 'wETH'}
                         </div>
                       </div>
                     ) : (
@@ -627,17 +698,10 @@ export const Dashboard = () => {
           <div className="input">
             <input placeholder="To address" onChange={handleToAddressChange} value={toAddress} />
           </div>
-          {isSendApproved ? (
-            <div className="button ture" onClick={sendNFT}>
-              Send
-              {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
-            </div>
-          ) : (
-            <div className={toAddress ? 'button ture' : 'button false'} onClick={sendApprove}>
-              Approve
-              {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
-            </div>
-          )}
+          <div className={toAddress ? 'button ture' : 'button false'} onClick={sendNFT}>
+            Send
+            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+          </div>
         </SendBox>
       </Dialog>
       <MyTabs defaultActiveKey="1">

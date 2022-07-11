@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useMemo, useState } from 'react'
+import axios from 'axios'
 import { Row, Col } from 'antd'
 import styled from 'styled-components'
 import { Modal } from '../components/Modal'
@@ -15,16 +16,15 @@ import { Tag, Spin } from 'antd'
 import { Loading3QuartersOutlined } from '@ant-design/icons'
 import { RentCard } from '../components/RentCard'
 import { isEmpty } from 'lodash'
-import { fetchReceipt, formatAddress, ZeroAddress, formatting } from '../utils'
-import { http2, http } from '../components/Store'
-import { BNBIcon } from '../components/BNBIcon'
-import { BUSDIcon } from '../components/BUSDIcon'
+import { fetchReceipt, formatAddress, ZeroAddress, formatting, ChainHttp, ChainCurrencyName } from '../utils'
+import { bschttp, polygonhttp } from '../components/Store'
+import { Icon } from '../components/Icon'
 import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
 
-import { BSCControlContractAddress } from '../constants'
+import { BSCControlContractAddress, POLYGONControlContractAddress } from '../constants'
 
 export const RentBox = styled.div`
   margin: 5rem 0 6rem 1rem;
@@ -35,7 +35,7 @@ const Sort = styled.div`
   background: #fff;
   justify-content: space-between;
   position: fixed;
-  z-index: 99;
+  z-index: 20;
   margin-left: 1rem;
 
   @media screen and (min-width: 1152px) {
@@ -130,8 +130,8 @@ const FakeButtonBox = styled.button<{ theme?: string; block?: boolean }>`
   font-size: 0.875rem;
   width: 100%;
   color: #fff;
-  cursor: not-allowed;
-  background: ${({ value }) => (value ? 'rgba(53, 202, 169, 1)' : 'rgba(53, 202, 169, 0.5)')};
+  cursor: ${({ value, disabled }) => (value && !disabled ? 'pointer' : 'not-allowed')};
+  background: ${({ value, disabled }) => (value && !disabled ? 'rgba(53, 202, 169, 1)' : 'rgba(53, 202, 169, 0.5)')};
   border: ${({ theme }) => (theme === 'ghost' ? `1px solid var(--second-color)` : '1px solid transparent')};
 
   @media screen and (min-width: 1920px) {
@@ -396,7 +396,7 @@ export const ContentBox = styled.div`
 `
 
 export const Rent = () => {
-  const { library, account } = useActiveWeb3React()
+  const { library, account, chainId } = useActiveWeb3React()
   const [currentItem, setCurrentItem] = useState({} as any)
   const [visible, setVisible] = useState(false)
   const [prompt, setPrompt] = useState(false)
@@ -413,13 +413,18 @@ export const Rent = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const lendingNfts = useLendingNfts()
   const [lendNfts, setLendNfts] = useState(lendingNfts)
-  const { mutateDebts } = useStore()
   const ERC20Contract = useERC20Contract()
   const AssetContract = useAssetContract()
   const ControlContract = useControlContract()
   const [renting, setRenting] = useState(false)
   const { nfts } = useStore()
-
+  const http2 = ChainHttp(chainId)
+  let ControlContractAddress: any
+  if (chainId === 56) {
+    ControlContractAddress = BSCControlContractAddress
+  } else if (chainId === 137) {
+    ControlContractAddress = POLYGONControlContractAddress
+  }
   useEffect(() => {
     const filterCollection = () => {
       const arr: any[] = []
@@ -456,7 +461,6 @@ export const Rent = () => {
   }, [collection])
 
   useEffect(() => {
-    console.log(lendingNfts)
     setLendNfts(lendingNfts)
   }, [lendingNfts])
 
@@ -512,12 +516,12 @@ export const Rent = () => {
               // img: data.image,
               name: list.nft_name
             }
-            await http2.post(`/v0/opensea/`, params)
+            await http2?.post(`/v0/opensea/`, params)
           }
         }
       }
     }
-    // getRentList()
+    getRentList()
   }, [])
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -606,20 +610,49 @@ export const Rent = () => {
       const params = {
         lendIndex: index.toString()
       }
-      await http2.put(`/v0/opensea/${item.gamelandNftId}`, params)
+      await http2?.put(`/v0/opensea/${item.gamelandNftId}`, params)
     }
     setDescription(item.metadata.description)
     setCurrentItem(item)
-    console.log(item)
     setVisible(true)
-    if (item.metadata.attributes.constructor === Object) {
-      const arr: any[] = []
-      for (const key in item.metadata.attributes) {
-        arr.push({ trait_type: key, value: item.metadata.attributes[key] })
+    if (item.metadata.attributes) {
+      if (item.metadata.attributes.constructor === Object) {
+        const arr: any[] = []
+        for (const key in item.metadata.attributes) {
+          arr.push({ trait_type: key, value: item.metadata.attributes[key] })
+        }
+        setSpecificAttribute(arr)
+        setRareAttribute([])
+      } else {
+        setSpecificAttribute(item.metadata.attributes)
+        setRareAttribute([])
       }
-      setSpecificAttribute(arr)
     } else {
-      setSpecificAttribute(item.metadata.attributes)
+      const getdata = axios.create({
+        timeout: 10000,
+        headers: {
+          Authorization: '40966ceb-b776-42fa-8236-620bf99bd1ef'
+        }
+      })
+      try {
+        const nftAttributeData = await getdata.get(
+          `https://api.nftport.xyz/v0/nfts/${item.contractAddress}/${item.nftId}?chain=polygon`
+        )
+        setDescription(nftAttributeData.data.nft.metadata.description)
+        const RareAttribute: any[] = []
+        const SpecificAttribute: any[] = []
+        nftAttributeData.data.nft.metadata.attributes.map((item: any) => {
+          if (item.display_type) {
+            RareAttribute.push(item)
+          } else {
+            SpecificAttribute.push(item)
+          }
+        })
+        setRareAttribute(RareAttribute)
+        setSpecificAttribute(SpecificAttribute)
+      } catch (error) {
+        // handleShowModal(item)
+      }
     }
     // http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
   }
@@ -658,21 +691,27 @@ export const Rent = () => {
       const Penalty = new BigNumber(currentItem.penalty as unknown as string)
       const amount = collateral.plus(cost).plus(Penalty).toString()
       let rented
+      // const allowance = await ERC20Contract?.allowance(account, ControlContractAddress)
+      // console.log(allowance.toString(), amount)
       if (currentItem.pay_type === 'eth') {
         rented = await ControlContract?.connect(library.getSigner()).rent(currentItem.lendIndex, LeaseDays, {
           value: parseEther(amount)
         })
       } else {
-        // const allowance = await ERC20Contract?.allowance(account, ControlContractAddress)
-        // console.log(allowance.toString())
-        const approvetx = await ERC20Contract?.approve(BSCControlContractAddress, parseEther(amount))
-        const approvereceipt = await fetchReceipt(approvetx.hash, library)
-        if (!approvereceipt.status) {
-          throw new Error('failed')
+        const allowance = await ERC20Contract?.allowance(account, ControlContractAddress)
+        const blance = allowance.toString()
+        if (Number(blance) <= 0) {
+          const approvetx = await ERC20Contract?.approve(ControlContractAddress, parseEther(amount))
+          const approvereceipt = await fetchReceipt(approvetx.hash, library)
+          if (!approvereceipt.status) {
+            throw new Error('failed')
+          }
+        } else if (Number(blance) < Number(amount)) {
+          await ERC20Contract?.approve(ControlContractAddress, 0)
+          await ERC20Contract?.approve(ControlContractAddress, parseEther(amount))
         }
         rented = await ControlContract?.connect(library.getSigner()).rent_usdt(currentItem.lendIndex, LeaseDays)
       }
-      console.log(rented)
       const receipt = await fetchReceipt(rented.hash, library)
       const { status } = receipt
       if (!status) {
@@ -686,12 +725,11 @@ export const Rent = () => {
         borrowDay: LeaseDays,
         rentIndex: index.toString()
       }
-      const res: any = await http2.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
+      const res: any = await http2?.put(`/v0/opensea/${currentItem.gamelandNftId}`, params)
 
       if (res.data.code === 1) {
         setRenting(false)
         toastify.success('succeed')
-        mutateDebts(undefined, true)
         setVisible(false)
       } else {
         throw res.message || res.data.message
@@ -805,16 +843,16 @@ export const Rent = () => {
                       <SpanLabel>Collateral</SpanLabel>
                       <span>
                         {currentItem.collateral}&nbsp;
-                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                        {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                        <Icon type={currentItem.pay_type} />
                       </span>
                     </div>
                     <div>
                       <SpanLabel>penalty</SpanLabel>
                       <span>
                         {currentItem.penalty}&nbsp;
-                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                        {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                        <Icon type={currentItem.pay_type} />
                       </span>
                     </div>
                     <div>
@@ -826,17 +864,17 @@ export const Rent = () => {
                       <span className="blue">
                         <span className="bigSize">
                           {currentItem.price}&nbsp;
-                          {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
+                          {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
                         </span>
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />} / day
+                        <Icon type={currentItem.pay_type} /> / day
                       </span>
                     </div>
                     <div>
                       <SpanLabel>Total</SpanLabel>
                       <span className="blue bigSize">
                         {total}&nbsp;
-                        {currentItem.pay_type === 'eth' ? 'BNB' : 'BUSD'}&nbsp;
-                        {currentItem.pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+                        {ChainCurrencyName(chainId, currentItem.pay_type)}&nbsp;
+                        <Icon type={currentItem.pay_type} />
                       </span>
                     </div>
                   </Dlist>
@@ -932,7 +970,7 @@ export const Rent = () => {
                     </div>
                     <div>
                       <span className="b">Blockchain</span>
-                      <span>BSC</span>
+                      <span>{chainId === 56 ? 'BSC' : 'Polygon'}</span>
                     </div>
                   </div>
                 </Details>

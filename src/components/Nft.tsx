@@ -5,8 +5,7 @@ import { Img } from './Img'
 import { BaseProps } from './NumInput'
 import { ProgressLabelProps, ProgressLabels, InProgressProps } from './RentingCard'
 import { toastify } from './Toastify'
-import { BNBIcon } from '../components/BNBIcon'
-import { BUSDIcon } from '../components/BUSDIcon'
+import { Icon } from '../components/Icon'
 import Default from '../assets/default.png'
 import Blade from '../assets/blade.png'
 import Chaos from '../assets/chaos.png'
@@ -120,7 +119,7 @@ const LabelsWrap = styled.div`
 const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, borrowAt }) => {
   const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
   const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt), [borrowAt])
-  console.log(progress, dayLeft)
+  // console.log(progress, dayLeft)
   return (
     <div style={{ overflow: 'hidden' }}>
       {right || <p>{name}</p>}
@@ -158,7 +157,7 @@ const Labels: React.FC<LabelProps> = ({
         <div>
           <PriceLabel>
             {total}&nbsp;
-            {pay_type === 'eth' ? <BNBIcon /> : <BUSDIcon />}
+            <Icon type={pay_type} />
           </PriceLabel>
           <Days>{days} days</Days>
         </div>
@@ -246,7 +245,7 @@ const Operate: React.FC<OperateProps> = ({
   useEffect(() => {
     if (!dayLeft) return
     if (!nftId) return
-    console.log(dayLeft)
+    // console.log(dayLeft)
     if (dayLeft === 'Expired') {
       setOverTime(true)
       const currentTime = Math.floor(new Date().valueOf() / 1000) + 28800
@@ -366,8 +365,8 @@ export const Nft: React.FC<NftProps> = ({
       {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} /> */}
       {src === '.mp4' || src === 'webm' ? (
         <video
-          width="320"
-          height="240"
+          width="314"
+          height="314"
           muted
           autoPlay={true}
           loop

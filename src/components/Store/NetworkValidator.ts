@@ -18,7 +18,7 @@ export const useNetworkValidator = () => {
       return
     }
     ;(window as any).ethereum.request({ method: 'eth_chainId' }).then((res: any) => {
-      console.log(parseInt(res, 16))
+      // console.log(parseInt(res, 16))
       const chainId = parseInt(res, 16)
       if (!chainId) {
         setError(false)
