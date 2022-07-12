@@ -242,8 +242,8 @@ export const Header = () => {
               <Link to="/dashboard">
                 <span>Dashboard</span>
               </Link>
-              <Link to="/guilds">
-                <span>Guilds</span>
+              <Link to="/games">
+                <span>Games</span>
               </Link>
             </div>
             <div className="chain">

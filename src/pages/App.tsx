@@ -11,7 +11,7 @@ import { Lend } from './Lend'
 import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
 // import { Alert } from 'antd'
-import { Guilds } from './Guilds'
+import { Games } from './Games'
 
 const Wrap = styled.div`
   min-height: 30rem;
@@ -70,7 +70,7 @@ function App() {
             <Route exact path="/" component={Rent} />
             <Route exact path="/lend" component={Lend} />
             <Route exact path="/dashboard" component={Dashboard} />
-            <Route exact path="/guilds" component={Guilds} />
+            <Route exact path="/games" component={Games} />
           </Switch>
           <ToastContainer />
         </Wrap>
