@@ -299,8 +299,10 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
       }
     }
     .result {
+      height: 300px;
       margin-top: 2rem;
       padding-left: 1.5rem;
+      overflow: auto;
       div {
         height: 1.5rem;
         font-size: 16px;
@@ -309,6 +311,9 @@ h1, h2, h3, h4, h5, h6,a,.ant-tabs{
         color: #333333;
         margin-bottom: 1rem;
         cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
     .notFound {

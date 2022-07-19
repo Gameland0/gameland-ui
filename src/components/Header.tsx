@@ -27,6 +27,7 @@ const HeaderBox = styled.div`
     height: 60px;
     margin-top: 20px;
     .jumpButton {
+      position: relative;
       display: flex;
       padding: 8px 16px 0 8px;
       width: 142px;
@@ -53,9 +54,9 @@ const HeaderBox = styled.div`
         background-color: #fff;
         border-radius: 4px;
         box-shadow: 0 1px 8px rgba(0, 0, 0, 0.12);
-        position: fixed;
-        top: 80px;
-        right: 234px;
+        position: absolute;
+        top: 50px;
+        left: 0px;
         display: none;
         div {
           display: flex;
@@ -165,7 +166,7 @@ const Link = styled(NavLink).attrs({
     color: var(--primary-color);
   }
 `
-const handleClick = async (CHAIN_ID_HEX: any, RPC_URL: any) => {
+export const handleClick = async (CHAIN_ID_HEX: any, RPC_URL: any) => {
   const { ethereum } = window as any
   if (ethereum) {
     try {
@@ -251,23 +252,11 @@ export const Header = () => {
                 <img src={chainImg} alt="" />
                 <div className="chainName">{chainName}</div>
                 <div className="menu">
-                  <div
-                    onClick={() => {
-                      handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
-                      setChainName('Polygon')
-                      setChainImg(PolygonImg)
-                    }}
-                  >
+                  <div onClick={() => handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)}>
                     <img src={PolygonImg} />
                     Polygon
                   </div>
-                  <div
-                    onClick={() => {
-                      handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
-                      setChainName('BNB chain')
-                      setChainImg(BSCImg)
-                    }}
-                  >
+                  <div onClick={() => handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)}>
                     <img src={BSCImg} alt="" />
                     BNB chain
                   </div>

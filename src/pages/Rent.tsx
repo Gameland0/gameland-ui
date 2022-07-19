@@ -194,17 +194,17 @@ const Dlist = styled.div`
     font-size: 16px;
   }
 `
-const ImgBox = styled.div`
+export const ImgBox = styled.div`
   img {
     width: 91%;
     height: 91%;
     border-radius: 20px 20px 20px 20px;
   }
 `
-const Title = styled.h1`
+export const Title = styled.h1`
   line-height: 1.5rem;
 `
-const Tips = styled.div`
+export const Tips = styled.div`
   width: 40%;
   height: 3.5rem;
   font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
@@ -225,7 +225,7 @@ export const SpanLabel = styled.span`
   font-weight: bold;
   color: #333333;
 `
-const Description = styled.div`
+export const Description = styled.div`
   width: 100%;
   height: 16.43rem;
   background: #fff;
@@ -248,7 +248,7 @@ const Description = styled.div`
     -webkit-box-orient: vertical;
   }
 `
-const Properties = styled.div`
+export const Properties = styled.div`
   width: 100%;
   min-height: 28rem;
   background: #fff;
@@ -281,7 +281,7 @@ const Properties = styled.div`
   }
 `
 
-const StatsBox = styled.div`
+export const StatsBox = styled.div`
   width: 100%;
   min-height: 14rem;
   background: #fff;
@@ -309,7 +309,7 @@ const StatsBox = styled.div`
     }
   }
 `
-const Details = styled.div`
+export const Details = styled.div`
   width: 100%;
   min-height: 12rem;
   background: #fff;
@@ -654,7 +654,6 @@ export const Rent = () => {
         // handleShowModal(item)
       }
     }
-    // http.defaults.headers.common['Authorization'] = '40966ceb-b776-42fa-8236-620bf99bd1ef'
   }
   const handleShowPrompt = () => {
     if (!LeaseDays) return

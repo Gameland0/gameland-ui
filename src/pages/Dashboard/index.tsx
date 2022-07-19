@@ -31,6 +31,8 @@ import {
   OPENSEA_URL,
   BSCSCAN_KEY,
   POLYGONSCAN_KEY,
+  BscContract,
+  PolygonContract,
   POLYGONAssetContractAddress
 } from '../../constants'
 import { ABIs } from '../../constants/Abis/ABIs'
@@ -39,7 +41,7 @@ const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
   margin-top: 2rem;
 `
-const SendBox = styled.div`
+export const SendBox = styled.div`
   .title {
     width: 100%;
     font-size: 24px;
@@ -221,11 +223,11 @@ export const Dashboard = () => {
 
   // useEffect(() => {
   //   ControlContract?.add_nft_programforarray([
-  //     '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
-  //     '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
-  //     '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
-  //     '0x1B26e0F75c623fE9357dBC6c1871AB745fACcF04',
-  //     '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6'
+  //     '0x24fADCEfd2117719C4078C08b352b22C74542418',
+  //     '0x69d60ad11feb699fe5feeeb16ac691df090bfd50',
+  //     '0xeea8bd31da9a2169c38968958b6df216381b0f08',
+  //     '0x8db638762965663963fdb20a88b498c7c16ec710',
+  //     '0x7e00338097ad4397a39af5e2b36012348fd87d8b'
   //   ])
   // }, [])
 
@@ -245,43 +247,9 @@ export const Dashboard = () => {
     const syncFn = async () => {
       let contracts: any
       if (chainId === 56) {
-        contracts = [
-          '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
-          '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
-          '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
-          '0x1B26e0F75c623fE9357dBC6c1871AB745fACcF04',
-          '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6'
-        ]
+        contracts = BscContract
       } else if (chainId === 137) {
-        contracts = [
-          '0x94e42811db93ef7831595b6ff9360491b987dfbd',
-          '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
-          '0xc65fd3945e26c15e03176810d35506956b036f39',
-          '0xc1f39f52bcbb4b32af4a587da015316205005987',
-          '0x584666e270341cee2c2d41c23821a568a9068ac8',
-          '0xb19dd661f076998e3b0456935092a233e12c2280',
-          '0xfde7aca6aca283a5578471ca1000745a6ce8ce81',
-          '0x416641eac164f996759b03f224005c3422b0d650',
-          '0xe7e16f2da731265778f87cb8d7850e31b84b7b86',
-          '0xcf30aeebf2ef45fbc27e4761e2b842313dfbf99b',
-          '0xcab4f7f57af24cef0a46eed4150a23b36c29d6cc',
-          '0x67ad4650b50bb4646e93faeccf6b3796e8780f18',
-          '0x5dd90959c25b62dffa67021c4bbde928a0bd6863',
-          '0x631998e91476da5b870d741192fc5cbc55f5a52e',
-          '0xc7a096b4c6610ba3a836070333ff7922b9866a36',
-          '0xb862aec93f0169249935f82fd98e6a494f53c287',
-          '0x9c09596d3d3691ea971f0b40b8cad44186868267',
-          '0xd9c5449efb3f99952f73e824688724aafb81de6e',
-          '0x8eb9be04b1df6596afa72c796f7f410aa1adba8b',
-          '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
-          '0x51ac4a13054d5d7e1fa795439821484177e7e828',
-          '0x5b30cc4def69ae2dfcddbc7ebafea82cedae0190',
-          '0x85bc2e8aaad5dbc347db49ea45d95486279ed918',
-          '0x6d3584ef37c43374151f5aa7928f7201914ea811',
-          '0xDcd8a43dF87722181840616187c5DA03836ed8db',
-          '0x22d5f9b75c524fec1d6619787e582644cd4d7422',
-          '0x8a57d0cb88e5dea66383b64669aa98c1ab48f03e'
-        ]
+        contracts = PolygonContract
       }
       const haveNfts = lendableNfts.filter((item: any) => {
         return contracts.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
@@ -405,7 +373,6 @@ export const Dashboard = () => {
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
-    console.log(item)
   }
   const handlePriceChange = useCallback((val) => setPrice(val), [])
   const handleDaysChange = useCallback((val) => setdays(val), [])
