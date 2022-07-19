@@ -250,6 +250,11 @@ export const Dashboard = () => {
           '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
           '0x1dDB2C0897daF18632662E71fdD2dbDC0eB3a9Ec',
           '0x1B26e0F75c623fE9357dBC6c1871AB745fACcF04',
+          '0x24fADCEfd2117719C4078C08b352b22C74542418',
+          '0x69d60ad11feb699fe5feeeb16ac691df090bfd50',
+          '0xeea8bd31da9a2169c38968958b6df216381b0f08',
+          '0x8db638762965663963fdb20a88b498c7c16ec710',
+          '0x7e00338097ad4397a39af5e2b36012348fd87d8b',
           '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6'
         ]
       } else if (chainId === 137) {
