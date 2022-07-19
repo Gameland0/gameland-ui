@@ -625,18 +625,11 @@ export const CollectionDetails = () => {
         storedAbi = value
       }
     }
-    let chainscan
-    if (chain === 'bsc') {
-      chainscan = 'bscscan'
-    } else if (chain === 'polygon') {
-      chainscan = 'polygonscan'
-    }
     const ABI =
-      storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chainscan)
+      storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain + 'scan')
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
-
     if (nftContract !== null) {
       try {
         // check ERC721 approve
