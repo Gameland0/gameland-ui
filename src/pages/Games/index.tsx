@@ -2,15 +2,13 @@ import React, { useEffect, useCallback, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { Row, Col } from 'antd'
 import { bschttp, polygonhttp } from '../../components/Store'
-import { useActiveWeb3React } from '../../hooks'
+// import { useActiveWeb3React } from '../../hooks'
 import { useHistory } from 'react-router-dom'
-import { Empty } from '../../components/Empty'
 import search from '../../assets/search_bar_icon_search.svg'
 import arrow from '../../assets/icon_select.svg'
 import star from '../../assets/icon_star.svg'
-import { handleClick } from '../../components/Header'
-import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../../constants'
-import { assignWith } from 'lodash'
+import polygonIcon from '../../assets/polygon_icon.svg'
+import BNBIcon from '../../assets/bnb.svg'
 
 const Sort = styled.div`
   height: 3.75rem;
@@ -119,7 +117,7 @@ const CollectionBox = styled.div`
           height: 20px;
         }
         span {
-          margin-left: 10px;
+          margin: 0 20px;
           font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
           color: #999999;
         }
@@ -198,11 +196,11 @@ export const Games = () => {
       const polygon = await polygonhttp.get('/v0/games')
       let data
       if (gamesFilter === 'ALL') {
-        data = [...bsc.data.data, ...polygon.data.data]
+        data = [...bsc.data.data, ...polygon.data.data].sort(compare())
       } else if (gamesFilter === 'Polygon') {
-        data = polygon.data.data
+        data = polygon.data.data.sort(compare())
       } else {
-        data = bsc.data.data
+        data = bsc.data.data.sort(compare())
       }
       setGames(data)
       setData(data)
@@ -248,7 +246,19 @@ export const Games = () => {
     const val = ele.currentTarget.value
     setCollection(val)
   }, [])
-
+  const compare = () => {
+    return function (obj1: any, obj2: any) {
+      const val1 = obj1.starRating
+      const val2 = obj2.starRating
+      if (Number(val1) < Number(val2)) {
+        return 1
+      } else if (Number(val1) > Number(val2)) {
+        return -1
+      } else {
+        return 0
+      }
+    }
+  }
   const collectionFilter = (collection: any) => {
     const Nfts = data.filter((item: any) => {
       return item.contractName === collection
@@ -256,11 +266,6 @@ export const Games = () => {
     setGames(Nfts)
   }
   const link = (item: any) => {
-    // if (item.chain === 'bsc') {
-    //   handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
-    // } else if (item.chain === 'polygon') {
-    //   handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
-    // }
     history.push({
       pathname: `/games/${item.contractName.replace(/ /g, '')}`,
       state: {
@@ -352,7 +357,7 @@ export const Games = () => {
                     <div className="starRating">
                       <img src={star} alt="" /> &nbsp;{item.starRating}
                       <span>Rank {Number(index) + 1}</span>
-                      <span>{item.chain}</span>
+                      <img src={item.chain === 'bsc' ? BNBIcon : polygonIcon} alt="" />
                     </div>
                   </div>
                   <div className="describe">{item.describe ? item.describe : 'No description yet'}</div>

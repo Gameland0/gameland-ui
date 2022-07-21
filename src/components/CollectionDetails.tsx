@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { parseEther } from '@ethersproject/units'
+import { useHistory } from 'react-router-dom'
 import { Row, Col, Button, Popconfirm } from 'antd'
 import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
@@ -42,14 +43,15 @@ import { getContract, fetchAbi, SendBox } from '../pages/Dashboard'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
 import loadding from '../assets/loading.svg'
-import gameland from '../assets/icon_gameland.svg'
+import gameland from '../assets/network.svg'
 import defaultImg from '../assets/default.png'
 import defaultStar from '../assets/icon_review_star_default.svg'
 import scoreStar from '../assets/icon_score_star.svg'
 import arrow from '../assets/icon_select.svg'
 import repost from '../assets/icon_repost.svg'
 import Reply from '../assets/icon_reply.svg'
-import like from '../assets/icon_like_default.svg'
+import likefalse from '../assets/icon_like_default.svg'
+import liketrue from '../assets/icon_like_selected.svg'
 import reward from '../assets/icon_reward.svg'
 
 const DetailsBox = styled.div`
@@ -60,7 +62,8 @@ const DetailsBox = styled.div`
   border-radius: 10px 10px 10px 10px;
   margin-top: 5px;
   .collection {
-    min-height: 550px;
+    height: 840px;
+    overflow: auto;
     border-right: 1px solid #e5e5e5;
     .info {
       .top {
@@ -89,7 +92,7 @@ const DetailsBox = styled.div`
           }
         }
         .ranting {
-          margin-left: 175px;
+          margin-left: 145px;
           margin-top: 20px;
           .title {
             font-size: 18px;
@@ -173,17 +176,38 @@ const DetailsBox = styled.div`
         }
       }
       .commentaryInput {
+        width: 460px;
         margin-top: 24px;
+        font-size: 18px;
+        box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+        border-radius: 10px;
+        padding: 0 0 16px 0;
         textarea  {
-          width: 460px;
-          height: 200px;
+          width: 100%;
+          height: 100px;
           resize: none;
-          font-size: 18px;
           border:0;
           outline:0;
-          box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
-          border-radius: 10px;
           padding-left: 10px;
+        }
+        .forward {
+          width: 90%;
+          height: 120px;
+          border: 1px solid #e5e5e5;
+          border-radius: 10px;
+          margin: 0 0 0 5%;
+          padding: 16px;
+          .userImage {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+          }
+          .CommentContent {
+            font-size: 16px;
+            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+            color: #333333;
+            margin-top: 16px;
+          }
         }
       }
       .button {
@@ -196,6 +220,7 @@ const DetailsBox = styled.div`
         line-height: 40px;
         color: #fff;
         margin-bottom: 12px;
+        cursor: pointer;
       }
     }
     .title {
@@ -230,11 +255,11 @@ const DetailsBox = styled.div`
                 background-size: 16px;
                 margin-right: 8px;
               }
-              ..scoreStar {
+              .scoreStar {
                 width: 16px;
                 height: 16px;
                 background-image: url(${scoreStar});
-                background-size:b16px;
+                background-size: 16px;
                 margin-right: 8px;
               }
             }
@@ -250,8 +275,27 @@ const DetailsBox = styled.div`
           font-size: 16px;
           font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
           color: #333333;
-          margin-top: 16px;
+          margin: 16px 0;
           padding-right: 50px;
+        }
+        .forward {
+          width: 90%;
+          height: 120px;
+          border: 1px solid #e5e5e5;
+          background: #f8f8f8;
+          border-radius: 10px;
+          padding: 16px;
+          .userImage {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+          }
+          .CommentContent {
+            font-size: 16px;
+            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+            color: #333333;
+            margin-top: 16px;
+          }
         }
         .otherDetails {
           margin-top: 24px;
@@ -271,9 +315,15 @@ const DetailsBox = styled.div`
             }
           }
           .reward {
-            margin-left: 56px;
+            margin-left: 116px;
           }
         }
+      }
+      .seeMore {
+        margin: 16px 0;
+        font-size: 18px;
+        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+        color: #208DDF;
       }
     }
   }
@@ -291,12 +341,14 @@ const DetailsBox = styled.div`
         padding: 50px;
       }
       .nftBox {
-        padding: 40px;
+        padding: 30px;
       }
     }
     .comment {
       width: 552px;
-      padding: 60px 0 0 40px;   
+      height: 840px;
+      overflow: auto;
+      padding: 50px 0 0 40px;   
       }
     }
   }
@@ -465,7 +517,23 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
     </CardBox>
   )
 }
-
+const getTime = (time: any) => {
+  const year = new Date(time).getFullYear()
+  const month = new Date(time).getMonth()
+  const date = new Date(time).getDate()
+  const jetLag = new Date().getTime() - new Date(time).getTime()
+  if (jetLag <= 60000) {
+    return Math.floor(jetLag / 1000) + ' s ago'
+  } else if (jetLag <= 3600000) {
+    return Math.floor(jetLag / 60000) + ' min ago'
+  } else if (jetLag <= 86400000) {
+    return Math.floor(jetLag / 3600000) + ' hour ago'
+  } else if (jetLag > 259200000) {
+    return `${month + 1}/${date}/${year}`
+  } else {
+    return Math.floor(jetLag / 86400000) + ' day ago'
+  }
+}
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
@@ -473,7 +541,13 @@ export const CollectionDetails = () => {
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
   const [starScore, setstarScore] = useState(0)
+  const [username, setusername] = useState('')
   const [textareaValue, settextareaValue] = useState('')
+  const [userinfo, setUserinfo] = useState([] as any)
+  const [userScoreinfo, setUserScoreinfo] = useState([] as any)
+  const [scoreinfo, setScoreinfo] = useState([] as any)
+  const [revieweinfo, setrevieweinfo] = useState([] as any)
+  const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -482,6 +556,7 @@ export const CollectionDetails = () => {
   const [isSendApproved, setIsSendApproved] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
   const [showSend, setShowSend] = useState(false)
+  const [showSetUp, setshowSetUp] = useState(false)
   const [toAddress, setToAddress] = useState('')
   const [withdrawable, setWithdrawable] = useState(false)
   const [penalty, setPenalty] = useState('')
@@ -490,10 +565,12 @@ export const CollectionDetails = () => {
   const [collateral, setCollateral] = useState('')
   const [options, setOptions] = useState(false)
   const [approving, setApproving] = useState(false)
+  const [scoreDialog, setscoreDialog] = useState(false)
   const [prompt, setPrompt] = useState(false)
   const [rentprompt, setrentPrompt] = useState(false)
   const [lending, setLending] = useState(false)
   const [LeaseDays, setLeaseDays] = useState('')
+  const [forward, setForward] = useState({} as any)
   const [renting, setRenting] = useState(false)
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [currentItem, setCurrentItem] = useState({} as any)
@@ -503,6 +580,7 @@ export const CollectionDetails = () => {
   const [nftData, setnftData] = useState([] as any)
   const { state } = useLocation()
   const { contractName } = useParams() as any
+  const history = useHistory()
   let http2: any
   let AssetContractAddress: any
   let ControlContractAddress: any
@@ -531,53 +609,55 @@ export const CollectionDetails = () => {
   const getCollectionInfo = async () => {
     if (!account) return
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
-    const myNft = await http.get(`
+    const myNft = http.get(`
       https://deep-index.moralis.io/api/v2/${account}/nft?chain=${chain}&format=decimal&token_addresses=${address}
     `)
-    const nftCollection = await http.get(`
+    const nftCollection = http.get(`
       https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain}&format=decimal
     `)
+    const rantData = http2.get(`v0/opensea/${address}`)
     const Details = await http2.get(`v0/games/${address}`)
-    const rantData = await http2.get(`v0/opensea/${address}`)
-    setcollectionDetails(Details?.data.data[0])
-    const data = [...myNft.data.result, ...rantData?.data.data, ...nftCollection.data.result]
-    data.map(async (item) => {
-      if (!item.gamelandNftId) {
-        let contractIndex = contracts.findIndex((i: any) => {
-          return i.toLowerCase() === item.token_address.toLowerCase()
-        })
-        if (contractIndex >= 0) {
-          contractIndex = contractIndex + 1
-        } else {
-          return
+    const _nfts = [myNft, nftCollection, rantData]
+    Promise.all(_nfts).then((vals) => {
+      const data = [...vals[0].data.result, ...vals[2].data.data, ...vals[1]?.data.result]
+      data.map(async (item) => {
+        if (!item.gamelandNftId) {
+          let contractIndex = contracts.findIndex((i: any) => {
+            return i.toLowerCase() === item.token_address.toLowerCase()
+          })
+          if (contractIndex >= 0) {
+            contractIndex = contractIndex + 1
+          } else {
+            return
+          }
+          const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
+          item.gamelandNftId = hashMessage(gamelandId)
         }
-        const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
-        item.gamelandNftId = hashMessage(gamelandId)
-      }
-      if (item.owner_of) {
-        if (item.owner_of.toLowerCase() === account.toLowerCase()) {
-          item.have = 1
+        if (item.owner_of) {
+          if (item.owner_of.toLowerCase() === account.toLowerCase()) {
+            item.have = 1
+          } else {
+            item.have = 0
+          }
         } else {
           item.have = 0
         }
-      } else {
-        item.have = 0
-      }
-      if (!item.metadata) {
-        item.metadata = {
-          name: '',
-          image: defaultImg
+        if (!item.metadata) {
+          item.metadata = {
+            name: '',
+            image: defaultImg
+          }
+        } else if (typeof item.metadata === 'string') {
+          item.metadata = JSON.parse(item.metadata)
+        } else {
+          item.metadata = item.metadata
         }
-      } else if (typeof item.metadata === 'string') {
-        item.metadata = JSON.parse(item.metadata)
-      } else {
-        item.metadata = item.metadata
-      }
-      return item
+        return item
+      })
+      setnftData(data)
     })
-    setnftData(data)
+    setcollectionDetails(Details?.data.data[0])
   }
-
   useEffect(() => {
     if (state) {
       localStorage.setItem('address', state.address)
@@ -586,6 +666,29 @@ export const CollectionDetails = () => {
     getCollectionInfo()
   }, [contractName])
 
+  useEffect(() => {
+    const getUserinfo = async () => {
+      if (!account) return
+      const userinfo = await http2.get(`v0/userinfo/${account}`)
+      if (!userinfo.data.data.length) {
+        setshowSetUp(true)
+      } else {
+        setUserinfo(userinfo.data.data[0])
+        const params = { useraddress: account }
+        const userscore = http2.post(`/v0/score/${address}`, params)
+        const collectionScore = http2.get(`/v0/score/collection/${address}`)
+        const collectionreviewe = http2.get(`/v0/review/collection/${address}`)
+        const userlike = http2.get(`/v0/review_like/${account}`)
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike]).then((vals) => {
+          setUserScoreinfo(vals[0].data.data)
+          setScoreinfo(vals[1].data.data)
+          setrevieweinfo(vals[2].data.data)
+          setuserLikeInfo(vals[3].data.data)
+        })
+      }
+    }
+    getUserinfo()
+  }, [account, chainId])
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
@@ -599,6 +702,20 @@ export const CollectionDetails = () => {
     return _cost.plus(collateral).plus(Penalty).toString()
   }, [LeaseDays])
 
+  const isLike = (id: any) => {
+    const Index = userLikeInfo.findIndex((item: any) => {
+      return item.reviewid === id
+    })
+    if (Index >= 0) return 1
+    return 0
+  }
+  const getForwardData = (id: any, type: any) => {
+    const data = revieweinfo.filter((ele: any) => {
+      return ele.id === id
+    })
+    if (type === 'name') return data[0].username
+    if (type === 'content') return data[0].context
+  }
   const lendNftClick = async (item: any) => {
     if (chain === 'bsc') {
       if (chainId === 56) {
@@ -823,6 +940,154 @@ export const CollectionDetails = () => {
       }
     }
   }
+  const setname = async () => {
+    if (!username) return
+    setLending(true)
+    const params = {
+      useraddress: account,
+      username: username
+    }
+    const res: any = await http2.post(`/v0/userinfo/`, params)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setLending(false)
+      setshowSetUp(false)
+      location.reload()
+    } else {
+      throw res.message || res.data.message
+    }
+  }
+  const updateScore = async () => {
+    const info = await http2.get(`/v0/score/collection/${address}`)
+    let total = 0
+    info.data.data.map((item: any) => {
+      total += item.score
+    })
+    const totalScore = (total * 2) / info.data.data.length
+    const params = {
+      starRating: totalScore
+    }
+    http2.put(`/v0/games/${collectionDetails.id}`, params).then(() => location.reload())
+  }
+  const updateLikeTotal = async (item: any, type: any) => {
+    let total
+    if (type === 'delete') {
+      total = item.likes - 1
+    } else {
+      total = item.likes + 1
+    }
+    const params = {
+      likes: total
+    }
+    http2.put(`/v0/review/${item.id}`, params).then(() => location.reload())
+  }
+  const updateForwardTotal = async (item: any) => {
+    const total = item.forwards + 1
+    const params = {
+      forwards: total
+    }
+    http2.put(`/v0/review/${item.id}`, params).then(() => location.reload())
+  }
+  const submit = async () => {
+    if (!starScore && !textareaValue && !Object.keys(forward).length) return
+    if (starScore) {
+      if (!userScoreinfo.length) {
+        const params = {
+          useraddress: account,
+          contractaddress: address,
+          score: starScore
+        }
+        const res: any = await http2.post(`/v0/score/`, params)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          updateScore()
+        } else {
+          throw res.message || res.data.message
+        }
+      } else if (!userScoreinfo[0].renew) {
+        const params = {
+          score: starScore
+        }
+        const res: any = await http2.put(`/v0/score/${userScoreinfo[0].id}`, params)
+        if (res.data.code === 1) {
+          updateScore()
+          toastify.success('succeed')
+        } else {
+          throw res.message || res.data.message
+        }
+      }
+    }
+    if (textareaValue && !Object.keys(forward).length) {
+      try {
+        const sign = await library?.getSigner().signMessage(textareaValue)
+        const params = {
+          useraddress: account,
+          contractaddress: address,
+          datetime: new Date().toJSON(),
+          username: userinfo.username,
+          context: textareaValue
+        }
+        const res: any = await http2.post(`/v0/review`, params)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          location.reload()
+        }
+      } catch (error: any) {
+        toastify.error(error.message)
+      }
+    }
+    if (Object.keys(forward).length) {
+      try {
+        const sign = await library?.getSigner().signMessage(textareaValue)
+        const params = {
+          useraddress: account,
+          contractaddress: address,
+          datetime: new Date().toJSON(),
+          username: userinfo.username,
+          context: textareaValue,
+          quote: forward.id
+        }
+        const res: any = await http2.post(`/v0/review`, params)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          updateForwardTotal(forward)
+        }
+      } catch (error: any) {
+        toastify.error(error.message)
+      }
+    }
+  }
+  const likeClick = async (item: any) => {
+    if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
+    const Index = userLikeInfo.findIndex((ele: any) => {
+      return ele.reviewid === item.id
+    })
+    if (Index >= 0) {
+      const res: any = await http2.delete(`/v0/review_like/${item.id}`)
+      if (res.data.code === 1) {
+        toastify.success('succeed')
+        updateLikeTotal(item, 'delete')
+      } else {
+        throw res.message || res.data.message
+      }
+    } else {
+      const params = {
+        reviewid: item.id,
+        useraddress: account
+      }
+      const res: any = await http2.post(`/v0/review_like`, params)
+      if (res.data.code === 1) {
+        toastify.success('succeed')
+        updateLikeTotal(item, 'add')
+      } else {
+        throw res.message || res.data.message
+      }
+    }
+  }
+  const commentsForward = async (item: any) => {
+    if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
+    setForward(item)
+  }
   const handleShowModal = async (item: any) => {
     if (chain === 'bsc') {
       if (chainId === 56) {
@@ -926,8 +1191,6 @@ export const CollectionDetails = () => {
       const Penalty = new BigNumber(currentItem.penalty as unknown as string)
       const amount = collateral.plus(cost).plus(Penalty).toString()
       let rented
-      // const allowance = await ERC20Contract?.allowance(account, ControlContractAddress)
-      // console.log(allowance.toString(), amount)
       if (currentItem.pay_type === 'eth') {
         rented = await ControlContract?.connect(library.getSigner()).rent(currentItem.lendIndex, LeaseDays, {
           value: parseEther(amount)
@@ -984,10 +1247,23 @@ export const CollectionDetails = () => {
     const val = ele.currentTarget.value
     setToAddress(val)
   }, [])
+  const handleusernameChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setusername(val)
+  }, [])
   const handletextareaChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     settextareaValue(val)
   }, [])
+  const link = () => {
+    history.push({
+      pathname: `/games/${contractName}/review`,
+      state: {
+        address: address,
+        chain: chain
+      }
+    })
+  }
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} visible={lendvisible} closable={false}>
@@ -1260,6 +1536,19 @@ export const CollectionDetails = () => {
           </p>
         </ContentBox>
       </Dialog>
+      <Dialog footer={null} onCancel={() => setshowSetUp(false)} visible={showSetUp} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">Set Up</div>
+          <h2>Set userName</h2>
+          <div className="input">
+            <input placeholder="username" maxLength={30} onChange={handleusernameChange} value={username} />
+          </div>
+          <div className={username ? 'button ture' : 'button false'} onClick={setname}>
+            submit
+            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+          </div>
+        </SendBox>
+      </Dialog>
       <Dialog footer={null} onCancel={() => setrentPrompt(false)} visible={rentprompt} destroyOnClose closable={false}>
         <ContentBox>
           <div className="title">Prompt</div>
@@ -1291,6 +1580,29 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog
+        footer={null}
+        onCancel={() => setscoreDialog(false)}
+        visible={scoreDialog}
+        destroyOnClose
+        closable={false}
+      >
+        <ContentBox>
+          <div className="title">Prompt</div>
+          <p>
+            Each person can only submit ratings up to two times, and you can currently submit &nbsp;
+            {1 - userScoreinfo[0]?.renew} more times
+          </p>
+          <div className="button">
+            <div className="cancel" onClick={() => setscoreDialog(false)}>
+              cancel
+            </div>
+            <div className="ok" onClick={submit}>
+              OK
+            </div>
+          </div>
+        </ContentBox>
+      </Dialog>
       <DetailsBox>
         <div className="collection">
           <div className="info">
@@ -1299,15 +1611,19 @@ export const CollectionDetails = () => {
               <div>
                 <div className="name">{collectionDetails.contractName}</div>
                 <div className="support">
-                  <img src={twitter} alt="" />
+                  <a href={collectionDetails.twitter} target="_blank" rel="noreferrer">
+                    <img src={twitter} alt="" />
+                  </a>
                   <img src={discord} alt="" />
-                  <img src={gameland} alt="" />
+                  <a href={collectionDetails.officialWebsite} target="_blank" rel="noreferrer">
+                    <img src={gameland} alt="" />
+                  </a>
                 </div>
               </div>
               <div className="ranting">
                 <div className="title">Rating & Reviews</div>
                 <div className="fraction">
-                  <b>{collectionDetails.starRating}</b>&nbsp;&nbsp;(out of 10)
+                  <b>{collectionDetails.starRating}</b>&nbsp;&nbsp;(out of {scoreinfo.length})
                 </div>
               </div>
             </div>
@@ -1336,7 +1652,7 @@ export const CollectionDetails = () => {
         <div className="comment">
           <div className="user">
             <img className="userImage" src={defaultImg} alt="" />
-            <div className="userName">Vivi</div>
+            <div className="userName">{userinfo.username}</div>
           </div>
           <div className="borders"></div>
           <div className="ranting">
@@ -1357,45 +1673,77 @@ export const CollectionDetails = () => {
                 value={textareaValue}
                 onChange={handletextareaChange}
               ></textarea>
-              <div className="forward"></div>
+              {Object.keys(forward).length ? (
+                <div className="forward">
+                  <img src={defaultImg} className="userImage" alt="" /> &nbsp;{forward.username}
+                  <div className="CommentContent">{forward.context}</div>
+                </div>
+              ) : (
+                ''
+              )}
             </div>
-            <div className="button">submit</div>
+            <div className="button" onClick={() => (starScore ? setscoreDialog(true) : submit())}>
+              submit
+            </div>
           </div>
           <div className="exhibit">
             <div className="title">What is happening</div>
-            <div className="CommentItem">
-              <div className="userInfo">
-                <img src={defaultImg} className="userImage" alt="" />
-                <div className="starName">
-                  <div className="name">Vivi</div>
-                  <div className="star">
-                    <div className="defaultStar"></div>
-                    <div className="defaultStar"></div>
-                    <div className="defaultStar"></div>
-                    <div className="defaultStar"></div>
-                    <div className="defaultStar"></div>
+            {revieweinfo.length
+              ? revieweinfo.map((item: any, index: any) => (
+                  <div className="CommentItem" key={index}>
+                    <div className="userInfo">
+                      <img src={defaultImg} className="userImage" alt="" />
+                      <div className="starName">
+                        <div className="name">{item.username}</div>
+                        <div className="star">
+                          <div className={userScoreinfo[0].score >= 1 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={userScoreinfo[0].score >= 2 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={userScoreinfo[0].score >= 3 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={userScoreinfo[0].score >= 4 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={userScoreinfo[0].score >= 5 ? 'scoreStar' : 'defaultStar'}></div>
+                        </div>
+                      </div>
+                      <div className="time">{getTime(item.datetime)}</div>
+                    </div>
+                    <div className="CommentContent">{item.context}</div>
+                    {item.quote ? (
+                      <div className="forward">
+                        <img src={defaultImg} className="userImage" alt="" /> &nbsp;{getForwardData(item.quote, 'name')}
+                        <div className="CommentContent">{getForwardData(item.quote, 'content')}</div>
+                      </div>
+                    ) : (
+                      ''
+                    )}
+                    <div className="otherDetails">
+                      <div className="repost">
+                        <img
+                          src={repost}
+                          className={item.useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                          onClick={() => commentsForward(item)}
+                        />
+                        <div className="quantity">{item.forwards || 0}</div>
+                      </div>
+                      <div className="Reply">
+                        <img src={Reply} alt="" />
+                        <div className="quantity">{item.reviews || 0}</div>
+                      </div>
+                      <div className="like">
+                        <img
+                          src={isLike(item.id) ? liketrue : likefalse}
+                          className={item.useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                          onClick={() => likeClick(item)}
+                        />
+                        <div className="quantity">{item.likes || 0}</div>
+                      </div>
+                      <div className="reward">
+                        <img src={reward} alt="" />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="time">2 days ago</div>
-              </div>
-              <div className="CommentContent">eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee</div>
-              <div className="otherDetails">
-                <div className="repost">
-                  <img src={repost} alt="" />
-                  <div className="quantity">111</div>
-                </div>
-                <div className="Reply">
-                  <img src={Reply} alt="" />
-                  <div className="quantity">111</div>
-                </div>
-                <div className="like">
-                  <img src={like} alt="" />
-                  <div className="quantity">111</div>
-                </div>
-                <div className="reward">
-                  <img src={reward} alt="" />
-                </div>
-              </div>
+                ))
+              : ''}
+            <div className="seeMore cursor" onClick={link}>
+              View more replies &gt;&gt;
             </div>
           </div>
         </div>

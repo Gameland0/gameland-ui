@@ -75,6 +75,7 @@ function App() {
             <Route exact path="/dashboard" component={Dashboard} />
             <Route exact path="/games" component={Games} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
+            <Route exact path="/games/:contractName/review" component={CollectionDetails} />
           </Switch>
           <ToastContainer />
         </Wrap>

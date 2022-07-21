@@ -918,7 +918,7 @@ export const Rent = () => {
                       {SpecificAttribute.map((item: any, index: any) => (
                         <div key={index} className={(index + 1) % 2 == 0 ? '' : 'bg'}>
                           <span>{item.trait_type}</span>
-                          <b>{item.value}</b>
+                          <b>{typeof item.value === 'object' && item.value !== null ? item.value.hex : item.value}</b>
                         </div>
                       ))}
                     </div>
