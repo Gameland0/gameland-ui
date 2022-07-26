@@ -180,6 +180,19 @@ const CollectionBox = styled.div`
     }
   }
 `
+export const compare = () => {
+  return function (obj1: any, obj2: any) {
+    const val1 = obj1.starRating
+    const val2 = obj2.starRating
+    if (Number(val1) < Number(val2)) {
+      return 1
+    } else if (Number(val1) > Number(val2)) {
+      return -1
+    } else {
+      return 0
+    }
+  }
+}
 export const Games = () => {
   // const { account, library, chainId } = useActiveWeb3React()
   const [collection, setCollection] = useState('')
@@ -246,19 +259,6 @@ export const Games = () => {
     const val = ele.currentTarget.value
     setCollection(val)
   }, [])
-  const compare = () => {
-    return function (obj1: any, obj2: any) {
-      const val1 = obj1.starRating
-      const val2 = obj2.starRating
-      if (Number(val1) < Number(val2)) {
-        return 1
-      } else if (Number(val1) > Number(val2)) {
-        return -1
-      } else {
-        return 0
-      }
-    }
-  }
   const collectionFilter = (collection: any) => {
     const Nfts = data.filter((item: any) => {
       return item.contractName === collection

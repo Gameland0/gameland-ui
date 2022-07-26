@@ -10,6 +10,7 @@ import { Rent } from './Rent'
 import { Dashboard } from './Dashboard'
 import { Lend } from './Lend'
 import { CollectionDetails } from '../components/CollectionDetails'
+import { ReviewsDetails } from '../components/ReviewsDetails'
 import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
 // import { Alert } from 'antd'
@@ -75,7 +76,7 @@ function App() {
             <Route exact path="/dashboard" component={Dashboard} />
             <Route exact path="/games" component={Games} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
-            <Route exact path="/games/:contractName/review" component={CollectionDetails} />
+            <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
           </Switch>
           <ToastContainer />
         </Wrap>

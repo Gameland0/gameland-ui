@@ -55,6 +55,7 @@ export const SendBox = styled.div`
     height: 3rem;
     border-radius: 20px 20px 20px 20px;
     border: 1px solid #e5e5e5;
+    margin-top: 10px;
     input {
       width: 100%;
       height: 100%;
@@ -72,7 +73,7 @@ export const SendBox = styled.div`
     color: #fff;
     text-align: center;
     line-height: 4rem;
-    border-radius: 20px 20px 20px 20px;
+    border-radius: 20px;
     margin: 2rem 0 1rem 12rem;
     position: relative;
   }
@@ -90,6 +91,34 @@ export const SendBox = styled.div`
     position: absolute;
     top: 0px;
     rigth: 0px;
+  }
+  .Selection {
+    position: relative;
+    border: 1px solid #e5e5e5;
+    border-radius: 20px;
+    font-size: 24px;
+    margin-top: 16px;
+    padding-left: 10px;
+    .arrowIcon {
+      position: absolute;
+      top: 20px;
+      right: 10px;
+    }
+  }
+  .Options {
+    width: 100%;
+    height: 60px;
+    background: #fff;
+    border-radius: 16px;
+    z-index: 99;
+    div {
+      cursor: pointer;
+      padding: 0 0 0 16px;
+      font-size: 24px;
+      &:hover {
+        background: #8cd8f8;
+      }
+    }
   }
 `
 const MyNftBox = styled.div``

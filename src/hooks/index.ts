@@ -12,6 +12,7 @@ import ControlContractAbi from '../constants/Abis/controlContract.json'
 // import erc721Abi from '../constants/Abis/erc721.json'
 import BUSD from '../constants/Abis/busd.json'
 import WETH from '../constants/Abis/WETH.json'
+import rewardAbi from '../constants/Abis/reward.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import {
@@ -20,6 +21,8 @@ import {
   BUSDAddress,
   POLYGONControlContractAddress,
   POLYGONAssetContractAddress,
+  BSCRewardAddress,
+  POLYGONRewardAddress,
   WETHaddress
 } from '../constants'
 
@@ -187,6 +190,16 @@ export function useControlContract() {
     return new Contract(BSCControlContractAddress, ControlContractAbi, library.getSigner())
   } else if (chainId === 137) {
     return new Contract(POLYGONControlContractAddress, ControlContractAbi, library.getSigner())
+  }
+}
+
+export function useRewardContract() {
+  const { library, chainId } = useActiveWeb3React()
+  if (!library) return null
+  if (chainId === 56) {
+    return new Contract(BSCRewardAddress, rewardAbi, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract(POLYGONRewardAddress, rewardAbi, library.getSigner())
   }
 }
 

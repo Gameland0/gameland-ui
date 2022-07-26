@@ -11,7 +11,14 @@ import { useLocation, useParams } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
 import styled from 'styled-components'
 import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
-import { useActiveWeb3React, useStore, useControlContract, useAssetContract, useERC20Contract } from '../hooks'
+import {
+  useActiveWeb3React,
+  useStore,
+  useControlContract,
+  useAssetContract,
+  useERC20Contract,
+  useRewardContract
+} from '../hooks'
 import { useFetchMyNfts } from '../hooks/useFetchMyNfts'
 import { handleClick } from './Header'
 import { fetchReceipt, fixDigitalId, formatAddress, ZeroAddress, ChainCurrencyName, formatting } from '../utils'
@@ -300,6 +307,7 @@ const DetailsBox = styled.div`
         .otherDetails {
           margin-top: 24px;
           display: flex;
+          position: relative;
           div {
             display: flex;
             margin-right: 34px;
@@ -315,8 +323,24 @@ const DetailsBox = styled.div`
             }
           }
           .reward {
-            margin-left: 116px;
+            margin-left: 16px;
+            .rewardTotal {
+              width: 125px;
+              position: absolute;
+              top: -14px;
+              right: -10px;
+              p {
+                width: 125px;
+                margin-bottom: 6px;
+              }
+            }
           }
+        }
+        .bottomBorder {
+          width: 460px;
+          height: 0px;
+          border: 1px solid #E5E5E5;
+          margin-top: 24px;
         }
       }
       .seeMore {
@@ -517,7 +541,7 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
     </CardBox>
   )
 }
-const getTime = (time: any) => {
+export const getTime = (time: any) => {
   const year = new Date(time).getFullYear()
   const month = new Date(time).getMonth()
   const date = new Date(time).getDate()
@@ -540,6 +564,7 @@ export const CollectionDetails = () => {
   const ERC20Contract = useERC20Contract()
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
+  const RewardContract = useRewardContract()
   const [starScore, setstarScore] = useState(0)
   const [username, setusername] = useState('')
   const [textareaValue, settextareaValue] = useState('')
@@ -549,21 +574,26 @@ export const CollectionDetails = () => {
   const [revieweinfo, setrevieweinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
+  const [rewardinfo, setrewardinfo] = useState([] as any)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
   const [expired, setExpired] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
-  const [isSendApproved, setIsSendApproved] = useState(false)
   const [awaiting, setAwaiting] = useState(false)
   const [showSend, setShowSend] = useState(false)
   const [showSetUp, setshowSetUp] = useState(false)
+  const [showreward, setshowreward] = useState(false)
+  const [rewardItem, setrewardItem] = useState({} as any)
   const [toAddress, setToAddress] = useState('')
+  const [rewardAddress, setrewardAddress] = useState('')
+  const [rewardQuantity, setrewardQuantity] = useState('')
   const [withdrawable, setWithdrawable] = useState(false)
   const [penalty, setPenalty] = useState('')
   const [price, setPrice] = useState('')
   const [days, setdays] = useState('')
   const [collateral, setCollateral] = useState('')
   const [options, setOptions] = useState(false)
+  const [rewardoptions, setrewardoptions] = useState(false)
   const [approving, setApproving] = useState(false)
   const [scoreDialog, setscoreDialog] = useState(false)
   const [prompt, setPrompt] = useState(false)
@@ -573,6 +603,7 @@ export const CollectionDetails = () => {
   const [forward, setForward] = useState({} as any)
   const [renting, setRenting] = useState(false)
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
+  const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [currentItem, setCurrentItem] = useState({} as any)
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
@@ -679,16 +710,25 @@ export const CollectionDetails = () => {
         const collectionScore = http2.get(`/v0/score/collection/${address}`)
         const collectionreviewe = http2.get(`/v0/review/collection/${address}`)
         const userlike = http2.get(`/v0/review_like/${account}`)
-        Promise.all([userscore, collectionScore, collectionreviewe, userlike]).then((vals) => {
+        const Rewardinfo = http2.get(`/v0/review_reward`)
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo]).then((vals) => {
           setUserScoreinfo(vals[0].data.data)
           setScoreinfo(vals[1].data.data)
           setrevieweinfo(vals[2].data.data)
           setuserLikeInfo(vals[3].data.data)
+          setrewardinfo(vals[4].data.data)
         })
       }
     }
     getUserinfo()
   }, [account, chainId])
+  useEffect(() => {
+    if (rewardSelection === 'BNB') {
+      handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
+    } else if (rewardSelection === 'MATIC') {
+      handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
+    }
+  }, [rewardSelection])
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
       return 0
@@ -715,6 +755,33 @@ export const CollectionDetails = () => {
     })
     if (type === 'name') return data[0].username
     if (type === 'content') return data[0].context
+  }
+  const getReviewScore = (useraddress: any) => {
+    const data = scoreinfo.filter((item: any) => {
+      return item.useraddress === useraddress
+    })
+    if (data.length) {
+      return data[0].score
+    }
+    return 0
+  }
+  const getRewardTotal = (id: any) => {
+    const data = rewardinfo.filter((ele: any) => {
+      return ele.reviewid === id
+    })
+    if (data.length) {
+      let BNBtotal = 0
+      let polygonTotal = 0
+      data.map((item: any) => {
+        if (item.paytype === 'BNB') {
+          BNBtotal += item.amount
+        } else if (item.paytype === 'MATIC') {
+          polygonTotal += item.amount
+        }
+      })
+      return [BNBtotal, polygonTotal]
+    }
+    return [0, 0]
   }
   const lendNftClick = async (item: any) => {
     if (chain === 'bsc') {
@@ -940,6 +1007,34 @@ export const CollectionDetails = () => {
       }
     }
   }
+  const sendRewar = async () => {
+    if (!rewardQuantity || !library) return
+    const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
+      value: parseEther(rewardQuantity)
+    })
+    const receipt = await fetchReceipt(rented.hash, library)
+    const { status } = receipt
+    if (!status) {
+      throw Error('Failed to rent.')
+    }
+    const params = {
+      reviewid: rewardItem.id,
+      toaddress: rewardItem.useraddress,
+      fromaddress: account,
+      datetime: new Date().toJSON(),
+      amount: rewardQuantity,
+      paytype: rewardSelection
+    }
+    const res: any = await http2.post(`/v0/review_reward/`, params)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setLending(false)
+      setshowSetUp(false)
+      location.reload()
+    } else {
+      throw res.message || res.data.message
+    }
+  }
   const setname = async () => {
     if (!username) return
     setLending(true)
@@ -947,7 +1042,8 @@ export const CollectionDetails = () => {
       useraddress: account,
       username: username
     }
-    const res: any = await http2.post(`/v0/userinfo/`, params)
+    const res: any = await bschttp.post(`/v0/userinfo/`, params)
+    polygonhttp.post(`/v0/userinfo/`, params)
     if (res.data.code === 1) {
       toastify.success('succeed')
       setLending(false)
@@ -1006,7 +1102,8 @@ export const CollectionDetails = () => {
         }
       } else if (!userScoreinfo[0].renew) {
         const params = {
-          score: starScore
+          score: starScore,
+          renew: true
         }
         const res: any = await http2.put(`/v0/score/${userScoreinfo[0].id}`, params)
         if (res.data.code === 1) {
@@ -1246,6 +1343,14 @@ export const CollectionDetails = () => {
   const handleToAddressChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setToAddress(val)
+  }, [])
+  const handlerewardAddressChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setrewardAddress(val)
+  }, [])
+  const handlerewardQuantityChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setrewardQuantity(val)
   }, [])
   const handleusernameChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -1580,6 +1685,45 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">give a reward</div>
+          <h2>Quantity</h2>
+          <div className="input">
+            <input placeholder="quantity" onChange={handlerewardQuantityChange} value={rewardQuantity} />
+          </div>
+          <div className="Selection" onClick={() => setrewardoptions(!rewardoptions)}>
+            {rewardSelection}
+            <img src={arrow} className="arrowIcon" />
+          </div>
+          {rewardoptions ? (
+            <div className="Options">
+              <div
+                onClick={() => {
+                  setrewardSelection('BNB')
+                  setrewardoptions(false)
+                }}
+              >
+                BNB
+              </div>
+              <div
+                onClick={() => {
+                  setrewardSelection('MATIC')
+                  setrewardoptions(false)
+                }}
+              >
+                MATIC
+              </div>
+            </div>
+          ) : (
+            ''
+          )}
+          <div className={rewardQuantity ? 'button ture' : 'button false'} onClick={sendRewar}>
+            Send
+            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+          </div>
+        </SendBox>
+      </Dialog>
       <Dialog
         footer={null}
         onCancel={() => setscoreDialog(false)}
@@ -1591,7 +1735,7 @@ export const CollectionDetails = () => {
           <div className="title">Prompt</div>
           <p>
             Each person can only submit ratings up to two times, and you can currently submit &nbsp;
-            {1 - userScoreinfo[0]?.renew} more times
+            {userScoreinfo[0]?.renew >= 0 ? 1 - userScoreinfo[0]?.renew : 2} more times
           </p>
           <div className="button">
             <div className="cancel" onClick={() => setscoreDialog(false)}>
@@ -1682,7 +1826,10 @@ export const CollectionDetails = () => {
                 ''
               )}
             </div>
-            <div className="button" onClick={() => (starScore ? setscoreDialog(true) : submit())}>
+            <div
+              className="button"
+              onClick={() => (!userScoreinfo[0]?.renew && starScore ? setscoreDialog(true) : submit())}
+            >
               submit
             </div>
           </div>
@@ -1696,11 +1843,11 @@ export const CollectionDetails = () => {
                       <div className="starName">
                         <div className="name">{item.username}</div>
                         <div className="star">
-                          <div className={userScoreinfo[0].score >= 1 ? 'scoreStar' : 'defaultStar'}></div>
-                          <div className={userScoreinfo[0].score >= 2 ? 'scoreStar' : 'defaultStar'}></div>
-                          <div className={userScoreinfo[0].score >= 3 ? 'scoreStar' : 'defaultStar'}></div>
-                          <div className={userScoreinfo[0].score >= 4 ? 'scoreStar' : 'defaultStar'}></div>
-                          <div className={userScoreinfo[0].score >= 5 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={getReviewScore(item.useraddress) >= 1 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={getReviewScore(item.useraddress) >= 2 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={getReviewScore(item.useraddress) >= 3 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={getReviewScore(item.useraddress) >= 4 ? 'scoreStar' : 'defaultStar'}></div>
+                          <div className={getReviewScore(item.useraddress) >= 5 ? 'scoreStar' : 'defaultStar'}></div>
                         </div>
                       </div>
                       <div className="time">{getTime(item.datetime)}</div>
@@ -1723,7 +1870,7 @@ export const CollectionDetails = () => {
                         />
                         <div className="quantity">{item.forwards || 0}</div>
                       </div>
-                      <div className="Reply">
+                      <div className="Reply cursor">
                         <img src={Reply} alt="" />
                         <div className="quantity">{item.reviews || 0}</div>
                       </div>
@@ -1735,10 +1882,21 @@ export const CollectionDetails = () => {
                         />
                         <div className="quantity">{item.likes || 0}</div>
                       </div>
-                      <div className="reward">
+                      <div
+                        className="reward cursor"
+                        onClick={() => {
+                          setshowreward(true)
+                          setrewardItem(item)
+                        }}
+                      >
                         <img src={reward} alt="" />
+                        <p className="rewardTotal">
+                          <p>{getRewardTotal(item.id)[0]} BNB</p>
+                          <p>{getRewardTotal(item.id)[1]} MATIC</p>
+                        </p>
                       </div>
                     </div>
+                    <div className="bottomBorder"></div>
                   </div>
                 ))
               : ''}
