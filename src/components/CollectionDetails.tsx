@@ -46,6 +46,7 @@ import { ContentBox } from '../pages/Rent'
 import { Nft as NftCard } from '../components/Nft'
 import { Loading } from '../components/Loading'
 import { NumInput } from '../components/NumInput'
+import { ScoreStatistics } from './ScoreStatistics'
 import { Icon } from '../components/Icon'
 import { bschttp, polygonhttp, http } from './Store'
 import { ImgBox, Title, SpanLabel, Tips, Properties, StatsBox, Description, FakeButton, Details } from '../pages/Rent'
@@ -69,7 +70,7 @@ const DetailsBox = styled.div`
   min-height: 550px;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
-  border-radius: 10px 10px 10px 10px;
+  border-radius: 10px;
   margin-top: 5px;
   .collection {
     height: 840px;
@@ -82,10 +83,11 @@ const DetailsBox = styled.div`
           width: 164px;
           height: 164px;
           margin-right: 40px;
+          border-radius: 10px;
         }
         .name {
-          width: 410px;
-          font-size: 36px;
+          width: 360px;
+          font-size: 28px;
           font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
           font-weight: bold;
           color: #333333;
@@ -93,35 +95,49 @@ const DetailsBox = styled.div`
           text-overflow: ellipsis;
           white-space: nowrap;
         }
+        .attributesLabel {
+          display: flex;
+          margin-top: 20px;
+          div {
+            padding: 6px;
+            background: #D2F2FE;
+            border-radius: 8px 8px 8px 8px;
+            font-size: 18px;
+            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+            color: #41ACEF;
+            margin-right: 12px;
+          }
+        }
         .support {
-          margin-top: 50px;
+          margin-top: 26px;
           img {
-            width: 48px;
-            height: 48px;
+            width: 32px;
+            height: 32px;
             margin-right: 24px;
           }
         }
         .ranting {
           .title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 18px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
-          }
-          .statistical {}
-          .fraction {
-            font-size: 16px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-            color: #999999;
-            b {
-              font-size: 36px;
-              font-family: DIN-Bold, DIN;
-              color: #35caa9;
+            .fraction {
+              font-size: 16px;
+              font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+              color: #999999;
+              b {
+                font-size: 28px;
+                font-family: DIN-Bold, DIN;
+                color: #35caa9;
+              }
             }
           }
         }
       }
       .describe {
-        margin-top: 40px;
         font-size: 24px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
@@ -588,7 +604,7 @@ export const CollectionDetails = () => {
   const [textareaValue, settextareaValue] = useState('')
   const [userinfo, setUserinfo] = useState([] as any)
   const [userScoreinfo, setUserScoreinfo] = useState([] as any)
-  const [scoreinfo, setScoreinfo] = useState([] as any)
+  const [Collectionscoreinfo, setCollectionScoreinfo] = useState([] as any)
   const [revieweinfo, setrevieweinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
@@ -744,7 +760,7 @@ export const CollectionDetails = () => {
         const Rewardinfo = http2.get(`/v0/review_reward`)
         Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo]).then((vals) => {
           setUserScoreinfo(vals[0].data.data)
-          setScoreinfo(vals[1].data.data)
+          setCollectionScoreinfo(vals[1].data.data)
           setrevieweinfo(vals[2].data.data)
           setuserLikeInfo(vals[3].data.data)
           setrewardinfo(vals[4].data.data)
@@ -780,6 +796,31 @@ export const CollectionDetails = () => {
     if (Index >= 0) return 1
     return 0
   }
+  const getScoreStatistics = () => {
+    const fiveStar = Collectionscoreinfo.filter((item: any) => {
+      return item.score === 5
+    })
+    const fourStar = Collectionscoreinfo.filter((item: any) => {
+      return item.score === 4
+    })
+    const threeStar = Collectionscoreinfo.filter((item: any) => {
+      return item.score === 3
+    })
+    const twoStar = Collectionscoreinfo.filter((item: any) => {
+      return item.score === 2
+    })
+    const oneStar = Collectionscoreinfo.filter((item: any) => {
+      return item.score === 1
+    })
+    return {
+      total: Collectionscoreinfo.length,
+      fiveStar: fiveStar.length,
+      fourStar: fourStar.length,
+      threeStar: threeStar.length,
+      twoStar: twoStar.length,
+      oneStar: oneStar.length
+    }
+  }
   const getForwardData = (id: any, type: any) => {
     const data = revieweinfo.filter((ele: any) => {
       return ele.id === id
@@ -789,7 +830,7 @@ export const CollectionDetails = () => {
     if (type === 'image') return data[0].userimage
   }
   const getReviewScore = (useraddress: any) => {
-    const data = scoreinfo.filter((item: any) => {
+    const data = Collectionscoreinfo.filter((item: any) => {
       return item.useraddress === useraddress
     })
     if (data.length) {
@@ -1849,6 +1890,11 @@ export const CollectionDetails = () => {
               <img className="logo" src={collectionDetails.image} alt="" />
               <div>
                 <div className="name">{collectionDetails.contractName}</div>
+                <div className="attributesLabel">
+                  <div>multiplayer</div>
+                  <div>play to earn</div>
+                  <div>RPG</div>
+                </div>
                 <div className="support">
                   <a href={collectionDetails.twitter} target="_blank" rel="noreferrer">
                     <img src={twitter} alt="" />
@@ -1860,11 +1906,13 @@ export const CollectionDetails = () => {
                 </div>
               </div>
               <div className="ranting">
-                <div className="title">Rating & Reviews</div>
-                <div className="statistical"></div>
-                <div className="fraction">
-                  <b>{collectionDetails.starRating}</b>&nbsp;&nbsp;(out of 10)
+                <div className="title">
+                  <b>Rating & Reviews</b>
+                  <div className="fraction">
+                    <b>{collectionDetails.starRating}</b>&nbsp;&nbsp;(out of 10)
+                  </div>
                 </div>
+                <ScoreStatistics data={getScoreStatistics()}></ScoreStatistics>
               </div>
             </div>
             <div className="describe">{collectionDetails.describe}</div>
