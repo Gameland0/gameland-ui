@@ -2,7 +2,10 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
-import { Row, Col, Button, Popconfirm } from 'antd'
+import { Row, Col, Button, message, Upload } from 'antd'
+import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
+import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
+import type { UploadChangeParam } from 'antd/es/upload'
 import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { lowerCase } from 'lower-case'
@@ -99,15 +102,13 @@ const DetailsBox = styled.div`
           }
         }
         .ranting {
-          margin-left: 145px;
-          margin-top: 20px;
           .title {
             font-size: 18px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
           }
+          .statistical {}
           .fraction {
-            margin-top: 40px;
             font-size: 16px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #999999;
@@ -325,13 +326,14 @@ const DetailsBox = styled.div`
           .reward {
             margin-left: 16px;
             .rewardTotal {
-              width: 125px;
+              width: 100px;
+              flex-wrap: wrap;
               position: absolute;
-              top: -14px;
-              right: -10px;
+              top: -12px;
+              right: -20px;
               p {
-                width: 125px;
-                margin-bottom: 6px;
+                width: 100px;
+                margin-bottom: 0px;
               }
             }
           }
@@ -359,7 +361,7 @@ const DetailsBox = styled.div`
     .collection {
       width: 1048px;
       .top {
-        padding: 50px;
+        padding: 40px;
       }
       .describe {
         padding: 50px;
@@ -558,6 +560,22 @@ export const getTime = (time: any) => {
     return Math.floor(jetLag / 86400000) + ' day ago'
   }
 }
+const beforeUpload = (file: RcFile) => {
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+  if (!isJpgOrPng) {
+    message.error('You can only upload JPG/PNG file!')
+  }
+  const isLt2M = file.size / 1024 / 1024 < 1
+  if (!isLt2M) {
+    message.error('Image must smaller than 1MB!')
+  }
+  return isJpgOrPng && isLt2M
+}
+const getBase64 = (img: RcFile, callback: (url: string) => void) => {
+  const reader = new FileReader()
+  reader.addEventListener('load', () => callback(reader.result as string))
+  reader.readAsDataURL(img)
+}
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
@@ -582,16 +600,20 @@ export const CollectionDetails = () => {
   const [awaiting, setAwaiting] = useState(false)
   const [showSend, setShowSend] = useState(false)
   const [showSetUp, setshowSetUp] = useState(false)
+  const [UserSettings, setUserSettings] = useState(false)
+  const [UploadImg, setUploadImg] = useState(false)
   const [showreward, setshowreward] = useState(false)
   const [rewardItem, setrewardItem] = useState({} as any)
   const [toAddress, setToAddress] = useState('')
-  const [rewardAddress, setrewardAddress] = useState('')
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [withdrawable, setWithdrawable] = useState(false)
   const [penalty, setPenalty] = useState('')
   const [price, setPrice] = useState('')
   const [days, setdays] = useState('')
   const [collateral, setCollateral] = useState('')
+  const [newUserName, setNewUserName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string>()
   const [options, setOptions] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
   const [approving, setApproving] = useState(false)
@@ -613,6 +635,7 @@ export const CollectionDetails = () => {
   const { contractName } = useParams() as any
   const history = useHistory()
   let http2: any
+  let uploadHttpUrl
   let AssetContractAddress: any
   let ControlContractAddress: any
   let address: any
@@ -629,12 +652,20 @@ export const CollectionDetails = () => {
     http2 = bschttp
     AssetContractAddress = BSCAssetContractAddress
     ControlContractAddress = BSCControlContractAddress
+    uploadHttpUrl =
+      process.env.NODE_ENV === 'production'
+        ? 'https://bsc-api.gameland.network/v0/userinfo/upload'
+        : 'http://localhost:8091/v0/userinfo/upload'
     contracts = BscContract
   } else if (chain === 'polygon') {
     http2 = polygonhttp
     AssetContractAddress = POLYGONAssetContractAddress
     ControlContractAddress = POLYGONControlContractAddress
     contracts = PolygonContract
+    uploadHttpUrl =
+      process.env.NODE_ENV === 'production'
+        ? 'https://polygon-api.gameland.network/v0/userinfo/upload'
+        : 'http://localhost:8089/v0/userinfo/upload'
   }
 
   const getCollectionInfo = async () => {
@@ -755,6 +786,7 @@ export const CollectionDetails = () => {
     })
     if (type === 'name') return data[0].username
     if (type === 'content') return data[0].context
+    if (type === 'image') return data[0].userimage
   }
   const getReviewScore = (useraddress: any) => {
     const data = scoreinfo.filter((item: any) => {
@@ -1053,6 +1085,14 @@ export const CollectionDetails = () => {
       throw res.message || res.data.message
     }
   }
+  const sendNewUserName = async () => {
+    const params = {
+      username: newUserName
+    }
+    const userinfo = http2.put(`/v0/userinfo/${account}`, params)
+    const review = http2.put(`/v0/review/updateUserName/${account}`, params)
+    Promise.all([userinfo, review]).then(() => location.reload())
+  }
   const updateScore = async () => {
     const info = await http2.get(`/v0/score/collection/${address}`)
     let total = 0
@@ -1344,10 +1384,6 @@ export const CollectionDetails = () => {
     const val = ele.currentTarget.value
     setToAddress(val)
   }, [])
-  const handlerewardAddressChange = useCallback((ele) => {
-    const val = ele.currentTarget.value
-    setrewardAddress(val)
-  }, [])
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setrewardQuantity(val)
@@ -1360,6 +1396,23 @@ export const CollectionDetails = () => {
     const val = ele.currentTarget.value
     settextareaValue(val)
   }, [])
+  const handleNewuserNameChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setNewUserName(val)
+  }, [])
+  const handleChange: UploadProps['onChange'] = (info: UploadChangeParam<UploadFile>) => {
+    if (info.file.status === 'uploading') {
+      setLoading(true)
+      return
+    }
+    if (info.file.status === 'done') {
+      getBase64(info.file.originFileObj as RcFile, (url) => {
+        setLoading(false)
+        toastify.success('succeed')
+        location.reload()
+      })
+    }
+  }
   const link = () => {
     history.push({
       pathname: `/games/${contractName}/review`,
@@ -1369,6 +1422,12 @@ export const CollectionDetails = () => {
       }
     })
   }
+  const uploadButton = (
+    <div>
+      {loading ? <LoadingOutlined /> : <PlusOutlined />}
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  )
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} visible={lendvisible} closable={false}>
@@ -1685,6 +1744,42 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog
+        footer={null}
+        onCancel={() => setUserSettings(false)}
+        visible={UserSettings}
+        destroyOnClose
+        closable={false}
+      >
+        <SendBox>
+          <div className="title">user settings</div>
+          <h2>new user name</h2>
+          <div className="input">
+            <input placeholder="new user name" onChange={handleNewuserNameChange} value={newUserName} />
+          </div>
+          <div className={newUserName ? 'button ture' : 'button false'} onClick={sendNewUserName}>
+            renew
+            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+          </div>
+        </SendBox>
+      </Dialog>
+      <Dialog footer={null} onCancel={() => setUploadImg(false)} visible={UploadImg} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">user settings</div>
+          <Upload
+            name="avatar"
+            listType="picture-card"
+            className="avatar-uploader"
+            showUploadList={false}
+            action={uploadHttpUrl}
+            beforeUpload={beforeUpload}
+            data={userinfo}
+            onChange={handleChange}
+          >
+            {imageUrl ? <img src={imageUrl} alt="avatar" style={{ width: '100%' }} /> : uploadButton}
+          </Upload>
+        </SendBox>
+      </Dialog>
       <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">give a reward</div>
@@ -1766,8 +1861,9 @@ export const CollectionDetails = () => {
               </div>
               <div className="ranting">
                 <div className="title">Rating & Reviews</div>
+                <div className="statistical"></div>
                 <div className="fraction">
-                  <b>{collectionDetails.starRating}</b>&nbsp;&nbsp;(out of {scoreinfo.length})
+                  <b>{collectionDetails.starRating}</b>&nbsp;&nbsp;(out of 10)
                 </div>
               </div>
             </div>
@@ -1795,8 +1891,10 @@ export const CollectionDetails = () => {
         </div>
         <div className="comment">
           <div className="user">
-            <img className="userImage" src={defaultImg} alt="" />
-            <div className="userName">{userinfo.username}</div>
+            <img className="userImage cursor" src={userinfo.image || defaultImg} onClick={() => setUploadImg(true)} />
+            <div className="userName cursor" onClick={() => setUserSettings(true)}>
+              {userinfo.username}
+            </div>
           </div>
           <div className="borders"></div>
           <div className="ranting">
@@ -1819,7 +1917,7 @@ export const CollectionDetails = () => {
               ></textarea>
               {Object.keys(forward).length ? (
                 <div className="forward">
-                  <img src={defaultImg} className="userImage" alt="" /> &nbsp;{forward.username}
+                  <img src={forward.userimage || defaultImg} className="userImage" alt="" /> &nbsp;{forward.username}
                   <div className="CommentContent">{forward.context}</div>
                 </div>
               ) : (
@@ -1839,7 +1937,7 @@ export const CollectionDetails = () => {
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
                     <div className="userInfo">
-                      <img src={defaultImg} className="userImage" alt="" />
+                      <img src={item.userimage || defaultImg} className="userImage" alt="" />
                       <div className="starName">
                         <div className="name">{item.username}</div>
                         <div className="star">
@@ -1855,7 +1953,8 @@ export const CollectionDetails = () => {
                     <div className="CommentContent">{item.context}</div>
                     {item.quote ? (
                       <div className="forward">
-                        <img src={defaultImg} className="userImage" alt="" /> &nbsp;{getForwardData(item.quote, 'name')}
+                        <img src={getForwardData(item.quote, 'image') || defaultImg} className="userImage" /> &nbsp;
+                        {getForwardData(item.quote, 'name')}
                         <div className="CommentContent">{getForwardData(item.quote, 'content')}</div>
                       </div>
                     ) : (
@@ -1890,10 +1989,10 @@ export const CollectionDetails = () => {
                         }}
                       >
                         <img src={reward} alt="" />
-                        <p className="rewardTotal">
+                        <div className="rewardTotal">
                           <p>{getRewardTotal(item.id)[0]} BNB</p>
                           <p>{getRewardTotal(item.id)[1]} MATIC</p>
-                        </p>
+                        </div>
                       </div>
                     </div>
                     <div className="bottomBorder"></div>

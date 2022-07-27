@@ -4,6 +4,10 @@ import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
 import { useLocation, useParams } from 'react-router-dom'
 import styled from 'styled-components'
+import { Upload, message } from 'antd'
+import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
+import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
+import type { UploadChangeParam } from 'antd/es/upload'
 import { useActiveWeb3React, useRewardContract } from '../hooks'
 import { fetchReceipt } from '../utils'
 import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
@@ -19,7 +23,7 @@ import loadding from '../assets/loading.svg'
 import defaultImg from '../assets/default.png'
 import defaultStar from '../assets/icon_review_star_default.svg'
 import scoreStar from '../assets/icon_score_star.svg'
-import returnIcon from '../assets/icon_return.svg'
+import returnIcon from '../assets/return.svg'
 import repost from '../assets/icon_repost.svg'
 import Reply from '../assets/icon_reply.svg'
 import likefalse from '../assets/icon_like_default.svg'
@@ -31,18 +35,17 @@ const DetailsBox = styled.div`
   min-height: 550px;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
-  border-radius: 10px 10px 10px 10px;
+  border-radius: 10px;
   margin-top: 5px;
   .review {
     min-height: 840px;
     border-right: 1px solid #e5e5e5;
     position: relative;
-    .returnIcon {
-      width: 60px;
-      height: 60px;
-      position: absolute;
-      top: 0px;
-      left: 0;
+    .previous {
+      margin: -32px 0 24px 0;
+      font-size: 32px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      color: #208DDF;
     }
     .user {
       display: flex;
@@ -388,6 +391,22 @@ const DetailsBox = styled.div`
     }
   }
 `
+const beforeUpload = (file: RcFile) => {
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+  if (!isJpgOrPng) {
+    message.error('You can only upload JPG/PNG file!')
+  }
+  const isLt2M = file.size / 1024 / 1024 < 1
+  if (!isLt2M) {
+    message.error('Image must smaller than 1MB!')
+  }
+  return isJpgOrPng && isLt2M
+}
+const getBase64 = (img: RcFile, callback: (url: string) => void) => {
+  const reader = new FileReader()
+  reader.addEventListener('load', () => callback(reader.result as string))
+  reader.readAsDataURL(img)
+}
 export const ReviewsDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const RewardContract = useRewardContract()
@@ -413,6 +432,11 @@ export const ReviewsDetails = () => {
   const [showSetUp, setshowSetUp] = useState(false)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [scoreDialog, setscoreDialog] = useState(false)
+  const [UserSettings, setUserSettings] = useState(false)
+  const [UploadImg, setUploadImg] = useState(false)
+  const [newUserName, setNewUserName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string>()
   const [lending, setLending] = useState(false)
   const [forward, setForward] = useState({} as any)
   const { state } = useLocation()
@@ -421,6 +445,7 @@ export const ReviewsDetails = () => {
   let http2: any
   let address: any
   let chain: any
+  let uploadHttpUrl
   if (state) {
     address = state.address
     chain = state.chain
@@ -431,10 +456,17 @@ export const ReviewsDetails = () => {
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   if (chain === 'bsc') {
     http2 = bschttp
+    uploadHttpUrl = 'http://localhost:8091/v0/userinfo/upload'
   } else if (chain === 'polygon') {
     http2 = polygonhttp
+    uploadHttpUrl = 'http://localhost:8089/v0/userinfo/upload'
   }
-
+  const uploadButton = (
+    <div>
+      {loading ? <LoadingOutlined /> : <PlusOutlined />}
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  )
   const getCollectionInfo = async () => {
     if (!account) return
     const Details = await http2.get(`v0/games/${address}`)
@@ -523,6 +555,7 @@ export const ReviewsDetails = () => {
     })
     if (type === 'name') return data[0].username
     if (type === 'content') return data[0].context
+    if (type === 'image') return data[0].userimage
   }
   const getReplayData = (id: any) => {
     const data = revieweData.filter((ele: any) => {
@@ -638,6 +671,14 @@ export const ReviewsDetails = () => {
       toastify.success('succeed')
       updateReplayTotal(item)
     }
+  }
+  const sendNewUserName = async () => {
+    const params = {
+      username: newUserName
+    }
+    const userinfo = http2.put(`/v0/userinfo/${account}`, params)
+    const review = http2.put(`/v0/review/updateUserName/${account}`, params)
+    Promise.all([userinfo, review]).then(() => location.reload())
   }
   const submit = async () => {
     if (!starScore && !textareaValue && !Object.keys(forward).length) return
@@ -760,6 +801,23 @@ export const ReviewsDetails = () => {
     const val = ele.currentTarget.value
     setreplayValue(val)
   }, [])
+  const handleNewuserNameChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setNewUserName(val)
+  }, [])
+  const handleChange: UploadProps['onChange'] = (info: UploadChangeParam<UploadFile>) => {
+    if (info.file.status === 'uploading') {
+      setLoading(true)
+      return
+    }
+    if (info.file.status === 'done') {
+      getBase64(info.file.originFileObj as RcFile, (url) => {
+        setLoading(false)
+        toastify.success('succeed')
+        location.reload()
+      })
+    }
+  }
   const link = () => {
     history.push({
       pathname: `/games/${contractName}`,
@@ -823,12 +881,53 @@ export const ReviewsDetails = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog
+        footer={null}
+        onCancel={() => setUserSettings(false)}
+        visible={UserSettings}
+        destroyOnClose
+        closable={false}
+      >
+        <SendBox>
+          <div className="title">user settings</div>
+          <h2>new user name</h2>
+          <div className="input">
+            <input placeholder="new user name" onChange={handleNewuserNameChange} value={newUserName} />
+          </div>
+          <div className={newUserName ? 'button ture' : 'button false'} onClick={sendNewUserName}>
+            renew
+            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+          </div>
+        </SendBox>
+      </Dialog>
+      <Dialog footer={null} onCancel={() => setUploadImg(false)} visible={UploadImg} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">user settings</div>
+          <Upload
+            name="avatar"
+            listType="picture-card"
+            className="avatar-uploader"
+            showUploadList={false}
+            action={uploadHttpUrl}
+            beforeUpload={beforeUpload}
+            data={userinfo}
+            onChange={handleChange}
+          >
+            {imageUrl ? <img src={imageUrl} alt="avatar" style={{ width: '100%' }} /> : uploadButton}
+          </Upload>
+        </SendBox>
+      </Dialog>
+      {/* <img src={returnIcon} className="returnIcon cursor" alt=""  /> */}
       <DetailsBox>
         <div className="review">
-          <img src={returnIcon} className="returnIcon cursor" alt="" onClick={link} />
+          <div className="previous cursor" onClick={link}>
+            &lt;&lt; previous
+          </div>
           <div className="user">
-            <img className="userImage" src={defaultImg} alt="" />
-            <div className="userName">{userinfo.username}</div>
+            <img className="userImage" src={userinfo.image || defaultImg} onClick={() => setUploadImg(true)} />
+            <div className="userName" onClick={() => setUserSettings(true)}>
+              {userinfo.username}
+            </div>
           </div>
           <div className="borders"></div>
           <div className="ranting">
@@ -851,7 +950,7 @@ export const ReviewsDetails = () => {
               ></textarea>
               {Object.keys(forward).length ? (
                 <div className="forward">
-                  <img src={defaultImg} className="userImage" alt="" /> &nbsp;{forward.username}
+                  <img src={forward.useriamge || defaultImg} className="userImage" alt="" /> &nbsp;{forward.username}
                   <div className="CommentContent">{forward.context}</div>
                 </div>
               ) : (
@@ -869,7 +968,7 @@ export const ReviewsDetails = () => {
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
                     <div className="userInfo">
-                      <img src={defaultImg} className="userImage" alt="" />
+                      <img src={item.userimage || defaultImg} className="userImage" alt="" />
                       <div className="starName">
                         <div className="name">{item.username}</div>
                         <div className="star">
@@ -885,7 +984,8 @@ export const ReviewsDetails = () => {
                     <div className="CommentContent">{item.context}</div>
                     {item.quote ? (
                       <div className="forward">
-                        <img src={defaultImg} className="userImage" alt="" /> &nbsp;{getForwardData(item.quote, 'name')}
+                        <img src={getForwardData(item.quote, 'image') || defaultImg} className="userImage" /> &nbsp;
+                        {getForwardData(item.quote, 'name')}
                         <div className="CommentContent">{getForwardData(item.quote, 'content')}</div>
                       </div>
                     ) : (
@@ -939,7 +1039,8 @@ export const ReviewsDetails = () => {
                               key={index}
                               onClick={() => setreplayWho('@' + ele.username)}
                             >
-                              <img src={defaultImg} className="userImage" alt="" /> &nbsp;{ele.username}
+                              <img src={ele.userimage || defaultImg} className="userImage" alt="" /> &nbsp;
+                              {ele.username}
                               <div className="replyContent">{ele.context}</div>
                             </div>
                           ))
