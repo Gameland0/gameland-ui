@@ -7,23 +7,45 @@ export interface BaseProps {
 }
 
 const ScoreStatisticsBox = styled.div`
-  width: 380px;
-  height: 160px;
   div {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     margin: 3px 0;
     img {
-      width: 18px;
-      height: 18px;
       margin-right: 10px;
     }
     .progressBar {
-      width: 240px;
-      height: 18px;
       background: #e5e5e5;
       border-radius: 9px;
+    }
+  }
+  @media screen and (min-width: 1440px) {
+    width: 320px;
+    height: 140px;
+    div {
+      img {
+        width: 14px;
+        height: 14px;
+      }
+      .progressBar {
+        width: 200px;
+        height: 14px;
+      }
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    width: 380px;
+    height: 160px;
+    div {
+      img {
+        width: 18px;
+        height: 18px;
+      }
+      .progressBar {
+        width: 240px;
+        height: 18px;
+      }
     }
   }
 `
@@ -32,6 +54,9 @@ const Schedule = styled.div<{ total: any; quantity: any }>`
   height: 18px;
   background: #41acef;
   border-radius: 9px;
+  @media screen and (min-width: 1440px) {
+    height: 14px;
+  }
 `
 export const ScoreStatistics: React.FC<BaseProps> = ({ data }) => {
   return (

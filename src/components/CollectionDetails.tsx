@@ -67,27 +67,22 @@ import reward from '../assets/icon_reward.svg'
 
 const DetailsBox = styled.div`
   display: flex;
-  min-height: 550px;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
   border-radius: 10px;
   margin-top: 5px;
   .collection {
-    height: 840px;
+    width: 65.5%;
     overflow: auto;
     border-right: 1px solid #e5e5e5;
     .info {
       .top {
         display: flex;
         .logo {
-          width: 164px;
-          height: 164px;
-          margin-right: 40px;
           border-radius: 10px;
         }
         .name {
-          width: 360px;
-          font-size: 28px;
+          width: 100%;
           font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
           font-weight: bold;
           color: #333333;
@@ -97,26 +92,17 @@ const DetailsBox = styled.div`
         }
         .attributesLabel {
           display: flex;
-          margin-top: 20px;
           div {
             padding: 6px;
-            background: #D2F2FE;
+            background: #d2f2fe;
             border-radius: 8px 8px 8px 8px;
-            font-size: 18px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-            color: #41ACEF;
+            color: #41acef;
             margin-right: 12px;
           }
         }
-        .support {
-          margin-top: 26px;
-          img {
-            width: 32px;
-            height: 32px;
-            margin-right: 24px;
-          }
-        }
         .ranting {
+          margin-left: 40px;
           .title {
             display: flex;
             justify-content: space-between;
@@ -138,7 +124,6 @@ const DetailsBox = styled.div`
         }
       }
       .describe {
-        font-size: 24px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
@@ -149,28 +134,20 @@ const DetailsBox = styled.div`
     }
   }
   .comment {
-    min-height: 550px;
+    width: 34.5%;
+    overflow: auto;
     .user {
       display: flex;
-      margin: 0 0 24px 0;
-      .userImage {
-        width: 80px;
-        height: 80px;
-        border-radius: 20px;
-      }
       .userName {
-        font-size: 36px;
         font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
-        line-height: 80px;
         margin-left: 10px;
       }
     }
     .borders {
-      width: 460px;
       height: 0;
-      border: 1px solid #E5E5E5;
+      border: 1px solid #e5e5e5;
       margin: 0 0 12px;
     }
     .ranting {
@@ -181,37 +158,27 @@ const DetailsBox = styled.div`
       }
       .star {
         display: flex;
-        margin-top: 24px;
         .defaultStar {
-          width: 48px;
-          height: 48px;
           background-image: url(${defaultStar});
-          background-size: 48px;
-          margin-right: 32px;
-          cursor: pointer;
         }
         .scoreStar {
-          width: 48px;
-          height: 48px;
           background-image: url(${scoreStar});
-          background-size: 48px;
-          margin-right: 32px;
-          cursor: pointer;
         }
       }
       .commentaryInput {
-        width: 460px;
+        width: 94%;
         margin-top: 24px;
         font-size: 18px;
         box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
         border-radius: 10px;
         padding: 0 0 16px 0;
-        textarea  {
+        textarea {
           width: 100%;
           height: 100px;
           resize: none;
-          border:0;
-          outline:0;
+          border: 0;
+          outline: 0;
+          border-radius: 10px;
           padding-left: 10px;
         }
         .forward {
@@ -248,7 +215,6 @@ const DetailsBox = styled.div`
       }
     }
     .title {
-      font-size: 24px;
       font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
       color: #333333;
@@ -292,7 +258,7 @@ const DetailsBox = styled.div`
             margin-left: 200px;
             font-size: 16px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-            color: #D0D0D0;
+            color: #d0d0d0;
           }
         }
         .CommentContent {
@@ -355,9 +321,8 @@ const DetailsBox = styled.div`
           }
         }
         .bottomBorder {
-          width: 460px;
           height: 0px;
-          border: 1px solid #E5E5E5;
+          border: 1px solid #e5e5e5;
           margin-top: 24px;
         }
       }
@@ -365,32 +330,215 @@ const DetailsBox = styled.div`
         margin: 16px 0;
         font-size: 18px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-        color: #208DDF;
+        color: #208ddf;
       }
     }
   }
   @media screen and (min-width: 1440px) {
     width: 1312px;
+    height: 580px;
+    .collection {
+      .top {
+        padding: 28px;
+        .logo {
+          width: 134px;
+          height: 134px;
+          margin-right: 20px;
+        }
+        .name {
+          font-size: 24px;
+        }
+        .attributesLabel {
+          margin-top: 10px;
+          div {
+            font-size: 14px;
+          }
+        }
+        .support {
+          margin-top: 18px;
+          img {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+          }
+        }
+      }
+      .describe {
+        font-size: 18px;
+        padding: 30px;
+      }
+      .nftBox {
+        padding: 28px;
+      }
+    }
+    .comment {
+      padding: 20px 0 0 20px;
+      .user {
+        margin: 0 0 0px 0;
+        .userImage {
+          width: 65px;
+          height: 65px;
+          border-radius: 20px;
+        }
+        .userName {
+          font-size: 28px;
+          line-height: 90px;
+        }
+      }
+      .borders {
+        width: 390px;
+      }
+      .ranting {
+        .tips {
+          font-size: 16px;
+        }
+        .star {
+          margin-top: 16px;
+          div {
+            width: 36px;
+            height: 36px;
+            margin-right: 24px;
+            cursor: pointer;
+          }
+          .defaultStar {
+            background-size: 36px;
+          }
+          .scoreStar {
+            background-size: 36px;
+          }
+        }
+        .button {
+          margin: 16px 0 0 230px;
+        }
+      }
+      .title {
+        font-size: 18px;
+      }
+      .exhibit {
+        .CommentItem {
+          .userInfo {
+            .time {
+              margin-left: 100px;
+            }
+          }
+          .otherDetails {
+            div {
+              margin-right: 24px;
+            }
+            .reward {
+              .rewardTotal {
+                right: -26px;
+              }
+            }
+          }
+          .bottomBorder {
+            width: 390px;
+          }
+        }
+      }
+    }
   }
   @media screen and (min-width: 1920px) {
     width: 1600px;
+    height: 840px;
     .collection {
-      width: 1048px;
       .top {
         padding: 40px;
+        .logo {
+          width: 164px;
+          height: 164px;
+          margin-right: 40px;
+        }
+        .name {
+          font-size: 28px;
+        }
+        .attributesLabel {
+          margin-top: 20px;
+          div {
+            font-size: 18px;
+          }
+        }
+        .support {
+          margin-top: 26px;
+          img {
+            width: 32px;
+            height: 32px;
+            margin-right: 24px;
+          }
+        }
       }
       .describe {
         padding: 50px;
+        font-size: 24px;
       }
       .nftBox {
         padding: 30px;
       }
     }
     .comment {
-      width: 552px;
-      height: 840px;
-      overflow: auto;
-      padding: 50px 0 0 40px;   
+      padding: 50px 0 0 40px;
+      .user {
+        margin: 0 0 24px 0;
+        .userImage {
+          width: 80px;
+          height: 80px;
+          border-radius: 20px;
+        }
+        .userName {
+          font-size: 36px;
+          line-height: 80px;
+        }
+      }
+      .borders {
+        width: 460px;
+      }
+      .ranting {
+        .tips {
+          font-size: 18px;
+        }
+        .star {
+          margin-top: 24px;
+          div {
+            width: 48px;
+            height: 48px;
+            margin-right: 32px;
+            cursor: pointer;
+          }
+          .defaultStar {
+            background-size: 48px;
+          }
+          .scoreStar {
+            background-size: 48px;
+          }
+        }
+        .button {
+          margin: 24px 0 0 300px;
+        }
+      }
+      .title {
+        font-size: 24px;
+      }
+      .exhibit {
+        .CommentItem {
+          .userInfo {
+            .time {
+              margin-left: 200px;
+            }
+          }
+          .otherDetails {
+            div {
+              margin-right: 34px;
+            }
+            .reward {
+              .rewardTotal {
+                right: -20px;
+              }
+            }
+          }
+          .bottomBorder {
+            width: 460px;
+          }
+        }
       }
     }
   }
@@ -435,7 +583,7 @@ const CardBox = styled.div<{ isLending?: boolean; have: number }>`
     width: 7.44rem;
   }
   @media screen and (min-width: 1440px) {
-    width: 9.35rem;
+    width: 240px;
   }
   @media screen and (min-width: 1920px) {
     width: 300px;

@@ -32,12 +32,15 @@ import reward from '../assets/icon_reward.svg'
 
 const DetailsBox = styled.div`
   display: flex;
+  width: 1312px;
   min-height: 550px;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
   border-radius: 10px;
-  margin-top: 5px;
+  margin: 5px 0 100px 0;
   .review {
+    width: 62.375%;
+    padding: 32px 30px 32px 28px;
     min-height: 840px;
     border-right: 1px solid #e5e5e5;
     position: relative;
@@ -45,75 +48,72 @@ const DetailsBox = styled.div`
       margin: -32px 0 24px 0;
       font-size: 32px;
       font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-      color: #208DDF;
+      color: #208ddf;
     }
     .user {
       display: flex;
       margin: 0 0 24px 0;
       .userImage {
-        width: 160px;
-        height: 160px;
-        border-radius: 40px;
+        width: 120px;
+        height: 120px;
+        border-radius: 30px;
       }
       .userName {
-        font-size: 72px;
+        font-size: 56px;
+        line-height: 120px;
         font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
-        line-height: 160px;
         margin-left: 24px;
       }
     }
     .borders {
-      width: 883px;
+      width: 100%;
       height: 0;
-      border: 1px solid #E5E5E5;
+      border: 1px solid #e5e5e5;
       margin: 32px 0;
     }
     .ranting {
       .title {
-        font-size: 32px;
+        font-size: 26px;
         font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
       }
       .tips {
-        font-size: 24px;
+        font-size: 20px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
       .star {
         display: flex;
         margin-top: 24px;
-        .defaultStar {
-          width: 96px;
-          height: 96px;
-          background-image: url(${defaultStar});
-          background-size: 96px;
-          margin-right: 32px;
+        div {
+          width: 72px;
+          height: 72px;
+          background-size: 72px;
+          margin-right: 26px;
           cursor: pointer;
         }
+        .defaultStar {
+          background-image: url(${defaultStar});
+        }
         .scoreStar {
-          width: 96px;
-          height: 96px;
           background-image: url(${scoreStar});
-          background-size: 96px;
-          margin-right: 32px;
-          cursor: pointer;
         }
       }
       .commentaryInput {
-        width: 860px;
+        width: 94%;
         margin-top: 36px;
         box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
         border-radius: 10px;
         padding: 0 0 16px 0;
-        textarea  {
+        textarea {
           width: 100%;
           height: 180px;
           resize: none;
-          border:0;
-          outline:0;
+          border: 0;
+          outline: 0;
           font-size: 24px;
           padding-left: 10px;
         }
@@ -138,13 +138,13 @@ const DetailsBox = styled.div`
         }
       }
       .button {
-        margin: 24px 0 0 530px;
-        width: 320px;
-        height: 80px;
+        margin: 24px 0 0 470px;
+        width: 240px;
+        height: 60px;
+        border-radius: 30px;
+        line-height: 60px;
         background: #35caa9;
-        border-radius: 40px;
         text-align: center;
-        line-height: 80px;
         color: #fff;
         font-size: 24px;
         margin-bottom: 24px;
@@ -159,9 +159,9 @@ const DetailsBox = styled.div`
         color: #333333;
       }
       .topBorder {
-        width: 883px;
+        width: 100%;
         height: 0px;
-        border: 1px solid #E5E5E5;
+        border: 1px solid #e5e5e5;
         margin-top: 48px;
       }
       .CommentItem {
@@ -201,10 +201,10 @@ const DetailsBox = styled.div`
             }
           }
           .time {
-            margin-left: 410px;
+            margin-left: 300px;
             font-size: 24px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-            color: #D0D0D0;
+            color: #d0d0d0;
           }
         }
         .CommentContent {
@@ -238,7 +238,7 @@ const DetailsBox = styled.div`
           position: relative;
           div {
             display: flex;
-            margin-right: 78px;
+            margin-right: 55px;
             img {
               width: 40px;
               height: 40px;
@@ -266,9 +266,9 @@ const DetailsBox = styled.div`
         }
       }
       .bottomBorder {
-        width: 862px;
+        width: 100%;
         height: 0px;
-        border: 1px solid #E5E5E5;
+        border: 1px solid #e5e5e5;
         margin-top: 32px;
       }
       .replyWindow {
@@ -292,13 +292,13 @@ const DetailsBox = styled.div`
           .replayWho {
             min-width: 20px;
           }
-          textarea  {
+          textarea {
             width: 90%;
             height: 80px;
             resize: none;
-            border: 1px solid #E5E5E5;
+            border: 1px solid #e5e5e5;
             border-radius: 12px;
-            outline:0;
+            outline: 0;
             font-size: 24px;
             padding-left: 10px;
           }
@@ -319,7 +319,9 @@ const DetailsBox = styled.div`
     }
   }
   .comment {
+    width: 37.625%;
     min-height: 550px;
+    padding: 30px 0 0 24px;
     .title {
       font-size: 32px;
       font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
@@ -330,8 +332,9 @@ const DetailsBox = styled.div`
       display: flex;
       margin-top: 32px;
       img {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
       }
       .label {
         margin-left: 24px;
@@ -347,14 +350,14 @@ const DetailsBox = styled.div`
         }
         .attributes {
           display: flex;
-          margin-top: 20px;
+          margin-top: 10px;
           div {
             padding: 6px;
-            background: #D2F2FE;
-            border-radius: 8px 8px 8px 8px;
-            font-size: 18px;
+            background: #d2f2fe;
+            border-radius: 8px;
+            font-size: 14px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-            color: #41ACEF;
+            color: #41acef;
             margin-right: 12px;
           }
         }
@@ -366,7 +369,7 @@ const DetailsBox = styled.div`
         font-size: 24px;
         font-family: DIN-Bold, DIN;
         font-weight: bold;
-        color: #35CAA9;
+        color: #35caa9;
         img {
           width: 24px;
           height: 24px;
@@ -374,19 +377,72 @@ const DetailsBox = styled.div`
       }
     }
   }
-  @media screen and (min-width: 1440px) {
-    width: 1312px;
-  }
   @media screen and (min-width: 1920px) {
     width: 1600px;
     .review {
-      width: 998px;
       padding: 48px 46px 48px 44px;
+      .user {
+        .userImage {
+          width: 160px;
+          height: 160px;
+          border-radius: 40px;
+        }
+        .userName {
+          font-size: 72px;
+          line-height: 160px;
+        }
+      }
+      .ranting {
+        .title {
+          font-size: 32px;
+        }
+        .tips {
+          font-size: 24px;
+        }
+        .star {
+          div {
+            width: 96px;
+            height: 96px;
+            background-size: 96px;
+            margin-right: 32px;
+          }
+        }
+        .button {
+          margin: 24px 0 0 530px;
+          width: 320px;
+          height: 80px;
+          border-radius: 40px;
+          line-height: 80px;
+        }
+      }
+      .exhibit {
+        .CommentItem {
+          .time {
+            margin-left: 410px;
+          }
+          .otherDetails {
+            div {
+              margin-right: 78px;
+            }
+          }
+        }
+      }
     }
     .comment {
-      width: 602px;
       min-height: 840px;
-      padding: 50px 0 0 40px;   
+      padding: 50px 0 0 40px;
+      .gamesItem {
+        img {
+          width: 100px;
+          height: 100px;
+        }
+        .attributes {
+          margin-top: 20px;
+          div {
+            font-size: 18px;
+            margin-right: 12px;
+          }
+        }
       }
     }
   }
@@ -818,6 +874,15 @@ export const ReviewsDetails = () => {
       })
     }
   }
+  const gameLink = (item: any) => {
+    history.push({
+      pathname: `/games/${item.contractName.replace(/ /g, '')}`,
+      state: {
+        address: item.contractAddress,
+        chain: item.chain
+      }
+    })
+  }
   const link = () => {
     history.push({
       pathname: `/games/${contractName}`,
@@ -1074,7 +1139,7 @@ export const ReviewsDetails = () => {
           <div className="title">Active Game</div>
           {games.length
             ? games.map((item: any, index: any) => (
-                <div className="gamesItem" key={index}>
+                <div className="gamesItem" key={index} onClick={() => gameLink(item)}>
                   <img src={item.image} alt="" />
                   <div className="label">
                     <div className="gameName">{item.contractName}</div>
