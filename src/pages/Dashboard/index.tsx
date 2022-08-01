@@ -114,7 +114,12 @@ export const SendBox = styled.div`
     div {
       cursor: pointer;
       padding: 0 0 0 16px;
-      font-size: 24px;
+      font-size: 18px;
+      .icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 6px;
+      }
       &:hover {
         background: #8cd8f8;
       }

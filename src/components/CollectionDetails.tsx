@@ -1,12 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
 import { Row, Col, Button, message, Upload } from 'antd'
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadChangeParam } from 'antd/es/upload'
-import { isEmpty } from 'lodash'
+import { divide, isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { lowerCase } from 'lower-case'
 import axios from 'axios'
@@ -64,6 +64,9 @@ import Reply from '../assets/icon_reply.svg'
 import likefalse from '../assets/icon_like_default.svg'
 import liketrue from '../assets/icon_like_selected.svg'
 import reward from '../assets/icon_reward.svg'
+import polygonIcon from '../assets/polygon_icon.svg'
+import BNBIcon from '../assets/bnb.svg'
+import { Return } from './RentingCard'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -82,7 +85,6 @@ const DetailsBox = styled.div`
           border-radius: 10px;
         }
         .name {
-          width: 100%;
           font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
           font-weight: bold;
           color: #333333;
@@ -312,7 +314,7 @@ const DetailsBox = styled.div`
               flex-wrap: wrap;
               position: absolute;
               top: -12px;
-              right: -20px;
+              margin: 0;
               p {
                 width: 100px;
                 margin-bottom: 0px;
@@ -346,6 +348,7 @@ const DetailsBox = styled.div`
           margin-right: 20px;
         }
         .name {
+          width: 255px;
           font-size: 24px;
         }
         .attributesLabel {
@@ -427,7 +430,7 @@ const DetailsBox = styled.div`
             }
             .reward {
               .rewardTotal {
-                right: -26px;
+                right: 0px;
               }
             }
           }
@@ -450,6 +453,7 @@ const DetailsBox = styled.div`
           margin-right: 40px;
         }
         .name {
+          width: 310px;
           font-size: 28px;
         }
         .attributesLabel {
@@ -531,7 +535,7 @@ const DetailsBox = styled.div`
             }
             .reward {
               .rewardTotal {
-                right: -20px;
+                right: 15px;
               }
             }
           }
@@ -580,10 +584,11 @@ const CardBox = styled.div<{ isLending?: boolean; have: number }>`
   transition: all 0.3s ease;
 
   @media screen and (min-width: 1152px) {
-    width: 7.44rem;
+    width: 180px;
   }
   @media screen and (min-width: 1440px) {
     width: 240px;
+    min-height: 360px;
   }
   @media screen and (min-width: 1920px) {
     width: 300px;
@@ -625,6 +630,13 @@ const FakeButtons = styled.div`
     }
   }
 `
+const NFTname = styled.p`
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
 export interface CardProps {
   onClick?: () => void
   onLend: () => void
@@ -646,7 +658,7 @@ interface LabelProps {
 const Labels: React.FC<LabelProps> = ({ name, type }) => {
   return (
     <div style={{ overflow: 'hidden' }}>
-      <p>{name}</p>
+      <NFTname>{name}</NFTname>
       <Standard>{type}</Standard>
     </div>
   )
@@ -684,7 +696,6 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
       isLending={isLending}
       onClick={isLending ? handleClick : Click}
     >
-      {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt="" />  */}
       <Img src={img} alt="" />
       <CardDetails className="flex flex-h-between">
         <div>
@@ -740,6 +751,24 @@ const getBase64 = (img: RcFile, callback: (url: string) => void) => {
   reader.addEventListener('load', () => callback(reader.result as string))
   reader.readAsDataURL(img)
 }
+export const compareTime = () => {
+  return function (obj1: any, obj2: any) {
+    const val1 = new Date(obj1.datetime).getTime()
+    const val2 = new Date(obj2.datetime).getTime()
+    if (Number(val1) < Number(val2)) {
+      return 1
+    } else if (Number(val1) > Number(val2)) {
+      return -1
+    } else {
+      return 0
+    }
+  }
+}
+export const getLabelArr = (item: any) => {
+  const arr = item?.split(',')
+  if (!arr) return []
+  return arr
+}
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
@@ -788,6 +817,7 @@ export const CollectionDetails = () => {
   const [LeaseDays, setLeaseDays] = useState('')
   const [forward, setForward] = useState({} as any)
   const [renting, setRenting] = useState(false)
+  const [refreshBy, setrefreshBy] = useState(false)
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [currentItem, setCurrentItem] = useState({} as any)
@@ -799,7 +829,7 @@ export const CollectionDetails = () => {
   const { contractName } = useParams() as any
   const history = useHistory()
   let http2: any
-  let uploadHttpUrl
+  const uploadHttpUrl = 'https://bsc-api.gameland.network/v0/userinfo/upload'
   let AssetContractAddress: any
   let ControlContractAddress: any
   let address: any
@@ -816,22 +846,13 @@ export const CollectionDetails = () => {
     http2 = bschttp
     AssetContractAddress = BSCAssetContractAddress
     ControlContractAddress = BSCControlContractAddress
-    uploadHttpUrl =
-      process.env.NODE_ENV === 'production'
-        ? 'https://bsc-api.gameland.network/v0/userinfo/upload'
-        : 'http://localhost:8091/v0/userinfo/upload'
     contracts = BscContract
   } else if (chain === 'polygon') {
     http2 = polygonhttp
     AssetContractAddress = POLYGONAssetContractAddress
     ControlContractAddress = POLYGONControlContractAddress
     contracts = PolygonContract
-    uploadHttpUrl =
-      process.env.NODE_ENV === 'production'
-        ? 'https://polygon-api.gameland.network/v0/userinfo/upload'
-        : 'http://localhost:8089/v0/userinfo/upload'
   }
-
   const getCollectionInfo = async () => {
     if (!account) return
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
@@ -895,7 +916,7 @@ export const CollectionDetails = () => {
   useEffect(() => {
     const getUserinfo = async () => {
       if (!account) return
-      const userinfo = await http2.get(`v0/userinfo/${account}`)
+      const userinfo = await bschttp.get(`v0/userinfo/${account}`)
       if (!userinfo.data.data.length) {
         setshowSetUp(true)
       } else {
@@ -909,14 +930,23 @@ export const CollectionDetails = () => {
         Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo]).then((vals) => {
           setUserScoreinfo(vals[0].data.data)
           setCollectionScoreinfo(vals[1].data.data)
-          setrevieweinfo(vals[2].data.data)
+          const revieweFilter = vals[2].data.data.filter((ele: any) => {
+            return !ele.SuperiorIndex
+          })
+          const reviewData = [] as any
+          revieweFilter.map((item: any, index: any) => {
+            if (index < 20) {
+              reviewData.push(item)
+            }
+          })
+          setrevieweinfo(reviewData.sort(compareTime()))
           setuserLikeInfo(vals[3].data.data)
           setrewardinfo(vals[4].data.data)
         })
       }
     }
     getUserinfo()
-  }, [account, chainId])
+  }, [account, chainId, refreshBy])
   useEffect(() => {
     if (rewardSelection === 'BNB') {
       handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
@@ -1230,30 +1260,37 @@ export const CollectionDetails = () => {
   }
   const sendRewar = async () => {
     if (!rewardQuantity || !library) return
-    const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
-      value: parseEther(rewardQuantity)
-    })
-    const receipt = await fetchReceipt(rented.hash, library)
-    const { status } = receipt
-    if (!status) {
-      throw Error('Failed to rent.')
-    }
-    const params = {
-      reviewid: rewardItem.id,
-      toaddress: rewardItem.useraddress,
-      fromaddress: account,
-      datetime: new Date().toJSON(),
-      amount: rewardQuantity,
-      paytype: rewardSelection
-    }
-    const res: any = await http2.post(`/v0/review_reward/`, params)
-    if (res.data.code === 1) {
-      toastify.success('succeed')
+    setLending(true)
+    try {
+      const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
+        value: parseEther(rewardQuantity)
+      })
+      const receipt = await fetchReceipt(rented.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to rent.')
+      }
+      const params = {
+        reviewid: rewardItem.id,
+        toaddress: rewardItem.useraddress,
+        fromaddress: account,
+        datetime: new Date().toJSON(),
+        amount: rewardQuantity,
+        paytype: rewardSelection
+      }
+      const res: any = await http2.post(`/v0/review_reward/`, params)
+      if (res.data.code === 1) {
+        toastify.success('succeed')
+        setLending(false)
+        setshowreward(false)
+        setrefreshBy(!refreshBy)
+      } else {
+        setLending(false)
+        throw res.message || res.data.message
+      }
+    } catch (error: any) {
       setLending(false)
-      setshowSetUp(false)
-      location.reload()
-    } else {
-      throw res.message || res.data.message
+      throw error.message || error.data.message
     }
   }
   const setname = async () => {
@@ -1264,12 +1301,11 @@ export const CollectionDetails = () => {
       username: username
     }
     const res: any = await bschttp.post(`/v0/userinfo/`, params)
-    polygonhttp.post(`/v0/userinfo/`, params)
     if (res.data.code === 1) {
       toastify.success('succeed')
       setLending(false)
       setshowSetUp(false)
-      location.reload()
+      setrefreshBy(!refreshBy)
     } else {
       throw res.message || res.data.message
     }
@@ -1278,9 +1314,9 @@ export const CollectionDetails = () => {
     const params = {
       username: newUserName
     }
-    const userinfo = http2.put(`/v0/userinfo/${account}`, params)
+    const userinfo = bschttp.put(`/v0/userinfo/${account}`, params)
     const review = http2.put(`/v0/review/updateUserName/${account}`, params)
-    Promise.all([userinfo, review]).then(() => location.reload())
+    Promise.all([userinfo, review]).then(() => setrefreshBy(!refreshBy))
   }
   const updateScore = async () => {
     const info = await http2.get(`/v0/score/collection/${address}`)
@@ -1292,7 +1328,7 @@ export const CollectionDetails = () => {
     const params = {
       starRating: totalScore
     }
-    http2.put(`/v0/games/${collectionDetails.id}`, params).then(() => location.reload())
+    http2.put(`/v0/games/${collectionDetails.id}`, params).then(() => setrefreshBy(!refreshBy))
   }
   const updateLikeTotal = async (item: any, type: any) => {
     let total
@@ -1304,20 +1340,21 @@ export const CollectionDetails = () => {
     const params = {
       likes: total
     }
-    http2.put(`/v0/review/${item.id}`, params).then(() => location.reload())
+    http2.put(`/v0/review/${item.id}`, params).then(() => setrefreshBy(!refreshBy))
   }
   const updateForwardTotal = async (item: any) => {
     const total = item.forwards + 1
     const params = {
       forwards: total
     }
-    http2.put(`/v0/review/${item.id}`, params).then(() => location.reload())
+    http2.put(`/v0/review/${item.id}`, params).then(() => setrefreshBy(!refreshBy))
   }
   const submit = async () => {
     if (!starScore && !textareaValue && !Object.keys(forward).length) return
     if (starScore) {
       if (!userScoreinfo.length) {
         const params = {
+          userimage: userinfo.image,
           useraddress: account,
           contractaddress: address,
           score: starScore
@@ -1351,12 +1388,13 @@ export const CollectionDetails = () => {
           contractaddress: address,
           datetime: new Date().toJSON(),
           username: userinfo.username,
+          userimage: userinfo.image,
           context: textareaValue
         }
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
-          location.reload()
+          setrefreshBy(!refreshBy)
         }
       } catch (error: any) {
         toastify.error(error.message)
@@ -1368,6 +1406,7 @@ export const CollectionDetails = () => {
         const params = {
           useraddress: account,
           contractaddress: address,
+          userimage: userinfo.image,
           datetime: new Date().toJSON(),
           username: userinfo.username,
           context: textareaValue,
@@ -1598,7 +1637,7 @@ export const CollectionDetails = () => {
       getBase64(info.file.originFileObj as RcFile, (url) => {
         setLoading(false)
         toastify.success('succeed')
-        location.reload()
+        setrefreshBy(!refreshBy)
       })
     }
   }
@@ -1941,8 +1980,7 @@ export const CollectionDetails = () => {
         closable={false}
       >
         <SendBox>
-          <div className="title">user settings</div>
-          <h2>new user name</h2>
+          <div className="title">user setting</div>
           <div className="input">
             <input placeholder="new user name" onChange={handleNewuserNameChange} value={newUserName} />
           </div>
@@ -1954,7 +1992,7 @@ export const CollectionDetails = () => {
       </Dialog>
       <Dialog footer={null} onCancel={() => setUploadImg(false)} visible={UploadImg} destroyOnClose closable={false}>
         <SendBox>
-          <div className="title">user settings</div>
+          <div className="title">user setting</div>
           <Upload
             name="avatar"
             listType="picture-card"
@@ -1987,7 +2025,9 @@ export const CollectionDetails = () => {
                   setrewardSelection('BNB')
                   setrewardoptions(false)
                 }}
+                className="flex flex-v-center"
               >
+                <img src={BNBIcon} className="icon" />
                 BNB
               </div>
               <div
@@ -1995,7 +2035,9 @@ export const CollectionDetails = () => {
                   setrewardSelection('MATIC')
                   setrewardoptions(false)
                 }}
+                className="flex flex-v-center"
               >
+                <img src={polygonIcon} className="icon" />
                 MATIC
               </div>
             </div>
@@ -2039,9 +2081,9 @@ export const CollectionDetails = () => {
               <div>
                 <div className="name">{collectionDetails.contractName}</div>
                 <div className="attributesLabel">
-                  <div>multiplayer</div>
-                  <div>play to earn</div>
-                  <div>RPG</div>
+                  {getLabelArr(collectionDetails.label).length
+                    ? getLabelArr(collectionDetails.label).map((item: any, index: any) => <div key={index}>{item}</div>)
+                    : ''}
                 </div>
                 <div className="support">
                   <a href={collectionDetails.twitter} target="_blank" rel="noreferrer">
@@ -2177,14 +2219,15 @@ export const CollectionDetails = () => {
                         />
                         <div className="quantity">{item.likes || 0}</div>
                       </div>
-                      <div
-                        className="reward cursor"
-                        onClick={() => {
-                          setshowreward(true)
-                          setrewardItem(item)
-                        }}
-                      >
-                        <img src={reward} alt="" />
+                      <div className="reward">
+                        <img
+                          className="cursor"
+                          src={reward}
+                          onClick={() => {
+                            setshowreward(true)
+                            setrewardItem(item)
+                          }}
+                        />
                         <div className="rewardTotal">
                           <p>{getRewardTotal(item.id)[0]} BNB</p>
                           <p>{getRewardTotal(item.id)[1]} MATIC</p>

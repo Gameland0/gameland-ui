@@ -15,7 +15,8 @@ import { toastify } from './Toastify'
 import { Dialog } from '../components/Dialog'
 import { bschttp, polygonhttp } from './Store'
 import { compare } from '../pages/Games'
-import { getTime } from './CollectionDetails'
+import { compareTime } from './CollectionDetails'
+import { getTime, getLabelArr } from './CollectionDetails'
 import { handleClick } from './Header'
 import { SendBox } from '../pages/Dashboard'
 import arrow from '../assets/icon_select.svg'
@@ -23,12 +24,13 @@ import loadding from '../assets/loading.svg'
 import defaultImg from '../assets/default.png'
 import defaultStar from '../assets/icon_review_star_default.svg'
 import scoreStar from '../assets/icon_score_star.svg'
-import returnIcon from '../assets/return.svg'
 import repost from '../assets/icon_repost.svg'
 import Reply from '../assets/icon_reply.svg'
 import likefalse from '../assets/icon_like_default.svg'
 import liketrue from '../assets/icon_like_selected.svg'
 import reward from '../assets/icon_reward.svg'
+import polygonIcon from '../assets/polygon_icon.svg'
+import BNBIcon from '../assets/bnb.svg'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -54,13 +56,13 @@ const DetailsBox = styled.div`
       display: flex;
       margin: 0 0 24px 0;
       .userImage {
-        width: 120px;
-        height: 120px;
-        border-radius: 30px;
+        width: 100px;
+        height: 100px;
+        border-radius: 25px;
       }
       .userName {
-        font-size: 56px;
-        line-height: 120px;
+        font-size: 50px;
+        line-height: 100px;
         font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
@@ -75,13 +77,13 @@ const DetailsBox = styled.div`
     }
     .ranting {
       .title {
-        font-size: 26px;
+        font-size: 24px;
         font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
       }
       .tips {
-        font-size: 20px;
+        font-size: 18px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
@@ -89,9 +91,9 @@ const DetailsBox = styled.div`
         display: flex;
         margin-top: 24px;
         div {
-          width: 72px;
-          height: 72px;
-          background-size: 72px;
+          width: 64px;
+          height: 64px;
+          background-size: 64px;
           margin-right: 26px;
           cursor: pointer;
         }
@@ -138,11 +140,11 @@ const DetailsBox = styled.div`
         }
       }
       .button {
-        margin: 24px 0 0 470px;
-        width: 240px;
-        height: 60px;
+        margin: 24px 0 0 510px;
+        width: 200px;
+        height: 50px;
         border-radius: 30px;
-        line-height: 60px;
+        line-height: 50px;
         background: #35caa9;
         text-align: center;
         color: #fff;
@@ -287,7 +289,7 @@ const DetailsBox = styled.div`
         }
         .replayInput {
           display: flex;
-          width: 760px;
+          width: 95%;
           margin-top: 48px;
           .replayWho {
             min-width: 20px;
@@ -312,7 +314,7 @@ const DetailsBox = styled.div`
           line-height: 40px;
           color: #fff;
           font-size: 24px;
-          margin: 24px 0 0 660px;
+          margin: 24px 0 0 72%;
           cursor: pointer;
         }
       }
@@ -492,6 +494,7 @@ export const ReviewsDetails = () => {
   const [UploadImg, setUploadImg] = useState(false)
   const [newUserName, setNewUserName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [refreshBy, setrefreshBy] = useState(false)
   const [imageUrl, setImageUrl] = useState<string>()
   const [lending, setLending] = useState(false)
   const [forward, setForward] = useState({} as any)
@@ -501,7 +504,10 @@ export const ReviewsDetails = () => {
   let http2: any
   let address: any
   let chain: any
-  let uploadHttpUrl
+  const uploadHttpUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'https://bsc-api.gameland.network/v0/userinfo/upload'
+      : 'http://localhost:8091/v0/userinfo/upload'
   if (state) {
     address = state.address
     chain = state.chain
@@ -512,10 +518,8 @@ export const ReviewsDetails = () => {
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   if (chain === 'bsc') {
     http2 = bschttp
-    uploadHttpUrl = 'http://localhost:8091/v0/userinfo/upload'
   } else if (chain === 'polygon') {
     http2 = polygonhttp
-    uploadHttpUrl = 'http://localhost:8089/v0/userinfo/upload'
   }
   const uploadButton = (
     <div>
@@ -532,7 +536,14 @@ export const ReviewsDetails = () => {
     const bsc = bschttp.get('/v0/games')
     const polygon = polygonhttp.get('/v0/games')
     Promise.all([bsc, polygon]).then((vals) => {
-      setGames([...vals[0].data.data, ...vals[1].data.data].sort(compare()))
+      const gameData = [] as any
+      const res = [...vals[0].data.data, ...vals[1].data.data].sort(compare())
+      res.map((item: any, index: any) => {
+        if (index < 10) {
+          gameData.push(item)
+        }
+      })
+      setGames(gameData)
     })
   }
   useEffect(() => {
@@ -542,12 +553,12 @@ export const ReviewsDetails = () => {
     }
     getGames()
     getCollectionInfo()
-  }, [contractName])
+  }, [contractName, refreshBy])
 
   useEffect(() => {
     const getUserinfo = async () => {
       if (!account) return
-      const userinfo = await http2.get(`v0/userinfo/${account}`)
+      const userinfo = await bschttp.get(`v0/userinfo/${account}`)
       if (!userinfo.data.data.length) {
         setshowSetUp(true)
       } else {
@@ -572,7 +583,7 @@ export const ReviewsDetails = () => {
       }
     }
     getUserinfo()
-  }, [account, chainId])
+  }, [account, chainId, refreshBy])
   useEffect(() => {
     if (rewardSelection === 'BNB') {
       handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
@@ -629,14 +640,14 @@ export const ReviewsDetails = () => {
     const params = {
       starRating: totalScore
     }
-    http2.put(`/v0/games/${collectionDetails.id}`, params).then(() => location.reload())
+    http2.put(`/v0/games/${collectionDetails.id}`, params).then(() => setrefreshBy(!refreshBy))
   }
   const updateReplayTotal = async (item: any) => {
     const total = item.reviews + 1
     const params = {
       reviews: total
     }
-    http2.put(`/v0/review/${item.id}`, params).then(() => location.reload())
+    http2.put(`/v0/review/${item.id}`, params).then(() => setrefreshBy(!refreshBy))
   }
   const updateLikeTotal = async (item: any, type: any) => {
     let total
@@ -648,14 +659,14 @@ export const ReviewsDetails = () => {
     const params = {
       likes: total
     }
-    http2.put(`/v0/review/${item.id}`, params).then(() => location.reload())
+    http2.put(`/v0/review/${item.id}`, params).then(() => setrefreshBy(!refreshBy))
   }
   const updateForwardTotal = async (item: any) => {
     const total = item.forwards + 1
     const params = {
       forwards: total
     }
-    http2.put(`/v0/review/${item.id}`, params).then(() => location.reload())
+    http2.put(`/v0/review/${item.id}`, params).then(() => setrefreshBy(!refreshBy))
   }
   const setname = async () => {
     if (!username) return
@@ -665,42 +676,48 @@ export const ReviewsDetails = () => {
       username: username
     }
     const res: any = await bschttp.post(`/v0/userinfo/`, params)
-    polygonhttp.post(`/v0/userinfo/`, params)
     if (res.data.code === 1) {
       toastify.success('succeed')
       setLending(false)
       setshowSetUp(false)
-      location.reload()
+      setrefreshBy(!refreshBy)
     } else {
       throw res.message || res.data.message
     }
   }
   const sendRewar = async () => {
     if (!rewardQuantity || !library) return
-    const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
-      value: parseEther(rewardQuantity)
-    })
-    const receipt = await fetchReceipt(rented.hash, library)
-    const { status } = receipt
-    if (!status) {
-      throw Error('Failed to rent.')
-    }
-    const params = {
-      reviewid: rewardItem.id,
-      toaddress: rewardItem.useradderss,
-      fromaddress: account,
-      datetime: new Date().toJSON(),
-      amount: rewardQuantity,
-      paytype: rewardSelection
-    }
-    const res: any = await http2.post(`/v0/review_reward/`, params)
-    if (res.data.code === 1) {
-      toastify.success('succeed')
+    setLending(true)
+    try {
+      const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
+        value: parseEther(rewardQuantity)
+      })
+      const receipt = await fetchReceipt(rented.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to rent.')
+      }
+      const params = {
+        reviewid: rewardItem.id,
+        toaddress: rewardItem.useraddress,
+        fromaddress: account,
+        datetime: new Date().toJSON(),
+        amount: rewardQuantity,
+        paytype: rewardSelection
+      }
+      const res: any = await http2.post(`/v0/review_reward/`, params)
+      if (res.data.code === 1) {
+        toastify.success('succeed')
+        setLending(false)
+        setshowreward(false)
+        setrefreshBy(!refreshBy)
+      } else {
+        setLending(false)
+        throw res.message || res.data.message
+      }
+    } catch (error: any) {
       setLending(false)
-      setshowSetUp(false)
-      location.reload()
-    } else {
-      throw res.message || res.data.message
+      throw error.message || error.data.message
     }
   }
   const sendReplay = async (item: any) => {
@@ -716,6 +733,7 @@ export const ReviewsDetails = () => {
     }
     const params = {
       useraddress: account,
+      userimage: userinfo.image,
       contractaddress: address,
       SuperiorIndex: item.id,
       datetime: new Date().toJSON(),
@@ -732,9 +750,9 @@ export const ReviewsDetails = () => {
     const params = {
       username: newUserName
     }
-    const userinfo = http2.put(`/v0/userinfo/${account}`, params)
+    const userinfo = bschttp.put(`/v0/userinfo/${account}`, params)
     const review = http2.put(`/v0/review/updateUserName/${account}`, params)
-    Promise.all([userinfo, review]).then(() => location.reload())
+    Promise.all([userinfo, review]).then(() => setrefreshBy(!refreshBy))
   }
   const submit = async () => {
     if (!starScore && !textareaValue && !Object.keys(forward).length) return
@@ -774,12 +792,13 @@ export const ReviewsDetails = () => {
           contractaddress: address,
           datetime: new Date().toJSON(),
           username: userinfo.username,
+          userimage: userinfo.image,
           context: textareaValue
         }
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
-          location.reload()
+          setrefreshBy(!refreshBy)
         }
       } catch (error: any) {
         toastify.error(error.message)
@@ -794,6 +813,7 @@ export const ReviewsDetails = () => {
           datetime: new Date().toJSON(),
           username: userinfo.username,
           context: textareaValue,
+          userimage: userinfo.image,
           quote: forward.id
         }
         const res: any = await http2.post(`/v0/review`, params)
@@ -870,7 +890,7 @@ export const ReviewsDetails = () => {
       getBase64(info.file.originFileObj as RcFile, (url) => {
         setLoading(false)
         toastify.success('succeed')
-        location.reload()
+        setrefreshBy(!refreshBy)
       })
     }
   }
@@ -925,7 +945,9 @@ export const ReviewsDetails = () => {
                   setrewardSelection('BNB')
                   setrewardoptions(false)
                 }}
+                className="flex flex-v-center"
               >
+                <img src={BNBIcon} className="icon" />
                 BNB
               </div>
               <div
@@ -933,7 +955,9 @@ export const ReviewsDetails = () => {
                   setrewardSelection('MATIC')
                   setrewardoptions(false)
                 }}
+                className="flex flex-v-center"
               >
+                <img src={polygonIcon} className="icon" />
                 MATIC
               </div>
             </div>
@@ -954,8 +978,7 @@ export const ReviewsDetails = () => {
         closable={false}
       >
         <SendBox>
-          <div className="title">user settings</div>
-          <h2>new user name</h2>
+          <div className="title">user setting</div>
           <div className="input">
             <input placeholder="new user name" onChange={handleNewuserNameChange} value={newUserName} />
           </div>
@@ -967,7 +990,7 @@ export const ReviewsDetails = () => {
       </Dialog>
       <Dialog footer={null} onCancel={() => setUploadImg(false)} visible={UploadImg} destroyOnClose closable={false}>
         <SendBox>
-          <div className="title">user settings</div>
+          <div className="title">user setting</div>
           <Upload
             name="avatar"
             listType="picture-card"
@@ -1144,9 +1167,9 @@ export const ReviewsDetails = () => {
                   <div className="label">
                     <div className="gameName">{item.contractName}</div>
                     <div className="attributes">
-                      <div>multiplayer</div>
-                      <div>play to earn</div>
-                      <div>RPG</div>
+                      {getLabelArr(item.label).length
+                        ? getLabelArr(item.label).map((item: any, index: any) => <div key={index}>{item}</div>)
+                        : ''}
                     </div>
                   </div>
                   <div className="score">

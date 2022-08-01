@@ -153,7 +153,7 @@ const CollectionBox = styled.div`
         left: 142px;
       }
       .describe {
-        width: 440px;
+        width: 410px;
         height: 124px;
       }
     }
