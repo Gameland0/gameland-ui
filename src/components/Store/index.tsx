@@ -72,13 +72,10 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     const getNftData = async () => {
       if (!chainId) return
       if (chainId === 56) {
-        const url = process.env.NODE_ENV === 'production' ? 'https://bsc-api.gameland.network' : 'http://localhost:8091'
-        const BSCdata = await http.get(`${url}/v0/opensea`)
+        const BSCdata = await bschttp.get(`/v0/opensea`)
         setNfts(BSCdata.data.data)
       } else if (chainId === 137) {
-        const url =
-          process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089'
-        const polygondata = await http.get(`${url}/v0/opensea`)
+        const polygondata = await polygonhttp.get(`/v0/opensea`)
         setNfts(polygondata.data.data)
       } else {
         setNfts([])

@@ -154,7 +154,7 @@ interface OperateProps {
   isLending?: boolean
   onClick?: () => void
 }
-const Operate: React.FC<OperateProps> = ({ isLending }) => {
+export const Operate: React.FC<OperateProps> = ({ isLending }) => {
   return (
     <>
       {isLending ? (

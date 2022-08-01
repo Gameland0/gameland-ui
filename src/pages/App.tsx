@@ -3,16 +3,20 @@ import React, { useState } from 'react'
 import './App.less'
 import './Global.css'
 import { Header } from '../components/Header'
-import { Switch, Route } from 'react-router-dom'
+import { Switch, Route, Router } from 'react-router-dom'
+import { createBrowserHistory } from 'history'
 import { Web3Manager } from '../components/Web3Manager'
 import { Rent } from './Rent'
 import { Dashboard } from './Dashboard'
 import { Lend } from './Lend'
+import { CollectionDetails } from '../components/CollectionDetails'
+import { ReviewsDetails } from '../components/ReviewsDetails'
 import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
 // import { Alert } from 'antd'
-import { Guilds } from './Guilds'
+import { Games } from './Games'
 
+const browserHistory = createBrowserHistory()
 const Wrap = styled.div`
   min-height: 30rem;
 `
@@ -70,7 +74,9 @@ function App() {
             <Route exact path="/" component={Rent} />
             <Route exact path="/lend" component={Lend} />
             <Route exact path="/dashboard" component={Dashboard} />
-            <Route exact path="/guilds" component={Guilds} />
+            <Route exact path="/games" component={Games} />
+            <Route exact path="/games/:contractName" component={CollectionDetails} />
+            <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
           </Switch>
           <ToastContainer />
         </Wrap>
