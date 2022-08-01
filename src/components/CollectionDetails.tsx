@@ -1316,7 +1316,10 @@ export const CollectionDetails = () => {
     }
     const userinfo = bschttp.put(`/v0/userinfo/${account}`, params)
     const review = http2.put(`/v0/review/updateUserName/${account}`, params)
-    Promise.all([userinfo, review]).then(() => setrefreshBy(!refreshBy))
+    Promise.all([userinfo, review]).then(() => {
+      setrefreshBy(!refreshBy)
+      setUserSettings(false)
+    })
   }
   const updateScore = async () => {
     const info = await http2.get(`/v0/score/collection/${address}`)
@@ -1638,6 +1641,7 @@ export const CollectionDetails = () => {
         setLoading(false)
         toastify.success('succeed')
         setrefreshBy(!refreshBy)
+        setUploadImg(false)
       })
     }
   }

@@ -257,11 +257,15 @@ export const Dashboard = () => {
 
   // useEffect(() => {
   //   ControlContract?.add_nft_programforarray([
-  //     '0x24fADCEfd2117719C4078C08b352b22C74542418',
-  //     '0x69d60ad11feb699fe5feeeb16ac691df090bfd50',
-  //     '0xeea8bd31da9a2169c38968958b6df216381b0f08',
-  //     '0x8db638762965663963fdb20a88b498c7c16ec710',
-  //     '0x7e00338097ad4397a39af5e2b36012348fd87d8b'
+  //     '0x13b5816396c5095a145af6994688e6e53fda6095',
+  //     '0x4cd0ce1d5e10afbcaa565a0fe2a810ef0eb9b7e2',
+  //     '0xa5fdb0822bf82de3315f1766574547115e99016f',
+  //     '0x5704075803a122fc5afc8b60f07b84b77e065b5e',
+  //     '0x1e744a305a2142a5d8d8109ca892a1cd5aac3930',
+  //     '0x4db77c2272047f42262153f43cc1adacd5375962',
+  //     '0x85f0e02cb992aa1f9f47112f815f519ef1a59e2d',
+  //     '0xee35ab1effe4db2344348e3a98a6ef2687f43392',
+  //     '0xa9e9a78ff1027dc0dd1ee54d7f134f191541fe07'
   //   ])
   // }, [])
 
