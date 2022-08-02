@@ -825,7 +825,7 @@ export const CollectionDetails = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [description, setDescription] = useState('')
   const [nftData, setnftData] = useState([] as any)
-  const { state } = useLocation()
+  const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
   let http2: any

@@ -498,7 +498,7 @@ export const ReviewsDetails = () => {
   const [imageUrl, setImageUrl] = useState<string>()
   const [lending, setLending] = useState(false)
   const [forward, setForward] = useState({} as any)
-  const { state } = useLocation()
+  const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
   let http2: any
