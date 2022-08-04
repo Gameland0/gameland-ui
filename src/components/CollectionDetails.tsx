@@ -786,6 +786,7 @@ export const CollectionDetails = () => {
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
+  const [userinfoAll, setuserinfoAll] = useState([] as any)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
   const [expired, setExpired] = useState(false)
@@ -927,7 +928,8 @@ export const CollectionDetails = () => {
         const collectionreviewe = http2.get(`/v0/review/collection/${address}`)
         const userlike = http2.get(`/v0/review_like/${account}`)
         const Rewardinfo = http2.get(`/v0/review_reward`)
-        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo]).then((vals) => {
+        const userAll = bschttp.get(`v0/userinfo`)
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo, userAll]).then((vals) => {
           setUserScoreinfo(vals[0].data.data)
           setCollectionScoreinfo(vals[1].data.data)
           const revieweFilter = vals[2].data.data.filter((ele: any) => {
@@ -942,6 +944,7 @@ export const CollectionDetails = () => {
           setrevieweinfo(reviewData.sort(compareTime()))
           setuserLikeInfo(vals[3].data.data)
           setrewardinfo(vals[4].data.data)
+          setuserinfoAll(vals[5].data.data)
         })
       }
     }
@@ -999,13 +1002,27 @@ export const CollectionDetails = () => {
       oneStar: oneStar.length
     }
   }
+  const getUserImage = (useraddress: string) => {
+    const findData = userinfoAll.filter((ele: any) => {
+      return ele.useraddress === useraddress
+    })
+    if (findData.length) {
+      return findData[0].image ? findData[0].image : defaultImg
+    }
+    return defaultImg
+  }
   const getForwardData = (id: any, type: any) => {
     const data = revieweinfo.filter((ele: any) => {
       return ele.id === id
     })
     if (type === 'name') return data[0].username
     if (type === 'content') return data[0].context
-    if (type === 'image') return data[0].userimage
+    if (type === 'image') {
+      const findData = userinfoAll.filter((val: any) => {
+        return val.useraddress === data[0].useraddress
+      })
+      return findData[0].image ? findData[0].image : defaultImg
+    }
   }
   const getReviewScore = (useraddress: any) => {
     const data = Collectionscoreinfo.filter((item: any) => {
@@ -2179,7 +2196,7 @@ export const CollectionDetails = () => {
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
                     <div className="userInfo">
-                      <img src={item.userimage || defaultImg} className="userImage" alt="" />
+                      <img src={getUserImage(item.useraddress)} className="userImage" alt="" />
                       <div className="starName">
                         <div className="name">{item.username}</div>
                         <div className="star">

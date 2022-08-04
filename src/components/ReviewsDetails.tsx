@@ -486,6 +486,7 @@ export const ReviewsDetails = () => {
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [revieweData, setrevieweData] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
+  const [userinfoAll, setuserinfoAll] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [showSetUp, setshowSetUp] = useState(false)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
@@ -569,7 +570,8 @@ export const ReviewsDetails = () => {
         const collectionreviewe = http2.get(`/v0/review/collection/${address}`)
         const userlike = http2.get(`/v0/review_like/${account}`)
         const Rewardinfo = http2.get(`/v0/review_reward`)
-        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo]).then((vals) => {
+        const userAll = bschttp.get(`v0/userinfo`)
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo, userAll]).then((vals) => {
           setUserScoreinfo(vals[0].data.data)
           setScoreinfo(vals[1].data.data)
           setuserLikeInfo(vals[3].data.data)
@@ -578,7 +580,8 @@ export const ReviewsDetails = () => {
           const reviewedata = vals[2].data.data.filter((ele: any) => {
             return !ele.SuperiorIndex
           })
-          setrevieweinfo(reviewedata)
+          setrevieweinfo(reviewedata.sort(compareTime()))
+          setuserinfoAll(vals[5].data.data)
         })
       }
     }
@@ -616,13 +619,27 @@ export const ReviewsDetails = () => {
     }
     return [0, 0]
   }
+  const getUserImage = (useraddress: string) => {
+    const findData = userinfoAll.filter((ele: any) => {
+      return ele.useraddress === useraddress
+    })
+    if (findData.length) {
+      return findData[0].image ? findData[0].image : defaultImg
+    }
+    return defaultImg
+  }
   const getForwardData = (id: any, type: any) => {
     const data = revieweinfo.filter((ele: any) => {
       return ele.id === id
     })
     if (type === 'name') return data[0].username
     if (type === 'content') return data[0].context
-    if (type === 'image') return data[0].userimage
+    if (type === 'image') {
+      const findData = userinfoAll.filter((val: any) => {
+        return val.useraddress === data[0].useraddress
+      })
+      return findData[0].image ? findData[0].image : defaultImg
+    }
   }
   const getReplayData = (id: any) => {
     const data = revieweData.filter((ele: any) => {
@@ -1127,7 +1144,7 @@ export const ReviewsDetails = () => {
                               key={index}
                               onClick={() => setreplayWho('@' + ele.username)}
                             >
-                              <img src={ele.userimage || defaultImg} className="userImage" alt="" /> &nbsp;
+                              <img src={getUserImage(ele.useraddress)} className="userImage" alt="" /> &nbsp;
                               {ele.username}
                               <div className="replyContent">{ele.context}</div>
                             </div>
