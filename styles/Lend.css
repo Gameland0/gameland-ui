@@ -1,0 +1,21 @@
+.LendCardBox{
+    position: relative;
+    width: 300px;
+    height: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 32px;
+    margin-right: 20px;
+}
+.LentBox{
+    margin-top: 140px;
+    padding: 0 60px;
+}
+.lendModalBox {   
+}
+.lendDetail{
+    margin-left: 60px;
+}
