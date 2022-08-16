@@ -1021,7 +1021,7 @@ export const CollectionDetails = () => {
       const findData = userinfoAll.filter((val: any) => {
         return val.useraddress === data[0].useraddress
       })
-      return findData[0].image ? findData[0].image : defaultImg
+      return findData[0]?.image ? findData[0].image : defaultImg
     }
   }
   const getReviewScore = (useraddress: any) => {
@@ -1382,6 +1382,8 @@ export const CollectionDetails = () => {
         const res: any = await http2.post(`/v0/score/`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
+          setscoreDialog(false)
+          setstarScore(0)
           updateScore()
         } else {
           throw res.message || res.data.message
@@ -1395,6 +1397,8 @@ export const CollectionDetails = () => {
         if (res.data.code === 1) {
           updateScore()
           toastify.success('succeed')
+          setstarScore(0)
+          setscoreDialog(false)
         } else {
           throw res.message || res.data.message
         }
@@ -1414,6 +1418,7 @@ export const CollectionDetails = () => {
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
+          settextareaValue('')
           setrefreshBy(!refreshBy)
         }
       } catch (error: any) {
@@ -1435,6 +1440,8 @@ export const CollectionDetails = () => {
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
+          settextareaValue('')
+          setForward({})
           updateForwardTotal(forward)
         }
       } catch (error: any) {

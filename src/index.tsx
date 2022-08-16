@@ -4,7 +4,7 @@ import App from './pages/App'
 // import reportWebVitals from './reportWebVitals'
 import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
 import { Web3Provider } from '@ethersproject/providers'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import { NetworkContextName } from './utils'
 import { Store } from './components/Store'
 
@@ -18,11 +18,11 @@ ReactDOM.render(
   <React.StrictMode>
     <Web3ReactProvider getLibrary={getLibrary}>
       <OWeb3ReactProvider getLibrary={getLibrary}>
-        <BrowserRouter>
+        <HashRouter>
           <Store>
             <App />
           </Store>
-        </BrowserRouter>
+        </HashRouter>
       </OWeb3ReactProvider>
     </Web3ReactProvider>
   </React.StrictMode>,

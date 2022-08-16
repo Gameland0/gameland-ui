@@ -638,7 +638,7 @@ export const ReviewsDetails = () => {
       const findData = userinfoAll.filter((val: any) => {
         return val.useraddress === data[0].useraddress
       })
-      return findData[0].image ? findData[0].image : defaultImg
+      return findData[0]?.image ? findData[0].image : defaultImg
     }
   }
   const getReplayData = (id: any) => {
@@ -760,6 +760,7 @@ export const ReviewsDetails = () => {
     const res: any = await http2.post(`/v0/review`, params)
     if (res.data.code === 1) {
       toastify.success('succeed')
+      setreplayValue('')
       updateReplayTotal(item)
     }
   }
@@ -783,6 +784,8 @@ export const ReviewsDetails = () => {
         const res: any = await http2.post(`/v0/score/`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
+          setscoreDialog(false)
+          setstarScore(0)
           updateScore()
         } else {
           throw res.message || res.data.message
@@ -796,6 +799,8 @@ export const ReviewsDetails = () => {
         if (res.data.code === 1) {
           updateScore()
           toastify.success('succeed')
+          setscoreDialog(false)
+          setstarScore(0)
         } else {
           throw res.message || res.data.message
         }
@@ -815,6 +820,8 @@ export const ReviewsDetails = () => {
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
+          settextareaValue('')
+          setForward({})
           setrefreshBy(!refreshBy)
         }
       } catch (error: any) {
@@ -836,6 +843,7 @@ export const ReviewsDetails = () => {
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
           toastify.success('succeed')
+          settextareaValue('')
           updateForwardTotal(forward)
         }
       } catch (error: any) {
