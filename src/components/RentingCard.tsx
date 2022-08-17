@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { NFTData, useActiveWeb3React } from '../hooks'
-import { getProgress, getTimeLeftText, getTimeOutProgress, getTimeOutLeftText } from '../utils'
+import { getProgress, getTimeLeftText, getTimeOutProgress, getTimeOutLeftText, getUTCDate } from '../utils'
 import { Img } from './Img'
 import { BaseProps } from './NumInput'
 import { CardBox, Details } from './Nft'
@@ -63,31 +63,35 @@ export interface ProgressLabelProps {
   sellOrders?: Record<string, any>[]
 }
 
-export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, name, isExpired, days, borrowAt, borrowDay }) => {
+export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, isExpired, borrowAt, borrowDay }) => {
   const progress = useMemo(() => getProgress(borrowAt, borrowDay), [borrowAt, borrowDay])
-  const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
+  const dayLeft = useMemo(() => getUTCDate(borrowAt, borrowDay), [borrowDay, borrowAt])
 
   return (
-    <div style={{ overflow: 'hidden' }}>
-      {right || <p>{name}</p>}
+    <div style={{ overflow: 'hidden', height: 60 }}>
+      {/* {right || <p>{name}</p>}
       <ProgressBar right={right}>
         <InProgress progress={progress} isExpired={isExpired} />
-      </ProgressBar>
-      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem' }}>{isExpired ? 'Expired' : dayLeft}</p>
+      </ProgressBar> */}
+      <div style={{ overflow: 'hidden', width: 120, height: 20 }}>Expire</div>
+      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem', textAlignLast: 'left', marginTop: 8 }}>
+        {isExpired ? 'Expired' : dayLeft}
+      </p>
     </div>
   )
 }
-export const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, borrowAt }) => {
+export const Return: React.FC<ProgressLabelProps> = ({ right, borrowDay, isExpired, borrowAt }) => {
   const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
-  const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt), [borrowAt])
+  const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt, borrowDay), [borrowAt])
   // console.log(progress, dayLeft)
   return (
     <div style={{ overflow: 'hidden' }}>
-      {right || <p>{name}</p>}
+      {/* {right || <p>{name}</p>}
       <ProgressBar right={right}>
         <InProgress progress={progress} isExpired={isExpired} />
-      </ProgressBar>
-      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem' }}>{isExpired ? 'Expired' : dayLeft}</p>
+      </ProgressBar> */}
+      <div style={{ overflow: 'hidden', width: 100, height: 20 }}>Grace period ends</div>
+      <p style={{ fontSize: '.75rem', marginTop: 9 }}>{isExpired ? 'Expired' : dayLeft}</p>
     </div>
   )
 }
@@ -138,6 +142,7 @@ export const RentingCard: React.FC<RentingProps> = ({
 }) => {
   const dayLeft = useMemo(() => getTimeLeftText(borrowAt, borrowDay), [borrowDay, borrowAt])
   const [overTime, setOverTime] = useState(false)
+  const src = img?.slice(-4)
   useEffect(() => {
     if (!dayLeft) return
     if (!nftId) return
@@ -151,9 +156,29 @@ export const RentingCard: React.FC<RentingProps> = ({
   return (
     <CardBox className="flex flex-column-between flex-column" onClick={onClick}>
       {overTime ? <div className="overTime">Expired</div> : ''}
-      <Img src={img} alt="" />
-      <Details className="flex flex-h-between">
-        <div>
+      {/* <Img src={img} alt="" /> */}
+      {src === '.mp4' || src === 'webm' ? (
+        <video
+          width="314"
+          height="314"
+          muted
+          autoPlay={true}
+          loop
+          role="application"
+          preload="auto"
+          webkit-playsinline="true"
+          src={img}
+        ></video>
+      ) : (
+        <Img src={img} alt={name} />
+      )}
+      <Details className="flex flex-justify-content">
+        <div className="flex">
+          <div className="flex wrap" style={{ overflow: 'hidden', width: 120 }}>
+            <p style={{ overflow: 'hidden', width: 120 }}>{name}</p>
+            <Standard color="processing">{contract_type}</Standard>
+            {!unOperate ? <Operate isExpired={isExpired} onClick={() => onclick} /> : null}
+          </div>
           {overTime ? (
             <Return
               borrowAt={borrowAt}
@@ -161,7 +186,7 @@ export const RentingCard: React.FC<RentingProps> = ({
               nftId={nftId}
               price={price}
               days={days as number}
-              borrowDay={borrowDay as number}
+              borrowDay={borrowDay}
             />
           ) : (
             <ProgressLabels
@@ -170,12 +195,10 @@ export const RentingCard: React.FC<RentingProps> = ({
               nftId={nftId}
               price={price}
               days={days as number}
-              borrowDay={borrowDay as number}
+              borrowDay={borrowDay}
             />
           )}
-          <Standard color="processing">{contract_type}</Standard>
         </div>
-        {!unOperate ? <Operate isExpired={isExpired} onClick={() => onclick} /> : null}
       </Details>
     </CardBox>
   )

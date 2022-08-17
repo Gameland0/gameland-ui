@@ -23,7 +23,7 @@ import Wizards from '../assets/Wizards.png'
 import Woof from '../assets/Woof.jpeg'
 import BigNumber from 'bignumber.js'
 import { PriceLabel, Standard } from './RentCard'
-import { shortNumbers, getTimeLeftText, getTimeOutProgress, getTimeOutLeftText } from '../utils'
+import { shortNumbers, getTimeLeftText, getTimeOutLeftText } from '../utils'
 
 export const CardBox = styled.div`
   position: relative;
@@ -116,19 +116,18 @@ const LabelsWrap = styled.div`
     text-overflow: ellipsis;
   }
 `
-const Return: React.FC<ProgressLabelProps> = ({ right, name, isExpired, borrowAt }) => {
-  const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
-  const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt), [borrowAt])
+const Return: React.FC<ProgressLabelProps> = ({ right, borrowDay, isExpired, borrowAt }) => {
+  // const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
+  const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt, borrowDay), [borrowAt])
   // console.log(progress, dayLeft)
   return (
     <div style={{ overflow: 'hidden' }}>
-      {right || <p>{name}</p>}
+      {/* {right || <p>{name}</p>}
       <ProgressBar right={right}>
         <InProgress progress={progress} isExpired={isExpired} />
-      </ProgressBar>
-      <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem', marginTop: '22px' }}>
-        {isExpired ? 'Expired' : dayLeft}
-      </p>
+      </ProgressBar> */}
+      <div style={{ overflow: 'hidden', width: 100, height: 20, marginTop: 2 }}>Grace period ends</div>
+      <p style={{ fontSize: '.75rem', marginTop: '8px' }}>{isExpired ? 'Expired' : dayLeft}</p>
     </div>
   )
 }
@@ -171,7 +170,6 @@ const Labels: React.FC<LabelProps> = ({
 }
 const FakeButtonBox = styled.div<{ type?: string }>`
   display: block;
-  margin-top: -8px;
   .button {
     display: block;
     height: 2rem;
@@ -224,7 +222,7 @@ export const Tag: React.FC<{ text: string }> = ({ text }) => {
 const OperateWrap = styled.div`
   position: absolute;
   right: 1rem;
-  top: 1rem;
+  top: 8px;
 `
 const Operate: React.FC<OperateProps> = ({
   withdrawable,

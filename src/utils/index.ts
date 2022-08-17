@@ -172,26 +172,29 @@ export function getTimeLeftText(borrowAt: string, days: number) {
     return `${_seconds} secs.`
   }
 }
-
-export function getTimeOutLeftText(borrowAt: any) {
-  const localtime = new Date(borrowAt).valueOf() / 1000 + 115200
-  const currentTime = Math.floor(new Date().valueOf() / 1000)
-  const timeLeft = localtime - currentTime
-  const SECOND = 1
-  const MINUTE = 60 * SECOND
-  const HOUR = 60 * MINUTE
-  if (timeLeft <= 0) {
-    return 'Expired'
-  } else if (timeLeft > HOUR) {
-    const _hour = Math.floor(timeLeft / HOUR)
-    return `Grace period ends at ${_hour} hous`
-  } else if (timeLeft > MINUTE) {
-    const _minutes = Math.floor(timeLeft / MINUTE)
-    return `Grace period ends at ${_minutes} Minute`
-  } else if (timeLeft > SECOND) {
-    const _seconds = Math.floor(timeLeft / SECOND)
-    return `Grace period ends at ${_seconds} second`
+export const getUTCDate = (borrowAt: any, days: any) => {
+  const year = new Date(borrowAt).getUTCFullYear()
+  const month = new Date(borrowAt).getUTCMonth() + 1
+  const day = new Date(borrowAt).getUTCDate() + days
+  const hours = new Date(borrowAt).getUTCHours()
+  const minutes = new Date(borrowAt).getUTCMinutes()
+  return `${month > 9 ? month : '0' + month}/${day > 9 ? day : '0' + day}/${year} ${hours > 9 ? hours : '0' + hours}:${
+    minutes > 9 ? minutes : '0' + minutes
+  }`
+}
+export function getTimeOutLeftText(borrowAt: any, days: any) {
+  const year = new Date(borrowAt).getUTCFullYear()
+  const month = new Date(borrowAt).getUTCMonth() + 1
+  let day = new Date(borrowAt).getUTCDate() + days
+  let hours = new Date(borrowAt).getUTCHours() + 8
+  const minutes = new Date(borrowAt).getUTCMinutes()
+  if (hours >= 24) {
+    hours = hours - 24
+    day = day + 1
   }
+  return `${month > 9 ? month : '0' + month}/${day > 9 ? day : '0' + day}/${year} ${hours > 9 ? hours : '0' + hours}:${
+    minutes > 9 ? minutes : '0' + minutes
+  }`
 }
 
 export function handleFetchQueue(urls: string[], max: number, callback: (r: any) => void) {

@@ -4,6 +4,12 @@
 .flex-column{
   flex-direction: column;
 }
+.wrap {
+  flex-wrap: wrap;
+}
+.flex-justify-content{
+  justify-content: center;
+}
 .flex-center{
   justify-content: center;
   justify-items: center;
