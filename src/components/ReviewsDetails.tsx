@@ -469,7 +469,7 @@ export const ReviewsDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const RewardContract = useRewardContract()
   const [showreward, setshowreward] = useState(false)
-  const [rewardAddress, setrewardAddress] = useState('')
+  // const [rewardAddress, setrewardAddress] = useState('')
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [rewardoptions, setrewardoptions] = useState(false)
   const [rewardItem, setrewardItem] = useState({} as any)
@@ -890,10 +890,10 @@ export const ReviewsDetails = () => {
     const val = ele.currentTarget.value
     setusername(val)
   }, [])
-  const handlerewardAddressChange = useCallback((ele) => {
-    const val = ele.currentTarget.value
-    setrewardAddress(val)
-  }, [])
+  // const handlerewardAddressChange = useCallback((ele) => {
+  //   const val = ele.currentTarget.value
+  //   setrewardAddress(val)
+  // }, [])
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setrewardQuantity(val)

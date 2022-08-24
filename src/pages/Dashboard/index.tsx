@@ -171,7 +171,7 @@ export const Dashboard = () => {
   const [prevDisabled, setPrevDisabled] = useState(true)
   const [nextDisabled, setNextDisabled] = useState(true)
   const [toAddress, setToAddress] = useState('')
-  const [Amount, setAmount] = useState('')
+  // const [Amount, setAmount] = useState('')
   const [visible, setVisible] = useState(false)
   const [currentItem, setCurrentItem] = useState({} as any)
   const [prompt, setPrompt] = useState(false)
@@ -205,67 +205,54 @@ export const Dashboard = () => {
       return []
     }
     return data.map(async (item) => {
+      let contractIndex = contracts.findIndex((i: any) => {
+        return i.toLowerCase() === item.token_address.toLowerCase()
+      })
+      if (contractIndex >= 0) {
+        contractIndex = contractIndex + 1
+      } else {
+        return
+      }
+      const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
+      item.gamelandNftId = hashMessage(gamelandId)
       try {
-        let contractIndex = contracts.findIndex((i: any) => {
-          return i.toLowerCase() === item.token_address.toLowerCase()
-        })
-        if (contractIndex >= 0) {
-          contractIndex = contractIndex + 1
-        } else {
-          return
-        }
-        const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
-        item.gamelandNftId = hashMessage(gamelandId)
-        const getdata = axios.create({
-          timeout: 10000,
-          headers: {
-            'X-Api-Key': 'dO5hsUP3'
-          }
-        })
+        const { data } = await http.get(item.token_uri)
+        item.metadata = data
+      } catch (err: any) {
         let chain
         if (chainId === 56) {
           chain = 'bnb'
         } else if (chainId === 137) {
           chain = 'polygon'
         }
-        if (!item.metadata) {
-          try {
-            const { data } = await http.get(item.token_uri)
-            item.metadata = data
-          } catch (error) {
-            const { data } = await getdata.get(
-              `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
-            )
-            item.metadata = JSON.parse(data.data.metadata_json)
+        const getdata = axios.create({
+          timeout: 10000,
+          headers: {
+            'X-Api-Key': 'dO5hsUP3'
           }
-        } else if (typeof item.metadata === 'string') {
-          if (!JSON.parse(item.metadata).name || !JSON.parse(item.metadata).image) {
-            const { data } = await getdata.get(
-              `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
-            )
-            item.metadata = JSON.parse(data.data.metadata_json)
-          } else {
-            item.metadata = JSON.parse(item.metadata)
-          }
+        })
+        try {
+          const { data } = await getdata.get(
+            `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+          )
+          item.metadata = JSON.parse(data.data.metadata_json)
+        } catch (error) {
+          item.metadata = JSON.parse(item.metadata)
         }
-        return item
-      } catch (err: any) {
-        console.log(err)
       }
+      return item
     })
   }
 
   // useEffect(() => {
   //   ControlContract?.add_nft_programforarray([
-  //     '0x13b5816396c5095a145af6994688e6e53fda6095',
-  //     '0x4cd0ce1d5e10afbcaa565a0fe2a810ef0eb9b7e2',
-  //     '0xa5fdb0822bf82de3315f1766574547115e99016f',
-  //     '0x5704075803a122fc5afc8b60f07b84b77e065b5e',
-  //     '0x1e744a305a2142a5d8d8109ca892a1cd5aac3930',
-  //     '0x4db77c2272047f42262153f43cc1adacd5375962',
-  //     '0x85f0e02cb992aa1f9f47112f815f519ef1a59e2d',
-  //     '0xee35ab1effe4db2344348e3a98a6ef2687f43392',
-  //     '0xa9e9a78ff1027dc0dd1ee54d7f134f191541fe07'
+  //     '0x62340bf727c536400a15bd41f62b4c684232c57a',
+  //     '0xcbc964dd716f07b4965b4526e30541a66f414ccf',
+  //     '0xe97bf54cc139b88c533759dfb16b2bd73dca8264',
+  //     '0x049f8204bde39355b7892bac2a028a9d2f693792',
+  //     '0x00992b610a1d20d0169fd604c8eb2f40fee2c391',
+  //     '0xba6e421833f6c190a830ce6e142685b3916c9bd0',
+  //     '0x819e58e51d64ab05efa132a133de0af5089954cf'
   //   ])
   // }, [])
 
@@ -334,10 +321,10 @@ export const Dashboard = () => {
     const val = ele.currentTarget.value
     setToAddress(val)
   }, [])
-  const handleAmount = useCallback((ele) => {
-    const val = ele.currentTarget.value
-    setAmount(val)
-  }, [])
+  // const handleAmount = useCallback((ele) => {
+  //   const val = ele.currentTarget.value
+  //   setAmount(val)
+  // }, [])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
   const handleNftClick = async (item: any) => {

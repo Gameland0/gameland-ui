@@ -57,3 +57,15 @@
 .bigSize{
   font-weight: bold;
 }
+.cursor {
+  cursor: pointer;
+}
+.not-allowed {
+  cursor: not-allowed;
+}
+.text-center {
+  text-align: center;
+}
+.translucent {
+  opacity: 0.4;
+}

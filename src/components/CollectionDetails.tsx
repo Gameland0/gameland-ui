@@ -132,6 +132,22 @@ const DetailsBox = styled.div`
       .nftBox {
         display: flex;
         flex-wrap: wrap;
+        .paginationBox {
+          width: 100%;
+          margin-top: 30px;
+          font-size: 18px;
+          .More {
+            width: 120px;
+            height: 40px;
+            border: 1px solid #35caa9;
+            border-radius: 10px;
+            color: #35caa9;
+            .loadding {
+              width: 30px;
+              height: 30px;
+            }
+          }
+        }
       }
     }
   }
@@ -632,7 +648,7 @@ const FakeButtons = styled.div`
 `
 const NFTname = styled.p`
   display: block;
-  width: 100%;
+  width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -689,6 +705,7 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
     }
     onSend && onSend()
   }
+  const src = img?.slice(-4)
   return (
     <CardBox
       className="flex flex-column-between flex-column"
@@ -696,7 +713,21 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
       isLending={isLending}
       onClick={isLending ? handleClick : Click}
     >
-      <Img src={img} alt="" />
+      {src === '.mp4' || src === 'webm' ? (
+        <video
+          width="238"
+          height="238"
+          muted
+          autoPlay={true}
+          loop
+          role="application"
+          preload="auto"
+          webkit-playsinline="true"
+          src={img}
+        ></video>
+      ) : (
+        <Img src={img} alt={name} />
+      )}
       <CardDetails className="flex flex-h-between">
         <div>
           <Labels name={name} type={contract_type} />
@@ -777,6 +808,7 @@ export const CollectionDetails = () => {
   const AssetContract = useAssetContract()
   const RewardContract = useRewardContract()
   const [starScore, setstarScore] = useState(0)
+  const [nextCursor, setnextCursor] = useState('')
   const [username, setusername] = useState('')
   const [textareaValue, settextareaValue] = useState('')
   const [userinfo, setUserinfo] = useState([] as any)
@@ -787,6 +819,7 @@ export const CollectionDetails = () => {
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
   const [expired, setExpired] = useState(false)
@@ -826,6 +859,7 @@ export const CollectionDetails = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [description, setDescription] = useState('')
   const [nftData, setnftData] = useState([] as any)
+  const [DataAll, setDataAll] = useState([] as any)
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -854,6 +888,52 @@ export const CollectionDetails = () => {
     ControlContractAddress = POLYGONControlContractAddress
     contracts = PolygonContract
   }
+  const fetchMetadata = (data: any[]) => {
+    if (!data || !data.length) {
+      return []
+    }
+    const getdata = axios.create({
+      timeout: 10000,
+      headers: {
+        'X-Api-Key': 'dO5hsUP3'
+      }
+    })
+    return data.map(async (item) => {
+      if (
+        item.token_uri &&
+        collectionDetails.contractName !== 'DreamCard' &&
+        collectionDetails.contractName !== 'Highstreet IHO Part I'
+      ) {
+        try {
+          const data = await fetch(item.token_uri, {
+            method: 'GET',
+            mode: 'no-cors'
+          })
+          const dataJson = await data.json()
+          // console.log(dataJson)
+          item.metadata = dataJson
+        } catch (error) {
+          try {
+            const { data } = await getdata.get(
+              `https://${chain === 'bsc' ? 'bnb' : chain}api.nftscan.com/api/v2/assets/${item.token_address}/${
+                item.token_id
+              }`
+            )
+            item.metadata = JSON.parse(data.data.metadata_json)
+          } catch (error) {
+            item.metadata = JSON.parse(item.metadata)
+          }
+          // console.log(JSON.parse(data.data.metadata_json))
+        }
+        // const { data } = await http.get(item.token_uri)
+        // item.metadata = data
+      } else {
+        // item.metadata = []
+        item.metadata = JSON.parse(item.metadata)
+      }
+      return item
+    })
+  }
   const getCollectionInfo = async () => {
     if (!account) return
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
@@ -861,12 +941,13 @@ export const CollectionDetails = () => {
       https://deep-index.moralis.io/api/v2/${account}/nft?chain=${chain}&format=decimal&token_addresses=${address}
     `)
     const nftCollection = http.get(`
-      https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain}&format=decimal
+      https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain}&format=decimal&limit=30
     `)
     const rantData = http2.get(`v0/opensea/${address}`)
     const Details = await http2.get(`v0/games/${address}`)
     const _nfts = [myNft, nftCollection, rantData]
     Promise.all(_nfts).then((vals) => {
+      setnextCursor(vals[1].data.cursor)
       const data = [...vals[0].data.result, ...vals[2].data.data, ...vals[1]?.data.result]
       data.map(async (item) => {
         if (!item.gamelandNftId) {
@@ -890,16 +971,6 @@ export const CollectionDetails = () => {
         } else {
           item.have = 0
         }
-        if (!item.metadata) {
-          item.metadata = {
-            name: '',
-            image: defaultImg
-          }
-        } else if (typeof item.metadata === 'string') {
-          item.metadata = JSON.parse(item.metadata)
-        } else {
-          item.metadata = item.metadata
-        }
         return item
       })
       setnftData(data)
@@ -913,6 +984,12 @@ export const CollectionDetails = () => {
     }
     getCollectionInfo()
   }, [contractName])
+  useEffect(() => {
+    const data = fetchMetadata(nftData)
+    Promise.all(data).then((vals) => {
+      setDataAll(vals)
+    })
+  }, [nftData])
 
   useEffect(() => {
     const getUserinfo = async () => {
@@ -1678,6 +1755,20 @@ export const CollectionDetails = () => {
       }
     })
   }
+  const SeeMore = async () => {
+    setLoading(true)
+    setclickStatus(true)
+    const nftCollection = await http.get(`
+      https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain}&format=decimal&limit=30&cursor=${nextCursor}
+    `)
+    // console.log(nftCollection.data)
+    const data = fetchMetadata(nftCollection.data.result)
+    Promise.all(data).then((vals) => {
+      setDataAll([...DataAll, ...vals])
+      setLoading(false)
+      setclickStatus(false)
+    })
+  }
   const uploadButton = (
     <div>
       {loading ? <LoadingOutlined /> : <PlusOutlined />}
@@ -2135,15 +2226,15 @@ export const CollectionDetails = () => {
             </div>
             <div className="describe">{collectionDetails.describe}</div>
             <div className="nftBox">
-              {nftData.length
-                ? nftData.map((item: any, index: any) => (
+              {DataAll.length
+                ? DataAll.map((item: any, index: any) => (
                     <Card
                       key={index}
                       nftId={'1'}
                       onLend={() => lendNftClick(item)}
                       onSend={() => handleSendNft(item)}
                       onClick={() => handleShowModal(item)}
-                      name={item.metadata.name ? item.metadata.name : '#' + item.token_id}
+                      name={item.metadata?.name}
                       img={item.metadata?.image}
                       isLending={item.isLending ? item.isLending : 0}
                       contract_type={item.contract_type ? item.contract_type : item.standard}
@@ -2152,6 +2243,16 @@ export const CollectionDetails = () => {
                     />
                   ))
                 : ''}
+              {DataAll.length ? (
+                <div className="paginationBox flex flex-justify-content">
+                  <div className="More cursor flex flex-center" onClick={() => (clickStatus ? '' : SeeMore())}>
+                    See More
+                    {loading ? <img className="loadding" src={loadding} alt="" /> : ''}
+                  </div>
+                </div>
+              ) : (
+                ''
+              )}
             </div>
           </div>
         </div>
