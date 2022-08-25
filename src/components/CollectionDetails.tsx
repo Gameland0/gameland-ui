@@ -914,12 +914,14 @@ export const CollectionDetails = () => {
           item.metadata = dataJson
         } catch (error) {
           try {
-            const { data } = await getdata.get(
-              `https://${chain === 'bsc' ? 'bnb' : chain}api.nftscan.com/api/v2/assets/${item.token_address}/${
-                item.token_id
-              }`
-            )
-            item.metadata = JSON.parse(data.data.metadata_json)
+            // const { data } = await getdata.get(
+            //   `https://${chain === 'bsc' ? 'bnb' : chain}api.nftscan.com/api/v2/assets/${item.token_address}/${
+            //     item.token_id
+            //   }`
+            // )
+            // item.metadata = JSON.parse(data.data.metadata_json)
+            const { data } = await http.get(item.token_uri)
+            item.metadata = data
           } catch (error) {
             item.metadata = JSON.parse(item.metadata)
           }
@@ -1746,6 +1748,9 @@ export const CollectionDetails = () => {
       })
     }
   }
+  const UploadImgChange = async (e: any) => {
+    console.log(e.target.value)
+  }
   const link = () => {
     history.push({
       pathname: `/games/${contractName}/review`,
@@ -2112,7 +2117,7 @@ export const CollectionDetails = () => {
       <Dialog footer={null} onCancel={() => setUploadImg(false)} visible={UploadImg} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">user setting</div>
-          <Upload
+          {/* <Upload
             name="avatar"
             listType="picture-card"
             className="avatar-uploader"
@@ -2122,8 +2127,9 @@ export const CollectionDetails = () => {
             data={userinfo}
             onChange={handleChange}
           >
-            {imageUrl ? <img src={imageUrl} alt="avatar" style={{ width: '100%' }} /> : uploadButton}
-          </Upload>
+            {imageUrl ? <img src={imageUrl} alt="avatar" style={{ display: 'none' }} style={{ width: '100%' }} /> : uploadButton}
+          </Upload> */}
+          <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
         </SendBox>
       </Dialog>
       <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>

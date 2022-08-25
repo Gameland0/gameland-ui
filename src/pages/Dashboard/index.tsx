@@ -221,21 +221,26 @@ export const Dashboard = () => {
       } catch (err: any) {
         let chain
         if (chainId === 56) {
-          chain = 'bnb'
+          chain = 'bsc'
         } else if (chainId === 137) {
           chain = 'polygon'
         }
         const getdata = axios.create({
           timeout: 10000,
           headers: {
-            'X-Api-Key': 'dO5hsUP3'
+            'X-Api-Key': '60aee01eae2f89f6fb4b81177df15c8c'
           }
         })
         try {
           const { data } = await getdata.get(
-            `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+            // `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
+            `https://api.element.market/openapi/v1/asset?chain=${chain}&token_id=${item.token_id}&contract_address=${item.token_address}`
           )
-          item.metadata = JSON.parse(data.data.metadata_json)
+          // item.metadata = JSON.parse(data.data.metadata_json)
+          item.metadata = {
+            name: data.data.name,
+            image: data.data.imageUrl
+          }
         } catch (error) {
           item.metadata = JSON.parse(item.metadata)
         }
@@ -245,15 +250,7 @@ export const Dashboard = () => {
   }
 
   // useEffect(() => {
-  //   ControlContract?.add_nft_programforarray([
-  //     '0x62340bf727c536400a15bd41f62b4c684232c57a',
-  //     '0xcbc964dd716f07b4965b4526e30541a66f414ccf',
-  //     '0xe97bf54cc139b88c533759dfb16b2bd73dca8264',
-  //     '0x049f8204bde39355b7892bac2a028a9d2f693792',
-  //     '0x00992b610a1d20d0169fd604c8eb2f40fee2c391',
-  //     '0xba6e421833f6c190a830ce6e142685b3916c9bd0',
-  //     '0x819e58e51d64ab05efa132a133de0af5089954cf'
-  //   ])
+  //   ControlContract?.add_nft_programforarray(['0x819e58e51d64ab05efa132a133de0af5089954cf'])
   // }, [])
 
   useEffect(() => {
