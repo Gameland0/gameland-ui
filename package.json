@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@bundlr-network/client": "^0.8.1",
     "@craco/craco": "^6.2.0",
     "@ethersproject/experimental": "^5.4.0",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -22,6 +23,8 @@
     "@web3-react/network-connector": "^6.1.9",
     "@web3-react/walletconnect-connector": "^6.2.4",
     "antd": "^4.16.13",
+    "arweave": "^1.11.6",
+    "arweave-bundles": "^1.0.3",
     "axios": "^0.21.4",
     "babel-plugin-import": "^1.13.3",
     "bignumber.js": "^9.0.1",
@@ -49,7 +52,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "mac":"HTTPS=true craco start",
+    "mac": "HTTPS=true craco start",
     "build": "GENERATE_SOURCEMAP=false craco build",
     "windownBuild": "set GENERATE_SOURCEMAP=false&& craco build",
     "test": "craco test",

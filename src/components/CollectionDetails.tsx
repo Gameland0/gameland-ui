@@ -6,7 +6,7 @@ import { Row, Col, Button, message, Upload } from 'antd'
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadChangeParam } from 'antd/es/upload'
-import { divide, isEmpty } from 'lodash'
+import { divide, isEmpty, keys } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { lowerCase } from 'lower-case'
 import axios from 'axios'
@@ -67,6 +67,10 @@ import reward from '../assets/icon_reward.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
 import { Return } from './RentingCard'
+import key from '../constants/arweave-keyfile.json'
+import Arweave from 'arweave'
+import deepHash from 'arweave/node/lib/deepHash'
+import ArweaveBundles from 'arweave-bundles'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -858,13 +862,21 @@ export const CollectionDetails = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [description, setDescription] = useState('')
+  const [transactionId, setTransactionId] = useState('')
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
+  // const bundlr = new Bundlr('http://node1.bundlr.network', 'arweave', key)
+  const arweave = Arweave.init({
+    host: 'arweave.net',
+    port: 443,
+    protocol: 'https',
+    timeout: 20000,
+    logging: false
+  })
   let http2: any
-  const uploadHttpUrl = 'https://bsc-api.gameland.network/v0/userinfo/upload'
   let AssetContractAddress: any
   let ControlContractAddress: any
   let address: any
@@ -991,6 +1003,9 @@ export const CollectionDetails = () => {
     Promise.all(data).then((vals) => {
       setDataAll(vals)
     })
+    // arweave.transactions.get('0OKu7jyUHGEsjRH8nVkpV6pjdfdEe65peAAcAZlmJNQ').then((data) => {
+    //   console.log(data)
+    // })
   }, [nftData])
 
   useEffect(() => {
@@ -999,6 +1014,8 @@ export const CollectionDetails = () => {
       const userinfo = await bschttp.get(`v0/userinfo/${account}`)
       if (!userinfo.data.data.length) {
         setshowSetUp(true)
+      } else if (userinfo.data.data && !userinfo.data.data[0].image) {
+        setUploadImg(true)
       } else {
         setUserinfo(userinfo.data.data[0])
         const params = { useraddress: account }
@@ -1749,8 +1766,61 @@ export const CollectionDetails = () => {
     }
   }
   const UploadImgChange = async (e: any) => {
-    console.log(e.target.value)
+    console.log(e.target.files[0])
+    // const Img = e.target.value
+    const Img = e.target.files[0]
+    const fileSize = Img.size
+    const size = fileSize / 1024
+    const type = Img.type
+    if (size > 1024) {
+      toastify.error('Image size cannot be larger than 1MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.readAsArrayBuffer(Img)
+    reader.onload = (res) => {
+      // console.log(res.target?.result)
+      const imgData = res.target?.result
+      createTransaction(imgData, type)
+    }
+    // https://arweave.net/nO9zPgPFc60DGqJNg3Rr4Xfsvl6J1DW_mxmdR269Es4
+    // fetch(Img)
+    //   .then((res) => res.arrayBuffer())
+    //   .then((res) => {
+    //     // console.log(res)
+    //     createTransaction(res, type)
+    //   })
   }
+  const createTransaction = async (data: any, type: string) => {
+    try {
+      const formData = data
+      const transaction = await arweave.createTransaction({ data: formData }, key)
+      transaction.addTag('Content-Type', type)
+      await arweave.transactions.sign(transaction, key)
+      await arweave.transactions.post(transaction)
+      // const uploader = await arweave.transactions.getUploader(transaction)
+      // while (!uploader.isComplete) {
+      //   await uploader.uploadChunk()
+      // }
+      // console.log('transaction', transaction)
+      if (transaction) {
+        const params = {
+          image: `https://arweave.net/${transaction.id}`
+        }
+        const res: any = await bschttp.put(`/v0/userinfo/${account}`, params)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          setUploadImg(false)
+          setrefreshBy(!refreshBy)
+        } else {
+          toastify.error(res.message || res.data.message)
+        }
+      }
+    } catch (err: any) {
+      toastify.error(err)
+    }
+  }
+
   const link = () => {
     history.push({
       pathname: `/games/${contractName}/review`,
@@ -1773,6 +1843,14 @@ export const CollectionDetails = () => {
       setLoading(false)
       setclickStatus(false)
     })
+  }
+  const closeShowSetUp = () => {
+    setshowSetUp(false)
+    setrefreshBy(!refreshBy)
+  }
+  const closeUploadImg = () => {
+    setUploadImg(false)
+    setrefreshBy(!refreshBy)
   }
   const uploadButton = (
     <div>
@@ -2052,7 +2130,7 @@ export const CollectionDetails = () => {
           </p>
         </ContentBox>
       </Dialog>
-      <Dialog footer={null} onCancel={() => setshowSetUp(false)} visible={showSetUp} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeShowSetUp} visible={showSetUp} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Up</div>
           <h2>Set userName</h2>
@@ -2114,9 +2192,9 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog footer={null} onCancel={() => setUploadImg(false)} visible={UploadImg} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
         <SendBox>
-          <div className="title">user setting</div>
+          <div className="title">Set Avatar</div>
           {/* <Upload
             name="avatar"
             listType="picture-card"

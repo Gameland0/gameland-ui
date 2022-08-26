@@ -31,6 +31,8 @@ import liketrue from '../assets/icon_like_selected.svg'
 import reward from '../assets/icon_reward.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
+import key from '../constants/arweave-keyfile.json'
+import Arweave from 'arweave'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -502,6 +504,13 @@ export const ReviewsDetails = () => {
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
+  const arweave = Arweave.init({
+    host: 'arweave.net',
+    port: 443,
+    protocol: 'https',
+    timeout: 20000,
+    logging: false
+  })
   let http2: any
   let address: any
   let chain: any
@@ -937,9 +946,73 @@ export const ReviewsDetails = () => {
       }
     })
   }
+  const UploadImgChange = async (e: any) => {
+    console.log(e.target.files[0])
+    // const Img = e.target.value
+    const Img = e.target.files[0]
+    const fileSize = Img.size
+    const size = fileSize / 1024
+    const type = Img.type
+    if (size > 1024) {
+      toastify.error('Image size cannot be larger than 1MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.readAsArrayBuffer(Img)
+    reader.onload = (res) => {
+      // console.log(res.target?.result)
+      const imgData = res.target?.result
+      createTransaction(imgData, type)
+    }
+    // https://arweave.net/nO9zPgPFc60DGqJNg3Rr4Xfsvl6J1DW_mxmdR269Es4
+    // fetch(Img)
+    //   .then((res) => res.arrayBuffer())
+    //   .then((res) => {
+    //     // console.log(res)
+    //     createTransaction(res, type)
+    //   })
+  }
+  const createTransaction = async (data: any, type: string) => {
+    try {
+      const formData = data
+      const transaction = await arweave.createTransaction({ data: formData }, key)
+      transaction.addTag('Content-Type', type)
+      await arweave.transactions.sign(transaction, key)
+      await arweave.transactions.post(transaction)
+      // const uploader = await arweave.transactions.getUploader(transaction)
+      // while (!uploader.isComplete) {
+      //   await uploader.uploadChunk()
+      // }
+      // console.log('transaction', transaction)
+      if (transaction) {
+        const params = {
+          image: `https://arweave.net/${transaction.id}`
+        }
+        const res: any = await bschttp.put(`/v0/userinfo/${account}`, params)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          setUploadImg(false)
+          setrefreshBy(!refreshBy)
+        } else {
+          toastify.error(res.message || res.data.message)
+        }
+      }
+    } catch (err: any) {
+      toastify.error(err)
+    }
+  }
+  const closeShowSetUp = () => {
+    setshowSetUp(false)
+    setrefreshBy(!refreshBy)
+  }
+  const closeUploadImg = () => {
+    setUploadImg(false)
+    setrefreshBy(!refreshBy)
+  }
+
   return (
     <div className="container">
-      <Dialog footer={null} onCancel={() => setshowSetUp(false)} visible={showSetUp} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeShowSetUp} visible={showSetUp} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Up</div>
           <h2>Set userName</h2>
@@ -1013,10 +1086,10 @@ export const ReviewsDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog footer={null} onCancel={() => setUploadImg(false)} visible={UploadImg} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
         <SendBox>
-          <div className="title">user setting</div>
-          <Upload
+          <div className="title">Set Avatar</div>
+          {/* <Upload
             name="avatar"
             listType="picture-card"
             className="avatar-uploader"
@@ -1027,7 +1100,8 @@ export const ReviewsDetails = () => {
             onChange={handleChange}
           >
             {imageUrl ? <img src={imageUrl} alt="avatar" style={{ width: '100%' }} /> : uploadButton}
-          </Upload>
+          </Upload> */}
+          <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
         </SendBox>
       </Dialog>
       {/* <img src={returnIcon} className="returnIcon cursor" alt=""  /> */}
