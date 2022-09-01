@@ -9,6 +9,7 @@ import arrow from '../../assets/icon_select.svg'
 import star from '../../assets/icon_star.svg'
 import polygonIcon from '../../assets/polygon_icon.svg'
 import BNBIcon from '../../assets/bnb.svg'
+import { Filling } from '../App'
 
 const Sort = styled.div`
   height: 3.75rem;
@@ -276,6 +277,7 @@ export const Games = () => {
   }
   return (
     <div className="container">
+      <Filling></Filling>
       <Row gutter={0}>
         <Col span="6">
           <div className="MenuBar">

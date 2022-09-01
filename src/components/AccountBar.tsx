@@ -1,5 +1,6 @@
 import { formatAddress } from '../utils'
 import React from 'react'
+import { useHistory } from 'react-router-dom'
 import styled from 'styled-components'
 import { WrongNetwork } from './WrongNetwork'
 import { ConnectWallet } from './ConnectWallet'
@@ -11,10 +12,20 @@ const AddressBox = styled.div`
   padding: 0.4rem 0.75rem;
   border-radius: 1.25rem;
   font-size: 0.875rem;
+  cursor: pointer;
 `
 export const AccountBar = () => {
   const context = useActiveWeb3React()
   const { account } = context
+  const history = useHistory()
+  const UserPage = () => {
+    history.push({
+      pathname: `/user/MyPage`,
+      state: {
+        useraddress: account
+      }
+    })
+  }
   // const chainName = useMemo(() => Object.keys(ChainId).find((k) => (chainId as number) === ChainId[k]), [chainId])
   // const [isWrongNetwork, setIsWrongNetwork] = useState(false)
   const { networkError } = useStore()
@@ -30,7 +41,7 @@ export const AccountBar = () => {
   }
 
   if (account) {
-    return <AddressBox>{formatAddress(account)}</AddressBox>
+    return <AddressBox onClick={UserPage}>{formatAddress(account)}</AddressBox>
   }
 
   return <ConnectWallet />

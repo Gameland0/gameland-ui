@@ -23,6 +23,7 @@ import { BaseProps } from '../components/NumInput'
 import { parseEther } from '@ethersproject/units'
 import { lowerCase } from 'lower-case'
 import { Empty } from '../components/Empty'
+import { Filling } from './App'
 
 import { BSCControlContractAddress, POLYGONControlContractAddress } from '../constants'
 
@@ -742,6 +743,7 @@ export const Rent = () => {
 
   return (
     <div className="container">
+      <Filling></Filling>
       <Row gutter={0}>
         <Col span="6">
           <div className="MenuBar">

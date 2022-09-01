@@ -11,6 +11,8 @@ import { Dashboard } from './Dashboard'
 import { Lend } from './Lend'
 import { CollectionDetails } from '../components/CollectionDetails'
 import { ReviewsDetails } from '../components/ReviewsDetails'
+import { UserPage } from '../components/UserPage'
+import { Register } from '../components/Register'
 import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
 // import { Alert } from 'antd'
@@ -37,7 +39,7 @@ const Popups = styled.div`
     cursor: pointer;
   }
 `
-const Filling = styled.div`
+export const Filling = styled.div`
   height: 3rem;
   background: #fff;
   position: sticky;
@@ -67,7 +69,7 @@ function App() {
       ) : (
         <div className="sticky"></div>
       )}
-      <Filling></Filling>
+      {/* <Filling></Filling> */}
       <Web3Manager>
         <Wrap className="">
           <Switch>
@@ -77,6 +79,8 @@ function App() {
             <Route exact path="/games" component={Games} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
+            <Route exact path="/user/:username" component={UserPage} />
+            <Route exact path="/createUser" component={Register} />
           </Switch>
           <ToastContainer />
         </Wrap>

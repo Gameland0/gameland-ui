@@ -66,11 +66,12 @@ import liketrue from '../assets/icon_like_selected.svg'
 import reward from '../assets/icon_reward.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
-import { Return } from './RentingCard'
-import key from '../constants/arweave-keyfile.json'
+// import { Return } from './RentingCard'
+// import deepHash from 'arweave/node/lib/deepHash'
+// import ArweaveBundles from 'arweave-bundles'
+import { ArweaveWebWallet } from 'arweave-wallet-connector'
 import Arweave from 'arweave'
-import deepHash from 'arweave/node/lib/deepHash'
-import ArweaveBundles from 'arweave-bundles'
+import key from '../constants/arweave-keyfile.json'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -254,9 +255,13 @@ const DetailsBox = styled.div`
           .starName {
             margin-left: 16px;
             .name {
+              width: 120px;
               font-size: 18px;
               font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
               color: #333333;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
             .star {
               display: flex;
@@ -753,6 +758,50 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
     </CardBox>
   )
 }
+export const fetchMetadata = (data: any[]) => {
+  if (!data || !data.length) {
+    return []
+  }
+  const getdata = axios.create({
+    timeout: 10000,
+    headers: {
+      'X-Api-Key': 'dO5hsUP3'
+    }
+  })
+  return data.map(async (item) => {
+    if (item.token_uri) {
+      try {
+        const data = await fetch(item.token_uri, {
+          method: 'GET',
+          mode: 'no-cors'
+        })
+        const dataJson = await data.json()
+        // console.log(dataJson)
+        item.metadata = dataJson
+      } catch (error) {
+        try {
+          // const { data } = await getdata.get(
+          //   `https://${chain === 'bsc' ? 'bnb' : chain}api.nftscan.com/api/v2/assets/${item.token_address}/${
+          //     item.token_id
+          //   }`
+          // )
+          // item.metadata = JSON.parse(data.data.metadata_json)
+          const { data } = await http.get(item.token_uri)
+          item.metadata = data
+        } catch (error) {
+          item.metadata = JSON.parse(item.metadata)
+        }
+        // console.log(JSON.parse(data.data.metadata_json))
+      }
+      // const { data } = await http.get(item.token_uri)
+      // item.metadata = data
+    } else {
+      // item.metadata = []
+      item.metadata = JSON.parse(item.metadata)
+    }
+    return item
+  })
+}
 export const getTime = (time: any) => {
   const year = new Date(time).getFullYear()
   const month = new Date(time).getMonth()
@@ -832,7 +881,6 @@ export const CollectionDetails = () => {
   const [showSend, setShowSend] = useState(false)
   const [showSetUp, setshowSetUp] = useState(false)
   const [UserSettings, setUserSettings] = useState(false)
-  const [UploadImg, setUploadImg] = useState(false)
   const [showreward, setshowreward] = useState(false)
   const [rewardItem, setrewardItem] = useState({} as any)
   const [toAddress, setToAddress] = useState('')
@@ -847,6 +895,7 @@ export const CollectionDetails = () => {
   const [imageUrl, setImageUrl] = useState<string>()
   const [options, setOptions] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
+  const [UploadImg, setUploadImg] = useState(false)
   const [approving, setApproving] = useState(false)
   const [scoreDialog, setscoreDialog] = useState(false)
   const [prompt, setPrompt] = useState(false)
@@ -899,54 +948,6 @@ export const CollectionDetails = () => {
     AssetContractAddress = POLYGONAssetContractAddress
     ControlContractAddress = POLYGONControlContractAddress
     contracts = PolygonContract
-  }
-  const fetchMetadata = (data: any[]) => {
-    if (!data || !data.length) {
-      return []
-    }
-    const getdata = axios.create({
-      timeout: 10000,
-      headers: {
-        'X-Api-Key': 'dO5hsUP3'
-      }
-    })
-    return data.map(async (item) => {
-      if (
-        item.token_uri &&
-        collectionDetails.contractName !== 'DreamCard' &&
-        collectionDetails.contractName !== 'Highstreet IHO Part I'
-      ) {
-        try {
-          const data = await fetch(item.token_uri, {
-            method: 'GET',
-            mode: 'no-cors'
-          })
-          const dataJson = await data.json()
-          // console.log(dataJson)
-          item.metadata = dataJson
-        } catch (error) {
-          try {
-            // const { data } = await getdata.get(
-            //   `https://${chain === 'bsc' ? 'bnb' : chain}api.nftscan.com/api/v2/assets/${item.token_address}/${
-            //     item.token_id
-            //   }`
-            // )
-            // item.metadata = JSON.parse(data.data.metadata_json)
-            const { data } = await http.get(item.token_uri)
-            item.metadata = data
-          } catch (error) {
-            item.metadata = JSON.parse(item.metadata)
-          }
-          // console.log(JSON.parse(data.data.metadata_json))
-        }
-        // const { data } = await http.get(item.token_uri)
-        // item.metadata = data
-      } else {
-        // item.metadata = []
-        item.metadata = JSON.parse(item.metadata)
-      }
-      return item
-    })
   }
   const getCollectionInfo = async () => {
     if (!account) return
@@ -1003,9 +1004,6 @@ export const CollectionDetails = () => {
     Promise.all(data).then((vals) => {
       setDataAll(vals)
     })
-    // arweave.transactions.get('0OKu7jyUHGEsjRH8nVkpV6pjdfdEe65peAAcAZlmJNQ').then((data) => {
-    //   console.log(data)
-    // })
   }, [nftData])
 
   useEffect(() => {
@@ -1013,9 +1011,12 @@ export const CollectionDetails = () => {
       if (!account) return
       const userinfo = await bschttp.get(`v0/userinfo/${account}`)
       if (!userinfo.data.data.length) {
-        setshowSetUp(true)
+        history.push({
+          pathname: `/createUser`
+        })
       } else if (userinfo.data.data && !userinfo.data.data[0].image) {
         setUploadImg(true)
+        return
       } else {
         setUserinfo(userinfo.data.data[0])
         const params = { useraddress: account }
@@ -1751,22 +1752,7 @@ export const CollectionDetails = () => {
     const val = ele.currentTarget.value
     setNewUserName(val)
   }, [])
-  const handleChange: UploadProps['onChange'] = (info: UploadChangeParam<UploadFile>) => {
-    if (info.file.status === 'uploading') {
-      setLoading(true)
-      return
-    }
-    if (info.file.status === 'done') {
-      getBase64(info.file.originFileObj as RcFile, (url) => {
-        setLoading(false)
-        toastify.success('succeed')
-        setrefreshBy(!refreshBy)
-        setUploadImg(false)
-      })
-    }
-  }
   const UploadImgChange = async (e: any) => {
-    console.log(e.target.files[0])
     // const Img = e.target.value
     const Img = e.target.files[0]
     const fileSize = Img.size
@@ -1791,18 +1777,20 @@ export const CollectionDetails = () => {
     //     createTransaction(res, type)
     //   })
   }
-  const createTransaction = async (data: any, type: string) => {
+  const createTransaction = async (datas: any, type: string) => {
     try {
-      const formData = data
-      const transaction = await arweave.createTransaction({ data: formData }, key)
+      // const wallet = new ArweaveWebWallet({
+      //   name: 'Gameland AR',
+      //   logo: 'https://dapp.gameland.network/logo192.png'
+      // })
+      // wallet.setUrl('arweave.app')
+      // await wallet.connect()
+      // await wallet.signTransaction(transaction)
+      // const dispatchResult = await wallet.dispatch(transaction)
+      const transaction = await arweave.createTransaction({ data: datas })
       transaction.addTag('Content-Type', type)
       await arweave.transactions.sign(transaction, key)
       await arweave.transactions.post(transaction)
-      // const uploader = await arweave.transactions.getUploader(transaction)
-      // while (!uploader.isComplete) {
-      //   await uploader.uploadChunk()
-      // }
-      // console.log('transaction', transaction)
       if (transaction) {
         const params = {
           image: `https://arweave.net/${transaction.id}`
@@ -1827,6 +1815,21 @@ export const CollectionDetails = () => {
       state: {
         address: address,
         chain: chain
+      }
+    })
+  }
+  const UserPage = (item: any) => {
+    // console.log(item)
+    let username
+    if (item.username) {
+      username = item.username
+    } else {
+      username = `user #${item.useraddress}`
+    }
+    history.push({
+      pathname: `/user/${username.replace(/ /g, '')}`,
+      state: {
+        useraddress: item.useraddress
       }
     })
   }
@@ -2143,6 +2146,12 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">Set Avatar</div>
+          <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
+        </SendBox>
+      </Dialog>
       <Dialog footer={null} onCancel={() => setrentPrompt(false)} visible={rentprompt} destroyOnClose closable={false}>
         <ContentBox>
           <div className="title">Prompt</div>
@@ -2190,24 +2199,6 @@ export const CollectionDetails = () => {
             renew
             {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
           </div>
-        </SendBox>
-      </Dialog>
-      <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
-        <SendBox>
-          <div className="title">Set Avatar</div>
-          {/* <Upload
-            name="avatar"
-            listType="picture-card"
-            className="avatar-uploader"
-            showUploadList={false}
-            action={uploadHttpUrl}
-            beforeUpload={beforeUpload}
-            data={userinfo}
-            onChange={handleChange}
-          >
-            {imageUrl ? <img src={imageUrl} alt="avatar" style={{ display: 'none' }} style={{ width: '100%' }} /> : uploadButton}
-          </Upload> */}
-          <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
         </SendBox>
       </Dialog>
       <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
@@ -2341,10 +2332,10 @@ export const CollectionDetails = () => {
           </div>
         </div>
         <div className="comment">
-          <div className="user">
-            <img className="userImage cursor" src={userinfo.image || defaultImg} onClick={() => setUploadImg(true)} />
+          <div className="user" onClick={() => UserPage(userinfo)}>
+            <img className="userImage cursor" src={userinfo.image || defaultImg} />
             <div className="userName cursor" onClick={() => setUserSettings(true)}>
-              {userinfo.username}
+              {userinfo.username || `user #${userinfo.useraddress}`}
             </div>
           </div>
           <div className="borders"></div>
@@ -2387,10 +2378,10 @@ export const CollectionDetails = () => {
             {revieweinfo.length
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
-                    <div className="userInfo">
+                    <div className="userInfo" onClick={() => UserPage(item)}>
                       <img src={getUserImage(item.useraddress)} className="userImage" alt="" />
                       <div className="starName">
-                        <div className="name">{item.username}</div>
+                        <div className="name">{item.username || `user #${userinfo.useraddress}`}</div>
                         <div className="star">
                           <div className={getReviewScore(item.useraddress) >= 1 ? 'scoreStar' : 'defaultStar'}></div>
                           <div className={getReviewScore(item.useraddress) >= 2 ? 'scoreStar' : 'defaultStar'}></div>
