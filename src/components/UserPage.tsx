@@ -2,8 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { parseEther } from '@ethersproject/units'
 import styled from 'styled-components'
-import { Row, Col, Tabs } from 'antd'
+import { Tabs } from 'antd'
 import { useLocation, useParams } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
 import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
 import { MORALIS_KEY, BscContract, PolygonContract } from '../constants'
@@ -412,6 +413,7 @@ export const UserPage = () => {
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const RewardContract = useRewardContract()
+  const history = useHistory()
   const arweave = Arweave.init({
     host: 'arweave.net',
     port: 443,
@@ -470,16 +472,20 @@ export const UserPage = () => {
   }
   const getUserInfo = async () => {
     if (!account) return
+    const data = await bschttp.get(`v0/userinfo/${useraddress}`)
+    if (data.data.data.length) {
+      setUserinfo(data.data.data[0])
+    } else {
+      history.push({
+        pathname: `/createUser`
+      })
+    }
     bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     const BscLike = bschttp.get(`/v0/review_like/${account}`)
     const polygonLike = polygonhttp.get(`/v0/review_like/${account}`)
     Promise.all([BscLike, polygonLike]).then((vals) => {
       setuserLikeInfo([...vals[0].data.data, ...vals[1].data.data])
     })
-    const data = await bschttp.get(`v0/userinfo/${useraddress}`)
-    if (data.data.data.length) {
-      setUserinfo(data.data.data[0])
-    }
   }
   const getNftData = async () => {
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
