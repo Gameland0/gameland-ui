@@ -27,6 +27,9 @@ import arrow from '../assets/icon_select.svg'
 import loadding from '../assets/loading.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
+import twitter from '../assets/icon_twitter.svg'
+import discord from '../assets/icon_discord.svg'
+import Telegram from '../assets/Telegram.png'
 import Arweave from 'arweave'
 import { genNodeAPI } from 'arseeding-js'
 import key from '../constants/arweave-keyfile.json'
@@ -66,8 +69,8 @@ const Card: React.FC<CardProps> = ({ img, name, contract_type, onLend, onSend, n
     <CardBox className="flex flex-column-between flex-column">
       {src === '.mp4' || src === 'webm' ? (
         <video
-          width="238"
-          height="238"
+          width="328"
+          height="328"
           muted
           autoPlay={true}
           loop
@@ -113,6 +116,35 @@ const Labels: React.FC<LabelProps> = ({ name, type, nftId }) => {
     </div>
   )
 }
+interface FolloweProps {
+  Followeitem: any
+  onFollowe: () => void
+  onUnFollowe: () => void
+}
+const FolloweButton: React.FC<FolloweProps> = ({ Followeitem, onFollowe, onUnFollowe }) => {
+  const Followe = () => {
+    onFollowe && onFollowe()
+  }
+  const UnFollowe = () => {
+    onUnFollowe && onUnFollowe()
+  }
+  return (
+    <div>
+      {Followeitem ? (
+        <Following className="text-center">
+          <div className="Following">Following</div>
+          <div className="UnFollow cursor" onClick={UnFollowe}>
+            UnFollow
+          </div>
+        </Following>
+      ) : (
+        <Followes className="text-center cursor" onClick={Followe}>
+          Follow
+        </Followes>
+      )}
+    </div>
+  )
+}
 const UserBox = styled.div`
   .topBackground {
     width: 100%;
@@ -140,10 +172,12 @@ const UserInfo = styled.div`
   }
 `
 const InfoLeft = styled.div`
+  position: relative;
   .avatar {
     width: 240px;
     height: 240px;
     border-radius: 10px;
+    margin-bottom: 20px;
   }
   .userName {
     font-size: 24px;
@@ -156,7 +190,18 @@ const InfoLeft = styled.div`
     font-size: 18px;
     font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #35caa9;
-    margin-bottom: 64px;
+    margin-bottom: 20px;
+  }
+  .socialize {
+    margin-bottom: 40px;
+    img {
+      width: 40px;
+      height: 40px;
+      margin: 0 6px;
+    }
+    .transparency {
+      opacity: 0.3;
+    }
   }
   .followInfo {
     height: 72px;
@@ -223,9 +268,14 @@ const CommentsBox = styled.div`
         line-height: 96px;
         margin-left: 24px;
       }
-      .time {
+      .contractName {
         position: absolute;
         top: 24px;
+        right: 48px;
+      }
+      .time {
+        position: absolute;
+        top: 56px;
         right: 48px;
         color: #d0d0d0;
         line-height: 96px;
@@ -330,6 +380,45 @@ const CardBox = styled.div`
   overflow: hidden;
   transition: all 0.3s ease;
 `
+const Followes = styled.div`
+  width: 150px;
+  height: 30px;
+  line-height: 30px;
+  margin: auto;
+  border-radius: 10px;
+  background: #35caa9;
+  color: #fff;
+  font-size: 18px;
+`
+const Following = styled.div`
+  div {
+    position: absolute;
+    left: 50%;
+    margin-left: -75px;
+    width: 150px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+  .Following {
+    background: #35caa9;
+    color: #fff;
+  }
+  .UnFollow {
+    background: red;
+    color: #000;
+    opacity: 0;
+  }
+  &:hover {
+    .Following {
+      opacity: 0;
+    }
+    .UnFollow {
+      opacity: 1;
+    }
+  }
+`
 const NFTname = styled.p`
   display: block;
   width: 120px;
@@ -402,6 +491,7 @@ export const UserPage = () => {
   const [userinfo, setUserinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [reviewAllData, setReviewAllData] = useState([] as any)
   const [myReview, setMyRevie] = useState([] as any)
   const [myNFT, setMyNFT] = useState([] as any)
@@ -468,7 +558,6 @@ export const UserPage = () => {
       }
       return item
     })
-    return data
   }
   const getUserInfo = async () => {
     if (!account) return
@@ -481,6 +570,7 @@ export const UserPage = () => {
       })
     }
     bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
+    bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     const BscLike = bschttp.get(`/v0/review_like/${account}`)
     const polygonLike = polygonhttp.get(`/v0/review_like/${account}`)
     Promise.all([BscLike, polygonLike]).then((vals) => {
@@ -550,6 +640,28 @@ export const UserPage = () => {
       return findData[0]?.image ? findData[0].image : defaultImg
     }
   }
+  const getFolloweData = () => {
+    if (!followeDataAll || !followeDataAll.length) return 0
+    const data = followeDataAll.filter((item: any) => {
+      return item.useraddress === account && item.followeUserAddress === useraddress
+    })
+    if (!data.length) return 0
+    return data
+  }
+  const getFollowe = (type: string) => {
+    if (type === 'myFollowe') {
+      const data = followeDataAll.filter((item: any) => {
+        return item.useraddress === useraddress
+      })
+      return data.length
+    }
+    if (type === 'FolloweMy') {
+      const data = followeDataAll.filter((item: any) => {
+        return item.followeUserAddress === useraddress
+      })
+      return data.length
+    }
+  }
   const getUserImage = (useraddress: string) => {
     const findData = userinfoAll.filter((ele: any) => {
       return ele.useraddress === useraddress
@@ -598,6 +710,29 @@ export const UserPage = () => {
       } else {
         throw res.message || res.data.message
       }
+    }
+  }
+  const Followe = async () => {
+    const params = {
+      useraddress: account,
+      followeUserAddress: useraddress
+    }
+    const res: any = await bschttp.post(`v0/followe`, params)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setrefreshBy(!refreshBy)
+    } else {
+      throw res.message || res.data.message
+    }
+  }
+  const UnFollowe = async () => {
+    const data = getFolloweData()
+    const res: any = await bschttp.delete(`v0/followe/${data[0].id}`)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setrefreshBy(!refreshBy)
+    } else {
+      throw res.message || res.data.message
     }
   }
   const updateLikeTotal = async (item: any, type: any) => {
@@ -826,22 +961,32 @@ export const UserPage = () => {
             className={useraddress.toLowerCase() === account?.toLowerCase() ? 'avatar cursor' : 'avatar'}
             onClick={SetAvatar}
           />
+          {useraddress.toLowerCase() === account?.toLowerCase() ? (
+            ''
+          ) : (
+            <FolloweButton Followeitem={getFolloweData()} onFollowe={Followe} onUnFollowe={UnFollowe} />
+          )}
           <div className="userName text-center">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
+          <div className="socialize flex flex-justify-content">
+            <img src={twitter} className={userinfo.Twitter ? '' : 'transparency'} />
+            <img src={discord} className={userinfo.Discord ? '' : 'transparency'} />
+            <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
+          </div>
           <div className="followInfo flex">
             <div className="Following">
-              <div className="quantity text-center">100</div>
+              <div className="quantity text-center">{getFollowe('myFollowe')}</div>
               <div className="text-center">Following</div>
             </div>
             <div className="delimiter"></div>
             <div className="Following">
-              <div className="quantity text-center">100</div>
+              <div className="quantity text-center">{getFollowe('FolloweMy')}</div>
               <div className="text-center">Followers</div>
             </div>
           </div>
           <div className="followInfo flex">
             <div className="Following">
-              <div className="quantity text-center">100</div>
+              <div className="quantity text-center">0</div>
               <div className="text-center">G Point</div>
             </div>
             <div className="delimiter"></div>
@@ -869,6 +1014,7 @@ export const UserPage = () => {
                       <div className="userInfo flex">
                         <img src={userinfo.image || defaultImg} className="userImage" alt="" />
                         <div className="name">{userinfo.username}</div>
+                        <div className="contractName">{item.contractName}</div>
                         <div className="time">{getTime(item.datetime)}</div>
                       </div>
                       <div className="CommentContent">{item.context}</div>
@@ -977,7 +1123,7 @@ export const UserPage = () => {
                             img={item.metadata?.image}
                             contract_type={item.contract_type ? item.contract_type : item.standard}
                             pay_type={item.pay_type}
-                            account={useraddress}
+                            account={account}
                             useraddress={useraddress}
                           />
                         ))
