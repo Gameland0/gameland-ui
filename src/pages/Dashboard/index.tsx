@@ -233,7 +233,6 @@ export const Dashboard = () => {
         })
         try {
           const { data } = await getdata.get(
-            // `https://${chain}api.nftscan.com/api/v2/assets/${item.token_address}/${item.token_id}`
             `https://api.element.market/openapi/v1/asset?chain=${chain}&token_id=${item.token_id}&contract_address=${item.token_address}`
           )
           // item.metadata = JSON.parse(data.data.metadata_json)

@@ -46,6 +46,7 @@ import { ContentBox } from '../pages/Rent'
 import { Nft as NftCard } from '../components/Nft'
 import { Loading } from '../components/Loading'
 import { NumInput } from '../components/NumInput'
+import { NFTStatsMadal } from './NFTStatsMadal'
 import { ScoreStatistics } from './ScoreStatistics'
 import { Icon } from '../components/Icon'
 import { bschttp, polygonhttp, http } from './Store'
@@ -55,6 +56,7 @@ import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
 import loadding from '../assets/loading.svg'
 import gameland from '../assets/network.svg'
+import add from '../assets/icon_add.png'
 import defaultImg from '../assets/default.png'
 import defaultStar from '../assets/icon_review_star_default.svg'
 import scoreStar from '../assets/icon_score_star.svg'
@@ -194,7 +196,6 @@ const DetailsBox = styled.div`
         font-size: 18px;
         box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
         border-radius: 10px;
-        padding: 0 0 16px 0;
         textarea {
           width: 100%;
           height: 100px;
@@ -221,6 +222,20 @@ const DetailsBox = styled.div`
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
             margin-top: 16px;
+          }
+        }
+        .addCommentNFT {
+          width: 70px;
+          height: 70px;
+          opacity: 0.6;
+        }
+        .CommentNFTBox {
+          img {
+            width: 106px;
+            height: 106px;
+          }
+          .CommentNFTname {
+            font-size: 14px;
           }
         }
       }
@@ -286,6 +301,23 @@ const DetailsBox = styled.div`
             font-size: 16px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #d0d0d0;
+          }
+        }
+        .CommentNFTBox {
+          margin: 16px 0;
+          img {
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+          }
+          .CommentNFTname {
+            width: 120px;
+            height: 20px;
+            font-size: 14px;
+            background-color: rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
         }
         .CommentContent {
@@ -363,7 +395,7 @@ const DetailsBox = styled.div`
   }
   @media screen and (min-width: 1440px) {
     width: 1312px;
-    height: 580px;
+    height: 630px;
     .collection {
       .top {
         padding: 28px;
@@ -468,7 +500,7 @@ const DetailsBox = styled.div`
   }
   @media screen and (min-width: 1920px) {
     width: 1600px;
-    height: 840px;
+    height: 890px;
     .collection {
       .top {
         padding: 40px;
@@ -623,6 +655,28 @@ const CardBox = styled.div<{ isLending?: boolean; have: number }>`
     transform: translateY(-1%);
   }
 `
+const MyNFTCardBox = styled.div`
+  position: relative;
+  background: #fff;
+  margin: 12px 10px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  border-radius: 1rem;
+  @media screen and (min-width: 1440px) {
+    width: 180px;
+    min-height: 300px;
+  }
+  @media screen and (min-width: 1920px) {
+    width: 211px;
+    min-height: 320px;
+  }
+  &:hover {
+    transform: translateY(-1%);
+    .attributesBox {
+      opacity: 1;
+    }
+  }
+`
 const CardDetails = styled.div`
   position: relative;
   margin-top: 1rem;
@@ -662,6 +716,34 @@ const NFTname = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
 `
+const MyNFTBox = styled.div`
+  width: 420px;
+  min-height: 200px;
+  @media screen and (min-width: 1440px) {
+    width: 400px;
+  }
+  @media screen and (min-width: 1920px) {
+    width: 462px;
+  }
+`
+const CommentNFTButton = styled.div`
+  margin-top: 20px;
+  div {
+    width: 160px;
+    height: 40px;
+    border: 1px solid #35caa9;
+    border-radius: 20px;
+    color: #35caa9;
+    text-align: center;
+    line-height: 40px;
+    margin-right: 20px;
+    cursor: pointer;
+    &:hover {
+      background: #35caa9;
+      color: #fff;
+    }
+  }
+`
 export interface CardProps {
   onClick?: () => void
   onLend: () => void
@@ -675,6 +757,15 @@ export interface CardProps {
   contract_type: string
   img: string
   have: number
+}
+interface MyNFTCardProps {
+  onClick?: () => void
+  pay_type: string
+  name: string
+  nftId: string
+  contract_type: string
+  img: string
+  item: any
 }
 interface LabelProps {
   name: string
@@ -758,50 +849,42 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
     </CardBox>
   )
 }
-export const fetchMetadata = (data: any[]) => {
-  if (!data || !data.length) {
-    return []
+const MyNFTCard: React.FC<MyNFTCardProps> = ({ img, name, onClick, contract_type, item }) => {
+  const { networkError } = useStore()
+  const handleClick = () => {
+    if (networkError) {
+      toastify.error('Please connect to valid network.')
+      return
+    }
+    onClick && onClick()
   }
-  const getdata = axios.create({
-    timeout: 10000,
-    headers: {
-      'X-Api-Key': 'dO5hsUP3'
-    }
-  })
-  return data.map(async (item) => {
-    if (item.token_uri) {
-      try {
-        const data = await fetch(item.token_uri, {
-          method: 'GET',
-          mode: 'no-cors'
-        })
-        const dataJson = await data.json()
-        // console.log(dataJson)
-        item.metadata = dataJson
-      } catch (error) {
-        try {
-          // const { data } = await getdata.get(
-          //   `https://${chain === 'bsc' ? 'bnb' : chain}api.nftscan.com/api/v2/assets/${item.token_address}/${
-          //     item.token_id
-          //   }`
-          // )
-          // item.metadata = JSON.parse(data.data.metadata_json)
-          const { data } = await http.get(item.token_uri)
-          item.metadata = data
-        } catch (error) {
-          item.metadata = JSON.parse(item.metadata)
-        }
-        // console.log(JSON.parse(data.data.metadata_json))
-      }
-      // const { data } = await http.get(item.token_uri)
-      // item.metadata = data
-    } else {
-      // item.metadata = []
-      item.metadata = JSON.parse(item.metadata)
-    }
-    return item
-  })
+  const src = img?.slice(-4)
+  return (
+    <MyNFTCardBox className="flex flex-column-between flex-column" onClick={handleClick}>
+      {src === '.mp4' || src === 'webm' ? (
+        <video
+          width="238"
+          height="238"
+          muted
+          autoPlay={true}
+          loop
+          role="application"
+          preload="auto"
+          webkit-playsinline="true"
+          src={img}
+        ></video>
+      ) : (
+        <Img src={img} alt={name} />
+      )}
+      <CardDetails className="flex flex-h-between">
+        <div>
+          <Labels name={name} type={contract_type} />
+        </div>
+      </CardDetails>
+    </MyNFTCardBox>
+  )
 }
+
 export const getTime = (time: any) => {
   const year = new Date(time).getFullYear()
   const month = new Date(time).getMonth()
@@ -872,6 +955,7 @@ export const CollectionDetails = () => {
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [myNFTdata, setMyNFTdata] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -892,7 +976,6 @@ export const CollectionDetails = () => {
   const [collateral, setCollateral] = useState('')
   const [newUserName, setNewUserName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [imageUrl, setImageUrl] = useState<string>()
   const [options, setOptions] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
   const [UploadImg, setUploadImg] = useState(false)
@@ -901,6 +984,8 @@ export const CollectionDetails = () => {
   const [prompt, setPrompt] = useState(false)
   const [rentprompt, setrentPrompt] = useState(false)
   const [lending, setLending] = useState(false)
+  const [showMyNFTBox, setShowMyNFTBox] = useState(false)
+  const [showMyNFTModal, setShowMyNFTModal] = useState(false)
   const [LeaseDays, setLeaseDays] = useState('')
   const [forward, setForward] = useState({} as any)
   const [renting, setRenting] = useState(false)
@@ -914,6 +999,8 @@ export const CollectionDetails = () => {
   const [transactionId, setTransactionId] = useState('')
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
+  const [commentNFTItem, setCommentNFTItem] = useState({} as any)
+  const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -949,6 +1036,41 @@ export const CollectionDetails = () => {
     ControlContractAddress = POLYGONControlContractAddress
     contracts = PolygonContract
   }
+  const fetchMetadata = (data: any[]) => {
+    if (!data || !data.length) {
+      return []
+    }
+    const getdata = axios.create({
+      timeout: 10000,
+      headers: {
+        'X-Api-Key': '60aee01eae2f89f6fb4b81177df15c8c'
+      }
+    })
+    return data.map(async (item) => {
+      if (item.token_uri) {
+        try {
+          const data = await fetch(item.token_uri, {
+            method: 'GET',
+            mode: 'no-cors'
+          })
+          const dataJson = await data.json()
+          // console.log(dataJson)
+          item.metadata = dataJson
+        } catch (error) {
+          try {
+            const { data } = await http.get(item.token_uri)
+            item.metadata = data
+          } catch (error) {
+            item.metadata = JSON.parse(item.metadata)
+          }
+          // console.log(JSON.parse(data.data.metadata_json))
+        }
+      } else {
+        item.metadata = JSON.parse(item.metadata)
+      }
+      return item
+    })
+  }
   const getCollectionInfo = async () => {
     if (!account) return
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
@@ -960,9 +1082,9 @@ export const CollectionDetails = () => {
     `)
     const rantData = http2.get(`v0/opensea/${address}`)
     const Details = await http2.get(`v0/games/${address}`)
-    const _nfts = [myNft, nftCollection, rantData]
-    Promise.all(_nfts).then((vals) => {
+    Promise.all([myNft, nftCollection, rantData]).then((vals) => {
       setnextCursor(vals[1].data.cursor)
+      setMyNFTdata(vals[0].data.result)
       const data = [...vals[0].data.result, ...vals[2].data.data, ...vals[1]?.data.result]
       data.map(async (item) => {
         if (!item.gamelandNftId) {
@@ -1510,13 +1632,16 @@ export const CollectionDetails = () => {
           datetime: new Date().toJSON(),
           username: userinfo.username,
           userimage: userinfo.image,
-          context: textareaValue
+          context: textareaValue,
+          contractName: collectionDetails.contractName,
+          NFTData: JSON.stringify(commentNFTItem) || ''
         }
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
-          toastify.success('succeed')
           settextareaValue('')
+          setCommentNFTItem([])
           setrefreshBy(!refreshBy)
+          toastify.success('succeed')
         }
       } catch (error: any) {
         toastify.error(error.message)
@@ -1532,10 +1657,13 @@ export const CollectionDetails = () => {
           datetime: new Date().toJSON(),
           username: userinfo.username,
           context: textareaValue,
-          quote: forward.id
+          contractName: collectionDetails.contractName,
+          quote: forward.id,
+          NFTData: JSON.stringify(commentNFTItem) || ''
         }
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
+          setCommentNFTItem([])
           toastify.success('succeed')
           settextareaValue('')
           setForward({})
@@ -1727,6 +1855,50 @@ export const CollectionDetails = () => {
       setRenting(false)
     }
   }
+  const handleMyNFTdata = async (item: any) => {
+    const getdata = axios.create({
+      timeout: 10000,
+      headers: {
+        'X-Api-Key': '60aee01eae2f89f6fb4b81177df15c8c'
+      }
+    })
+    try {
+      const { data } = await getdata.get(
+        `https://api.element.market/openapi/v1/asset?chain=${chain}&token_id=${item.token_id}&contract_address=${item.token_address}`
+      )
+      // item.metadata = JSON.parse(data.data.metadata_json)
+      setNFTStatsMadalData(data.data)
+      if (data.data.description) {
+        setDescription(data.data.description)
+      } else {
+        setDescription(data.data.collection?.description)
+      }
+      if (data.data.attributes) {
+        setRareAttribute(data.data.attributes)
+      } else {
+        setSpecificAttribute(data.data.properties)
+        setRareAttribute(data.data.stats || data.data.levels)
+      }
+      setShowMyNFTModal(true)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  const showNFTStatsMadal = (item: any) => {
+    setNFTStatsMadalData(item)
+    if (item.description) {
+      setDescription(item.description)
+    } else {
+      setDescription(item.collection?.description)
+    }
+    if (item.attributes) {
+      setRareAttribute(item.attributes)
+    } else {
+      setSpecificAttribute(item.properties)
+      setRareAttribute(item.stats || item.levels)
+    }
+    setShowMyNFTModal(true)
+  }
   const handlePriceChange = useCallback((val) => setPrice(val), [])
   const handleDaysChange = useCallback((val) => setdays(val), [])
   const handleLeaseDaysChange = useCallback((val) => setLeaseDays(val), [])
@@ -1808,7 +1980,16 @@ export const CollectionDetails = () => {
       toastify.error(err)
     }
   }
-
+  const changeOne = async () => {
+    setCommentNFTItem([])
+    setShowMyNFTModal(false)
+  }
+  const commentNFTOKButton = async () => {
+    setShowMyNFTBox(false)
+    setShowMyNFTModal(false)
+    console.log(NFTStatsMadalData)
+    setCommentNFTItem(NFTStatsMadalData)
+  }
   const link = () => {
     history.push({
       pathname: `/games/${contractName}/review`,
@@ -2122,6 +2303,18 @@ export const CollectionDetails = () => {
           </Details>
         </Row>
       </Modal>
+      <NFTStatsMadal
+        visible={showMyNFTModal}
+        data={NFTStatsMadalData}
+        description={description}
+        SpecificAttribute={SpecificAttribute}
+        RareAttribute={RareAttribute}
+      >
+        <CommentNFTButton className="flex flex-justify-content">
+          <div onClick={changeOne}>change one</div>
+          <div onClick={commentNFTOKButton}>OK</div>
+        </CommentNFTButton>
+      </NFTStatsMadal>
       <Dialog footer={null} onCancel={() => setPrompt(false)} visible={prompt} destroyOnClose closable={false}>
         <ContentBox>
           <div className="title">Prompt</div>
@@ -2305,12 +2498,12 @@ export const CollectionDetails = () => {
                 ? DataAll.map((item: any, index: any) => (
                     <Card
                       key={index}
-                      nftId={'1'}
+                      nftId={item.token_id}
                       onLend={() => lendNftClick(item)}
                       onSend={() => handleSendNft(item)}
                       onClick={() => handleShowModal(item)}
                       name={item.metadata?.name}
-                      img={item.metadata?.image}
+                      img={item.metadata?.image || item.metadata?.imageUrl}
                       isLending={item.isLending ? item.isLending : 0}
                       contract_type={item.contract_type ? item.contract_type : item.standard}
                       pay_type={item.pay_type}
@@ -2365,7 +2558,35 @@ export const CollectionDetails = () => {
               ) : (
                 ''
               )}
+              {Object.keys(commentNFTItem).length ? (
+                <div className="CommentNFTBox">
+                  <img src={commentNFTItem.imageUrl} />
+                  <div className="CommentNFTname">{commentNFTItem.name}</div>
+                </div>
+              ) : (
+                <img className="addCommentNFT cursor" src={add} onClick={() => setShowMyNFTBox(!showMyNFTBox)} />
+              )}
             </div>
+            {showMyNFTBox ? (
+              <MyNFTBox className="flex wrap">
+                {myNFTdata.length
+                  ? myNFTdata.map((item: any, index: any) => (
+                      <MyNFTCard
+                        key={index}
+                        nftId={item.token_id}
+                        onClick={() => handleMyNFTdata(item)}
+                        name={item.metadata?.name}
+                        img={item.metadata?.image || item.metadata?.imageUrl}
+                        contract_type={item.contract_type}
+                        pay_type={item.pay_type}
+                        item={item}
+                      />
+                    ))
+                  : ''}
+              </MyNFTBox>
+            ) : (
+              ''
+            )}
             <div
               className="button"
               onClick={() => (!userScoreinfo[0]?.renew && starScore ? setscoreDialog(true) : submit())}
@@ -2392,6 +2613,14 @@ export const CollectionDetails = () => {
                       </div>
                       <div className="time">{getTime(item.datetime)}</div>
                     </div>
+                    {item.NFTData ? (
+                      <div className="CommentNFTBox" onClick={() => showNFTStatsMadal(JSON.parse(item.NFTData))}>
+                        <img src={JSON.parse(item.NFTData)?.image || JSON.parse(item.NFTData)?.imageUrl} />
+                        <div className="CommentNFTname">{JSON.parse(item.NFTData)?.name}</div>
+                      </div>
+                    ) : (
+                      ''
+                    )}
                     <div className="CommentContent">{item.context}</div>
                     {item.quote ? (
                       <div className="forward">

@@ -15,6 +15,7 @@ import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { Img } from './Img'
 import { Dialog } from './Dialog'
+import { NFTStatsMadal } from './NFTStatsMadal'
 import defaultImg from '../assets/default.png'
 import tabsIconNFT from '../assets/icon_NFT.svg'
 import tabsIconComment from '../assets/icon_comment.svg'
@@ -281,6 +282,23 @@ const CommentsBox = styled.div`
         line-height: 96px;
       }
     }
+    .CommentNFTBox {
+      margin: 16px 0;
+      img {
+        width: 120px;
+        height: 120px;
+        cursor: pointer;
+      }
+      .CommentNFTname {
+        width: 120px;
+        height: 20px;
+        font-size: 14px;
+        background-color: rgba(0, 0, 0, 0.1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
     .CommentContent {
       color: #333333;
       margin: 39px 0 24px 0;
@@ -461,6 +479,22 @@ const FakeButtons = styled.div`
     }
   }
 `
+const Close = styled.div`
+  margin: auto;
+  margin-top: 20px;
+  width: 160px;
+  height: 40px;
+  border: 1px solid #35caa9;
+  border-radius: 20px;
+  color: #35caa9;
+  text-align: center;
+  line-height: 40px;
+  cursor: pointer;
+  &:hover {
+    background: #35caa9;
+    color: #fff;
+  }
+`
 const MyNftBox = styled.div``
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -484,6 +518,7 @@ export const UserPage = () => {
   const [showreward, setshowreward] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
   const [lending, setLending] = useState(false)
+  const [showMyNFTModal, setShowMyNFTModal] = useState(false)
   const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
@@ -495,11 +530,15 @@ export const UserPage = () => {
   const [reviewAllData, setReviewAllData] = useState([] as any)
   const [myReview, setMyRevie] = useState([] as any)
   const [myNFT, setMyNFT] = useState([] as any)
+  const [RareAttribute, setRareAttribute] = useState([] as any)
+  const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
+  const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [showTabs, setShowTabs] = useState('Comments')
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [replayWho, setreplayWho] = useState('')
   const [replayValue, setreplayValue] = useState('')
+  const [description, setDescription] = useState('')
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const RewardContract = useRewardContract()
@@ -525,6 +564,13 @@ export const UserPage = () => {
     getNftData()
     getReviewData()
   }, [username, refreshBy])
+  useEffect(() => {
+    const myReviewData = rewardinfo.filter((item: any) => {
+      return item.fromaddress === useraddress
+    })
+    console.log(myReviewData)
+    console.log(myReview)
+  }, [reviewAllData, myReview])
   const fetchData = (data: any[], contract: any, chian: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -838,6 +884,21 @@ export const UserPage = () => {
     setUploadImg(false)
     setrefreshBy(!refreshBy)
   }
+  const showNFTStatsMadal = (item: any) => {
+    setNFTStatsMadalData(item)
+    if (item.description) {
+      setDescription(item.description)
+    } else {
+      setDescription(item.collection?.description)
+    }
+    if (item.attributes) {
+      setRareAttribute(item.attributes)
+    } else {
+      setSpecificAttribute(item.properties)
+      setRareAttribute(item.stats || item.levels)
+    }
+    setShowMyNFTModal(true)
+  }
   const UploadImgChange = async (e: any) => {
     // const Img = e.target.value
     const Img = e.target.files[0]
@@ -904,6 +965,15 @@ export const UserPage = () => {
   }, [])
   return (
     <UserBox>
+      <NFTStatsMadal
+        visible={showMyNFTModal}
+        data={NFTStatsMadalData}
+        description={description}
+        SpecificAttribute={SpecificAttribute}
+        RareAttribute={RareAttribute}
+      >
+        <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
+      </NFTStatsMadal>
       <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Avatar</div>
@@ -1017,6 +1087,14 @@ export const UserPage = () => {
                         <div className="contractName">{item.contractName}</div>
                         <div className="time">{getTime(item.datetime)}</div>
                       </div>
+                      {item.NFTData ? (
+                        <div className="CommentNFTBox" onClick={() => showNFTStatsMadal(JSON.parse(item.NFTData))}>
+                          <img src={JSON.parse(item.NFTData)?.image || JSON.parse(item.NFTData)?.imageUrl} />
+                          <div className="CommentNFTname">{JSON.parse(item.NFTData)?.name}</div>
+                        </div>
+                      ) : (
+                        ''
+                      )}
                       <div className="CommentContent">{item.context}</div>
                       {item.quote ? (
                         <div className="forward">
