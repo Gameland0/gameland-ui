@@ -50,6 +50,7 @@ import { NFTStatsMadal } from './NFTStatsMadal'
 import { ScoreStatistics } from './ScoreStatistics'
 import { Icon } from '../components/Icon'
 import { bschttp, polygonhttp, http } from './Store'
+import { Close } from './UserPage'
 import { ImgBox, Title, SpanLabel, Tips, Properties, StatsBox, Description, FakeButton, Details } from '../pages/Rent'
 import { getContract, fetchAbi, SendBox } from '../pages/Dashboard'
 import twitter from '../assets/icon_twitter.svg'
@@ -716,7 +717,7 @@ const NFTname = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
 `
-const MyNFTBox = styled.div`
+export const MyNFTBox = styled.div`
   width: 420px;
   min-height: 200px;
   @media screen and (min-width: 1440px) {
@@ -726,7 +727,7 @@ const MyNFTBox = styled.div`
     width: 462px;
   }
 `
-const CommentNFTButton = styled.div`
+export const CommentNFTButton = styled.div`
   margin-top: 20px;
   div {
     width: 160px;
@@ -849,7 +850,7 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
     </CardBox>
   )
 }
-const MyNFTCard: React.FC<MyNFTCardProps> = ({ img, name, onClick, contract_type, item }) => {
+export const MyNFTCard: React.FC<MyNFTCardProps> = ({ img, name, onClick, contract_type, item }) => {
   const { networkError } = useStore()
   const handleClick = () => {
     if (networkError) {
@@ -997,6 +998,7 @@ export const CollectionDetails = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [description, setDescription] = useState('')
   const [transactionId, setTransactionId] = useState('')
+  const [NFTStatsMadalType, setNFTStatsMadalType] = useState('')
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const [commentNFTItem, setCommentNFTItem] = useState({} as any)
@@ -1868,6 +1870,7 @@ export const CollectionDetails = () => {
       )
       // item.metadata = JSON.parse(data.data.metadata_json)
       setNFTStatsMadalData(data.data)
+      setNFTStatsMadalType('create')
       if (data.data.description) {
         setDescription(data.data.description)
       } else {
@@ -1886,6 +1889,7 @@ export const CollectionDetails = () => {
   }
   const showNFTStatsMadal = (item: any) => {
     setNFTStatsMadalData(item)
+    setNFTStatsMadalType('check')
     if (item.description) {
       setDescription(item.description)
     } else {
@@ -2310,10 +2314,14 @@ export const CollectionDetails = () => {
         SpecificAttribute={SpecificAttribute}
         RareAttribute={RareAttribute}
       >
-        <CommentNFTButton className="flex flex-justify-content">
-          <div onClick={changeOne}>change one</div>
-          <div onClick={commentNFTOKButton}>OK</div>
-        </CommentNFTButton>
+        {NFTStatsMadalType === 'create' ? (
+          <CommentNFTButton className="flex flex-justify-content">
+            <div onClick={changeOne}>change one</div>
+            <div onClick={commentNFTOKButton}>OK</div>
+          </CommentNFTButton>
+        ) : (
+          <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
+        )}
       </NFTStatsMadal>
       <Dialog footer={null} onCancel={() => setPrompt(false)} visible={prompt} destroyOnClose closable={false}>
         <ContentBox>

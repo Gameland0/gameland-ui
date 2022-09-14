@@ -19,6 +19,8 @@ import { NFTStatsMadal } from './NFTStatsMadal'
 import defaultImg from '../assets/default.png'
 import tabsIconNFT from '../assets/icon_NFT.svg'
 import tabsIconComment from '../assets/icon_comment.svg'
+import tabsIconPosts from '../assets/icon_post.svg'
+import integralIcon from '../assets/icon_coin.svg'
 import repost from '../assets/icon_repost.svg'
 import Reply from '../assets/icon_reply.svg'
 import likefalse from '../assets/icon_like_default.svg'
@@ -159,7 +161,7 @@ const UserBox = styled.div`
   }
 `
 const UserInfo = styled.div`
-  width: 1600px;
+  width: 84.5%;
   min-height: 757px;
   background: #ffffff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -170,6 +172,12 @@ const UserInfo = styled.div`
   .boxDivider {
     border: 1px solid #e5e5e5;
     margin: 0 64px;
+  }
+  @media screen and (max-width: 1440px) {
+    padding: 32px 36px;
+    .boxDivider {
+      margin: 0 40px;
+    }
   }
 `
 const InfoLeft = styled.div`
@@ -221,6 +229,36 @@ const InfoLeft = styled.div`
     }
     .Following {
       width: 90px;
+      .Icon {
+        width: 30px;
+        height: 30px;
+      }
+    }
+  }
+  @media screen and (max-width: 1440px) {
+    width: 180px;
+    .avatar {
+      width: 180px;
+      height: 180px;
+    }
+    .socialize {
+      img {
+        width: 30px;
+        height: 30px;
+      }
+    }
+    .followInfo {
+      font-size: 14px;
+      .quantity {
+        font-size: 18px;
+      }
+      .Following {
+        width: 65px;
+        .Icon {
+          width: 20px;
+          height: 20px;
+        }
+      }
     }
   }
 `
@@ -236,6 +274,7 @@ const InfoRight = styled.div`
       margin-left: 64px;
       text-align: right;
       padding: 13px 16px;
+      cursor: pointer;
       span {
         background: #a8e5fb;
         border-radius: 12px;
@@ -372,6 +411,53 @@ const CommentsBox = styled.div`
       }
     }
   }
+  @media screen and (max-width: 1440px) {
+    .CommentItem {
+      .userInfo {
+        .userImage {
+          width: 72px;
+          height: 72px;
+        }
+        .name {
+          line-height: 72px;
+        }
+        .contractName {
+          top: 18px;
+        }
+        .time {
+          top: 50px;
+          line-height: 72px;
+        }
+      }
+      .otherDetails {
+        div {
+          margin-right: 50px;
+        }
+        img {
+          width: 30px;
+          height: 30px;
+        }
+      }
+    }
+  }
+`
+const PostsBox = styled.div`
+  .WriteButton {
+    width: 150px;
+    height: 30px;
+    line-height: 30px;
+    margin: auto;
+    margin-top: 20px;
+    border: 1px solid #35caa9;
+    border-radius: 15px;
+    color: #35caa9;
+    font-size: 18px;
+    cursor: pointer;
+    &:hover {
+      background: #35caa9;
+      color: #fff;
+    }
+  }
 `
 const NFTsBox = styled.div`
   position: relative;
@@ -397,6 +483,9 @@ const CardBox = styled.div`
   border-radius: 1rem;
   overflow: hidden;
   transition: all 0.3s ease;
+  @media screen and (max-width: 1440px) {
+    width: 255px;
+  }
 `
 const Followes = styled.div`
   width: 150px;
@@ -472,14 +561,16 @@ const FakeButtons = styled.div`
     background: white;
     border: 1px solid var(--primary-color);
     margin-bottom: 8px;
-
     &:hover {
       background-color: #41acef;
       color: white;
     }
   }
+  @media screen and (max-width: 1440px) {
+    top: 300px;
+  }
 `
-const Close = styled.div`
+export const Close = styled.div`
   margin: auto;
   margin-top: 20px;
   width: 160px;
@@ -493,6 +584,18 @@ const Close = styled.div`
   &:hover {
     background: #35caa9;
     color: #fff;
+  }
+`
+const PostsItem = styled.div`
+  position: relative;
+  font-size: 28px;
+  margin-bottom: 20px;
+  .gameName {
+    position: absolute;
+    top: -5px;
+    left: 2px;
+    font-size: 14px;
+    color: #9a9191;
   }
 `
 const MyNftBox = styled.div``
@@ -526,6 +629,7 @@ export const UserPage = () => {
   const [userinfo, setUserinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [userPosts, setuserPosts] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [reviewAllData, setReviewAllData] = useState([] as any)
   const [myReview, setMyRevie] = useState([] as any)
@@ -533,8 +637,9 @@ export const UserPage = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
-  const [showTabs, setShowTabs] = useState('Comments')
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
+  const [totaPoints, setTotaPoints] = useState(0)
+  const [showTabs, setShowTabs] = useState('Posts')
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [replayWho, setreplayWho] = useState('')
   const [replayValue, setreplayValue] = useState('')
@@ -565,12 +670,28 @@ export const UserPage = () => {
     getReviewData()
   }, [username, refreshBy])
   useEffect(() => {
-    const myReviewData = rewardinfo.filter((item: any) => {
-      return item.fromaddress === useraddress
+    const RewardTimeArr = rewardinfo
+      .filter((item: any) => {
+        return item.fromaddress === useraddress
+      })
+      .map((ele: any) => {
+        return ele.createdAt.slice(0, 10)
+      })
+    const RewardIntegral = Integral(RewardTimeArr, 5)
+    const ReplayTimeData = reviewAllData
+      .filter((item: any) => {
+        return item.useraddress === useraddress && item.SuperiorIndex
+      })
+      .map((ele: any) => {
+        return ele.createdAt.slice(0, 10)
+      })
+    const ReplayIntegral = Integral(ReplayTimeData, 1)
+    const ReviewTimeData = myReview.map((ele: any) => {
+      return ele.createdAt.slice(0, 10)
     })
-    console.log(myReviewData)
-    console.log(myReview)
-  }, [reviewAllData, myReview])
+    const ReviewIntegral = Integral(ReviewTimeData, 2)
+    setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral)
+  }, [reviewAllData, rewardinfo, myReview])
   const fetchData = (data: any[], contract: any, chian: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -615,6 +736,7 @@ export const UserPage = () => {
         pathname: `/createUser`
       })
     }
+    bschttp.get(`v0/posts`).then((vals) => setuserPosts(vals.data.data))
     bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     const BscLike = bschttp.get(`/v0/review_like/${account}`)
@@ -650,7 +772,7 @@ export const UserPage = () => {
       setReviewAllData(reviewData)
       setrewardinfo([...vals[2].data.data, ...vals[3].data.data])
       const myReviewData = reviewData.filter((item) => {
-        return item.useraddress === useraddress
+        return item.useraddress === useraddress && !item.SuperiorIndex
       })
       setMyRevie(myReviewData)
     })
@@ -693,6 +815,20 @@ export const UserPage = () => {
     })
     if (!data.length) return 0
     return data
+  }
+  const Integral = (arr: any, Base: number) => {
+    let total = 0
+    Array.from(new Set(arr)).map((item: any) => {
+      const filterArr = arr.filter((ele: any) => {
+        return ele === item
+      })
+      if (filterArr.length > 5) {
+        total += 5 * Base
+      } else {
+        total += filterArr.length * Base
+      }
+    })
+    return total
   }
   const getFollowe = (type: string) => {
     if (type === 'myFollowe') {
@@ -899,6 +1035,10 @@ export const UserPage = () => {
     }
     setShowMyNFTModal(true)
   }
+  const ReplayClick = (index: any) => {
+    setshowReplayWindow(showReplayWindow === index ? -1 : index)
+    setreplayWho(showReplayWindow === index ? '' : replayWho)
+  }
   const UploadImgChange = async (e: any) => {
     // const Img = e.target.value
     const Img = e.target.files[0]
@@ -923,6 +1063,11 @@ export const UserPage = () => {
     //     // console.log(res)
     //     createTransaction(res, type)
     //   })
+  }
+  const toWritePosts = (item: any) => {
+    history.push({
+      pathname: `/WritePosts`
+    })
   }
   const createTransaction = async (datas: any, type: string) => {
     try {
@@ -963,6 +1108,7 @@ export const UserPage = () => {
     const val = ele.currentTarget.value
     setreplayValue(val)
   }, [])
+
   return (
     <UserBox>
       <NFTStatsMadal
@@ -1027,7 +1173,7 @@ export const UserPage = () => {
       <UserInfo className="flex">
         <InfoLeft>
           <img
-            src={userinfo.image}
+            src={userinfo.image || defaultImg}
             className={useraddress.toLowerCase() === account?.toLowerCase() ? 'avatar cursor' : 'avatar'}
             onClick={SetAvatar}
           />
@@ -1055,9 +1201,9 @@ export const UserPage = () => {
             </div>
           </div>
           <div className="followInfo flex">
-            <div className="Following">
-              <div className="quantity text-center">0</div>
-              <div className="text-center">G Point</div>
+            <div className="Following quantity flex flex-center">
+              {totaPoints}&nbsp;
+              <img className="Icon" src={integralIcon} />
             </div>
             <div className="delimiter"></div>
           </div>
@@ -1065,13 +1211,17 @@ export const UserPage = () => {
         <div className="boxDivider"></div>
         <InfoRight>
           <div className="Tabs flex">
+            <div className={showTabs === 'Posts' ? 'blueBg' : ''} onClick={() => cutoverTabs('Posts')}>
+              <img src={tabsIconPosts} />
+              &nbsp;&nbsp;Posts
+            </div>
             <div className={showTabs === 'Comments' ? 'blueBg' : ''} onClick={() => cutoverTabs('Comments')}>
-              <img src={tabsIconComment} alt="" />
+              <img src={tabsIconComment} />
               &nbsp;&nbsp;Comments
               <span>{myReview.length}</span>
             </div>
             <div className={showTabs === 'NFTs' ? 'blueBg' : ''} onClick={() => cutoverTabs('NFTs')}>
-              <img src={tabsIconNFT} alt="" />
+              <img src={tabsIconNFT} />
               &nbsp;&nbsp;NFTs
             </div>
           </div>
@@ -1116,7 +1266,7 @@ export const UserPage = () => {
                         <div className="Reply flex flex-v-center">
                           <img
                             src={Reply}
-                            onClick={() => setshowReplayWindow(showReplayWindow === index ? -1 : index)}
+                            onClick={() => ReplayClick(index)}
                             className={item.useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
                           />
                           <div className="quantity">{item.reviews || 0}</div>
@@ -1213,6 +1363,30 @@ export const UserPage = () => {
                 <div>My Renting</div>
               </TabPaneBox>
             </MyTabs>
+          ) : (
+            ''
+          )}
+          {showTabs === 'Posts' ? (
+            <PostsBox>
+              {userPosts && userPosts.length ? (
+                userPosts.map((item: any, index: any) => (
+                  <PostsItem key={index} className="flex flex-h-between">
+                    <div>{item.title}</div>
+                    <div className="gameName">DreamCard</div>
+                    <div>{item.createdAt}</div>
+                  </PostsItem>
+                ))
+              ) : (
+                <div>no content yet</div>
+              )}
+              {account === useraddress ? (
+                <div className="WriteButton text-center" onClick={toWritePosts}>
+                  Write
+                </div>
+              ) : (
+                ''
+              )}
+            </PostsBox>
           ) : (
             ''
           )}

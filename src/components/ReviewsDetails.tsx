@@ -5,6 +5,7 @@ import { useHistory } from 'react-router-dom'
 import { useLocation, useParams } from 'react-router-dom'
 import styled from 'styled-components'
 import { Upload, message } from 'antd'
+import axios from 'axios'
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadChangeParam } from 'antd/es/upload'
@@ -13,12 +14,14 @@ import { fetchReceipt } from '../utils'
 import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
 import { toastify } from './Toastify'
 import { Dialog } from '../components/Dialog'
+import { NFTStatsMadal } from './NFTStatsMadal'
 import { bschttp, polygonhttp } from './Store'
 import { compare } from '../pages/Games'
 import { compareTime } from './CollectionDetails'
-import { getTime, getLabelArr } from './CollectionDetails'
+import { getTime, getLabelArr, CommentNFTButton, MyNFTBox, MyNFTCard } from './CollectionDetails'
 import { handleClick } from './Header'
 import { SendBox } from '../pages/Dashboard'
+import { Close } from './UserPage'
 import arrow from '../assets/icon_select.svg'
 import loadding from '../assets/loading.svg'
 import defaultImg from '../assets/default.png'
@@ -31,6 +34,7 @@ import liketrue from '../assets/icon_like_selected.svg'
 import reward from '../assets/icon_reward.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
+import add from '../assets/icon_add.png'
 import key from '../constants/arweave-keyfile.json'
 import Arweave from 'arweave'
 
@@ -209,6 +213,23 @@ const DetailsBox = styled.div`
             font-size: 24px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #d0d0d0;
+          }
+        }
+        .CommentNFTBox {
+          margin: 16px 0;
+          img {
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+          }
+          .CommentNFTname {
+            width: 120px;
+            height: 20px;
+            font-size: 14px;
+            background-color: rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
         }
         .CommentContent {
@@ -473,6 +494,7 @@ export const ReviewsDetails = () => {
   const [showreward, setshowreward] = useState(false)
   // const [rewardAddress, setrewardAddress] = useState('')
   const [rewardQuantity, setrewardQuantity] = useState('')
+  const [description, setDescription] = useState('')
   const [rewardoptions, setrewardoptions] = useState(false)
   const [rewardItem, setrewardItem] = useState({} as any)
   const [games, setGames] = useState([] as any)
@@ -481,6 +503,7 @@ export const ReviewsDetails = () => {
   const [textareaValue, settextareaValue] = useState('')
   const [replayValue, setreplayValue] = useState('')
   const [replayWho, setreplayWho] = useState('')
+  const [NFTStatsMadalType, setNFTStatsMadalType] = useState('')
   const [userinfo, setUserinfo] = useState([] as any)
   const [userScoreinfo, setUserScoreinfo] = useState([] as any)
   const [scoreinfo, setScoreinfo] = useState([] as any)
@@ -490,6 +513,9 @@ export const ReviewsDetails = () => {
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
+  const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
+  const [RareAttribute, setRareAttribute] = useState([] as any)
+  const [myNFTdata, setMyNFTdata] = useState([] as any)
   const [showSetUp, setshowSetUp] = useState(false)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [scoreDialog, setscoreDialog] = useState(false)
@@ -497,10 +523,14 @@ export const ReviewsDetails = () => {
   const [UploadImg, setUploadImg] = useState(false)
   const [newUserName, setNewUserName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showMyNFTBox, setShowMyNFTBox] = useState(false)
+  const [showMyNFTModal, setShowMyNFTModal] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
   const [imageUrl, setImageUrl] = useState<string>()
   const [lending, setLending] = useState(false)
   const [forward, setForward] = useState({} as any)
+  const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
+  const [commentNFTItem, setCommentNFTItem] = useState({} as any)
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -928,6 +958,21 @@ export const ReviewsDetails = () => {
       })
     }
   }
+  const showNFTStatsMadal = (item: any) => {
+    setNFTStatsMadalData(item)
+    if (item.description) {
+      setDescription(item.description)
+    } else {
+      setDescription(item.collection?.description)
+    }
+    if (item.attributes) {
+      setRareAttribute(item.attributes)
+    } else {
+      setSpecificAttribute(item.properties)
+      setRareAttribute(item.stats || item.levels)
+    }
+    setShowMyNFTModal(true)
+  }
   const gameLink = (item: any) => {
     history.push({
       pathname: `/games/${item.contractName.replace(/ /g, '')}`,
@@ -1009,9 +1054,31 @@ export const ReviewsDetails = () => {
     setUploadImg(false)
     setrefreshBy(!refreshBy)
   }
-
+  const UserPage = (item: any) => {
+    let username
+    if (item.username) {
+      username = item.username
+    } else {
+      username = `user #${item.useraddress}`
+    }
+    history.push({
+      pathname: `/user/${username.replace(/ /g, '')}`,
+      state: {
+        useraddress: item.useraddress
+      }
+    })
+  }
   return (
     <div className="container">
+      <NFTStatsMadal
+        visible={showMyNFTModal}
+        data={NFTStatsMadalData}
+        description={description}
+        SpecificAttribute={SpecificAttribute}
+        RareAttribute={RareAttribute}
+      >
+        <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
+      </NFTStatsMadal>
       <Dialog footer={null} onCancel={closeShowSetUp} visible={showSetUp} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Up</div>
@@ -1110,7 +1177,7 @@ export const ReviewsDetails = () => {
           <div className="previous cursor" onClick={link}>
             &lt;&lt; previous
           </div>
-          <div className="user">
+          <div className="user" onClick={() => UserPage(userinfo)}>
             <img className="userImage" src={userinfo.image || defaultImg} onClick={() => setUploadImg(true)} />
             <div className="userName" onClick={() => setUserSettings(true)}>
               {userinfo.username}
@@ -1154,7 +1221,7 @@ export const ReviewsDetails = () => {
             {revieweinfo.length
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
-                    <div className="userInfo">
+                    <div className="userInfo" onClick={() => UserPage(item)}>
                       <img src={item.userimage || defaultImg} className="userImage" alt="" />
                       <div className="starName">
                         <div className="name">{item.username}</div>
@@ -1168,6 +1235,14 @@ export const ReviewsDetails = () => {
                       </div>
                       <div className="time">{getTime(item.datetime)}</div>
                     </div>
+                    {item.NFTData ? (
+                      <div className="CommentNFTBox" onClick={() => showNFTStatsMadal(JSON.parse(item.NFTData))}>
+                        <img src={JSON.parse(item.NFTData)?.image || JSON.parse(item.NFTData)?.imageUrl} />
+                        <div className="CommentNFTname">{JSON.parse(item.NFTData)?.name}</div>
+                      </div>
+                    ) : (
+                      ''
+                    )}
                     <div className="CommentContent">{item.context}</div>
                     {item.quote ? (
                       <div className="forward">

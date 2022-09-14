@@ -17,6 +17,7 @@ import styled from 'styled-components'
 import { ToastContainer } from '../components/Toastify'
 // import { Alert } from 'antd'
 import { Games } from './Games'
+import { WritePosts } from '../components/WritePosts'
 
 const browserHistory = createBrowserHistory()
 const Wrap = styled.div`
@@ -81,6 +82,7 @@ function App() {
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
             <Route exact path="/user/:username" component={UserPage} />
             <Route exact path="/createUser" component={Register} />
+            <Route exact path="/WritePosts" component={WritePosts} />
           </Switch>
           <ToastContainer />
         </Wrap>
