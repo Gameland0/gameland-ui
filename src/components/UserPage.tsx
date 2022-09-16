@@ -3,6 +3,7 @@ import axios from 'axios'
 import { parseEther } from '@ethersproject/units'
 import styled from 'styled-components'
 import { Tabs } from 'antd'
+import ReactDOM from 'react-dom'
 import { useLocation, useParams } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
@@ -13,6 +14,7 @@ import { formatting, fixDigitalId, fetchReceipt } from '../utils'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
+import { MyRenting } from '../pages/Dashboard/MyRenting'
 import { Img } from './Img'
 import { Dialog } from './Dialog'
 import { NFTStatsMadal } from './NFTStatsMadal'
@@ -23,8 +25,10 @@ import tabsIconPosts from '../assets/icon_post.svg'
 import integralIcon from '../assets/icon_coin.svg'
 import repost from '../assets/icon_repost.svg'
 import Reply from '../assets/icon_reply.svg'
-import likefalse from '../assets/icon_like_default.svg'
-import liketrue from '../assets/icon_like_selected.svg'
+import collectfalse from '../assets/icon_collect_default_comments.svg'
+import collecttrue from '../assets/icon_collect_click_comments.svg'
+import likefalse from '../assets/icon_like_default_comments.svg'
+import liketrue from '../assets/icon_like_click_comments.svg'
 import reward from '../assets/icon_reward.svg'
 import arrow from '../assets/icon_select.svg'
 import loadding from '../assets/loading.svg'
@@ -149,6 +153,51 @@ const FolloweButton: React.FC<FolloweProps> = ({ Followeitem, onFollowe, onUnFol
   )
 }
 const UserBox = styled.div`
+  .replyWindow {
+    font-size: 24px;
+    margin: 20px 0 0 36px;
+    .replyDetails {
+      margin: 0 0 24px 0;
+      .userImage {
+        width: 72px;
+        height: 72px;
+        border-radius: 36px;
+      }
+      .replyContent {
+        margin-top: 10px;
+      }
+    }
+    .replayInput {
+      display: flex;
+      width: 95%;
+      margin-top: 48px;
+      .replayWho {
+        min-width: 20px;
+      }
+      textarea {
+        width: 90%;
+        height: 80px;
+        resize: none;
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        outline: 0;
+        font-size: 24px;
+        padding-left: 10px;
+      }
+    }
+    .sendReplay {
+      width: 120px;
+      height: 40px;
+      background: #35caa9;
+      border-radius: 40px;
+      text-align: center;
+      line-height: 40px;
+      color: #fff;
+      font-size: 24px;
+      margin: 24px 0 0 72%;
+      cursor: pointer;
+    }
+  }
   .topBackground {
     width: 100%;
     height: 400px;
@@ -263,7 +312,7 @@ const InfoLeft = styled.div`
   }
 `
 const InfoRight = styled.div`
-  width: 1102px;
+  width: 75%;
   .Tabs {
     height: 50px;
     justify-content: flex-end;
@@ -363,51 +412,6 @@ const CommentsBox = styled.div`
           margin-bottom: 10px;
           font-size: 16px;
         }
-      }
-    }
-    .replyWindow {
-      font-size: 24px;
-      margin: 20px 0 0 36px;
-      .replyDetails {
-        margin: 0 0 24px 0;
-        .userImage {
-          width: 72px;
-          height: 72px;
-          border-radius: 36px;
-        }
-        .replyContent {
-          margin-top: 10px;
-        }
-      }
-      .replayInput {
-        display: flex;
-        width: 95%;
-        margin-top: 48px;
-        .replayWho {
-          min-width: 20px;
-        }
-        textarea {
-          width: 90%;
-          height: 80px;
-          resize: none;
-          border: 1px solid #e5e5e5;
-          border-radius: 12px;
-          outline: 0;
-          font-size: 24px;
-          padding-left: 10px;
-        }
-      }
-      .sendReplay {
-        width: 120px;
-        height: 40px;
-        background: #35caa9;
-        border-radius: 40px;
-        text-align: center;
-        line-height: 40px;
-        color: #fff;
-        font-size: 24px;
-        margin: 24px 0 0 72%;
-        cursor: pointer;
       }
     }
   }
@@ -592,10 +596,100 @@ const PostsItem = styled.div`
   margin-bottom: 20px;
   .gameName {
     position: absolute;
-    top: -5px;
+    top: -7px;
     left: 2px;
     font-size: 14px;
     color: #9a9191;
+  }
+`
+const PostsContent = styled.div`
+  position: relative;
+  width: 100%;
+  min-height: 772px;
+  padding: 24px 48px;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  font-size: 24px;
+  .user {
+    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+    color: #333333;
+    img {
+      border-radius: 10px;
+      width: 96px;
+      height: 96px;
+    }
+  }
+  .gameName {
+    position: absolute;
+    top: 24px;
+    right: 48px;
+    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+  }
+  .time {
+    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+    color: #d0d0d0;
+    position: absolute;
+    top: 64px;
+    right: 48px;
+  }
+  .postsTitle {
+    margin: 32px 0;
+    font-size: 28px;
+    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+    font-weight: bold;
+    color: #333333;
+  }
+  .loadding {
+    margin-left: 450px;
+  }
+  .postsContent {
+    div {
+      font-size: 24px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      color: #333333;
+      word-wrap: break-word;
+      margin-bottom: 32px;
+    }
+    img {
+      width: 306px;
+      height: 306px;
+    }
+  }
+  .otherDetails {
+    margin-top: 24px;
+    position: relative;
+    div {
+      margin-right: 64px;
+      img {
+        width: 40px;
+        height: 40px;
+        margin-right: 8px;
+      }
+      .quantity {
+        font-size: 16px;
+        font-family: DIN-Medium, DIN;
+        color: #666666;
+      }
+    }
+    .reward {
+      margin-left: 16px;
+      position: relative;
+      .rewardTotal {
+        width: 100px;
+        flex-wrap: wrap;
+        position: absolute;
+        top: -20px;
+        left: 50px;
+        margin: 0;
+        p {
+          width: 200px;
+          margin-bottom: 0px;
+        }
+      }
+    }
+  }
+  @media screen and (max-width: 1440px) {
+    min-height: 600px;
   }
 `
 const MyNftBox = styled.div``
@@ -614,6 +708,13 @@ const getHttp = (chain: any) => {
     return polygonhttp
   }
 }
+const Uint8ArrayToString = (fileData: any) => {
+  let dataString = ''
+  for (let i = 0; i < fileData.length; i++) {
+    dataString += String.fromCharCode(fileData[i])
+  }
+  return dataString
+}
 export const UserPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const [UploadImg, setUploadImg] = useState(false)
@@ -622,12 +723,19 @@ export const UserPage = () => {
   const [rewardoptions, setrewardoptions] = useState(false)
   const [lending, setLending] = useState(false)
   const [showMyNFTModal, setShowMyNFTModal] = useState(false)
+  const [showPostsContent, setShowPostsContent] = useState(false)
+  const [showPostsReplayWindow, setShowPostsReplayWindow] = useState(false)
   const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
+  const [postsItem, setPostsItem] = useState({} as any)
+  const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
+  const [PostsLike, setPostsLike] = useState([] as any)
+  const [postsRewardData, setPostsRewardData] = useState([] as any)
+  const [postsReplayData, setPostsReplayData] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
   const [userPosts, setuserPosts] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
@@ -636,10 +744,10 @@ export const UserPage = () => {
   const [myNFT, setMyNFT] = useState([] as any)
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
-  const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [showTabs, setShowTabs] = useState('Posts')
+  const [RewarType, setRewarType] = useState('CommentsRewar')
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [replayWho, setreplayWho] = useState('')
   const [replayValue, setreplayValue] = useState('')
@@ -736,9 +844,17 @@ export const UserPage = () => {
         pathname: `/createUser`
       })
     }
-    bschttp.get(`v0/posts`).then((vals) => setuserPosts(vals.data.data))
+    bschttp.get(`v0/posts`).then((vals) => {
+      const data = vals.data.data.filter((item: any) => {
+        return item.useraddress === useraddress
+      })
+      setuserPosts(data)
+    })
     bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
+    bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
+    bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
+    bschttp.get(`v0/posts_reply`).then((vals) => setPostsReplayData(vals.data.data))
     const BscLike = bschttp.get(`/v0/review_like/${account}`)
     const polygonLike = polygonhttp.get(`/v0/review_like/${account}`)
     Promise.all([BscLike, polygonLike]).then((vals) => {
@@ -855,10 +971,17 @@ export const UserPage = () => {
   }
   const cutoverTabs = (name: any) => {
     setShowTabs(name)
+    setShowPostsContent(false)
   }
   const getReplayData = (id: any) => {
     const data = reviewAllData.filter((ele: any) => {
       return ele.SuperiorIndex === id
+    })
+    return data
+  }
+  const getPostsReplayData = (id: any) => {
+    const data = postsReplayData.filter((ele: any) => {
+      return ele.reviewid === id
     })
     return data
   }
@@ -889,6 +1012,109 @@ export const UserPage = () => {
       const res: any = await getHttp(item.chain).post(`/v0/review_like`, params)
       if (res.data.code === 1) {
         updateLikeTotal(item, 'add')
+      } else {
+        throw res.message || res.data.message
+      }
+    }
+  }
+  const handlePostsOtherDetails = (type: string) => {
+    if (type === 'collectQuantity') {
+      const quantity = PostsLike.filter((item: any) => {
+        return item.collect === postsItem.id
+      })
+      return quantity.length
+    }
+    if (type === 'likeQuantity') {
+      const quantity = PostsLike.filter((item: any) => {
+        return item.reviewid === postsItem.id
+      })
+      return quantity.length
+    }
+    if (type === 'isLike') {
+      const quantity = PostsLike.filter((item: any) => {
+        return item.useraddress === account && item.reviewid === postsItem.id
+      })
+      return quantity
+    }
+    if (type === 'isCollect') {
+      const quantity = PostsLike.filter((item: any) => {
+        return item.useraddress === account && item.collect === postsItem.id
+      })
+      return quantity
+    }
+    if (type === 'BNBTotal') {
+      const data = postsRewardData.filter((item: any) => {
+        return item.reviewid === postsItem.id && item.paytype === 'BNB'
+      })
+      let Total = 0
+      data.map((item: any) => {
+        Total = Total + item.amount
+      })
+      return Total
+    }
+    if (type === 'MATICTotal') {
+      const data = postsRewardData.filter((item: any) => {
+        return item.reviewid === postsItem.id && item.paytype === 'MATIC'
+      })
+      let Total = 0
+      data.map((item: any) => {
+        Total = Total + item.amount
+      })
+      return Total
+    }
+    if (type === 'replayQuantity') {
+      const quantity = postsReplayData.filter((item: any) => {
+        return item.reviewid === postsItem.id
+      })
+      return quantity.length
+    }
+    return 0
+  }
+  const postsLike = async () => {
+    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (handlePostsOtherDetails('isLike').length) {
+      const data = handlePostsOtherDetails('isLike')
+      const res: any = await bschttp.delete(`v0/posts_like/${data[0].id}`)
+      if (res.data.code === 1) {
+        setrefreshBy(!refreshBy)
+        toastify.success('succeed')
+      } else {
+        throw res.message || res.data.message
+      }
+    } else {
+      const params = {
+        useraddress: account,
+        reviewid: postsItem.id
+      }
+      const res: any = await bschttp.post(`v0/posts_like`, params)
+      if (res.data.code === 1) {
+        setrefreshBy(!refreshBy)
+        toastify.success('succeed')
+      } else {
+        throw res.message || res.data.message
+      }
+    }
+  }
+  const postsCollect = async () => {
+    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (handlePostsOtherDetails('isCollect').length) {
+      const data = handlePostsOtherDetails('isCollect')
+      const res: any = await bschttp.delete(`v0/posts_like/${data[0].id}`)
+      if (res.data.code === 1) {
+        setrefreshBy(!refreshBy)
+        toastify.success('succeed')
+      } else {
+        throw res.message || res.data.message
+      }
+    } else {
+      const params = {
+        useraddress: account,
+        collect: postsItem.id
+      }
+      const res: any = await bschttp.post(`v0/posts_like`, params)
+      if (res.data.code === 1) {
+        setrefreshBy(!refreshBy)
+        toastify.success('succeed')
       } else {
         throw res.message || res.data.message
       }
@@ -941,6 +1167,12 @@ export const UserPage = () => {
   const handleSendNft = async (item: any) => {
     console.log('send')
   }
+  const showCommentsRewarDialog = (item: any) => {
+    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    setshowreward(true)
+    setRewarType('CommentsRewar')
+    setrewardItem(item)
+  }
   const sendRewar = async () => {
     if (!rewardQuantity || !library) return
     setLending(true)
@@ -962,6 +1194,47 @@ export const UserPage = () => {
         paytype: rewardSelection
       }
       const res: any = await getHttp(rewardItem.chain).post(`/v0/review_reward/`, params)
+      if (res.data.code === 1) {
+        toastify.success('succeed')
+        setLending(false)
+        setshowreward(false)
+        setrefreshBy(!refreshBy)
+      } else {
+        setLending(false)
+        throw res.message || res.data.message
+      }
+    } catch (error: any) {
+      setLending(false)
+      throw error.message || error.data.message
+    }
+  }
+  const showPostsRewarDialog = () => {
+    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    setshowreward(true)
+    setRewarType('PostsRewar')
+    setrewardItem(postsItem)
+  }
+  const postsRewar = async () => {
+    if (!rewardQuantity || !library) return
+    setLending(true)
+    try {
+      const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
+        value: parseEther(rewardQuantity)
+      })
+      const receipt = await fetchReceipt(rented.hash, library)
+      const { status } = receipt
+      if (!status) {
+        throw Error('Failed to rent.')
+      }
+      const params = {
+        reviewid: rewardItem.id,
+        toaddress: rewardItem.useraddress,
+        fromaddress: account,
+        datetime: new Date().toJSON(),
+        amount: rewardQuantity,
+        paytype: rewardSelection
+      }
+      const res: any = await bschttp.post(`/v0/posts_reward/`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
         setLending(false)
@@ -1003,6 +1276,30 @@ export const UserPage = () => {
       updateReplayTotal(item)
     }
   }
+  const sendPostsReplay = async () => {
+    if (!replayValue) return
+    if (useraddress.toLowerCase() === account?.toLowerCase()) {
+      if (!replayWho) return
+    }
+    let text
+    if (replayWho) {
+      text = replayWho + ':' + replayValue
+    } else {
+      text = replayValue
+    }
+    const params = {
+      useraddress: account,
+      reviewid: postsItem.id,
+      username: userinfo.username,
+      context: text
+    }
+    const res: any = await bschttp.post(`/v0/posts_reply`, params)
+    if (res.data.code === 1) {
+      setreplayValue('')
+      setrefreshBy(!refreshBy)
+      toastify.success('succeed')
+    }
+  }
   const updateReplayTotal = async (item: any) => {
     const total = item.reviews + 1
     const params = {
@@ -1038,6 +1335,9 @@ export const UserPage = () => {
   const ReplayClick = (index: any) => {
     setshowReplayWindow(showReplayWindow === index ? -1 : index)
     setreplayWho(showReplayWindow === index ? '' : replayWho)
+  }
+  const postsReplayClick = () => {
+    setShowPostsReplayWindow(!showPostsReplayWindow)
   }
   const UploadImgChange = async (e: any) => {
     // const Img = e.target.value
@@ -1099,6 +1399,24 @@ export const UserPage = () => {
     } catch (err: any) {
       toastify.error(err)
     }
+  }
+  const PostsItemClick = async (item: any) => {
+    setPostsItem(item)
+    setShowPostsContent(true)
+    setLending(true)
+    arweave.transactions.get(item.link).then((data) => {
+      const json = JSON.parse(Uint8ArrayToString(data.data))
+      // console.log(json.content)
+      const Dom = document.createElement('div')
+      Dom.innerHTML = json.content
+      document.getElementById('postsContent')?.appendChild(Dom)
+      setLending(false)
+    })
+    if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
+    const params = {
+      view: item.view + 1
+    }
+    const res: any = await bschttp.put(`/v0/posts/${item.id}`, params)
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -1163,7 +1481,10 @@ export const UserPage = () => {
           ) : (
             ''
           )}
-          <div className={rewardQuantity ? 'button ture' : 'button false'} onClick={sendRewar}>
+          <div
+            className={rewardQuantity ? 'button ture' : 'button false'}
+            onClick={RewarType === 'CommentsRewar' ? sendRewar : postsRewar}
+          >
             Send
             {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
           </div>
@@ -1261,7 +1582,7 @@ export const UserPage = () => {
                             src={repost}
                             className={item.useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
                           />
-                          <div className="quantity ">{item.forwards || 0}</div>
+                          <div className="quantity">{item.forwards || 0}</div>
                         </div>
                         <div className="Reply flex flex-v-center">
                           <img
@@ -1283,10 +1604,7 @@ export const UserPage = () => {
                           <img
                             className={item.useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
                             src={reward}
-                            onClick={() => {
-                              setshowreward(true)
-                              setrewardItem(item)
-                            }}
+                            onClick={() => showCommentsRewarDialog(item)}
                           />
                           <div className="rewardTotal">
                             <p>{getRewardTotal(item.id)[0]} BNB</p>
@@ -1313,7 +1631,9 @@ export const UserPage = () => {
                             <div>No reply yet</div>
                           )}
                           <div className="replayInput">
-                            <div className="replayWho">{replayWho}</div>
+                            <div className="replayWho" onClick={() => setreplayWho('')}>
+                              {replayWho}
+                            </div>
                             <textarea
                               rows={5}
                               cols={70}
@@ -1360,7 +1680,7 @@ export const UserPage = () => {
                 </MyNftBox>
               </TabPaneBox>
               <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
-                <div>My Renting</div>
+                <MyRenting />
               </TabPaneBox>
             </MyTabs>
           ) : (
@@ -1368,23 +1688,115 @@ export const UserPage = () => {
           )}
           {showTabs === 'Posts' ? (
             <PostsBox>
-              {userPosts && userPosts.length ? (
-                userPosts.map((item: any, index: any) => (
-                  <PostsItem key={index} className="flex flex-h-between">
-                    <div>{item.title}</div>
-                    <div className="gameName">DreamCard</div>
-                    <div>{item.createdAt}</div>
-                  </PostsItem>
-                ))
+              {showPostsContent ? (
+                <PostsContent>
+                  <div className="user">
+                    <img src={userinfo.image || defaultImg} alt="" />
+                    &nbsp;&nbsp;{userinfo.username}
+                  </div>
+                  <div className="gameName">{postsItem.contractName}</div>
+                  <div className="time">
+                    {postsItem.view} view · {getTime(postsItem.createdAt)}
+                  </div>
+                  <div className="postsTitle text-center">{postsItem.title}</div>
+                  {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+                  <div id="postsContent" className="postsContent"></div>
+                  <div className="otherDetails flex">
+                    <div className="like flex flex-v-center">
+                      <img
+                        src={handlePostsOtherDetails('isLike').length ? liketrue : likefalse}
+                        className={useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                        onClick={postsLike}
+                      />
+                      <div className="quantity">{handlePostsOtherDetails('likeQuantity')}</div>
+                    </div>
+                    <div className="repost flex flex-v-center">
+                      <img
+                        src={handlePostsOtherDetails('isCollect').length ? collecttrue : collectfalse}
+                        className={useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                        onClick={postsCollect}
+                      />
+                      <div className="quantity">{handlePostsOtherDetails('collectQuantity')}</div>
+                    </div>
+                    <div className="Reply cursor flex flex-v-center">
+                      <img src={Reply} onClick={postsReplayClick} />
+                      <div className="quantity">{handlePostsOtherDetails('replayQuantity')}</div>
+                    </div>
+                    <div className="reward">
+                      <img
+                        className={useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                        src={reward}
+                        onClick={showPostsRewarDialog}
+                      />
+                      <div className="rewardTotal">
+                        <p>{handlePostsOtherDetails('BNBTotal')} BNB</p>
+                        <p>{handlePostsOtherDetails('MATICTotal')} MATIC</p>
+                      </div>
+                    </div>
+                  </div>
+                  {showPostsReplayWindow ? (
+                    <div className="replyWindow">
+                      {getPostsReplayData(postsItem.id).length ? (
+                        getPostsReplayData(postsItem.id).map((ele: any, index: any) => (
+                          <div
+                            className="replyDetails cursor"
+                            key={index}
+                            onClick={() => setreplayWho('@' + ele.username)}
+                          >
+                            <img src={getUserImage(ele.useraddress)} className="userImage" alt="" /> &nbsp;
+                            {ele.username}
+                            <div className="replyContent">{ele.context}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div>No reply yet</div>
+                      )}
+                      <div className="replayInput">
+                        <div className="replayWho" onClick={() => setreplayWho('')}>
+                          {replayWho}
+                        </div>
+                        <textarea
+                          rows={5}
+                          cols={70}
+                          placeholder=""
+                          value={replayValue}
+                          onChange={handlereplayChange}
+                        ></textarea>
+                      </div>
+                      <div className="sendReplay" onClick={sendPostsReplay}>
+                        send
+                      </div>
+                      <div className="bottomBorder"></div>
+                    </div>
+                  ) : (
+                    ''
+                  )}
+                </PostsContent>
               ) : (
-                <div>no content yet</div>
-              )}
-              {account === useraddress ? (
-                <div className="WriteButton text-center" onClick={toWritePosts}>
-                  Write
+                <div>
+                  {userPosts && userPosts.length ? (
+                    userPosts.map((item: any, index: any) => (
+                      <PostsItem
+                        key={index}
+                        className="flex flex-h-between cursor"
+                        onClick={() => PostsItemClick(item)}
+                      >
+                        <div>{item.title}</div>
+                        <div className="gameName">{item.contractName}</div>
+                        <div>{getTime(item.createdAt)}</div>
+                      </PostsItem>
+                    ))
+                  ) : (
+                    <div>no content yet</div>
+                  )}
+                  {account === useraddress ? (
+                    <div className="WriteButton text-center" onClick={toWritePosts}>
+                      Write
+                    </div>
+                  ) : (
+                    ''
+                  )}
                 </div>
-              ) : (
-                ''
               )}
             </PostsBox>
           ) : (

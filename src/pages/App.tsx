@@ -76,7 +76,7 @@ function App() {
           <Switch>
             <Route exact path="/" component={Rent} />
             <Route exact path="/lend" component={Lend} />
-            <Route exact path="/dashboard" component={Dashboard} />
+            {/* <Route exact path="/dashboard" component={Dashboard} /> */}
             <Route exact path="/games" component={Games} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />

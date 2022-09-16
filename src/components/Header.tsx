@@ -240,9 +240,9 @@ export const Header = () => {
               <Link to="/lend">
                 <span>Lend</span>
               </Link>
-              <Link to="/dashboard">
+              {/* <Link to="/dashboard">
                 <span>Dashboard</span>
-              </Link>
+              </Link> */}
               <Link to="/games">
                 <span>Games</span>
               </Link>

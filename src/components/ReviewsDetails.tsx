@@ -1310,7 +1310,9 @@ export const ReviewsDetails = () => {
                           <div>No reply yet</div>
                         )}
                         <div className="replayInput">
-                          <div className="replayWho">{replayWho}</div>
+                          <div className="replayWho" onClick={() => setreplayWho('')}>
+                            {replayWho}
+                          </div>
                           <textarea
                             rows={5}
                             cols={70}
