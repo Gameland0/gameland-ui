@@ -69,3 +69,8 @@
 .translucent {
   opacity: 0.4;
 }
+.Abbreviation {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

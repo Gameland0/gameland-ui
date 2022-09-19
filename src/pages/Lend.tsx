@@ -133,6 +133,13 @@ export const Lend = () => {
     setBorrowed(item.isBorrowed)
     const _progress = getProgress(item.borrowAt as string, item.borrowDay as number)
     setProgress(_progress)
+    const index = await AssetContract?.get_nftsindex(item.gamelandNftId)
+    if (Number(item.lendIndex) != Number(index.toString())) {
+      const params = {
+        lendIndex: index.toString()
+      }
+      await http2?.put(`/v0/opensea/${item.gamelandNftId}`, params)
+    }
     if (item.isBorrowed) {
       setExpired(_progress >= 100)
     } else {

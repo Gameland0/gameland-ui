@@ -2,21 +2,43 @@ import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { parseEther } from '@ethersproject/units'
 import styled from 'styled-components'
-import { Tabs } from 'antd'
-import ReactDOM from 'react-dom'
+import { Row, Col, Button, Tabs } from 'antd'
+import { Web3Provider } from '@ethersproject/providers'
+import { Contract } from '@ethersproject/contracts'
+import BigNumber from 'bignumber.js'
 import { useLocation, useParams } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
+import { lowerCase } from 'lower-case'
 import { hashMessage } from 'ethers/lib/utils'
-import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
-import { MORALIS_KEY, BscContract, PolygonContract } from '../constants'
+import { useActiveWeb3React, useStore, useRewardContract, useControlContract, useAssetContract } from '../hooks'
+import {
+  MORALIS_KEY,
+  BscContract,
+  PolygonContract,
+  BSCSCAN_KEY,
+  POLYGONSCAN_KEY,
+  POLYGON_CHAIN_ID_HEX,
+  POLYGON_RPC_URL,
+  BSC_CHAIN_ID_HEX,
+  BSC_RPC_URL,
+  OPENSEA_URL,
+  BSCAssetContractAddress,
+  POLYGONAssetContractAddress
+} from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
-import { formatting, fixDigitalId, fetchReceipt } from '../utils'
+import { formatting, fixDigitalId, fetchReceipt, ChainHttp } from '../utils'
+import { handleClick } from './Header'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
 import { Img } from './Img'
 import { Dialog } from './Dialog'
+import { Modal } from './Modal'
+import { Dlist } from '../pages/Lend'
+import { Nft as NftCard } from '../components/Nft'
+import { Loading } from '../components/Loading'
+import { NumInput } from '../components/NumInput'
 import { NFTStatsMadal } from './NFTStatsMadal'
 import defaultImg from '../assets/default.png'
 import tabsIconNFT from '../assets/icon_NFT.svg'
@@ -40,6 +62,7 @@ import Telegram from '../assets/Telegram.png'
 import Arweave from 'arweave'
 import { genNodeAPI } from 'arseeding-js'
 import key from '../constants/arweave-keyfile.json'
+import { ABIs } from '../constants/Abis/ABIs'
 
 interface CardProps {
   onClick?: () => void
@@ -251,7 +274,7 @@ const InfoLeft = styled.div`
     margin-bottom: 20px;
   }
   .socialize {
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     img {
       width: 40px;
       height: 40px;
@@ -259,6 +282,12 @@ const InfoLeft = styled.div`
     }
     .transparency {
       opacity: 0.3;
+    }
+  }
+  .settings {
+    margin-bottom: 20px;
+    span {
+      font-size: 18px;
     }
   }
   .followInfo {
@@ -692,6 +721,44 @@ const PostsContent = styled.div`
     min-height: 600px;
   }
 `
+const SettingsBox = styled.div`
+  padding: 0 108px;
+  .userAvatar {
+    margin-bottom: 32px;
+    img {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+    }
+    #file {
+      display: none;
+    }
+  }
+  .optionTitle {
+    font-size: 24px;
+    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+    color: #333333;
+    margin-bottom: 32px;
+  }
+  .optionInput {
+    margin-bottom: 48px;
+    padding: 32px;
+    width: 1030px;
+    height: 92px;
+    border-radius: 20px;
+    border: 1px solid #707070;
+    font-size: 24px;
+  }
+  .saveButton {
+    width: 240px;
+    height: 60px;
+    margin: auto;
+    border-radius: 20px;
+    background: #35caa9;
+    color: #fff;
+    font-size: 24px;
+  }
+`
 const MyNftBox = styled.div``
 const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
@@ -715,8 +782,40 @@ const Uint8ArrayToString = (fileData: any) => {
   }
   return dataString
 }
+export const getContract = (library: Web3Provider | undefined, address: string, abi: any[]) => {
+  if (!library) return null
+  return new Contract(address, abi, library.getSigner())
+}
+export const fetchAbi = async (address: string, chain: any) => {
+  if (!address) return
+  try {
+    let apiKey
+    if (chain === 'bscscan') {
+      apiKey = BSCSCAN_KEY
+    } else if (chain === 'polygonscan') {
+      apiKey = POLYGONSCAN_KEY
+    }
+    const data = await fetch(
+      `https://api.${chain}.com/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
+      {
+        method: 'GET',
+        mode: 'cors'
+      }
+    )
+    const dataJson = await data.json()
+    const { result } = dataJson
+
+    localStorage.setItem(address.toLowerCase(), result)
+    return result
+  } catch (e: any) {
+    console.log(e.message)
+    return []
+  }
+}
 export const UserPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
+  const ControlContract = useControlContract()
+  const AssetContract = useAssetContract()
   const [UploadImg, setUploadImg] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
   const [showreward, setshowreward] = useState(false)
@@ -725,10 +824,19 @@ export const UserPage = () => {
   const [showMyNFTModal, setShowMyNFTModal] = useState(false)
   const [showPostsContent, setShowPostsContent] = useState(false)
   const [showPostsReplayWindow, setShowPostsReplayWindow] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showSend, setShowSend] = useState(false)
+  const [lendvisible, setlendVisible] = useState(false)
+  const [awaiting, setAwaiting] = useState(false)
+  const [isApproved, setIsApproved] = useState(false)
+  const [options, setOptions] = useState(false)
+  const [approving, setApproving] = useState(false)
+  const [prompt, setPrompt] = useState(false)
   const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
+  const [currentItem, setCurrentItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
@@ -746,14 +854,24 @@ export const UserPage = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
+  const [penalty, setPenalty] = useState('')
+  const [price, setPrice] = useState('')
+  const [days, setdays] = useState('')
+  const [collateral, setCollateral] = useState('')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [replayWho, setreplayWho] = useState('')
   const [replayValue, setreplayValue] = useState('')
   const [description, setDescription] = useState('')
+  const [TwitterValue, setTwitterValue] = useState('')
+  const [DiscordValue, setDiscordValue] = useState('')
+  const [TelegramValue, setTelegramValue] = useState('')
+  const [UserNameValue, setUserNameValue] = useState('')
+  const [Avatar, setAvatar] = useState('')
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
+  const [toAddress, setToAddress] = useState('')
   const RewardContract = useRewardContract()
   const history = useHistory()
   const arweave = Arweave.init({
@@ -785,7 +903,7 @@ export const UserPage = () => {
       .map((ele: any) => {
         return ele.createdAt.slice(0, 10)
       })
-    const RewardIntegral = Integral(RewardTimeArr, 5)
+    const RewardIntegral = Integral(RewardTimeArr, 5, 5)
     const ReplayTimeData = reviewAllData
       .filter((item: any) => {
         return item.useraddress === useraddress && item.SuperiorIndex
@@ -793,14 +911,26 @@ export const UserPage = () => {
       .map((ele: any) => {
         return ele.createdAt.slice(0, 10)
       })
-    const ReplayIntegral = Integral(ReplayTimeData, 1)
+    const ReplayIntegral = Integral(ReplayTimeData, 1, 5)
     const ReviewTimeData = myReview.map((ele: any) => {
       return ele.createdAt.slice(0, 10)
     })
-    const ReviewIntegral = Integral(ReviewTimeData, 2)
-    setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral)
-  }, [reviewAllData, rewardinfo, myReview])
-  const fetchData = (data: any[], contract: any, chian: string) => {
+    const ReviewIntegral = Integral(ReviewTimeData, 2, 5)
+    const PostsTimeArr = userPosts.map((ele: any) => {
+      return ele.createdAt.slice(0, 10)
+    })
+    const PostsIntegral = Integral(PostsTimeArr, 5, 2)
+    const PostsRewardTimeArr = postsRewardData
+      .filter((item: any) => {
+        return item.fromaddress === useraddress
+      })
+      .map((ele: any) => {
+        return ele.createdAt.slice(0, 10)
+      })
+    const P0stsRewardIntegral = Integral(PostsRewardTimeArr, 5, 5)
+    setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral + PostsIntegral + P0stsRewardIntegral)
+  }, [reviewAllData, rewardinfo, myReview, userPosts])
+  const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
       const getdata = axios.create({
@@ -819,9 +949,10 @@ export const UserPage = () => {
       }
       const gamelandId = fixDigitalId(contractIndex, item.token_id, useraddress)
       item.gamelandNftId = hashMessage(gamelandId)
+      item.chain = chain
       try {
         const { data } = await getdata.get(
-          `https://api.element.market/openapi/v1/asset?chain=${chian}&token_id=${item.token_id}&contract_address=${item.token_address}`
+          `https://api.element.market/openapi/v1/asset?chain=${chain}&token_id=${item.token_id}&contract_address=${item.token_address}`
         )
         item.metadata = {
           name: data.data?.name,
@@ -932,14 +1063,14 @@ export const UserPage = () => {
     if (!data.length) return 0
     return data
   }
-  const Integral = (arr: any, Base: number) => {
+  const Integral = (arr: any, Base: number, limit: number) => {
     let total = 0
     Array.from(new Set(arr)).map((item: any) => {
       const filterArr = arr.filter((ele: any) => {
         return ele === item
       })
-      if (filterArr.length > 5) {
-        total += 5 * Base
+      if (filterArr.length > limit) {
+        total += limit * Base
       } else {
         total += filterArr.length * Base
       }
@@ -1162,10 +1293,195 @@ export const UserPage = () => {
       })
   }
   const lendNftClick = async (item: any) => {
-    console.log('lend')
+    let AssetContractAddress
+    if (item.chain === 'bsc') {
+      AssetContractAddress = BSCAssetContractAddress
+      if (chainId === 56) {
+        setlendVisible(true)
+      } else {
+        handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
+      }
+    } else if (item.chain === 'polygon') {
+      AssetContractAddress = POLYGONAssetContractAddress
+      if (chainId === 137) {
+        setlendVisible(true)
+      } else {
+        handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
+      }
+    }
+    setAwaiting(true)
+    if (item.sell_orders) return
+    const contractAddress = item.token_address ?? ''
+
+    const localAbi = localStorage.getItem(contractAddress.toLowerCase())
+    let storedAbi: any
+    for (const [key, value] of Object.entries(ABIs)) {
+      if (key.toLowerCase() === contractAddress.toLowerCase()) {
+        storedAbi = value
+      }
+    }
+    const chain = item.chain
+    const ABI =
+      storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain + 'scan')
+    const nftContract = getContract(library, contractAddress, ABI)
+    item.contract = nftContract
+    setCurrentItem(item)
+    if (nftContract !== null) {
+      try {
+        // check ERC721 approve
+        if (item.contract_type === 'ERC721' && nftContract?.getApproved) {
+          const approveAddress = await nftContract?.getApproved(item.token_id)
+          if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
+            // console.log(true)
+            setIsApproved(true)
+          } else {
+            setIsApproved(false)
+            // console.log(false)
+          }
+        } else if (!!nftContract?.isApprovedForAll) {
+          // check ERC1155 approve
+          const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
+          console.log(isApproved)
+
+          isApproved ? setIsApproved(true) : setIsApproved(false)
+        }
+      } catch (err: any) {
+        console.log(err.message)
+      }
+    }
+    setAwaiting(false)
+  }
+  const handleLend = async () => {
+    try {
+      if (Number(penalty) < 1) {
+        toastify.error('Minimum scale is 1.')
+        return
+      }
+      if (Number(penalty) > 20) {
+        toastify.error('maximum scale is 20.')
+        return
+      }
+      if (!penalty) {
+        toastify.error('Please enter rental penalty.')
+        return
+      }
+      if (!account) {
+        toastify.error('Please connect an account.')
+        return
+      }
+      setLending(true)
+      // const owner = await nftContract.ownerOf(currentItem.nftId)
+      const Collateral = new BigNumber(collateral as unknown as string)
+      const Day = new BigNumber(days as unknown as string)
+      const Price = new BigNumber(price as unknown as string)
+      const cost = Day.times(Price)
+      const PenaltyProportion = new BigNumber(penalty as unknown as string).times(new BigNumber('0.01'))
+      const amount = Collateral.plus(cost)
+      let type
+      if (currentSelection === 'BNB' || currentSelection === 'MATIC') {
+        type = 'eth'
+      } else {
+        type = 'usdt'
+      }
+      const Penalty = amount.times(PenaltyProportion).toString()
+      const deposited = await ControlContract?.deposit(
+        currentItem.metadata.name,
+        currentItem.contract_type,
+        currentItem.token_id,
+        parseEther(price),
+        days,
+        parseEther(collateral),
+        parseEther(Penalty),
+        currentItem.gamelandNftId,
+        currentItem.token_address,
+        type
+      )
+
+      const receipt = await fetchReceipt(deposited.hash, library)
+      if (!receipt.status) {
+        throw Error('Failed to deposit.')
+      }
+      const index = await AssetContract?.get_nftsindex(currentItem.gamelandNftId)
+      const params = {
+        nftId: currentItem.token_id,
+        isLending: true,
+        price: Number(price),
+        days: Number(days),
+        collateral: Number(collateral),
+        originOwner: account,
+        contractAddress: currentItem.token_address,
+        standard: currentItem.contract_type,
+        metadata: JSON.stringify(currentItem.metadata) || '',
+        gamelandNftId: currentItem.gamelandNftId,
+        createdAt: new Date().toJSON(),
+        updatedAt: new Date().toJSON(),
+        penalty: Penalty,
+        pay_type: type,
+        lendIndex: index.toString(),
+        expire_blocktime: Math.floor(new Date().valueOf() / 1000),
+        name: currentItem.metadata.name,
+        img: currentItem.metadata.image,
+        contractName: currentItem.name
+      }
+      const res: any = await ChainHttp(chainId)?.post(`/v0/opensea/`, params)
+      setLending(false)
+      if (res.data.code === 1) {
+        toastify.success('succeed')
+        setPrice('')
+        setCollateral('')
+        setdays('')
+        setlendVisible(false)
+        setrefreshBy(!refreshBy)
+        toastify.success('succeed')
+      } else {
+        throw res.message || res.data.message
+      }
+    } catch (err: any) {
+      toastify.error(err.message)
+      setLending(false)
+    }
   }
   const handleSendNft = async (item: any) => {
-    console.log('send')
+    setShowSend(true)
+    setToAddress('')
+    if (item.sell_orders) return
+    const contractAddress = item.token_address ?? ''
+    const localAbi = localStorage.getItem(contractAddress.toLowerCase())
+    let storedAbi
+    for (const [key, value] of Object.entries(ABIs)) {
+      if (key.toLowerCase() === contractAddress.toLowerCase()) {
+        storedAbi = value
+      }
+    }
+    let chain
+    if (chainId === 56) {
+      chain = 'bscscan'
+    } else if (chainId === 137) {
+      chain = 'polygonscan'
+    }
+    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain)
+    const nftContract = getContract(library, contractAddress, ABI)
+    item.contract = nftContract
+    setCurrentItem(item)
+  }
+  const sendNFT = async () => {
+    if (currentItem.contract) {
+      try {
+        setLending(true)
+        const approvetx = await currentItem.contract.transferFrom(account, toAddress, currentItem.token_id)
+        const receipt = await fetchReceipt(approvetx.hash, library)
+        if (!receipt.status) {
+          throw new Error('failed')
+        }
+        setLending(false)
+        setShowSend(false)
+        setrefreshBy(!refreshBy)
+        toastify.success('succeed')
+      } catch (err: any) {
+        toastify.error(err.message)
+        setLending(false)
+      }
+    }
   }
   const showCommentsRewarDialog = (item: any) => {
     if (useraddress.toLowerCase() === account?.toLowerCase()) return
@@ -1309,13 +1625,13 @@ export const UserPage = () => {
       .put(`/v0/review/${item.id}`, params)
       .then(() => setrefreshBy(!refreshBy))
   }
+  const userAvatarClick = () => {
+    const fileInput = document.getElementById('file')
+    fileInput?.click()
+  }
   const SetAvatar = () => {
     if (useraddress.toLowerCase() !== account?.toLowerCase()) return
     setUploadImg(true)
-  }
-  const closeUploadImg = () => {
-    setUploadImg(false)
-    setrefreshBy(!refreshBy)
   }
   const showNFTStatsMadal = (item: any) => {
     setNFTStatsMadalData(item)
@@ -1339,7 +1655,47 @@ export const UserPage = () => {
   const postsReplayClick = () => {
     setShowPostsReplayWindow(!showPostsReplayWindow)
   }
-  const UploadImgChange = async (e: any) => {
+  const SettingsClick = () => {
+    setTwitterValue('')
+    setDiscordValue('')
+    setTelegramValue('')
+    setUserNameValue('')
+    setShowSettings(true)
+  }
+  const saveEditProfile = async () => {
+    if (!TwitterValue && !DiscordValue && !TelegramValue && !UserNameValue && !Avatar) return
+    const params: any = {}
+    if (TwitterValue) {
+      params.Twitter = TwitterValue
+    }
+    if (DiscordValue) {
+      params.Discord = DiscordValue
+    }
+    if (TelegramValue) {
+      params.Telegram = TelegramValue
+    }
+    if (UserNameValue) {
+      params.username = UserNameValue
+    }
+    if (Avatar) {
+      params.image = Avatar
+    }
+    // console.log(params)
+    const res: any = await bschttp.put(`/v0/userinfo/${account}`, params)
+    if (res.data.code === 1) {
+      setShowSettings(false)
+      setrefreshBy(!refreshBy)
+      toastify.success('succeed')
+    } else {
+      toastify.error(res.message || res.data.message)
+    }
+  }
+  const toWritePosts = (item: any) => {
+    history.push({
+      pathname: `/WritePosts`
+    })
+  }
+  const ImgChange = async (e: any) => {
     // const Img = e.target.value
     const Img = e.target.files[0]
     const fileSize = Img.size
@@ -1354,47 +1710,17 @@ export const UserPage = () => {
     reader.onload = (res) => {
       // console.log(res.target?.result)
       const imgData = res.target?.result
-      createTransaction(imgData, type)
+      ImgTransaction(imgData, type)
     }
-    // https://arweave.net/nO9zPgPFc60DGqJNg3Rr4Xfsvl6J1DW_mxmdR269Es4
-    // fetch(Img)
-    //   .then((res) => res.arrayBuffer())
-    //   .then((res) => {
-    //     // console.log(res)
-    //     createTransaction(res, type)
-    //   })
   }
-  const toWritePosts = (item: any) => {
-    history.push({
-      pathname: `/WritePosts`
-    })
-  }
-  const createTransaction = async (datas: any, type: string) => {
+  const ImgTransaction = async (datas: any, type: string) => {
     try {
-      // const wallet = new ArweaveWebWallet({
-      //   name: 'Gameland AR',
-      //   logo: 'https://dapp.gameland.network/logo192.png'
-      // })
-      // wallet.setUrl('arweave.app')
-      // await wallet.connect()
-      // await wallet.signTransaction(transaction)
-      // const dispatchResult = await wallet.dispatch(transaction)
       const transaction = await arweave.createTransaction({ data: datas })
       transaction.addTag('Content-Type', type)
       await arweave.transactions.sign(transaction, key)
       await arweave.transactions.post(transaction)
       if (transaction) {
-        const params = {
-          image: `https://arweave.net/${transaction.id}`
-        }
-        const res: any = await bschttp.put(`/v0/userinfo/${useraddress}`, params)
-        if (res.data.code === 1) {
-          toastify.success('succeed')
-          setUploadImg(false)
-          setrefreshBy(!refreshBy)
-        } else {
-          toastify.error(res.message || res.data.message)
-        }
+        setAvatar(`https://arweave.net/${transaction.id}`)
       }
     } catch (err: any) {
       toastify.error(err)
@@ -1404,19 +1730,56 @@ export const UserPage = () => {
     setPostsItem(item)
     setShowPostsContent(true)
     setLending(true)
-    arweave.transactions.get(item.link).then((data) => {
-      const json = JSON.parse(Uint8ArrayToString(data.data))
-      // console.log(json.content)
-      const Dom = document.createElement('div')
-      Dom.innerHTML = json.content
-      document.getElementById('postsContent')?.appendChild(Dom)
-      setLending(false)
-    })
+    // arweave.transactions.get(item.link).then((data) => {
+    //   const json = JSON.parse(Uint8ArrayToString(data.data))
+    //   // console.log(json.content)
+    //   const Dom = document.createElement('div')
+    //   Dom.innerHTML = json.content
+    //   document.getElementById('postsContent')?.appendChild(Dom)
+    //   setLending(false)
+    // })
+    fetch(item.link)
+      .then((res) => res.json())
+      .then((data) => {
+        const Dom = document.createElement('div')
+        Dom.innerHTML = data.content
+        document.getElementById('postsContent')?.appendChild(Dom)
+        setLending(false)
+      })
     if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
     const params = {
       view: item.view + 1
     }
     const res: any = await bschttp.put(`/v0/posts/${item.id}`, params)
+  }
+  const handleApprove = async () => {
+    setApproving(true)
+    if (currentItem.contract) {
+      try {
+        let approvetx
+        let AssetContractAddress
+        if (currentItem.chain === 'bsc') {
+          AssetContractAddress = BSCAssetContractAddress
+        } else if (currentItem.chain === 'polygon') {
+          AssetContractAddress = POLYGONAssetContractAddress
+        }
+        if (currentItem.contract_type === 'ERC721' && currentItem.contract?.approve) {
+          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.token_id)
+        } else {
+          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
+        }
+        // console.log(approvetx)
+        const receipt = await fetchReceipt(approvetx.hash, library)
+        if (!receipt.status) {
+          throw new Error('failed')
+        }
+        setIsApproved(true)
+        setPrompt(true)
+      } catch (err: any) {
+        toastify.error(err.message)
+      }
+    }
+    setApproving(false)
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -1425,6 +1788,30 @@ export const UserPage = () => {
   const handlereplayChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setreplayValue(val)
+  }, [])
+  const handlePriceChange = useCallback((val) => setPrice(val), [])
+  const handleDaysChange = useCallback((val) => setdays(val), [])
+  const handleCollateralChange = useCallback((val) => setCollateral(val), [])
+  const handlePenaltyChange = useCallback((val) => setPenalty(val), [])
+  const userNameChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setUserNameValue(val)
+  }, [])
+  const TwitterChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setTwitterValue(val)
+  }, [])
+  const DiscordChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setDiscordValue(val)
+  }, [])
+  const TelegramChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setTelegramValue(val)
+  }, [])
+  const handleToAddressChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setToAddress(val)
   }, [])
 
   return (
@@ -1438,12 +1825,166 @@ export const UserPage = () => {
       >
         <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
       </NFTStatsMadal>
-      <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
-        <SendBox>
-          <div className="title">Set Avatar</div>
-          <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
-        </SendBox>
-      </Dialog>
+      <Modal
+        destroyOnClose
+        footer={null}
+        onCancel={() => setShowSettings(false)}
+        visible={showSettings}
+        closable={false}
+      >
+        <SettingsBox>
+          <h1 className="text-center">Edit profile</h1>
+          <div className="userAvatar">
+            <img src={Avatar || userinfo.image} onClick={userAvatarClick} />
+            <input id="file" type="file" accept="image/png, image/jpeg" onChange={ImgChange} />
+          </div>
+          <div className="optionTitle">userAddress</div>
+          <div className="optionInput">{account}</div>
+          <div className="optionTitle">userName</div>
+          <input
+            className="optionInput"
+            placeholder={userinfo?.username}
+            type="text"
+            value={UserNameValue}
+            onChange={userNameChange}
+          />
+          <div className="optionTitle">Twitter</div>
+          <input
+            type="text"
+            className="optionInput"
+            placeholder={userinfo?.Twitter}
+            value={TwitterValue}
+            onChange={TwitterChange}
+          />
+          <div className="optionTitle">Discord</div>
+          <input
+            type="text"
+            className="optionInput"
+            placeholder={userinfo?.Discord}
+            value={DiscordValue}
+            onChange={DiscordChange}
+          />
+          <div className="optionTitle">Telegram</div>
+          <input
+            type="text"
+            className="optionInput"
+            placeholder={userinfo?.Telegram}
+            value={TelegramValue}
+            onChange={TelegramChange}
+          />
+          <div className="saveButton flex flex-center cursor" onClick={saveEditProfile}>
+            save
+          </div>
+        </SettingsBox>
+      </Modal>
+      <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} visible={lendvisible} closable={false}>
+        <Row gutter={[24, 24]}>
+          <Col span="12" xl={12} sm={24}>
+            <NftCard
+              name={currentItem.metadata?.name}
+              price={currentItem.price}
+              days={currentItem.days}
+              collateral={currentItem.collateral}
+              img={currentItem.metadata?.image}
+              size={500}
+              nftId={currentItem.token_id as string}
+              withdrawable={false}
+              unOperate={true}
+              contract_type={currentItem.contract_type}
+              borrowDay={currentItem.borrowDay}
+              penalty={0}
+              pay_type={currentItem.pay_type}
+            />
+          </Col>
+
+          <Col span="12" xl={12} sm={24}>
+            <h3>{currentItem.metadata?.name}</h3>
+            <p>
+              <span className="tips">#{currentItem.token_id}</span>
+            </p>
+            {currentItem.sell_orders ? (
+              <a
+                href={`${OPENSEA_URL}/assets/${currentItem.contractAddress}/${currentItem.token_id}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                The NFT is on sale.
+              </a>
+            ) : awaiting ? (
+              <Loading />
+            ) : isApproved ? (
+              <>
+                <Dlist className="flex">
+                  <div>
+                    <span>Enter collateral.</span>
+                    <NumInput onChange={handleCollateralChange} value={collateral} />
+                  </div>
+                  <div>
+                    <span>Enter Penalty.</span>
+                    <NumInput onChange={handlePenaltyChange} value={penalty} />
+                  </div>
+                  <div>
+                    <span>Enter price per day.</span>
+                    <NumInput onChange={handlePriceChange} value={price} />
+                  </div>
+                  <div>
+                    <span>Enter renting days.</span>
+                    <NumInput validInt onChange={handleDaysChange} value={days} />
+                  </div>
+                  <div>
+                    <span>choose type.</span>
+                    <div className="currentSelection" onClick={() => setOptions(!options)}>
+                      {currentSelection}
+                      <img src={arrow} className="arrowIcon" />
+                    </div>
+                    {options ? (
+                      <div className="Options">
+                        <div
+                          onClick={() => {
+                            setCurrentSelection(chainId === 56 ? 'BNB' : 'MATIC')
+                            setOptions(false)
+                          }}
+                        >
+                          {chainId === 56 ? 'BNB' : 'MATIC'}
+                        </div>
+                        <div
+                          onClick={() => {
+                            setCurrentSelection(chainId === 56 ? 'BUSD' : 'wETH')
+                            setOptions(false)
+                          }}
+                        >
+                          {chainId === 56 ? 'BUSD' : 'wETH'}
+                        </div>
+                      </div>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                </Dlist>
+                <br />
+                <Button
+                  className="lend"
+                  shape="round"
+                  block
+                  onClick={handleLend}
+                  disabled={!(price && days && collateral)}
+                  loading={lending}
+                  type="primary"
+                  size="large"
+                >
+                  Lend
+                </Button>
+              </>
+            ) : (
+              <div>
+                <Button className="lend" shape="round" block onClick={handleApprove} loading={approving} size="large">
+                  Approve
+                </Button>
+              </div>
+            )}
+          </Col>
+        </Row>
+      </Modal>
       <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">give a reward</div>
@@ -1490,14 +2031,23 @@ export const UserPage = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog footer={null} onCancel={() => setShowSend(false)} visible={showSend} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">Transfer your NFT</div>
+          <h2>Address</h2>
+          <div className="input">
+            <input placeholder="To address" onChange={handleToAddressChange} value={toAddress} />
+          </div>
+          <div className={toAddress ? 'button ture' : 'button false'} onClick={sendNFT}>
+            Send
+            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+          </div>
+        </SendBox>
+      </Dialog>
       <div className="topBackground"></div>
       <UserInfo className="flex">
         <InfoLeft>
-          <img
-            src={userinfo.image || defaultImg}
-            className={useraddress.toLowerCase() === account?.toLowerCase() ? 'avatar cursor' : 'avatar'}
-            onClick={SetAvatar}
-          />
+          <img src={userinfo.image || defaultImg} className="avatar" />
           {useraddress.toLowerCase() === account?.toLowerCase() ? (
             ''
           ) : (
@@ -1506,10 +2056,25 @@ export const UserPage = () => {
           <div className="userName text-center">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
           <div className="socialize flex flex-justify-content">
-            <img src={twitter} className={userinfo.Twitter ? '' : 'transparency'} />
-            <img src={discord} className={userinfo.Discord ? '' : 'transparency'} />
-            <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
+            <a href={userinfo.Twitter} target="_blank" rel="noreferrer">
+              <img src={twitter} className={userinfo.Twitter ? '' : 'transparency'} />
+            </a>
+            <a href={userinfo.Discord} target="_blank" rel="noreferrer">
+              <img src={discord} className={userinfo.Discord ? '' : 'transparency'} />
+            </a>
+            <a href={userinfo.Telegram} target="_blank" rel="noreferrer">
+              <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
+            </a>
           </div>
+          {useraddress.toLowerCase() === account?.toLowerCase() ? (
+            <div className="settings flex flex-justify-content">
+              <span className="cursor" onClick={SettingsClick}>
+                Edit profile
+              </span>
+            </div>
+          ) : (
+            ''
+          )}
           <div className="followInfo flex">
             <div className="Following">
               <div className="quantity text-center">{getFollowe('myFollowe')}</div>

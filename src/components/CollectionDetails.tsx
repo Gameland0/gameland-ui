@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
-import { Row, Col, Button, message, Upload } from 'antd'
+import { Row, Col, Button, message } from 'antd'
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadChangeParam } from 'antd/es/upload'

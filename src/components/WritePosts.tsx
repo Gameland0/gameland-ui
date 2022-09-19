@@ -12,6 +12,8 @@ import ltalicIcon from '../assets/icon_description_font_Italic.svg'
 import underlinedIcon from '../assets/icon_description_font_underlined.svg'
 import key from '../constants/arweave-keyfile.json'
 import Arweave from 'arweave'
+import node from '@bundlr-network/client/build/node'
+import { stringify } from 'querystring'
 
 const WritePostsBox = styled.div`
   position: relative;
@@ -35,9 +37,8 @@ const WritePostsBox = styled.div`
     margin-left: 16px;
   }
   .gameName {
-    position: absolute;
-    top: 115px;
-    left: 800px;
+    width: 257px;
+    margin-left: 16px;
     font-size: 20px;
     img {
       width: 50px;
@@ -93,6 +94,10 @@ const ContentEditableDiv = styled.div`
   div {
     margin-bottom: 16px;
   }
+  img {
+    width: 306px;
+    height: 306px;
+  }
 `
 const GameList = styled.div`
   width: 250px;
@@ -129,6 +134,9 @@ export const WritePosts = () => {
   const [inputValue, setInputValue] = useState('')
   const [gameItem, setGameItem] = useState({} as any)
   const [showGameList, setShowGameList] = useState(false)
+  const [bold, setBold] = useState(false)
+  const [tilt, setTilt] = useState(false)
+  const [underscore, setUnderscore] = useState(false)
   const [imgArr, setimgArr] = useState([] as any)
   const [gameData, setGameData] = useState([] as any)
   const history = useHistory()
@@ -148,24 +156,89 @@ export const WritePosts = () => {
     getGames()
   }, [])
   const boldClick = () => {
-    // const select = window.getSelection()anchorOffset focusOffset
-    const select = document.getSelection()
-    console.log(select?.getRangeAt(0))
+    const range = document.getSelection()?.getRangeAt(0)
+    const comnode = range?.commonAncestorContainer
+    const value = comnode?.nodeValue as string
+    if (!value) return
+    if (!bold) {
+      const b = document.createElement('b')
+      b.innerText = value
+      comnode?.parentNode?.replaceChild(b, comnode)
+      setBold(true)
+    } else {
+      const b = document.createElement('span')
+      b.innerText = value
+      comnode?.parentNode?.parentNode?.replaceChild(b, comnode?.parentNode)
+      setBold(false)
+    }
+  }
+  const tiltClick = () => {
+    const range = document.getSelection()?.getRangeAt(0)
+    const comnode = range?.commonAncestorContainer
+    const value = comnode?.nodeValue as string
+    if (!value) return
+    if (!tilt) {
+      const b = document.createElement('i')
+      b.innerText = value
+      comnode?.parentNode?.replaceChild(b, comnode)
+      setTilt(true)
+    } else {
+      const b = document.createElement('span')
+      b.innerText = value
+      comnode?.parentNode?.parentNode?.replaceChild(b, comnode?.parentNode)
+      setTilt(false)
+    }
+  }
+  const underscoreClick = () => {
+    const range = document.getSelection()?.getRangeAt(0)
+    const comnode = range?.commonAncestorContainer
+    const value = comnode?.nodeValue as string
+    if (!value) return
+    if (!underscore) {
+      const b = document.createElement('u')
+      b.innerText = value
+      comnode?.parentNode?.replaceChild(b, comnode)
+      setUnderscore(true)
+    } else {
+      const b = document.createElement('span')
+      b.innerText = value
+      comnode?.parentNode?.parentNode?.replaceChild(b, comnode?.parentNode)
+      setUnderscore(false)
+    }
   }
   const addImg = () => {
     const fileInput = document.getElementById('file')
+    // const range = document.getSelection()?.getRangeAt(0)
+    // const comnode = range?.commonAncestorContainer.parentNode
+    // console.log(comnode)
     fileInput?.click()
   }
   const ParseDom = (ele: any) => {
     const Dom = document.createElement('div')
     Dom.innerHTML = ele
-    return Dom.childNodes[0]
+    return Dom
+  }
+  const keyEnter = (e: any) => {
+    if (e.keyCode === 13) {
+      const range = document.getSelection()?.getRangeAt(0)
+      const comnode = range?.commonAncestorContainer
+      const value = comnode?.nodeValue as string
+      if (value) {
+        const b = document.createElement('br')
+        b.innerText = ''
+        comnode?.parentNode?.replaceChild(b, comnode)
+        setBold(false)
+        setTilt(false)
+        setUnderscore(false)
+      }
+    }
   }
   const GameListItemClick = (item: any) => {
     setShowGameList(false)
     setGameItem(item)
   }
   const PostButtonClick = async () => {
+    if (!inputValue || inputValue.length < 10) return
     const dom = document.getElementById('ContentEditable')
     const domcontent = dom?.innerHTML
     const datas = {
@@ -173,8 +246,8 @@ export const WritePosts = () => {
       collection: gameItem,
       content: domcontent
     }
-    // console.log(JSON.stringify(datas))
     const transaction = await arweave.createTransaction({ data: JSON.stringify(datas) })
+    transaction.addTag('Content-Type', 'string')
     await arweave.transactions.sign(transaction, key)
     await arweave.transactions.post(transaction)
     if (transaction) {
@@ -214,31 +287,29 @@ export const WritePosts = () => {
     const reader = new FileReader()
     reader.readAsDataURL(Img)
     reader.onload = (res) => {
-      // console.log(res.target?.result)
       const arr = imgArr
       const imgData = res.target?.result
       arr.push(imgData)
       setimgArr([...arr])
-      const select = document.getSelection()
-      const range = select?.getRangeAt(0)
       const dom = `<img className="addImg" src=${imgData} />`
       const parseDom = ParseDom(dom)
-      range?.insertNode(parseDom)
-      range?.collapse(true)
+      document.getElementById('ContentEditable')?.appendChild(parseDom)
     }
   }
   return (
     <WritePostsBox>
       <Title>Title</Title>
-      <input type="text" placeholder="Posts Title" value={inputValue} onChange={TitleInputChange} />
-      {Object.keys(gameItem).length ? (
-        <div className="gameName cursor" onClick={() => setShowGameList(!showGameList)}>
-          <img src={gameItem.image} />
-          {gameItem.contractName}
-        </div>
-      ) : (
-        <img src={gameIcon} className="ganmeIcon cursor" onClick={() => setShowGameList(!showGameList)} />
-      )}
+      <div className="flex flex-v-center">
+        <input type="text" placeholder="Posts Title" value={inputValue} onChange={TitleInputChange} />
+        {Object.keys(gameItem).length ? (
+          <div className="gameName Abbreviation cursor" onClick={() => setShowGameList(!showGameList)}>
+            <img src={gameItem.image} />
+            {gameItem.contractName}
+          </div>
+        ) : (
+          <img src={gameIcon} className="ganmeIcon cursor" onClick={() => setShowGameList(!showGameList)} />
+        )}
+      </div>
       {showGameList ? (
         <GameList className="flex wrap">
           {gameData.map((item: any, index: any) => (
@@ -256,10 +327,10 @@ export const WritePosts = () => {
           <input id="file" type="file" accept="image/png, image/jpeg" onChange={insertImgChange} />
           <img src={picIcon} onClick={addImg} />
           <img src={boldIcon} onClick={boldClick} />
-          <img src={ltalicIcon} />
-          <img src={underlinedIcon} />
+          <img src={ltalicIcon} onClick={tiltClick} />
+          <img src={underlinedIcon} onClick={underscoreClick} />
         </div>
-        <ContentEditableDiv id="ContentEditable" contentEditable="true" onClick={boldClick}>
+        <ContentEditableDiv id="ContentEditable" contentEditable="true" onKeyUp={keyEnter}>
           <div>
             <br />
           </div>
