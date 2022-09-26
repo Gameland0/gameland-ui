@@ -518,6 +518,7 @@ const CardBox = styled.div`
   transition: all 0.3s ease;
   @media screen and (max-width: 1440px) {
     width: 255px;
+    margin: 0 40px 40px 0;
   }
 `
 const Followes = styled.div`
@@ -668,9 +669,6 @@ const PostsContent = styled.div`
     font-weight: bold;
     color: #333333;
   }
-  .loadding {
-    margin-left: 450px;
-  }
   .postsContent {
     div {
       font-size: 24px;
@@ -680,8 +678,8 @@ const PostsContent = styled.div`
       margin-bottom: 32px;
     }
     img {
-      width: 306px;
-      height: 306px;
+      width: 500px;
+      height: 500px;
     }
   }
   .otherDetails {
@@ -743,7 +741,7 @@ const SettingsBox = styled.div`
   .optionInput {
     margin-bottom: 48px;
     padding: 32px;
-    width: 1030px;
+    width: 100%;
     height: 92px;
     border-radius: 20px;
     border: 1px solid #707070;
@@ -887,6 +885,7 @@ export const UserPage = () => {
   } else {
     useraddress = localStorage.getItem('useraddress')
   }
+  // alert(JSON.stringify(key))
   useEffect(() => {
     if (state) {
       localStorage.setItem('useraddress', state.useraddress)
@@ -1665,6 +1664,7 @@ export const UserPage = () => {
   const saveEditProfile = async () => {
     if (!TwitterValue && !DiscordValue && !TelegramValue && !UserNameValue && !Avatar) return
     const params: any = {}
+    setLending(true)
     if (TwitterValue) {
       params.Twitter = TwitterValue
     }
@@ -1684,6 +1684,7 @@ export const UserPage = () => {
     const res: any = await bschttp.put(`/v0/userinfo/${account}`, params)
     if (res.data.code === 1) {
       setShowSettings(false)
+      setLending(false)
       setrefreshBy(!refreshBy)
       toastify.success('succeed')
     } else {
@@ -1730,14 +1731,6 @@ export const UserPage = () => {
     setPostsItem(item)
     setShowPostsContent(true)
     setLending(true)
-    // arweave.transactions.get(item.link).then((data) => {
-    //   const json = JSON.parse(Uint8ArrayToString(data.data))
-    //   // console.log(json.content)
-    //   const Dom = document.createElement('div')
-    //   Dom.innerHTML = json.content
-    //   document.getElementById('postsContent')?.appendChild(Dom)
-    //   setLending(false)
-    // })
     fetch(item.link)
       .then((res) => res.json())
       .then((data) => {
@@ -1874,6 +1867,7 @@ export const UserPage = () => {
           />
           <div className="saveButton flex flex-center cursor" onClick={saveEditProfile}>
             save
+            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
           </div>
         </SettingsBox>
       </Modal>

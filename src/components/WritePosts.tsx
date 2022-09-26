@@ -1,8 +1,9 @@
-import React, { useEffect, useCallback, useState, useRef } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
 import { useHistory } from 'react-router-dom'
 import { useActiveWeb3React } from '../hooks'
-import { bschttp, polygonhttp } from './Store'
+import { bschttp, http, polygonhttp } from './Store'
+import { createAndSubmitItem, Config, payBill } from '../utils/arseeding'
 import { Title } from '../pages/Rent'
 import { toastify } from './Toastify'
 import picIcon from '../assets/icon_pic.svg'
@@ -10,10 +11,10 @@ import gameIcon from '../assets/icon_game.svg'
 import boldIcon from '../assets/icon_description_font_bold.svg'
 import ltalicIcon from '../assets/icon_description_font_Italic.svg'
 import underlinedIcon from '../assets/icon_description_font_underlined.svg'
+import loadding from '../assets/loading.svg'
 import key from '../constants/arweave-keyfile.json'
 import Arweave from 'arweave'
-import node from '@bundlr-network/client/build/node'
-import { stringify } from 'querystring'
+import ArweaveSigner from 'arseeding-arbundles/src/signing/chains/ArweaveSigner'
 
 const WritePostsBox = styled.div`
   position: relative;
@@ -65,12 +66,17 @@ const WritePostsBox = styled.div`
   }
 `
 const TextareaBox = styled.div`
-  border-radius: 20px;
+  position: relative;
   border: 1px solid #707070;
+  border-radius: 20px;
   .toolbar {
+    position: sticky;
+    top: 140px;
     height: 72px;
     padding: 0 32px;
     border-bottom: 1px solid #707070;
+    background: #fff;
+    border-radius: 20px 20px 0 0;
     img {
       margin-right: 32px;
       cursor: pointer;
@@ -95,8 +101,8 @@ const ContentEditableDiv = styled.div`
     margin-bottom: 16px;
   }
   img {
-    width: 306px;
-    height: 306px;
+    width: 500px;
+    height: 500px;
   }
 `
 const GameList = styled.div`
@@ -108,8 +114,12 @@ const GameList = styled.div`
   background: #fff;
   position: absolute;
   top: 32px;
-  right: 40px;
+  right: 280px;
   overflow: auto;
+  z-index: 100;
+  @media screen and (max-width: 1440px) {
+    right: 110px;
+  }
 `
 const GameListItem = styled.div`
   width: 100%;
@@ -137,6 +147,7 @@ export const WritePosts = () => {
   const [bold, setBold] = useState(false)
   const [tilt, setTilt] = useState(false)
   const [underscore, setUnderscore] = useState(false)
+  const [lending, setLending] = useState(false)
   const [imgArr, setimgArr] = useState([] as any)
   const [gameData, setGameData] = useState([] as any)
   const history = useHistory()
@@ -212,6 +223,7 @@ export const WritePosts = () => {
     // const comnode = range?.commonAncestorContainer.parentNode
     // console.log(comnode)
     fileInput?.click()
+    document.getElementById('ContentEditable')?.focus()
   }
   const ParseDom = (ele: any) => {
     const Dom = document.createElement('div')
@@ -223,13 +235,22 @@ export const WritePosts = () => {
       const range = document.getSelection()?.getRangeAt(0)
       const comnode = range?.commonAncestorContainer
       const value = comnode?.nodeValue as string
-      if (value) {
-        const b = document.createElement('br')
-        b.innerText = ''
+      console.log(comnode)
+      if (!value) {
+        const b = document.createElement('div')
+        b.innerHTML = '<br />'
         comnode?.parentNode?.replaceChild(b, comnode)
         setBold(false)
         setTilt(false)
         setUnderscore(false)
+      }
+    }
+    if (e.keyCode === 8) {
+      const length = document.getElementById('ContentEditable')?.childNodes.length
+      if (length === 0) {
+        const dom = document.createElement('div')
+        dom.innerHTML = '<br />'
+        document.getElementById('ContentEditable')?.appendChild(dom)
       }
     }
   }
@@ -239,6 +260,8 @@ export const WritePosts = () => {
   }
   const PostButtonClick = async () => {
     if (!inputValue || inputValue.length < 10) return
+    if (lending) return
+    setLending(true)
     const dom = document.getElementById('ContentEditable')
     const domcontent = dom?.innerHTML
     const datas = {
@@ -246,29 +269,48 @@ export const WritePosts = () => {
       collection: gameItem,
       content: domcontent
     }
-    const transaction = await arweave.createTransaction({ data: JSON.stringify(datas) })
-    transaction.addTag('Content-Type', 'string')
-    await arweave.transactions.sign(transaction, key)
-    await arweave.transactions.post(transaction)
-    if (transaction) {
-      const params = {
-        useraddress: account,
-        title: inputValue,
-        contractName: gameItem.contractName,
-        link: `https://arweave.net/${transaction.id}`
-      }
-      const res: any = await bschttp.post(`/v0/posts`, params)
-      if (res.data.code === 1) {
-        history.push({
-          pathname: `/user/MyPage`,
-          state: {
-            useraddress: account
+    const data = Buffer.from(JSON.stringify(datas))
+    const opts = {
+      tags: [
+        { name: 'key01', value: 'val01' },
+        { name: 'Content-Type', value: 'json' }
+      ]
+    }
+    const rsaSigner = new ArweaveSigner(key)
+    const cfg: Config = {
+      signer: rsaSigner,
+      path: '',
+      currency: 'AR',
+      arseedUrl: 'https://arseed.web3infra.dev'
+    }
+    try {
+      const order = await createAndSubmitItem(data, opts, cfg)
+      if (order) {
+        const tx = await payBill(order)
+        if (tx) {
+          const params = {
+            useraddress: account,
+            title: inputValue,
+            contractName: gameItem.contractName,
+            link: `https://arseed.web3infra.dev/${order.itemId}`
           }
-        })
-        toastify.success('succeed')
-      } else {
-        toastify.error(res.message || res.data.message)
+          const res: any = await bschttp.post(`/v0/posts`, params)
+          if (res.data.code === 1) {
+            setLending(false)
+            history.push({
+              pathname: `/user/MyPage`,
+              state: {
+                useraddress: account
+              }
+            })
+            toastify.success('succeed')
+          } else {
+            toastify.error(res.message || res.data.message)
+          }
+        }
       }
+    } catch (error) {
+      console.log(error)
     }
   }
   const TitleInputChange = useCallback((ele) => {
@@ -293,9 +335,11 @@ export const WritePosts = () => {
       setimgArr([...arr])
       const dom = `<img className="addImg" src=${imgData} />`
       const parseDom = ParseDom(dom)
-      document.getElementById('ContentEditable')?.appendChild(parseDom)
+      // document.getElementById('ContentEditable')?.appendChild(parseDom)
+      document.getSelection()?.getRangeAt(0).insertNode(parseDom)
     }
   }
+
   return (
     <WritePostsBox>
       <Title>Title</Title>
@@ -338,6 +382,7 @@ export const WritePosts = () => {
       </TextareaBox>
       <div className="postButton text-center cursor" onClick={PostButtonClick}>
         Post
+        {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
       </div>
     </WritePostsBox>
   )

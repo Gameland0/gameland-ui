@@ -1592,6 +1592,7 @@ export const CollectionDetails = () => {
   }
   const submit = async () => {
     if (!starScore && !textareaValue && !Object.keys(forward).length) return
+    const NFTData = Object.keys(commentNFTItem).length ? JSON.stringify(commentNFTItem) : ''
     if (starScore) {
       if (!userScoreinfo.length) {
         const params = {
@@ -1636,7 +1637,7 @@ export const CollectionDetails = () => {
           userimage: userinfo.image,
           context: textareaValue,
           contractName: collectionDetails.contractName,
-          NFTData: JSON.stringify(commentNFTItem) || ''
+          NFTData: NFTData
         }
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
@@ -1661,7 +1662,7 @@ export const CollectionDetails = () => {
           context: textareaValue,
           contractName: collectionDetails.contractName,
           quote: forward.id,
-          NFTData: JSON.stringify(commentNFTItem) || ''
+          NFTData: NFTData
         }
         const res: any = await http2.post(`/v0/review`, params)
         if (res.data.code === 1) {
@@ -1879,7 +1880,8 @@ export const CollectionDetails = () => {
       if (data.data.attributes) {
         setRareAttribute(data.data.attributes)
       } else {
-        setSpecificAttribute(data.data.properties)
+        console.log(data.data)
+        setSpecificAttribute(data.data.properties || [])
         setRareAttribute(data.data.stats || data.data.levels)
       }
       setShowMyNFTModal(true)
