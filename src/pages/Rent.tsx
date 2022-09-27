@@ -461,6 +461,16 @@ export const Rent = () => {
     filterCollection()
   }, [collection])
 
+  // useEffect(() => {
+  //   ControlContract?.add_nft_programforarray([
+  //     '0xa2d6ab4f00b4b8a2e38319168bd597ba33e88601',
+  //     '0xd7c79abeb8d8b21e7638a8aadfdcc1438d24b483',
+  //     '0xb25e1e098b0257d6d14466bec2be35ef7f9ee5f2',
+  //     '0xa1cb40dcd114a06bc484880c1cf57a6b1b42950b',
+  //     '0xa318d9a2d6900a652fd0c9fea8c57a29b2a63709',
+  //     '0x7e0d7824a57560fb581067780930447639cdcee7'
+  //   ])
+  // }, [])
   useEffect(() => {
     setLendNfts(lendingNfts)
   }, [lendingNfts])

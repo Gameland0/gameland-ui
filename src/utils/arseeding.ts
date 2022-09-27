@@ -14,28 +14,14 @@ export interface Config {
   apiKey?: string
 }
 export async function createAndSubmitItem(data: Buffer, opts: DataItemCreateOptions, cfg: Config): Promise<any> {
-  const dataItem = await createAndSignItem(cfg.signer, data, opts)
-  return await submit(cfg.arseedUrl, dataItem, cfg.currency, cfg.apiKey)
-}
-
-async function createAndSignItem(signer: Signer, data: Buffer, opts: DataItemCreateOptions): Promise<DataItem> {
-  const dataItem = createData(data, signer, opts)
-  await dataItem.sign(signer)
-  return dataItem
-}
-
-async function submit(arseedingUrl: string, dataItem: DataItem, tokenSymbol: string, apiKey?: string): Promise<any> {
-  const api = axios.create({ baseURL: arseedingUrl })
-  let header = {
+  // const dataItem = await createAndSignItem(cfg.signer, data, opts)
+  const dataItem = createData(data, cfg.signer, opts)
+  await dataItem.sign(cfg.signer)
+  const api = axios.create({ baseURL: cfg.arseedUrl })
+  const header = {
     'Content-Type': 'application/octet-stream'
   } as any
-  if (apiKey != null) {
-    header = {
-      'Content-Type': 'application/octet-stream',
-      'X-API-KEY': apiKey
-    }
-  }
-  const res = await api.post(`/bundle/tx/${tokenSymbol}`, dataItem.getRaw(), {
+  const res = await api.post(`/bundle/tx/${cfg.currency}`, dataItem.getRaw(), {
     headers: header,
     maxBodyLength: Infinity,
     timeout: 10000
@@ -57,25 +43,12 @@ function newEverpayByRSA(arJWK: any, arAddress: string): Everpay {
   })
   return everpay
 }
-async function payOrder(everpay: Everpay, order: any): Promise<string> {
-  const ords = []
-  ords.push(order)
-  return await payOrders(everpay, ords)
-}
 
-async function payOrders(everpay: Everpay, orders: any[]): Promise<string> {
-  if (orders.length === 0) {
-    return 'No Order Need to Pay'
-  }
-  const to = orders[0].bundler
-  const currency = orders[0].currency
-  let fee = 0
-  const decimals = orders[0].decimals
-  const ids = []
-  for (const ord of orders) {
-    ids.push(ord.itemId)
-    fee += +ord.fee
-  }
+async function payOrder(everpay: Everpay, order: any): Promise<string> {
+  const to = order.bundler
+  const currency = order.currency
+  const fee = order.fee * 1
+  const decimals = order.decimals as number
 
   const result = await everpay.transfer({
     amount: new BigNumber(fee).dividedBy(new BigNumber(10).pow(decimals)).toString(),
@@ -84,7 +57,7 @@ async function payOrders(everpay: Everpay, orders: any[]): Promise<string> {
     data: {
       appName: 'arseeding',
       action: 'payment',
-      itemIds: ids
+      itemIds: order.itemId
     }
   })
   return result.everHash

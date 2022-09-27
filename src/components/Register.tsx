@@ -84,6 +84,20 @@ export const Register = () => {
     timeout: 20000,
     logging: false
   })
+  useEffect(() => {
+    getUserInfo()
+  }, [account])
+  const getUserInfo = async () => {
+    if (!account) return
+    const data = await bschttp.get(`v0/userinfo/${account}`)
+    if (data.data.data.length) {
+      history.push({
+        pathname: `/MyPage`
+      })
+    } else {
+      return
+    }
+  }
   const Submit = async () => {
     if (!userName) {
       toastify.error('Username is required')
@@ -107,10 +121,7 @@ export const Register = () => {
       toastify.success('succeed')
       setLending(false)
       history.push({
-        pathname: `/user/${userName.replace(/ /g, '')}`,
-        state: {
-          useraddress: account
-        }
+        pathname: `/MyPage`
       })
     } else {
       toastify.error(res.message || res.data.message)

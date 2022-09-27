@@ -20,10 +20,7 @@ export const AccountBar = () => {
   const history = useHistory()
   const UserPage = () => {
     history.push({
-      pathname: `/user/MyPage`,
-      state: {
-        useraddress: account
-      }
+      pathname: `/MyPage`
     })
   }
   // const chainName = useMemo(() => Object.keys(ChainId).find((k) => (chainId as number) === ChainId[k]), [chainId])

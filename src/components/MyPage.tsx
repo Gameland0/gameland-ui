@@ -63,6 +63,7 @@ import Arweave from 'arweave'
 import { genNodeAPI } from 'arseeding-js'
 import key from '../constants/arweave-keyfile.json'
 import { ABIs } from '../constants/Abis/ABIs'
+import { AnyAaaaRecord } from 'dns'
 
 interface CardProps {
   onClick?: () => void
@@ -150,30 +151,6 @@ interface FolloweProps {
   Followeitem: any
   onFollowe: () => void
   onUnFollowe: () => void
-}
-const FolloweButton: React.FC<FolloweProps> = ({ Followeitem, onFollowe, onUnFollowe }) => {
-  const Followe = () => {
-    onFollowe && onFollowe()
-  }
-  const UnFollowe = () => {
-    onUnFollowe && onUnFollowe()
-  }
-  return (
-    <div>
-      {Followeitem ? (
-        <Following className="text-center">
-          <div className="Following">Following</div>
-          <div className="UnFollow cursor" onClick={UnFollowe}>
-            UnFollow
-          </div>
-        </Following>
-      ) : (
-        <Followes className="text-center cursor" onClick={Followe}>
-          Follow
-        </Followes>
-      )}
-    </div>
-  )
 }
 const UserBox = styled.div`
   .replyWindow {
@@ -811,7 +788,7 @@ export const fetchAbi = async (address: string, chain: any) => {
     return []
   }
 }
-export const UserPage = () => {
+export const MyPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
@@ -880,25 +857,15 @@ export const UserPage = () => {
     timeout: 20000,
     logging: false
   })
-  let useraddress: any
-  if (state) {
-    useraddress = state.useraddress
-  } else {
-    useraddress = localStorage.getItem('useraddress')
-  }
-  // alert(JSON.stringify(key))
   useEffect(() => {
-    if (state) {
-      localStorage.setItem('useraddress', state.useraddress)
-    }
     getUserInfo()
     getNftData()
     getReviewData()
-  }, [username, refreshBy])
+  }, [account, username, refreshBy])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
       .filter((item: any) => {
-        return item.fromaddress === useraddress
+        return item.fromaddress === account
       })
       .map((ele: any) => {
         return ele.createdAt.slice(0, 10)
@@ -906,7 +873,7 @@ export const UserPage = () => {
     const RewardIntegral = Integral(RewardTimeArr, 5, 5)
     const ReplayTimeData = reviewAllData
       .filter((item: any) => {
-        return item.useraddress === useraddress && item.SuperiorIndex
+        return item.useraddress === account && item.SuperiorIndex
       })
       .map((ele: any) => {
         return ele.createdAt.slice(0, 10)
@@ -922,7 +889,7 @@ export const UserPage = () => {
     const PostsIntegral = Integral(PostsTimeArr, 5, 2)
     const PostsRewardTimeArr = postsRewardData
       .filter((item: any) => {
-        return item.fromaddress === useraddress
+        return item.fromaddress === account
       })
       .map((ele: any) => {
         return ele.createdAt.slice(0, 10)
@@ -947,7 +914,7 @@ export const UserPage = () => {
       } else {
         return
       }
-      const gamelandId = fixDigitalId(contractIndex, item.token_id, useraddress)
+      const gamelandId = fixDigitalId(contractIndex, item.token_id, account)
       item.gamelandNftId = hashMessage(gamelandId)
       item.chain = chain
       try {
@@ -967,7 +934,7 @@ export const UserPage = () => {
   }
   const getUserInfo = async () => {
     if (!account) return
-    const data = await bschttp.get(`v0/userinfo/${useraddress}`)
+    const data = await bschttp.get(`v0/userinfo/${account}`)
     if (data.data.data.length) {
       setUserinfo(data.data.data[0])
     } else {
@@ -977,7 +944,7 @@ export const UserPage = () => {
     }
     bschttp.get(`v0/posts`).then((vals) => {
       const data = vals.data.data.filter((item: any) => {
-        return item.useraddress === useraddress
+        return item.useraddress === account
       })
       setuserPosts(data)
     })
@@ -994,9 +961,9 @@ export const UserPage = () => {
   }
   const getNftData = async () => {
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
-    const BscNft = await http.get(`https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=bsc&format=decimal`)
+    const BscNft = await http.get(`https://deep-index.moralis.io/api/v2/${account}/nft?chain=bsc&format=decimal`)
     const polygonNft = await http.get(`
-      https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=polygon&format=decimal`)
+      https://deep-index.moralis.io/api/v2/${account}/nft?chain=polygon&format=decimal`)
     const filterDataBsc = BscNft.data.result.filter((item: any) => {
       return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
     })
@@ -1019,7 +986,7 @@ export const UserPage = () => {
       setReviewAllData(reviewData)
       setrewardinfo([...vals[2].data.data, ...vals[3].data.data])
       const myReviewData = reviewData.filter((item) => {
-        return item.useraddress === useraddress && !item.SuperiorIndex
+        return item.useraddress === account && !item.SuperiorIndex
       })
       setMyRevie(myReviewData)
     })
@@ -1058,7 +1025,7 @@ export const UserPage = () => {
   const getFolloweData = () => {
     if (!followeDataAll || !followeDataAll.length) return 0
     const data = followeDataAll.filter((item: any) => {
-      return item.useraddress === account && item.followeUserAddress === useraddress
+      return item.useraddress === account && item.followeUserAddress === account
     })
     if (!data.length) return 0
     return data
@@ -1080,13 +1047,13 @@ export const UserPage = () => {
   const getFollowe = (type: string) => {
     if (type === 'myFollowe') {
       const data = followeDataAll.filter((item: any) => {
-        return item.useraddress === useraddress
+        return item.useraddress === account
       })
       return data.length
     }
     if (type === 'FolloweMy') {
       const data = followeDataAll.filter((item: any) => {
-        return item.followeUserAddress === useraddress
+        return item.followeUserAddress === account
       })
       return data.length
     }
@@ -1202,77 +1169,10 @@ export const UserPage = () => {
     return 0
   }
   const postsLike = async () => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
-    if (handlePostsOtherDetails('isLike').length) {
-      const data = handlePostsOtherDetails('isLike')
-      const res: any = await bschttp.delete(`v0/posts_like/${data[0].id}`)
-      if (res.data.code === 1) {
-        setrefreshBy(!refreshBy)
-        toastify.success('succeed')
-      } else {
-        throw res.message || res.data.message
-      }
-    } else {
-      const params = {
-        useraddress: account,
-        reviewid: postsItem.id
-      }
-      const res: any = await bschttp.post(`v0/posts_like`, params)
-      if (res.data.code === 1) {
-        setrefreshBy(!refreshBy)
-        toastify.success('succeed')
-      } else {
-        throw res.message || res.data.message
-      }
-    }
+    return
   }
   const postsCollect = async () => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
-    if (handlePostsOtherDetails('isCollect').length) {
-      const data = handlePostsOtherDetails('isCollect')
-      const res: any = await bschttp.delete(`v0/posts_like/${data[0].id}`)
-      if (res.data.code === 1) {
-        setrefreshBy(!refreshBy)
-        toastify.success('succeed')
-      } else {
-        throw res.message || res.data.message
-      }
-    } else {
-      const params = {
-        useraddress: account,
-        collect: postsItem.id
-      }
-      const res: any = await bschttp.post(`v0/posts_like`, params)
-      if (res.data.code === 1) {
-        setrefreshBy(!refreshBy)
-        toastify.success('succeed')
-      } else {
-        throw res.message || res.data.message
-      }
-    }
-  }
-  const Followe = async () => {
-    const params = {
-      useraddress: account,
-      followeUserAddress: useraddress
-    }
-    const res: any = await bschttp.post(`v0/followe`, params)
-    if (res.data.code === 1) {
-      toastify.success('succeed')
-      setrefreshBy(!refreshBy)
-    } else {
-      throw res.message || res.data.message
-    }
-  }
-  const UnFollowe = async () => {
-    const data = getFolloweData()
-    const res: any = await bschttp.delete(`v0/followe/${data[0].id}`)
-    if (res.data.code === 1) {
-      toastify.success('succeed')
-      setrefreshBy(!refreshBy)
-    } else {
-      throw res.message || res.data.message
-    }
+    return
   }
   const updateLikeTotal = async (item: any, type: any) => {
     let total
@@ -1484,10 +1384,7 @@ export const UserPage = () => {
     }
   }
   const showCommentsRewarDialog = (item: any) => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
-    setshowreward(true)
-    setRewarType('CommentsRewar')
-    setrewardItem(item)
+    return
   }
   const sendRewar = async () => {
     if (!rewardQuantity || !library) return
@@ -1525,10 +1422,7 @@ export const UserPage = () => {
     }
   }
   const showPostsRewarDialog = () => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
-    setshowreward(true)
-    setRewarType('PostsRewar')
-    setrewardItem(postsItem)
+    return
   }
   const postsRewar = async () => {
     if (!rewardQuantity || !library) return
@@ -1594,9 +1488,7 @@ export const UserPage = () => {
   }
   const sendPostsReplay = async () => {
     if (!replayValue) return
-    if (useraddress.toLowerCase() === account?.toLowerCase()) {
-      if (!replayWho) return
-    }
+    if (!replayWho) return
     let text
     if (replayWho) {
       text = replayWho + ':' + replayValue
@@ -1628,10 +1520,6 @@ export const UserPage = () => {
   const userAvatarClick = () => {
     const fileInput = document.getElementById('file')
     fileInput?.click()
-  }
-  const SetAvatar = () => {
-    if (useraddress.toLowerCase() !== account?.toLowerCase()) return
-    setUploadImg(true)
   }
   const showNFTStatsMadal = (item: any) => {
     setNFTStatsMadalData(item)
@@ -2043,11 +1931,6 @@ export const UserPage = () => {
       <UserInfo className="flex">
         <InfoLeft>
           <img src={userinfo.image || defaultImg} className="avatar" />
-          {useraddress.toLowerCase() === account?.toLowerCase() ? (
-            ''
-          ) : (
-            <FolloweButton Followeitem={getFolloweData()} onFollowe={Followe} onUnFollowe={UnFollowe} />
-          )}
           <div className="userName text-center">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
           <div className="socialize flex flex-justify-content">
@@ -2061,15 +1944,11 @@ export const UserPage = () => {
               <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
             </a>
           </div>
-          {useraddress.toLowerCase() === account?.toLowerCase() ? (
-            <div className="settings flex flex-justify-content">
-              <span className="cursor" onClick={SettingsClick}>
-                Edit profile
-              </span>
-            </div>
-          ) : (
-            ''
-          )}
+          <div className="settings flex flex-justify-content">
+            <span className="cursor" onClick={SettingsClick}>
+              Edit profile
+            </span>
+          </div>
           <div className="followInfo flex">
             <div className="Following">
               <div className="quantity text-center">{getFollowe('myFollowe')}</div>
@@ -2232,7 +2111,7 @@ export const UserPage = () => {
                             contract_type={item.contract_type ? item.contract_type : item.standard}
                             pay_type={item.pay_type}
                             account={account}
-                            useraddress={useraddress}
+                            useraddress={account}
                           />
                         ))
                       : ''}
@@ -2265,7 +2144,7 @@ export const UserPage = () => {
                     <div className="like flex flex-v-center">
                       <img
                         src={handlePostsOtherDetails('isLike').length ? liketrue : likefalse}
-                        className={useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                        className=""
                         onClick={postsLike}
                       />
                       <div className="quantity">{handlePostsOtherDetails('likeQuantity')}</div>
@@ -2273,7 +2152,7 @@ export const UserPage = () => {
                     <div className="repost flex flex-v-center">
                       <img
                         src={handlePostsOtherDetails('isCollect').length ? collecttrue : collectfalse}
-                        className={useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                        className=""
                         onClick={postsCollect}
                       />
                       <div className="quantity">{handlePostsOtherDetails('collectQuantity')}</div>
@@ -2283,11 +2162,7 @@ export const UserPage = () => {
                       <div className="quantity">{handlePostsOtherDetails('replayQuantity')}</div>
                     </div>
                     <div className="reward">
-                      <img
-                        className={useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
-                        src={reward}
-                        onClick={showPostsRewarDialog}
-                      />
+                      <img className="" src={reward} onClick={showPostsRewarDialog} />
                       <div className="rewardTotal">
                         <p>{handlePostsOtherDetails('BNBTotal')} BNB</p>
                         <p>{handlePostsOtherDetails('MATICTotal')} MATIC</p>
@@ -2351,13 +2226,9 @@ export const UserPage = () => {
                   ) : (
                     <div>no content yet</div>
                   )}
-                  {account === useraddress ? (
-                    <div className="WriteButton text-center" onClick={toWritePosts}>
-                      Write
-                    </div>
-                  ) : (
-                    ''
-                  )}
+                  <div className="WriteButton text-center" onClick={toWritePosts}>
+                    Write
+                  </div>
                 </div>
               )}
             </PostsBox>

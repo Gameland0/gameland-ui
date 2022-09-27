@@ -248,10 +248,6 @@ export const Dashboard = () => {
     })
   }
 
-  // useEffect(() => {
-  //   ControlContract?.add_nft_programforarray(['0x819e58e51d64ab05efa132a133de0af5089954cf'])
-  // }, [])
-
   useEffect(() => {
     if (!_myNfts) {
       setMyNfts([])
