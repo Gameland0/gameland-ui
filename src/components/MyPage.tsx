@@ -1617,17 +1617,10 @@ export const MyPage = () => {
     }
   }
   const PostsItemClick = async (item: any) => {
-    setPostsItem(item)
-    setShowPostsContent(true)
-    setLending(true)
-    fetch(item.link)
-      .then((res) => res.json())
-      .then((data) => {
-        const Dom = document.createElement('div')
-        Dom.innerHTML = data.content
-        document.getElementById('postsContent')?.appendChild(Dom)
-        setLending(false)
-      })
+    history.push({
+      pathname: `/PostsContent`,
+      search: `${item.useraddress}&${item.id}`
+    })
     if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
     const params = {
       view: item.view + 1
