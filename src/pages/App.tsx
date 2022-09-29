@@ -86,7 +86,7 @@ function App() {
             <Route exact path="/MyPage" component={MyPage} />
             <Route exact path="/createUser" component={Register} />
             <Route exact path="/WritePosts" component={WritePosts} />
-            <Route exact path="/PostsContent" component={PostsContentPage} />
+            <Route exact path="/PostsContent/:useraddress/:postsId" component={PostsContentPage} />
           </Switch>
           <ToastContainer />
         </Wrap>

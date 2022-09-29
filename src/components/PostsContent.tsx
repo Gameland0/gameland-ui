@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import styled from 'styled-components'
 import { parseEther } from '@ethersproject/units'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { bschttp, http, polygonhttp } from './Store'
 import { useActiveWeb3React, useRewardContract } from '../hooks'
 import { fetchReceipt } from '../utils'
@@ -183,8 +183,7 @@ export const PostsContentPage = () => {
   const [replayWho, setreplayWho] = useState('')
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
-  const useraddress = urlDataArr[0]
-  const postsId = urlDataArr[1]
+  const { useraddress, postsId } = useParams() as any
   useEffect(() => {
     getUserInfo()
   }, [account])

@@ -721,6 +721,33 @@ const { TabPane } = Tabs
 const MyTabs = styled(Tabs)`
   margin-top: 2rem;
 `
+export const ButtonBox = styled.div`
+  margin-top: 20px;
+  font-size: 20px;
+  .cancel {
+    width: 80px;
+    height: 40px;
+    margin-right: 20px;
+    border: 1px solid #e5e5e5;
+    line-height: 38px;
+    border-radius: 20px;
+    color: #5f5f5f;
+    &:hover {
+      background: #8cd8f8;
+    }
+  }
+  .ok {
+    width: 80px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 20px;
+    color: #fff;
+    background-color: #1fbb65;
+    &:hover {
+      background: #8cd8f8;
+    }
+  }
+`
 const TabPaneBox = styled(TabPane)`
   padding-top: 1rem;
   padding-bottom: 2rem;
@@ -768,6 +795,7 @@ export const MyPage = () => {
   const AssetContract = useAssetContract()
   // const [UploadImg, setUploadImg] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
+  // const [recompute, setRecompute] = useState(false)
   const [showreward, setshowreward] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
   const [lending, setLending] = useState(false)
@@ -782,12 +810,14 @@ export const MyPage = () => {
   const [options, setOptions] = useState(false)
   const [approving, setApproving] = useState(false)
   const [prompt, setPrompt] = useState(false)
+  const [showDeletePosts, setShowDeletePosts] = useState(false)
   // const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [currentItem, setCurrentItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
+  const [deletePostsItem, setDeletePostsItem] = useState({} as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
@@ -1137,11 +1167,17 @@ export const MyPage = () => {
   const postsLike = async () => {
     return
   }
+  const ShowDeletePostsDialog = (item: any) => {
+    setDeletePostsItem(item)
+    setShowDeletePosts(true)
+  }
   const deletePosts = async (item: any) => {
     const res: any = await bschttp.delete(`v0/posts/${item.id}`)
     if (res.data.code === 1) {
       setrefreshBy(!refreshBy)
+      setShowDeletePosts(false)
       toastify.success('succeed')
+      location.reload()
     } else {
       throw res.message || res.data.message
     }
@@ -1593,8 +1629,7 @@ export const MyPage = () => {
   }
   const PostsItemClick = async (item: any) => {
     history.push({
-      pathname: `/PostsContent`,
-      search: `${item.useraddress}&${item.id}`
+      pathname: `/PostsContent/${item.useraddress}/${item.id}`
     })
     if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
     const params = {
@@ -1895,6 +1930,28 @@ export const MyPage = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog
+        footer={null}
+        onCancel={() => setShowDeletePosts(false)}
+        visible={showDeletePosts}
+        destroyOnClose
+        closable={false}
+      >
+        <SendBox>
+          <div className="title">Tips</div>
+          <p className="text-center">
+            Delete this article, your G Point will be recalculated at the same time, Do you want to delete it?
+          </p>
+          <ButtonBox className="flex flex-justify-content">
+            <div className="cancel text-center cursor" onClick={() => setShowDeletePosts(false)}>
+              Cancel
+            </div>
+            <div className="ok text-center cursor" onClick={() => deletePosts(deletePostsItem)}>
+              OK
+            </div>
+          </ButtonBox>
+        </SendBox>
+      </Dialog>
       <div className="topBackground"></div>
       <UserInfo className="flex">
         <InfoLeft>
@@ -2180,7 +2237,7 @@ export const MyPage = () => {
                   {userPosts && userPosts.length ? (
                     userPosts.map((item: any, index: any) => (
                       <PostsList key={index}>
-                        <img className="deleteIcon" src={deleteIcon} onClick={() => deletePosts(item)} />
+                        <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
                         <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
                           <div>{item.title}</div>
                           <div className="gameName">{item.contractName}</div>

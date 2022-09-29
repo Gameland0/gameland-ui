@@ -298,10 +298,7 @@ export const WritePosts = () => {
           if (res.data.code === 1) {
             setLending(false)
             history.push({
-              pathname: `/user/MyPage`,
-              state: {
-                useraddress: account
-              }
+              pathname: `/MyPage`
             })
             toastify.success('succeed')
           } else {

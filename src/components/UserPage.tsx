@@ -30,6 +30,7 @@ import { formatting, fixDigitalId, fetchReceipt, ChainHttp } from '../utils'
 import { handleClick } from './Header'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
+import { ButtonBox } from './MyPage'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
 import { Img } from './Img'
@@ -839,8 +840,9 @@ export const UserPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
-  const [UploadImg, setUploadImg] = useState(false)
+  // const [UploadImg, setUploadImg] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
+  // const [recompute, setRecompute] = useState(false)
   const [showreward, setshowreward] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
   const [lending, setLending] = useState(false)
@@ -855,12 +857,14 @@ export const UserPage = () => {
   const [options, setOptions] = useState(false)
   const [approving, setApproving] = useState(false)
   const [prompt, setPrompt] = useState(false)
+  const [showDeletePosts, setShowDeletePosts] = useState(false)
   const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [currentItem, setCurrentItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
+  const [deletePostsItem, setDeletePostsItem] = useState({} as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
@@ -1250,12 +1254,18 @@ export const UserPage = () => {
       }
     }
   }
+  const ShowDeletePostsDialog = (item: any) => {
+    setDeletePostsItem(item)
+    setShowDeletePosts(true)
+  }
   const deletePosts = async (item: any) => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (useraddress.toLowerCase() !== account?.toLowerCase()) return
     const res: any = await bschttp.delete(`v0/posts/${item.id}`)
     if (res.data.code === 1) {
       setrefreshBy(!refreshBy)
+      setShowDeletePosts(false)
       toastify.success('succeed')
+      location.reload()
     } else {
       throw res.message || res.data.message
     }
@@ -1760,8 +1770,7 @@ export const UserPage = () => {
   }
   const PostsItemClick = async (item: any) => {
     history.push({
-      pathname: `/PostsContent`,
-      search: `${item.useraddress}&${item.id}`
+      pathname: `/PostsContent/${item.useraddress}/${item.id}`
     })
     if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
     const params = {
@@ -2062,6 +2071,26 @@ export const UserPage = () => {
           </div>
         </SendBox>
       </Dialog>
+      <Dialog
+        footer={null}
+        onCancel={() => setShowDeletePosts(false)}
+        visible={showDeletePosts}
+        destroyOnClose
+        closable={false}
+      >
+        <SendBox>
+          <div className="title">Tips</div>
+          <p>After deletion, it may affect the calculation of points, whether to continue?</p>
+          <ButtonBox className="flex flex-justify-content">
+            <div className="cancel text-center cursor" onClick={() => setShowDeletePosts(false)}>
+              cancel
+            </div>
+            <div className="ok text-center cursor" onClick={() => deletePosts(deletePostsItem)}>
+              OK
+            </div>
+          </ButtonBox>
+        </SendBox>
+      </Dialog>
       <div className="topBackground"></div>
       <UserInfo className="flex">
         <InfoLeft>
@@ -2360,8 +2389,8 @@ export const UserPage = () => {
                   {userPosts && userPosts.length ? (
                     userPosts.map((item: any, index: any) => (
                       <PostsList key={index}>
-                        {useraddress === account ? (
-                          <img className="deleteIcon" src={deleteIcon} onClick={() => deletePosts(item)} />
+                        {useraddress.toLowerCase() === account?.toLowerCase() ? (
+                          <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
                         ) : (
                           ''
                         )}
