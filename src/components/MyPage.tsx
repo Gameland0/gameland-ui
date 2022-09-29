@@ -59,11 +59,10 @@ import BNBIcon from '../assets/bnb.svg'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
 import Telegram from '../assets/Telegram.png'
+import deleteIcon from '../assets/delete.png'
 import Arweave from 'arweave'
-import { genNodeAPI } from 'arseeding-js'
 import key from '../constants/arweave-keyfile.json'
 import { ABIs } from '../constants/Abis/ABIs'
-import { AnyAaaaRecord } from 'dns'
 
 interface CardProps {
   onClick?: () => void
@@ -498,45 +497,6 @@ const CardBox = styled.div`
     margin: 0 40px 40px 0;
   }
 `
-const Followes = styled.div`
-  width: 150px;
-  height: 30px;
-  line-height: 30px;
-  margin: auto;
-  border-radius: 10px;
-  background: #35caa9;
-  color: #fff;
-  font-size: 18px;
-`
-const Following = styled.div`
-  div {
-    position: absolute;
-    left: 50%;
-    margin-left: -75px;
-    width: 150px;
-    height: 30px;
-    line-height: 30px;
-    border-radius: 10px;
-    font-size: 18px;
-  }
-  .Following {
-    background: #35caa9;
-    color: #fff;
-  }
-  .UnFollow {
-    background: red;
-    color: #000;
-    opacity: 0;
-  }
-  &:hover {
-    .Following {
-      opacity: 0;
-    }
-    .UnFollow {
-      opacity: 1;
-    }
-  }
-`
 const NFTname = styled.p`
   display: block;
   width: 120px;
@@ -597,14 +557,35 @@ export const Close = styled.div`
     color: #fff;
   }
 `
+const PostsList = styled.div`
+  position: relative;
+  .deleteIcon {
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0.6;
+    display: none;
+    z-index: 200;
+    cursor: pointer;
+  }
+  &:hover {
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+    .deleteIcon {
+      display: block;
+    }
+  }
+`
 const PostsItem = styled.div`
+  padding: 20px 10px;
   position: relative;
   font-size: 28px;
-  margin-bottom: 20px;
+  height: 80px;
   .gameName {
     position: absolute;
-    top: -7px;
-    left: 2px;
+    top: 12px;
+    left: 12px;
     font-size: 14px;
     color: #9a9191;
   }
@@ -751,13 +732,6 @@ const getHttp = (chain: any) => {
     return polygonhttp
   }
 }
-const Uint8ArrayToString = (fileData: any) => {
-  let dataString = ''
-  for (let i = 0; i < fileData.length; i++) {
-    dataString += String.fromCharCode(fileData[i])
-  }
-  return dataString
-}
 export const getContract = (library: Web3Provider | undefined, address: string, abi: any[]) => {
   if (!library) return null
   return new Contract(address, abi, library.getSigner())
@@ -792,7 +766,7 @@ export const MyPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
-  const [UploadImg, setUploadImg] = useState(false)
+  // const [UploadImg, setUploadImg] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
   const [showreward, setshowreward] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
@@ -808,7 +782,7 @@ export const MyPage = () => {
   const [options, setOptions] = useState(false)
   const [approving, setApproving] = useState(false)
   const [prompt, setPrompt] = useState(false)
-  const { state } = useLocation() as any
+  // const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
@@ -1022,14 +996,6 @@ export const MyPage = () => {
       return findData[0]?.image ? findData[0].image : defaultImg
     }
   }
-  const getFolloweData = () => {
-    if (!followeDataAll || !followeDataAll.length) return 0
-    const data = followeDataAll.filter((item: any) => {
-      return item.useraddress === account && item.followeUserAddress === account
-    })
-    if (!data.length) return 0
-    return data
-  }
   const Integral = (arr: any, Base: number, limit: number) => {
     let total = 0
     Array.from(new Set(arr)).map((item: any) => {
@@ -1170,6 +1136,15 @@ export const MyPage = () => {
   }
   const postsLike = async () => {
     return
+  }
+  const deletePosts = async (item: any) => {
+    const res: any = await bschttp.delete(`v0/posts/${item.id}`)
+    if (res.data.code === 1) {
+      setrefreshBy(!refreshBy)
+      toastify.success('succeed')
+    } else {
+      throw res.message || res.data.message
+    }
   }
   const postsCollect = async () => {
     return
@@ -2204,17 +2179,16 @@ export const MyPage = () => {
                 <div>
                   {userPosts && userPosts.length ? (
                     userPosts.map((item: any, index: any) => (
-                      <PostsItem
-                        key={index}
-                        className="flex flex-h-between cursor"
-                        onClick={() => PostsItemClick(item)}
-                      >
-                        <div>{item.title}</div>
-                        <div className="gameName">{item.contractName}</div>
-                        <div>
-                          {item.view} view · {getTime(item.createdAt)}
-                        </div>
-                      </PostsItem>
+                      <PostsList key={index}>
+                        <img className="deleteIcon" src={deleteIcon} onClick={() => deletePosts(item)} />
+                        <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
+                          <div>{item.title}</div>
+                          <div className="gameName">{item.contractName}</div>
+                          <div>
+                            {item.view} view · {getTime(item.createdAt)}
+                          </div>
+                        </PostsItem>
+                      </PostsList>
                     ))
                   ) : (
                     <div>no content yet</div>

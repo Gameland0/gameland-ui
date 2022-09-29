@@ -59,8 +59,8 @@ import BNBIcon from '../assets/bnb.svg'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
 import Telegram from '../assets/Telegram.png'
+import deleteIcon from '../assets/delete.png'
 import Arweave from 'arweave'
-import { genNodeAPI } from 'arseeding-js'
 import key from '../constants/arweave-keyfile.json'
 import { ABIs } from '../constants/Abis/ABIs'
 
@@ -620,16 +620,40 @@ export const Close = styled.div`
     color: #fff;
   }
 `
+const PostsList = styled.div`
+  position: relative;
+  .deleteIcon {
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0.6;
+    display: none;
+    z-index: 200;
+    cursor: pointer;
+  }
+  &:hover {
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+    .deleteIcon {
+      display: block;
+    }
+  }
+`
 const PostsItem = styled.div`
+  padding: 20px 10px;
   position: relative;
   font-size: 28px;
-  margin-bottom: 20px;
+  height: 80px;
   .gameName {
     position: absolute;
-    top: -7px;
-    left: 2px;
+    top: 12px;
+    left: 12px;
     font-size: 14px;
     color: #9a9191;
+  }
+  &:hover {
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
   }
 `
 const PostsContent = styled.div`
@@ -1226,6 +1250,16 @@ export const UserPage = () => {
       }
     }
   }
+  const deletePosts = async (item: any) => {
+    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    const res: any = await bschttp.delete(`v0/posts/${item.id}`)
+    if (res.data.code === 1) {
+      setrefreshBy(!refreshBy)
+      toastify.success('succeed')
+    } else {
+      throw res.message || res.data.message
+    }
+  }
   const postsCollect = async () => {
     if (useraddress.toLowerCase() === account?.toLowerCase()) return
     if (handlePostsOtherDetails('isCollect').length) {
@@ -1628,10 +1662,6 @@ export const UserPage = () => {
   const userAvatarClick = () => {
     const fileInput = document.getElementById('file')
     fileInput?.click()
-  }
-  const SetAvatar = () => {
-    if (useraddress.toLowerCase() !== account?.toLowerCase()) return
-    setUploadImg(true)
   }
   const showNFTStatsMadal = (item: any) => {
     setNFTStatsMadalData(item)
@@ -2329,17 +2359,20 @@ export const UserPage = () => {
                 <div>
                   {userPosts && userPosts.length ? (
                     userPosts.map((item: any, index: any) => (
-                      <PostsItem
-                        key={index}
-                        className="flex flex-h-between cursor"
-                        onClick={() => PostsItemClick(item)}
-                      >
-                        <div>{item.title}</div>
-                        <div className="gameName">{item.contractName}</div>
-                        <div>
-                          {item.view} view · {getTime(item.createdAt)}
-                        </div>
-                      </PostsItem>
+                      <PostsList key={index}>
+                        {useraddress === account ? (
+                          <img className="deleteIcon" src={deleteIcon} onClick={() => deletePosts(item)} />
+                        ) : (
+                          ''
+                        )}
+                        <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
+                          <div>{item.title}</div>
+                          <div className="gameName">{item.contractName}</div>
+                          <div>
+                            {item.view} view · {getTime(item.createdAt)}
+                          </div>
+                        </PostsItem>
+                      </PostsList>
                     ))
                   ) : (
                     <div>no content yet</div>
