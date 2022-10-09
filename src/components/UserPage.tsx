@@ -646,6 +646,9 @@ const PostsItem = styled.div`
   position: relative;
   font-size: 28px;
   height: 80px;
+  .title {
+    width: 460px;
+  }
   .gameName {
     position: absolute;
     top: 12px;
@@ -653,8 +656,8 @@ const PostsItem = styled.div`
     font-size: 14px;
     color: #9a9191;
   }
-  &:hover {
-    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+  .time {
+    width: 260px;
   }
 `
 const PostsContent = styled.div`
@@ -2395,9 +2398,11 @@ export const UserPage = () => {
                           ''
                         )}
                         <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
-                          <div>{item.title}</div>
+                          <div className="title Abbreviation" title={item.title}>
+                            {item.title}
+                          </div>
                           <div className="gameName">{item.contractName}</div>
-                          <div>
+                          <div className="time Abbreviation">
                             {item.view} view · {getTime(item.createdAt)}
                           </div>
                         </PostsItem>

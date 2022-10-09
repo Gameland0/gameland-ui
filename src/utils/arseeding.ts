@@ -23,8 +23,7 @@ export async function createAndSubmitItem(data: Buffer, opts: DataItemCreateOpti
   } as any
   const res = await api.post(`/bundle/tx/${cfg.currency}`, dataItem.getRaw(), {
     headers: header,
-    maxBodyLength: Infinity,
-    timeout: 10000
+    maxBodyLength: Infinity
   })
   return res.data
 }

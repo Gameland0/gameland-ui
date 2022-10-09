@@ -259,11 +259,18 @@ export const WritePosts = () => {
     setGameItem(item)
   }
   const PostButtonClick = async () => {
-    if (!inputValue || inputValue.length < 10) return
-    if (lending) return
-    setLending(true)
+    if (!inputValue || inputValue.length < 10) {
+      toastify.error('Title length must be 10 or more')
+      return
+    }
     const dom = document.getElementById('ContentEditable')
     const domcontent = dom?.innerHTML
+    if ((domcontent?.length as number) < 46) {
+      toastify.error('Content length must be 30 or more')
+      return
+    }
+    if (lending) return
+    setLending(true)
     const datas = {
       title: inputValue,
       collection: gameItem,
@@ -273,7 +280,7 @@ export const WritePosts = () => {
     const opts = {
       tags: [
         { name: 'key01', value: 'val01' },
-        { name: 'Content-Type', value: 'json' }
+        { name: 'Content-Type', value: 'application/json' }
       ]
     }
     const rsaSigner = new ArweaveSigner(key)
@@ -302,12 +309,14 @@ export const WritePosts = () => {
             })
             toastify.success('succeed')
           } else {
+            setLending(false)
             toastify.error(res.message || res.data.message)
           }
         }
       }
     } catch (error) {
-      console.log(error)
+      setLending(false)
+      toastify.error('upload failed')
     }
   }
   const TitleInputChange = useCallback((ele) => {
