@@ -903,22 +903,22 @@ export const getTime = (time: any) => {
     return Math.floor(jetLag / 86400000) + ' day ago'
   }
 }
-const beforeUpload = (file: RcFile) => {
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
-  if (!isJpgOrPng) {
-    message.error('You can only upload JPG/PNG file!')
-  }
-  const isLt2M = file.size / 1024 / 1024 < 1
-  if (!isLt2M) {
-    message.error('Image must smaller than 1MB!')
-  }
-  return isJpgOrPng && isLt2M
-}
-const getBase64 = (img: RcFile, callback: (url: string) => void) => {
-  const reader = new FileReader()
-  reader.addEventListener('load', () => callback(reader.result as string))
-  reader.readAsDataURL(img)
-}
+// const beforeUpload = (file: RcFile) => {
+//   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+//   if (!isJpgOrPng) {
+//     message.error('You can only upload JPG/PNG file!')
+//   }
+//   const isLt2M = file.size / 1024 / 1024 < 1
+//   if (!isLt2M) {
+//     message.error('Image must smaller than 1MB!')
+//   }
+//   return isJpgOrPng && isLt2M
+// }
+// const getBase64 = (img: RcFile, callback: (url: string) => void) => {
+//   const reader = new FileReader()
+//   reader.addEventListener('load', () => callback(reader.result as string))
+//   reader.readAsDataURL(img)
+// }
 export const compareTime = () => {
   return function (obj1: any, obj2: any) {
     const val1 = new Date(obj1.datetime).getTime()

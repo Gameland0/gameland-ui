@@ -20,6 +20,7 @@ import { ToastContainer } from '../components/Toastify'
 import { Games } from './Games'
 import { WritePosts } from '../components/WritePosts'
 import { PostsContentPage } from '../components/PostsContent'
+import { RelationChart } from '../components/RelationChart'
 
 const browserHistory = createBrowserHistory()
 const Wrap = styled.div`
@@ -76,16 +77,17 @@ function App() {
       <Web3Manager>
         <Wrap className="">
           <Switch>
-            <Route exact path="/" component={Rent} />
+            {/* <Route exact path="/" component={Rent} /> */}
             <Route exact path="/lend" component={Lend} />
-            {/* <Route exact path="/dashboard" component={Dashboard} /> */}
-            <Route exact path="/games" component={Games} />
+            <Route exact path="/dashboard" component={MyPage} />
+            <Route exact path="/" component={Games} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
             <Route exact path="/user/:username" component={UserPage} />
             <Route exact path="/MyPage" component={MyPage} />
             <Route exact path="/createUser" component={Register} />
             <Route exact path="/WritePosts" component={WritePosts} />
+            <Route exact path="/RelationChart/:contractName" component={RelationChart} />
             <Route exact path="/PostsContent/:useraddress/:postsId" component={PostsContentPage} />
           </Switch>
           <ToastContainer />

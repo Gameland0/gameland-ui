@@ -2,43 +2,24 @@ import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { parseEther } from '@ethersproject/units'
 import styled from 'styled-components'
-import { Row, Col, Button, Tabs } from 'antd'
+import { Tabs } from 'antd'
 import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
-import BigNumber from 'bignumber.js'
-import { useLocation, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
-import { lowerCase } from 'lower-case'
 import { hashMessage } from 'ethers/lib/utils'
-import { useActiveWeb3React, useStore, useRewardContract, useControlContract, useAssetContract } from '../hooks'
-import {
-  MORALIS_KEY,
-  BscContract,
-  PolygonContract,
-  BSCSCAN_KEY,
-  POLYGONSCAN_KEY,
-  POLYGON_CHAIN_ID_HEX,
-  POLYGON_RPC_URL,
-  BSC_CHAIN_ID_HEX,
-  BSC_RPC_URL,
-  OPENSEA_URL,
-  BSCAssetContractAddress,
-  POLYGONAssetContractAddress
-} from '../constants'
+import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
+import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt, ChainHttp } from '../utils'
-import { handleClick } from './Header'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
 import { Img } from './Img'
 import { Dialog } from './Dialog'
+import { CollectionToken } from './CollectionToken'
 import { Modal } from './Modal'
-import { Dlist } from '../pages/Lend'
-import { Nft as NftCard } from '../components/Nft'
-import { Loading } from '../components/Loading'
-import { NumInput } from '../components/NumInput'
 import { NFTStatsMadal } from './NFTStatsMadal'
 import defaultImg from '../assets/default.png'
 import tabsIconNFT from '../assets/icon_NFT.svg'
@@ -62,7 +43,6 @@ import Telegram from '../assets/Telegram.png'
 import deleteIcon from '../assets/delete.png'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
-import { ABIs } from '../constants/Abis/ABIs'
 
 interface CardProps {
   onClick?: () => void
@@ -78,7 +58,16 @@ interface CardProps {
   account: any
   useraddress: any
 }
-const Card: React.FC<CardProps> = ({ img, name, contract_type, onLend, onSend, nftId, account, useraddress }) => {
+export const Card: React.FC<CardProps> = ({
+  img,
+  name,
+  contract_type,
+  onLend,
+  onSend,
+  nftId,
+  account,
+  useraddress
+}) => {
   const { networkError } = useStore()
   const Lend = () => {
     if (networkError) {
@@ -494,7 +483,7 @@ const CardBox = styled.div`
   transition: all 0.3s ease;
   @media screen and (max-width: 1440px) {
     width: 255px;
-    margin: 0 40px 40px 0;
+    margin: 0 20px 20px 0;
   }
 `
 const NFTname = styled.p`
@@ -569,6 +558,12 @@ const PostsList = styled.div`
     display: none;
     z-index: 200;
     cursor: pointer;
+  }
+  .title {
+    width: 500px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   &:hover {
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -791,8 +786,6 @@ export const fetchAbi = async (address: string, chain: any) => {
 }
 export const MyPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
-  const ControlContract = useControlContract()
-  const AssetContract = useAssetContract()
   // const [UploadImg, setUploadImg] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
   // const [recompute, setRecompute] = useState(false)
@@ -803,19 +796,10 @@ export const MyPage = () => {
   const [showPostsContent, setShowPostsContent] = useState(false)
   const [showPostsReplayWindow, setShowPostsReplayWindow] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [showSend, setShowSend] = useState(false)
-  const [lendvisible, setlendVisible] = useState(false)
-  const [awaiting, setAwaiting] = useState(false)
-  const [isApproved, setIsApproved] = useState(false)
-  const [options, setOptions] = useState(false)
-  const [approving, setApproving] = useState(false)
-  const [prompt, setPrompt] = useState(false)
   const [showDeletePosts, setShowDeletePosts] = useState(false)
-  // const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
-  const [currentItem, setCurrentItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [deletePostsItem, setDeletePostsItem] = useState({} as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
@@ -834,10 +818,6 @@ export const MyPage = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
-  const [penalty, setPenalty] = useState('')
-  const [price, setPrice] = useState('')
-  const [days, setdays] = useState('')
-  const [collateral, setCollateral] = useState('')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
   const [rewardQuantity, setrewardQuantity] = useState('')
@@ -849,9 +829,7 @@ export const MyPage = () => {
   const [TelegramValue, setTelegramValue] = useState('')
   const [UserNameValue, setUserNameValue] = useState('')
   const [Avatar, setAvatar] = useState('')
-  const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
-  const [toAddress, setToAddress] = useState('')
   const RewardContract = useRewardContract()
   const history = useHistory()
   const arweave = Arweave.init({
@@ -1203,197 +1181,6 @@ export const MyPage = () => {
         setrefreshBy(!refreshBy)
       })
   }
-  const lendNftClick = async (item: any) => {
-    let AssetContractAddress
-    if (item.chain === 'bsc') {
-      AssetContractAddress = BSCAssetContractAddress
-      if (chainId === 56) {
-        setlendVisible(true)
-      } else {
-        handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
-      }
-    } else if (item.chain === 'polygon') {
-      AssetContractAddress = POLYGONAssetContractAddress
-      if (chainId === 137) {
-        setlendVisible(true)
-      } else {
-        handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
-      }
-    }
-    setAwaiting(true)
-    if (item.sell_orders) return
-    const contractAddress = item.token_address ?? ''
-
-    const localAbi = localStorage.getItem(contractAddress.toLowerCase())
-    let storedAbi: any
-    for (const [key, value] of Object.entries(ABIs)) {
-      if (key.toLowerCase() === contractAddress.toLowerCase()) {
-        storedAbi = value
-      }
-    }
-    const chain = item.chain
-    const ABI =
-      storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain + 'scan')
-    const nftContract = getContract(library, contractAddress, ABI)
-    item.contract = nftContract
-    setCurrentItem(item)
-    if (nftContract !== null) {
-      try {
-        // check ERC721 approve
-        if (item.contract_type === 'ERC721' && nftContract?.getApproved) {
-          const approveAddress = await nftContract?.getApproved(item.token_id)
-          if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
-            // console.log(true)
-            setIsApproved(true)
-          } else {
-            setIsApproved(false)
-            // console.log(false)
-          }
-        } else if (!!nftContract?.isApprovedForAll) {
-          // check ERC1155 approve
-          const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
-          console.log(isApproved)
-
-          isApproved ? setIsApproved(true) : setIsApproved(false)
-        }
-      } catch (err: any) {
-        console.log(err.message)
-      }
-    }
-    setAwaiting(false)
-  }
-  const handleLend = async () => {
-    try {
-      if (Number(penalty) < 1) {
-        toastify.error('Minimum scale is 1.')
-        return
-      }
-      if (Number(penalty) > 20) {
-        toastify.error('maximum scale is 20.')
-        return
-      }
-      if (!penalty) {
-        toastify.error('Please enter rental penalty.')
-        return
-      }
-      if (!account) {
-        toastify.error('Please connect an account.')
-        return
-      }
-      setLending(true)
-      // const owner = await nftContract.ownerOf(currentItem.nftId)
-      const Collateral = new BigNumber(collateral as unknown as string)
-      const Day = new BigNumber(days as unknown as string)
-      const Price = new BigNumber(price as unknown as string)
-      const cost = Day.times(Price)
-      const PenaltyProportion = new BigNumber(penalty as unknown as string).times(new BigNumber('0.01'))
-      const amount = Collateral.plus(cost)
-      let type
-      if (currentSelection === 'BNB' || currentSelection === 'MATIC') {
-        type = 'eth'
-      } else {
-        type = 'usdt'
-      }
-      const Penalty = amount.times(PenaltyProportion).toString()
-      const deposited = await ControlContract?.deposit(
-        currentItem.metadata.name,
-        currentItem.contract_type,
-        currentItem.token_id,
-        parseEther(price),
-        days,
-        parseEther(collateral),
-        parseEther(Penalty),
-        currentItem.gamelandNftId,
-        currentItem.token_address,
-        type
-      )
-
-      const receipt = await fetchReceipt(deposited.hash, library)
-      if (!receipt.status) {
-        throw Error('Failed to deposit.')
-      }
-      const index = await AssetContract?.get_nftsindex(currentItem.gamelandNftId)
-      const params = {
-        nftId: currentItem.token_id,
-        isLending: true,
-        price: Number(price),
-        days: Number(days),
-        collateral: Number(collateral),
-        originOwner: account,
-        contractAddress: currentItem.token_address,
-        standard: currentItem.contract_type,
-        metadata: JSON.stringify(currentItem.metadata) || '',
-        gamelandNftId: currentItem.gamelandNftId,
-        createdAt: new Date().toJSON(),
-        updatedAt: new Date().toJSON(),
-        penalty: Penalty,
-        pay_type: type,
-        lendIndex: index.toString(),
-        expire_blocktime: Math.floor(new Date().valueOf() / 1000),
-        name: currentItem.metadata.name,
-        img: currentItem.metadata.image,
-        contractName: currentItem.name
-      }
-      const res: any = await ChainHttp(chainId)?.post(`/v0/opensea/`, params)
-      setLending(false)
-      if (res.data.code === 1) {
-        toastify.success('succeed')
-        setPrice('')
-        setCollateral('')
-        setdays('')
-        setlendVisible(false)
-        setrefreshBy(!refreshBy)
-        toastify.success('succeed')
-      } else {
-        throw res.message || res.data.message
-      }
-    } catch (err: any) {
-      toastify.error(err.message)
-      setLending(false)
-    }
-  }
-  const handleSendNft = async (item: any) => {
-    setShowSend(true)
-    setToAddress('')
-    if (item.sell_orders) return
-    const contractAddress = item.token_address ?? ''
-    const localAbi = localStorage.getItem(contractAddress.toLowerCase())
-    let storedAbi
-    for (const [key, value] of Object.entries(ABIs)) {
-      if (key.toLowerCase() === contractAddress.toLowerCase()) {
-        storedAbi = value
-      }
-    }
-    let chain
-    if (chainId === 56) {
-      chain = 'bscscan'
-    } else if (chainId === 137) {
-      chain = 'polygonscan'
-    }
-    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain)
-    const nftContract = getContract(library, contractAddress, ABI)
-    item.contract = nftContract
-    setCurrentItem(item)
-  }
-  const sendNFT = async () => {
-    if (currentItem.contract) {
-      try {
-        setLending(true)
-        const approvetx = await currentItem.contract.transferFrom(account, toAddress, currentItem.token_id)
-        const receipt = await fetchReceipt(approvetx.hash, library)
-        if (!receipt.status) {
-          throw new Error('failed')
-        }
-        setLending(false)
-        setShowSend(false)
-        setrefreshBy(!refreshBy)
-        toastify.success('succeed')
-      } catch (err: any) {
-        toastify.error(err.message)
-        setLending(false)
-      }
-    }
-  }
   const showCommentsRewarDialog = (item: any) => {
     return
   }
@@ -1637,35 +1424,6 @@ export const MyPage = () => {
     }
     const res: any = await bschttp.put(`/v0/posts/${item.id}`, params)
   }
-  const handleApprove = async () => {
-    setApproving(true)
-    if (currentItem.contract) {
-      try {
-        let approvetx
-        let AssetContractAddress
-        if (currentItem.chain === 'bsc') {
-          AssetContractAddress = BSCAssetContractAddress
-        } else if (currentItem.chain === 'polygon') {
-          AssetContractAddress = POLYGONAssetContractAddress
-        }
-        if (currentItem.contract_type === 'ERC721' && currentItem.contract?.approve) {
-          approvetx = await currentItem.contract.approve(AssetContractAddress, currentItem.token_id)
-        } else {
-          approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
-        }
-        // console.log(approvetx)
-        const receipt = await fetchReceipt(approvetx.hash, library)
-        if (!receipt.status) {
-          throw new Error('failed')
-        }
-        setIsApproved(true)
-        setPrompt(true)
-      } catch (err: any) {
-        toastify.error(err.message)
-      }
-    }
-    setApproving(false)
-  }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setrewardQuantity(val)
@@ -1674,10 +1432,6 @@ export const MyPage = () => {
     const val = ele.currentTarget.value
     setreplayValue(val)
   }, [])
-  const handlePriceChange = useCallback((val) => setPrice(val), [])
-  const handleDaysChange = useCallback((val) => setdays(val), [])
-  const handleCollateralChange = useCallback((val) => setCollateral(val), [])
-  const handlePenaltyChange = useCallback((val) => setPenalty(val), [])
   const userNameChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setUserNameValue(val)
@@ -1693,10 +1447,6 @@ export const MyPage = () => {
   const TelegramChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setTelegramValue(val)
-  }, [])
-  const handleToAddressChange = useCallback((ele) => {
-    const val = ele.currentTarget.value
-    setToAddress(val)
   }, [])
 
   return (
@@ -1763,114 +1513,6 @@ export const MyPage = () => {
           </div>
         </SettingsBox>
       </Modal>
-      <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} visible={lendvisible} closable={false}>
-        <Row gutter={[24, 24]}>
-          <Col span="12" xl={12} sm={24}>
-            <NftCard
-              name={currentItem.metadata?.name}
-              price={currentItem.price}
-              days={currentItem.days}
-              collateral={currentItem.collateral}
-              img={currentItem.metadata?.image}
-              size={500}
-              nftId={currentItem.token_id as string}
-              withdrawable={false}
-              unOperate={true}
-              contract_type={currentItem.contract_type}
-              borrowDay={currentItem.borrowDay}
-              penalty={0}
-              pay_type={currentItem.pay_type}
-            />
-          </Col>
-
-          <Col span="12" xl={12} sm={24}>
-            <h3>{currentItem.metadata?.name}</h3>
-            <p>
-              <span className="tips">#{currentItem.token_id}</span>
-            </p>
-            {currentItem.sell_orders ? (
-              <a
-                href={`${OPENSEA_URL}/assets/${currentItem.contractAddress}/${currentItem.token_id}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                The NFT is on sale.
-              </a>
-            ) : awaiting ? (
-              <Loading />
-            ) : isApproved ? (
-              <>
-                <Dlist className="flex">
-                  <div>
-                    <span>Enter collateral.</span>
-                    <NumInput onChange={handleCollateralChange} value={collateral} />
-                  </div>
-                  <div>
-                    <span>Enter Penalty.</span>
-                    <NumInput onChange={handlePenaltyChange} value={penalty} />
-                  </div>
-                  <div>
-                    <span>Enter price per day.</span>
-                    <NumInput onChange={handlePriceChange} value={price} />
-                  </div>
-                  <div>
-                    <span>Enter renting days.</span>
-                    <NumInput validInt onChange={handleDaysChange} value={days} />
-                  </div>
-                  <div>
-                    <span>choose type.</span>
-                    <div className="currentSelection" onClick={() => setOptions(!options)}>
-                      {currentSelection}
-                      <img src={arrow} className="arrowIcon" />
-                    </div>
-                    {options ? (
-                      <div className="Options">
-                        <div
-                          onClick={() => {
-                            setCurrentSelection(chainId === 56 ? 'BNB' : 'MATIC')
-                            setOptions(false)
-                          }}
-                        >
-                          {chainId === 56 ? 'BNB' : 'MATIC'}
-                        </div>
-                        <div
-                          onClick={() => {
-                            setCurrentSelection(chainId === 56 ? 'BUSD' : 'wETH')
-                            setOptions(false)
-                          }}
-                        >
-                          {chainId === 56 ? 'BUSD' : 'wETH'}
-                        </div>
-                      </div>
-                    ) : (
-                      ''
-                    )}
-                  </div>
-                </Dlist>
-                <br />
-                <Button
-                  className="lend"
-                  shape="round"
-                  block
-                  onClick={handleLend}
-                  disabled={!(price && days && collateral)}
-                  loading={lending}
-                  type="primary"
-                  size="large"
-                >
-                  Lend
-                </Button>
-              </>
-            ) : (
-              <div>
-                <Button className="lend" shape="round" block onClick={handleApprove} loading={approving} size="large">
-                  Approve
-                </Button>
-              </div>
-            )}
-          </Col>
-        </Row>
-      </Modal>
       <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">give a reward</div>
@@ -1912,19 +1554,6 @@ export const MyPage = () => {
             className={rewardQuantity ? 'button ture' : 'button false'}
             onClick={RewarType === 'CommentsRewar' ? sendRewar : postsRewar}
           >
-            Send
-            {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
-          </div>
-        </SendBox>
-      </Dialog>
-      <Dialog footer={null} onCancel={() => setShowSend(false)} visible={showSend} destroyOnClose closable={false}>
-        <SendBox>
-          <div className="title">Transfer your NFT</div>
-          <h2>Address</h2>
-          <div className="input">
-            <input placeholder="To address" onChange={handleToAddressChange} value={toAddress} />
-          </div>
-          <div className={toAddress ? 'button ture' : 'button false'} onClick={sendNFT}>
             Send
             {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
           </div>
@@ -2121,27 +1750,8 @@ export const MyPage = () => {
             : ''}
           {showTabs === 'NFTs' ? (
             <MyTabs defaultActiveKey="1">
-              <TabPaneBox tab={<span className="clearGap">My NFT</span>} key="1">
-                <MyNftBox>
-                  <NFTsBox className="flex wrap">
-                    {myNFT.length && myNFT
-                      ? myNFT.map((item: any, index: any) => (
-                          <Card
-                            key={index}
-                            nftId={item.token_id}
-                            onLend={() => lendNftClick(item)}
-                            onSend={() => handleSendNft(item)}
-                            name={item.metadata?.name}
-                            img={item.metadata?.image}
-                            contract_type={item.contract_type ? item.contract_type : item.standard}
-                            pay_type={item.pay_type}
-                            account={account}
-                            useraddress={account}
-                          />
-                        ))
-                      : ''}
-                  </NFTsBox>
-                </MyNftBox>
+              <TabPaneBox tab={<span className="clearGap">Profiles</span>} key="1">
+                <CollectionToken NFT={myNFT} user={userinfo.useraddress}></CollectionToken>
               </TabPaneBox>
               <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
                 <MyRenting />
@@ -2239,9 +1849,9 @@ export const MyPage = () => {
                       <PostsList key={index}>
                         <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
                         <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
-                          <div>{item.title}</div>
+                          <div className="title">{item.title}</div>
                           <div className="gameName">{item.contractName}</div>
-                          <div>
+                          <div className="view">
                             {item.view} view · {getTime(item.createdAt)}
                           </div>
                         </PostsItem>
