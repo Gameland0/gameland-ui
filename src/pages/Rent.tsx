@@ -463,12 +463,11 @@ export const Rent = () => {
 
   // useEffect(() => {
   //   ControlContract?.add_nft_programforarray([
-  //     '0x3687da0bf6486d367f26e4b2cf071c926df65c99',
-  //     '0x853bf5ad76d3ae766b7c3677fd0819c3a1af3443',
-  //     '0xdbe147fc80b49871e2a8d60cc89d51b11bc88b35',
-  //     '0x9cf0450f98d909148986d40e7426a2e7f2e587fd',
-  //     '0xfd1628820175456a292c9c0ba91428ae2b3fa245',
-  //     '0x7cbccc4a1576d7a05eb6f6286206596bcbee14ac'
+  //     '0x50bf69324a9be94673a2207427c5bebd8f63d76a',
+  //     '0x6f9982f5213c6e3d8b130fe031d396963a1af5b5',
+  //     '0x9a65e3193d9a27c834e31bfdbae3e7b0759a4d67',
+  //     '0xe263fd424347464a41fd761ac88e23edc9b0156a',
+  //     '0xfd2f272c658608a501da7487b3b8a37ecf4babdd'
   //   ])
   // }, [])
 
