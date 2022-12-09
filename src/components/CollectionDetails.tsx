@@ -1,12 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
-import { Row, Col, Button, message } from 'antd'
-import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
+import { Row, Col, Button } from 'antd'
+// import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadChangeParam } from 'antd/es/upload'
-import { divide, isEmpty, keys } from 'lodash'
+import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { lowerCase } from 'lower-case'
 import axios from 'axios'
@@ -72,7 +72,7 @@ import BNBIcon from '../assets/bnb.svg'
 // import { Return } from './RentingCard'
 // import deepHash from 'arweave/node/lib/deepHash'
 // import ArweaveBundles from 'arweave-bundles'
-import { ArweaveWebWallet } from 'arweave-wallet-connector'
+// import { ArweaveWebWallet } from 'arweave-wallet-connector'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -815,17 +815,7 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
       onClick={isLending ? handleClick : Click}
     >
       {src === '.mp4' || src === 'webm' ? (
-        <video
-          width="238"
-          height="238"
-          muted
-          autoPlay={true}
-          loop
-          role="application"
-          preload="auto"
-          webkit-playsinline="true"
-          src={img}
-        ></video>
+        <video width="238" height="238" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
         <Img src={img} alt={name} />
       )}
@@ -863,17 +853,7 @@ export const MyNFTCard: React.FC<MyNFTCardProps> = ({ img, name, onClick, contra
   return (
     <MyNFTCardBox className="flex flex-column-between flex-column" onClick={handleClick}>
       {src === '.mp4' || src === 'webm' ? (
-        <video
-          width="238"
-          height="238"
-          muted
-          autoPlay={true}
-          loop
-          role="application"
-          preload="auto"
-          webkit-playsinline="true"
-          src={img}
-        ></video>
+        <video width="238" height="238" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
         <Img src={img} alt={name} />
       )}
@@ -903,22 +883,22 @@ export const getTime = (time: any) => {
     return Math.floor(jetLag / 86400000) + ' day ago'
   }
 }
-const beforeUpload = (file: RcFile) => {
-  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
-  if (!isJpgOrPng) {
-    message.error('You can only upload JPG/PNG file!')
-  }
-  const isLt2M = file.size / 1024 / 1024 < 1
-  if (!isLt2M) {
-    message.error('Image must smaller than 1MB!')
-  }
-  return isJpgOrPng && isLt2M
-}
-const getBase64 = (img: RcFile, callback: (url: string) => void) => {
-  const reader = new FileReader()
-  reader.addEventListener('load', () => callback(reader.result as string))
-  reader.readAsDataURL(img)
-}
+// const beforeUpload = (file: RcFile) => {
+//   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+//   if (!isJpgOrPng) {
+//     message.error('You can only upload JPG/PNG file!')
+//   }
+//   const isLt2M = file.size / 1024 / 1024 < 1
+//   if (!isLt2M) {
+//     message.error('Image must smaller than 1MB!')
+//   }
+//   return isJpgOrPng && isLt2M
+// }
+// const getBase64 = (img: RcFile, callback: (url: string) => void) => {
+//   const reader = new FileReader()
+//   reader.addEventListener('load', () => callback(reader.result as string))
+//   reader.readAsDataURL(img)
+// }
 export const compareTime = () => {
   return function (obj1: any, obj2: any) {
     const val1 = new Date(obj1.datetime).getTime()
@@ -997,7 +977,7 @@ export const CollectionDetails = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [description, setDescription] = useState('')
-  const [transactionId, setTransactionId] = useState('')
+  // const [transactionId, setTransactionId] = useState('')
   const [NFTStatsMadalType, setNFTStatsMadalType] = useState('')
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)

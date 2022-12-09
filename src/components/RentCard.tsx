@@ -194,17 +194,7 @@ export const RentCard: React.FC<RentProps> = ({
     <CardBox className="flex flex-column-between flex-column" onClick={handleClick}>
       {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt="" /> */}
       {src === '.mp4' || src === 'webm' ? (
-        <video
-          width="185"
-          height="185"
-          muted
-          autoPlay={true}
-          loop
-          role="application"
-          preload="auto"
-          webkit-playsinline="true"
-          src={img}
-        ></video>
+        <video width="185" height="185" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
         <Img src={img} alt={name} />
       )}

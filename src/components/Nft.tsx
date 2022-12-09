@@ -362,17 +362,7 @@ export const Nft: React.FC<NftProps> = ({
     <CardBox className="flex flex-column" onClick={handleClick}>
       {/* <Img src={Imgs[name] ? Imgs[name] : Default} alt={name} /> */}
       {src === '.mp4' || src === 'webm' ? (
-        <video
-          width="314"
-          height="314"
-          muted
-          autoPlay={true}
-          loop
-          role="application"
-          preload="auto"
-          webkit-playsinline="true"
-          src={img}
-        ></video>
+        <video width="314" height="314" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
         <Img src={img} alt={name} />
       )}

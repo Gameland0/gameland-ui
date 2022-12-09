@@ -235,16 +235,13 @@ export const Header = () => {
           <>
             <div className="flex flex-h-between hidden">
               <Link exact to="/">
-                <span>Rent</span>
+                <span>Games</span>
               </Link>
               <Link to="/lend">
                 <span>Lend</span>
               </Link>
-              {/* <Link to="/dashboard">
+              <Link to="/dashboard">
                 <span>Dashboard</span>
-              </Link> */}
-              <Link to="/games">
-                <span>Games</span>
               </Link>
             </div>
             <div className="chain">
@@ -272,7 +269,7 @@ export const Header = () => {
         )}
       </div>
 
-      <MobileDrawer placement="right" width="75%" onClose={() => setVisible(false)} visible={visible}>
+      {/* <MobileDrawer placement="right" width="75%" onClose={() => setVisible(false)} visible={visible}>
         <p>
           <MobileNav onClick={() => setVisible(false)} exact to="/">
             <span>Rent</span>
@@ -291,7 +288,7 @@ export const Header = () => {
         <p>
           <AccountBar key="accountbar" />
         </p>
-      </MobileDrawer>
+      </MobileDrawer> */}
     </HeaderBox>
   )
 }
