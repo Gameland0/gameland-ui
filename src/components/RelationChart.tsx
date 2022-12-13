@@ -94,13 +94,15 @@ export const RelationChart = () => {
       return avatar1
     }
   }
-  useEffect(() => {
+  useEffect(()=> {
     if (state) {
       localStorage.setItem('contractAddress', state.contractAddress)
       localStorage.setItem('useraddress', state.useraddress)
     }
-    // getNftData()
     getUserInfoAll()
+  }, [contractName])
+  useEffect(() => {
+    // getNftData()
     componentDidMount()
     console.log(getUserImage(useraddress))
   }, [contractName])

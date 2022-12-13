@@ -1456,13 +1456,7 @@ export const MyPage = () => {
       >
         <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
       </NFTStatsMadal>
-      <Modal
-        destroyOnClose
-        footer={null}
-        onCancel={() => setShowSettings(false)}
-        visible={showSettings}
-        closable={false}
-      >
+      <Modal destroyOnClose footer={null} onCancel={() => setShowSettings(false)} open={showSettings} closable={false}>
         <SettingsBox>
           <h1 className="text-center">Edit profile</h1>
           <div className="userAvatar">
@@ -1509,7 +1503,7 @@ export const MyPage = () => {
           </div>
         </SettingsBox>
       </Modal>
-      <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={() => setshowreward(false)} open={showreward} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">give a reward</div>
           <h2>Quantity</h2>
@@ -1558,7 +1552,7 @@ export const MyPage = () => {
       <Dialog
         footer={null}
         onCancel={() => setShowDeletePosts(false)}
-        visible={showDeletePosts}
+        open={showDeletePosts}
         destroyOnClose
         closable={false}
       >

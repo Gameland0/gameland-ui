@@ -144,7 +144,7 @@ export const NFTStatsMadal: React.FC<MadalProps> = ({
   children
 }) => {
   return (
-    <Modal footer={null} onCancel={() => ''} visible={visible} destroyOnClose closable={false}>
+    <Modal footer={null} onCancel={() => ''} open={visible} destroyOnClose closable={false}>
       <Row gutter={[24, 24]}>
         <Col span="12" xl={12} sm={24}>
           <ImgBox>

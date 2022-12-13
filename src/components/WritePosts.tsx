@@ -6,15 +6,16 @@ import { bschttp, http, polygonhttp } from './Store'
 import { createAndSubmitItem, Config, payBill } from '../utils/arseeding'
 import { Title } from '../pages/Rent'
 import { toastify } from './Toastify'
-import picIcon from '../assets/icon_pic.svg'
+// import picIcon from '../assets/icon_pic.svg'
 import gameIcon from '../assets/icon_game.svg'
-import boldIcon from '../assets/icon_description_font_bold.svg'
-import ltalicIcon from '../assets/icon_description_font_Italic.svg'
-import underlinedIcon from '../assets/icon_description_font_underlined.svg'
+// import boldIcon from '../assets/icon_description_font_bold.svg'
+// import ltalicIcon from '../assets/icon_description_font_Italic.svg'
+// import underlinedIcon from '../assets/icon_description_font_underlined.svg'
 import loadding from '../assets/loading.svg'
 import key from '../constants/arweave-keyfile.json'
 import Arweave from 'arweave'
 import ArweaveSigner from 'arseeding-arbundles/src/signing/chains/ArweaveSigner'
+import { RichTextEditor } from '@mantine/rte'
 
 const WritePostsBox = styled.div`
   position: relative;
@@ -65,46 +66,6 @@ const WritePostsBox = styled.div`
     }
   }
 `
-const TextareaBox = styled.div`
-  position: relative;
-  border: 1px solid #707070;
-  border-radius: 20px;
-  .toolbar {
-    position: sticky;
-    top: 140px;
-    height: 72px;
-    padding: 0 32px;
-    border-bottom: 1px solid #707070;
-    background: #fff;
-    border-radius: 20px 20px 0 0;
-    img {
-      margin-right: 32px;
-      cursor: pointer;
-    }
-    input {
-      display: none;
-    }
-  }
-  .addImg {
-    width: 120px;
-    height: 120px;
-    margin: 10px;
-  }
-`
-const ContentEditableDiv = styled.div`
-  min-height: 200px;
-  padding: 16px;
-  outline: none;
-  border: none;
-  font-size: 20px;
-  div {
-    margin-bottom: 16px;
-  }
-  img {
-    width: 500px;
-    height: 500px;
-  }
-`
 const GameList = styled.div`
   width: 250px;
   height: 400px;
@@ -142,13 +103,10 @@ const GameListItem = styled.div`
 export const WritePosts = () => {
   const { account } = useActiveWeb3React()
   const [inputValue, setInputValue] = useState('')
+  const [value, setValue] = useState('')
   const [gameItem, setGameItem] = useState({} as any)
   const [showGameList, setShowGameList] = useState(false)
-  const [bold, setBold] = useState(false)
-  const [tilt, setTilt] = useState(false)
-  const [underscore, setUnderscore] = useState(false)
   const [lending, setLending] = useState(false)
-  const [imgArr, setimgArr] = useState([] as any)
   const [gameData, setGameData] = useState([] as any)
   const history = useHistory()
   const arweave = Arweave.init({
@@ -165,95 +123,7 @@ export const WritePosts = () => {
       setGameData([...bsc.data.data, ...polygon.data.data])
     }
     getGames()
-  }, [])
-  const boldClick = () => {
-    const range = document.getSelection()?.getRangeAt(0)
-    const comnode = range?.commonAncestorContainer
-    const value = comnode?.nodeValue as string
-    if (!value) return
-    if (!bold) {
-      const b = document.createElement('b')
-      b.innerText = value
-      comnode?.parentNode?.replaceChild(b, comnode)
-      setBold(true)
-    } else {
-      const b = document.createElement('span')
-      b.innerText = value
-      comnode?.parentNode?.parentNode?.replaceChild(b, comnode?.parentNode)
-      setBold(false)
-    }
-  }
-  const tiltClick = () => {
-    const range = document.getSelection()?.getRangeAt(0)
-    const comnode = range?.commonAncestorContainer
-    const value = comnode?.nodeValue as string
-    if (!value) return
-    if (!tilt) {
-      const b = document.createElement('i')
-      b.innerText = value
-      comnode?.parentNode?.replaceChild(b, comnode)
-      setTilt(true)
-    } else {
-      const b = document.createElement('span')
-      b.innerText = value
-      comnode?.parentNode?.parentNode?.replaceChild(b, comnode?.parentNode)
-      setTilt(false)
-    }
-  }
-  const underscoreClick = () => {
-    const range = document.getSelection()?.getRangeAt(0)
-    const comnode = range?.commonAncestorContainer
-    const value = comnode?.nodeValue as string
-    if (!value) return
-    if (!underscore) {
-      const b = document.createElement('u')
-      b.innerText = value
-      comnode?.parentNode?.replaceChild(b, comnode)
-      setUnderscore(true)
-    } else {
-      const b = document.createElement('span')
-      b.innerText = value
-      comnode?.parentNode?.parentNode?.replaceChild(b, comnode?.parentNode)
-      setUnderscore(false)
-    }
-  }
-  const addImg = () => {
-    const fileInput = document.getElementById('file')
-    // const range = document.getSelection()?.getRangeAt(0)
-    // const comnode = range?.commonAncestorContainer.parentNode
-    // console.log(comnode)
-    fileInput?.click()
-    document.getElementById('ContentEditable')?.focus()
-  }
-  const ParseDom = (ele: any) => {
-    const Dom = document.createElement('div')
-    Dom.innerHTML = ele
-    return Dom
-  }
-  const keyEnter = (e: any) => {
-    if (e.keyCode === 13) {
-      const range = document.getSelection()?.getRangeAt(0)
-      const comnode = range?.commonAncestorContainer
-      const value = comnode?.nodeValue as string
-      console.log(comnode)
-      if (!value) {
-        const b = document.createElement('div')
-        b.innerHTML = '<br />'
-        comnode?.parentNode?.replaceChild(b, comnode)
-        setBold(false)
-        setTilt(false)
-        setUnderscore(false)
-      }
-    }
-    if (e.keyCode === 8) {
-      const length = document.getElementById('ContentEditable')?.childNodes.length
-      if (length === 0) {
-        const dom = document.createElement('div')
-        dom.innerHTML = '<br />'
-        document.getElementById('ContentEditable')?.appendChild(dom)
-      }
-    }
-  }
+  }, [account])
   const GameListItemClick = (item: any) => {
     setShowGameList(false)
     setGameItem(item)
@@ -264,7 +134,7 @@ export const WritePosts = () => {
       return
     }
     const dom = document.getElementById('ContentEditable')
-    const domcontent = dom?.innerHTML
+    const domcontent = value
     if ((domcontent?.length as number) < 46) {
       toastify.error('Content length must be 30 or more')
       return
@@ -319,32 +189,13 @@ export const WritePosts = () => {
       toastify.error('upload failed')
     }
   }
+  // const PostButtonClick = () => {
+  //   console.log(value.length)
+  // }
   const TitleInputChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setInputValue(val)
   }, [])
-  const insertImgChange = (e: any) => {
-    const Img = e.target.files[0]
-    const fileSize = Img.size
-    const size = fileSize / 1024
-    const type = Img.type
-    if (size > 5120) {
-      toastify.error('Image size cannot be larger than 5MB')
-      return
-    }
-    const reader = new FileReader()
-    reader.readAsDataURL(Img)
-    reader.onload = (res) => {
-      const arr = imgArr
-      const imgData = res.target?.result
-      arr.push(imgData)
-      setimgArr([...arr])
-      const dom = `<img className="addImg" src=${imgData} />`
-      const parseDom = ParseDom(dom)
-      // document.getElementById('ContentEditable')?.appendChild(parseDom)
-      document.getSelection()?.getRangeAt(0).insertNode(parseDom)
-    }
-  }
 
   return (
     <WritePostsBox>
@@ -372,7 +223,8 @@ export const WritePosts = () => {
       ) : (
         ''
       )}
-      <TextareaBox>
+      <RichTextEditor value={value} onChange={setValue} placeholder="Posts Content" id="rte" />
+      {/* <TextareaBox>
         <div className="toolbar flex flex-v-center">
           <input id="file" type="file" accept="image/png, image/jpeg" onChange={insertImgChange} />
           <img src={picIcon} onClick={addImg} />
@@ -385,7 +237,7 @@ export const WritePosts = () => {
             <br />
           </div>
         </ContentEditableDiv>
-      </TextareaBox>
+      </TextareaBox> */}
       <div className="postButton text-center cursor" onClick={PostButtonClick}>
         Post
         {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
