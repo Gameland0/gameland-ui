@@ -49,6 +49,11 @@ export const formatting = (address: string, places = 4): string => {
   return `${start}...${end}`
 }
 
+export const filterAddress = (address: any) => {
+  const res = address.substring(26)
+  return `0x${res}`
+}
+
 // account is not optional
 export function getSigner(library: Web3Provider, account: string): JsonRpcSigner {
   return library.getSigner(account).connectUnchecked()

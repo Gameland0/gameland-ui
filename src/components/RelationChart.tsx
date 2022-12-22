@@ -7,12 +7,10 @@ import * as echarts from 'echarts/lib/echarts'
 // import { TooltipComponent, LegendComponent } from 'echarts/components'
 import 'echarts/lib/chart/graph'
 import { useActiveWeb3React } from '../hooks'
-import { formatting } from '../utils'
-import { http, bschttp } from './Store'
+import { filterAddress, formatting } from '../utils'
+import { http, bschttp, polygonhttp } from './Store'
 import { OPENSEA_API_KEY, MORALIS_KEY, PolygonContract, BscContract } from '../constants'
 // import { add } from 'lodash'
-import avatar1 from '../assets/icon_avatar_1.svg'
-import avatar2 from '../assets/icon_avatar_2.png'
 import { release } from 'os'
 import { resolve } from 'dns'
 import { add, reject } from 'lodash'
@@ -68,48 +66,82 @@ export const RelationChart = () => {
   const { account } = useActiveWeb3React()
   const { state } = useLocation() as any
   const [orderData, setOrderData] = useState([] as any)
+  const [optionData, setOptionData] = useState([] as any)
   const [NFTData, setNFTData] = useState([] as any)
   const [usarDataAll, setUsarDataAll] = useState([] as any)
   const { contractName } = useParams() as any
   let contractAddress: any
   let useraddress: any
+  let chain: any
   if (state) {
     contractAddress = state.contractAddress
     useraddress = state.useraddress
+    chain = state.chain
   } else {
     contractAddress = localStorage.getItem('contractAddress')
     useraddress = localStorage.getItem('useraddress')
+    chain = localStorage.getItem('contractChain')
   }
   const getUserInfoAll = async () => {
     const userinfoAll = await bschttp.get('v0/userinfo')
-    setUsarDataAll(userinfoAll.data.data)
-  }
-  const getUserImage = (address: any) => {
-    const data = usarDataAll.filter((item: any) => {
-      return item.useraddress.toLowerCase() === address.toLowerCase()
-    })
-    if (data.length) {
-      return data[0]?.image
+    let oldOwnersData
+    if (chain === 'bsc') {
+      oldOwnersData = await bschttp.get(`v0/old_owners/${contractAddress}`)
     } else {
-      return avatar1
+      oldOwnersData = await polygonhttp.get(`v0/old_owners/${contractAddress}`)
     }
+    const addressArr: any[] = []
+    oldOwnersData.data.data.map((item: any) => {
+      addressArr.push(filterAddress(item.fromadd))
+      addressArr.push(filterAddress(item.toadd))
+    })
+    setUsarDataAll(userinfoAll.data.data)
+    const data: any[] = []
+    Array.from(new Set(addressArr)).map((item: any, index: number) => {
+      const object = {
+        id: index,
+        symbolSize: 60,
+        name: formatting(item as string),
+        x: 40 * index,
+        y: 40 * index,
+        draggable: true,
+        category: index,
+        label: {
+          show: false
+        },
+        emphasis: {
+          label: {
+            show: false
+          }
+        }
+      }
+      data.push(object)
+    })
+    setOptionData(data)
   }
-  useEffect(()=> {
+  useEffect(() => {
     if (state) {
       localStorage.setItem('contractAddress', state.contractAddress)
       localStorage.setItem('useraddress', state.useraddress)
+      localStorage.setItem('contractChain', state.chain)
     }
     getUserInfoAll()
   }, [contractName])
   useEffect(() => {
-    // getNftData()
     componentDidMount()
-    console.log(getUserImage(useraddress))
-  }, [contractName])
+  }, [usarDataAll, optionData])
   const options = {
+    colorBy: 'series',
     color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
-    animationDurationUpdate: 1500,
+    animationDurationUpdate: 500,
     animationEasingUpdate: 'quinticInOut',
+    animation: true,
+    animationEasing: 'cubicInOut',
+    animationThreshold: 2000,
+    progressiveThreshold: 3000,
+    progressive: 400,
+    hoverLayerThreshold: 3000,
+    useUTC: false,
     label: {
       normal: {
         show: true,
@@ -154,9 +186,7 @@ export const RelationChart = () => {
             draggable: true,
             x: 0,
             y: 0,
-            itemStyle: {
-              color: '#5470c6'
-            }
+            category: 0
           },
           {
             name: '0x17...7cc3',
@@ -164,9 +194,7 @@ export const RelationChart = () => {
             draggable: true,
             x: -126.82776,
             y: 199.6904,
-            itemStyle: {
-              color: '#91cc75'
-            }
+            category: 1
           },
           {
             name: '0x17...ccd3',
@@ -174,9 +202,7 @@ export const RelationChart = () => {
             draggable: true,
             x: 166.82776,
             y: 199.6904,
-            itemStyle: {
-              color: '#fac858'
-            }
+            category: 2
           },
           {
             name: '0x17...7cdc',
@@ -184,9 +210,7 @@ export const RelationChart = () => {
             draggable: true,
             x: 26.82776,
             y: 219.6904,
-            itemStyle: {
-              color: '#ee6666'
-            }
+            category: 3
           },
           {
             name: '0x27...d6ab',
@@ -194,9 +218,7 @@ export const RelationChart = () => {
             draggable: true,
             x: -56.82776,
             y: 249.6904,
-            itemStyle: {
-              color: '#73c0de'
-            }
+            category: 4
           },
           {
             name: '0x27...8a76',
@@ -204,9 +226,7 @@ export const RelationChart = () => {
             draggable: true,
             x: -186.82776,
             y: 259.6904,
-            itemStyle: {
-              color: '#3ba272'
-            }
+            category: 5
           },
           {
             name: '0x27...992d',
@@ -214,9 +234,7 @@ export const RelationChart = () => {
             draggable: true,
             x: -266.82776,
             y: 199.6904,
-            itemStyle: {
-              color: '#fc8452'
-            }
+            category: 6
           },
           {
             name: '0x27...629a',
@@ -224,9 +242,7 @@ export const RelationChart = () => {
             draggable: true,
             x: -226.82776,
             y: 49.6904,
-            itemStyle: {
-              color: '#9a60b4'
-            }
+            category: 7
           },
           {
             name: '0x27...aar5',
@@ -234,9 +250,7 @@ export const RelationChart = () => {
             draggable: true,
             x: -26.82776,
             y: 19.6904,
-            itemStyle: {
-              color: '#ea7ccc'
-            }
+            category: 8
           }
         ],
         links: [
@@ -296,14 +310,14 @@ export const RelationChart = () => {
           normal: {
             opacity: 1,
             width: 1,
-            type: 'solid',
+            color: 'source',
             curveness: 0.3
           }
         },
         z: 2,
         coordinateSystem: 'view',
         legendHoverLink: true,
-        edgeSymbol: ['circle', 'arrow']
+        edgeSymbol: ['none', 'arrow']
       }
     ]
   }
@@ -387,162 +401,7 @@ export const RelationChart = () => {
         name: 'Les Miserables',
         type: 'graph',
         layout: 'none',
-        data: [
-          {
-            id: '0',
-            name: 'Myriel',
-            symbolSize: 19.12381,
-            x: -266.82776,
-            y: 299.6904,
-            value: 28.685715,
-            category: 0,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '1',
-            name: 'MmeBurgon',
-            symbolSize: 4.495239333333333,
-            x: 488.13535,
-            y: 356.8573,
-            value: 6.742859,
-            category: 5,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '2',
-            name: 'Valjean',
-            symbolSize: 90,
-            x: -87.93029,
-            y: -6.8120565,
-            value: 100,
-            category: 1,
-            symbol: `image://${getUserImage(useraddress)}`,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '3',
-            name: 'Fantine',
-            symbolSize: 28.266666666666666,
-            x: -313.42786,
-            y: -289.44803,
-            value: 42.4,
-            category: 2,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '4',
-            name: 'Champmathieu',
-            symbolSize: 11.809524666666666,
-            x: -338.2307,
-            y: 87.48405,
-            value: 17.714287,
-            category: 3,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '5',
-            name: 'Gavroche',
-            symbolSize: 41.06667066666667,
-            x: 387.89572,
-            y: 110.462326,
-            value: 61.600006,
-            category: 8,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '6',
-            name: 'Marius',
-            symbolSize: 35.58095333333333,
-            x: 206.44687,
-            y: -13.805411,
-            value: 53.37143,
-            category: 6,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '7',
-            name: 'Thenardier',
-            symbolSize: 30.095235333333335,
-            x: 82.80825,
-            y: -203.1144,
-            value: 45.142853,
-            category: 7,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          },
-          {
-            id: '8',
-            name: 'Fauchelevent',
-            symbolSize: 8.152382000000001,
-            x: -225.73984,
-            y: 82.41631,
-            value: 12.228573,
-            category: 4,
-            label: {
-              show: false
-            },
-            emphasis: {
-              label: {
-                show: false
-              }
-            }
-          }
-        ],
+        data: optionData,
         links: [
           {
             source: '5',
@@ -648,6 +507,7 @@ export const RelationChart = () => {
         z: 2,
         coordinateSystem: 'view',
         legendHoverLink: true,
+        edgeSymbol: ['none', 'arrow'],
         circular: {
           rotateLabel: false
         },
@@ -663,7 +523,6 @@ export const RelationChart = () => {
         top: 'center',
         symbol: 'circle',
         symbolSize: 10,
-        edgeSymbol: ['none', 'none'],
         edgeSymbolSize: 10,
         edgeLabel: {
           position: 'middle',

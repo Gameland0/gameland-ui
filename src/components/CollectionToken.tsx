@@ -36,6 +36,7 @@ import arrow from '../assets/icon_select.svg'
 import defaultImg from '../assets/default.png'
 import avatar1 from '../assets/icon_avatar_1.svg'
 import avatar2 from '../assets/icon_avatar_2.png'
+import { type } from 'os'
 
 const TokenBox = styled.div`
   width: 100%;
@@ -148,29 +149,97 @@ export const CollectionToken = (NFT: any) => {
     })
   }
   const NewNftsdata = async () => {
-    const data = await bschttp.get(`v0/new_nfts`)
-    if (data.data.data.length) {
-      const bscNft = NFT.NFT.filter((item: any) => {
+    try {
+      const bsc = await bschttp.get(`v0/new_nfts`)
+      const bscNewnfts = bsc.data.data
+      const MyBscNft = NFT.NFT.filter((item: any) => {
         return item.chain === 'bsc'
       })
-      const newnfts = data.data.data
-      console.log(bscNft)
-      const filterData = bscNft.filter((item: any) => {
-        return newnfts.findIndex((ele: any) => ele.nftid === item.token_id) >= 0
+      const polygon = await polygonhttp.get(`v0/new_nfts`)
+      const polygonNewnfts = polygon.data.data
+      const MyPolygonNft = NFT.NFT.filter((item: any) => {
+        return item.chain === 'polygon'
       })
-      if (!filterData.length) {
-        bscNft.map(async (item: any) => {
-          const list = {
-            nftcollectionaddress: item.token_address,
-            nftcollectionname: item.name,
-            nftid: item.token_id,
-            startblock: item.block_number_minted,
-            owner: item.owner_of,
-            uri: item.token_uri
-          }
-          const res: any = await bschttp.post(`/v0/new_nfts`, list)
+      if (bscNewnfts && bscNewnfts.length) {
+        const filterBscData = MyBscNft.filter((item: any) => {
+          return (
+            bscNewnfts.findIndex(
+              (ele: any) =>
+                ele.nftid === item.token_id &&
+                ele.nftcollectionaddress.toLowerCase() === item.token_address.toLowerCase()
+            ) < 0
+          )
         })
+        if (filterBscData.length) {
+          filterBscData.map((item: any) => {
+            const list = {
+              nftcollectionaddress: item.token_address,
+              nftcollectionname: item.name,
+              nftid: item.token_id,
+              startblock: item.block_number_minted,
+              owner: item.owner_of,
+              uri: item.token_uri
+            }
+            bschttp.post(`/v0/new_nfts`, list)
+          })
+        }
+      } else {
+        if (MyBscNft.length) {
+          MyBscNft.map((item: any) => {
+            const list = {
+              nftcollectionaddress: item.token_address,
+              nftcollectionname: item.name,
+              nftid: item.token_id,
+              startblock: item.block_number_minted,
+              owner: item.owner_of,
+              uri: item.token_uri
+            }
+            bschttp.post(`/v0/new_nfts`, list)
+          })
+        }
       }
+
+      if (polygonNewnfts && polygonNewnfts.length) {
+        const filterPolygonData = MyPolygonNft.filter((item: any) => {
+          return (
+            polygonNewnfts.findIndex(
+              (ele: any) =>
+                ele.nftid === item.token_id &&
+                ele.nftcollectionaddress.toLowerCase() === item.token_address.toLowerCase()
+            ) < 0
+          )
+        })
+        if (filterPolygonData.length) {
+          console.log(filterPolygonData)
+          filterPolygonData.map((item: any) => {
+            const list = {
+              nftcollectionaddress: item.token_address,
+              nftcollectionname: item.name,
+              nftid: item.token_id,
+              startblock: item.block_number_minted,
+              owner: item.owner_of,
+              uri: item.token_uri
+            }
+            polygonhttp.post(`/v0/new_nfts`, list)
+          })
+        }
+      } else {
+        if (MyPolygonNft.length) {
+          MyPolygonNft.map((item: any) => {
+            const list = {
+              nftcollectionaddress: item.token_address,
+              nftcollectionname: item.name,
+              nftid: item.token_id,
+              startblock: item.block_number_minted,
+              owner: item.owner_of,
+              uri: item.token_uri
+            }
+            polygonhttp.post(`/v0/new_nfts`, list)
+          })
+        }
+      }
+    } catch (error) {
+      return
     }
   }
   const getBSCToken = async (contractaddress: any) => {
@@ -461,7 +530,8 @@ export const CollectionToken = (NFT: any) => {
       pathname: `/RelationChart/${contractName.replace(/ /g, '')}`,
       state: {
         contractAddress: item.NFTaddress,
-        useraddress: NFT.user
+        useraddress: NFT.user,
+        chain: item.chain
       }
     })
   }
@@ -480,7 +550,7 @@ export const CollectionToken = (NFT: any) => {
   }, [account])
   return (
     <TokenBox>
-      <Dialog footer={null} onCancel={() => setShowSend(false)} visible={showSend} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={() => setShowSend(false)} open={showSend} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Transfer your NFT</div>
           <h2>Address</h2>
@@ -493,7 +563,7 @@ export const CollectionToken = (NFT: any) => {
           </div>
         </SendBox>
       </Dialog>
-      <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} visible={lendvisible} closable={false}>
+      <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} open={lendvisible} closable={false}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <NftCard
