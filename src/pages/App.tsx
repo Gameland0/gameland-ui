@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import './App.less'
 import './Global.css'
+import './mirror.css'
 import { Header } from '../components/Header'
 import { Switch, Route, Router } from 'react-router-dom'
 import { createBrowserHistory } from 'history'
@@ -20,7 +21,9 @@ import { ToastContainer } from '../components/Toastify'
 import { Games } from './Games'
 import { WritePosts } from '../components/WritePosts'
 import { PostsContentPage } from '../components/PostsContent'
+import { ArticleContentPage } from '../components/ArticleContent'
 import { RelationChart } from '../components/RelationChart'
+import { Expose } from '../components/Expose'
 
 const browserHistory = createBrowserHistory()
 const Wrap = styled.div`
@@ -81,6 +84,7 @@ function App() {
             <Route exact path="/lend" component={Lend} />
             <Route exact path="/dashboard" component={MyPage} />
             <Route exact path="/" component={Games} />
+            <Route exact path="/expose" component={Expose} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
             <Route exact path="/user/:username" component={UserPage} />
@@ -89,6 +93,7 @@ function App() {
             <Route exact path="/WritePosts" component={WritePosts} />
             <Route exact path="/RelationChart/:contractName" component={RelationChart} />
             <Route exact path="/PostsContent/:useraddress/:postsId" component={PostsContentPage} />
+            <Route exact path="/Article/:type/:useraddress/:Id" component={ArticleContentPage} />
           </Switch>
           <ToastContainer />
         </Wrap>

@@ -243,6 +243,9 @@ export const Header = () => {
               <Link to="/dashboard">
                 <span>Dashboard</span>
               </Link>
+              <Link to="/expose">
+                <span>Expose</span>
+              </Link>
             </div>
             <div className="chain">
               <div className="jumpButton">

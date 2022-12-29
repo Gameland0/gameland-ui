@@ -77,6 +77,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.line-clamp {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
 .mantine-1qycoz3 {
   border-radius: 20px;
   border: 1px solid #707070;

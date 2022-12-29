@@ -1,0 +1,106 @@
+.css-180lw20 {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+figure {
+  display: block;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 40px;
+  margin-inline-end: 40px;
+}
+.css-1di4gg1>div>figure, .css-1di4gg1>div>a>figure, .css-1di4gg1 figure {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 0px;
+  padding-right: 0px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  position: relative;
+}
+.css-18x9foa {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.css-1ka1itu {
+  padding: 1.25rem 1.5rem;
+  flex: 1 1 0%;
+}
+.css-11a0l8s {
+  display: block;
+  background: linear-gradient( to right, rgba(var(--groupBackground), var(--shadeGroupBackground)), rgba(var(--groupBackground), var(--shadeGroupBackground)) ),linear-gradient(to right, rgb(var(--background)), rgb(var(--background)));
+  color: rgba(var(--foreground), var(--shadeTextSecondary));
+  font-size: 1rem;
+  position: relative;
+  border-radius: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  --relativeBackground: var(--groupBackground);
+}
+.css-h3h8oa {
+  display: flex;
+  -webkit-box-align: stretch;
+  align-items: stretch;
+}
+.css-qccqch {
+  overflow: hidden;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1.5rem;
+  border-bottom-right-radius: 0px;
+  padding-bottom: 50%;
+  position: relative;
+}
+.css-13xbs5j {
+  font-weight: 500;
+  color: var(--theme-ui-colors-text, var(--colors-text));
+  overflow-wrap: break-word;
+}
+.css-1lanuoe {
+  overflow-wrap: break-word;
+}
+.css-djymjx {
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  overflow-wrap: break-word;
+}
+.css-idr58y {
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+.css-1y0aw0e {
+  height: 17px;
+  width: 17px;
+}
+.css-1sjhlb0 {
+  margin-left: 0.5rem;
+}
+.css-6v0d6f {
+  top: 0px;
+  right: auto;
+  height: auto;
+  width: 1px;
+  bottom: 0px;
+  left: 0px;
+  background: rgba(0, 0, 0, 0.75);
+}

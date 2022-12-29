@@ -15,13 +15,12 @@ import likefalse from '../assets/icon_like_default_comments.svg'
 import liketrue from '../assets/icon_like_click_comments.svg'
 import collectfalse from '../assets/icon_collect_default_comments.svg'
 import collecttrue from '../assets/icon_collect_click_comments.svg'
-import repost from '../assets/icon_repost.svg'
+import mint from '../assets/mint.png'
 import Reply from '../assets/icon_reply.svg'
 import reward from '../assets/icon_reward.svg'
 import arrow from '../assets/icon_select.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
-import mint from '../assets/mint.png'
 
 const PostsContent = styled.div`
   position: relative;
@@ -71,8 +70,8 @@ const PostsContent = styled.div`
       margin-bottom: 32px;
     }
     img {
-      width: 500px;
-      height: 500px;
+      width: 60%;
+      height: 60%;
     }
   }
   .otherDetails {
@@ -160,18 +159,17 @@ const PostsContent = styled.div`
     min-height: 600px;
   }
 `
-export const PostsContentPage = () => {
+export const ArticleContentPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const RewardContract = useRewardContract()
   const { search } = useLocation() as any
   const [userinfo, setUserinfo] = useState([] as any)
   const [postsItem, setPostsItem] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
-  const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
   const [postsReplayData, setPostsReplayData] = useState([] as any)
-  const [userLikeInfo, setuserLikeInfo] = useState([] as any)
+  // const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [rewardItem, setrewardItem] = useState({} as any)
   const [RewarType, setRewarType] = useState('CommentsRewar')
   const [replayValue, setreplayValue] = useState('')
@@ -184,40 +182,75 @@ export const PostsContentPage = () => {
   const [replayWho, setreplayWho] = useState('')
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
-  const { useraddress, postsId } = useParams() as any
+  const { type, useraddress, Id } = useParams() as any
   useEffect(() => {
     getUserInfo()
-  }, [account])
+  }, [account, refreshBy])
   const getUserInfo = async () => {
     if (!account || !useraddress) return
     const data = await bschttp.get(`v0/userinfo/${useraddress}`)
-    if (data.data.data.length) {
-      setUserinfo(data.data.data[0])
-    }
-    const postData = await bschttp.get(`v0/posts/${postsId}`)
-    if (postData.data.data.length) {
-      setPostsItem(postData.data.data[0])
-      console.log(postData.data.data)
-      setLending(true)
-      fetch(postData.data.data[0].link)
-        .then((res) => res.json())
-        .then((data) => {
-          const Dom = document.createElement('div')
-          Dom.innerHTML = data.content
-          document.getElementById('postsContent')?.appendChild(Dom)
-          setLending(false)
-        })
-    }
+    setUserinfo(data.data.data[0])
     bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
-    bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
     bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
     bschttp.get(`v0/posts_reply`).then((vals) => setPostsReplayData(vals.data.data))
-    const BscLike = bschttp.get(`/v0/review_like/${account}`)
-    const polygonLike = polygonhttp.get(`/v0/review_like/${account}`)
-    Promise.all([BscLike, polygonLike]).then((vals) => {
-      setuserLikeInfo([...vals[0].data.data, ...vals[1].data.data])
-    })
+    let Data: any
+    if (type === 'Mirror') {
+      Data = (await bschttp.get(`v0/mirrow_article/${Id}`)).data.data
+    } else if (type === 'Gameland') {
+      Data = (await bschttp.get(`v0/posts/${Id}`)).data.data
+    }
+    if (Data.length) {
+      setPostsItem(Data[0])
+      setLending(true)
+      if (type === 'Mirror') {
+        const Dom = document.createElement('div')
+        Dom.innerHTML = Data[0]?.context
+        document.getElementById('postsContent')?.appendChild(Dom)
+        const noscript = document.getElementsByTagName('noscript')
+        console.log(noscript.length)
+        const imgArr = []
+        for (let i = 0; i < noscript.length; i++) {
+          if (i > 0) {
+            const srt = noscript[i].innerText
+            const src = srt.substring(srt.indexOf('src="'))
+            const regExp = new RegExp('" decoding', 'g')
+            const regExp2 = new RegExp('amp;', 'g')
+            const regExpsrc = src.split('="')[1].replace(regExp, '').replace(regExp2, '').replace(/ /g, '')
+            imgArr.push(regExpsrc)
+          }
+        }
+        const rehypefigure = document.getElementsByClassName('rehype-figure')
+        let imgArrIndex = 0
+        for (let index = 0; index < rehypefigure.length; index++) {
+          const span = rehypefigure[index].getElementsByTagName('span')
+          if (span.length) {
+            console.log(span, index)
+            const img = span[0].getElementsByTagName('img')[1]
+            const img1 = span[0].getElementsByTagName('img')[0]
+            img.src = 'https://mirror.xyz' + imgArr[imgArrIndex]
+            img1.src = 'https://mirror.xyz' + imgArr[imgArrIndex]
+            imgArrIndex++
+          }
+        }
+        // console.log(img)
+        setLending(false)
+      } else if (type === 'Gameland') {
+        fetch(Data[0]?.link)
+          .then((res) => res.json())
+          .then((data) => {
+            const Dom = document.createElement('div')
+            Dom.innerHTML = data.content
+            document.getElementById('postsContent')?.appendChild(Dom)
+            setLending(false)
+          })
+      }
+    }
+    // const BscLike = bschttp.get(`/v0/review_like/${account}`)
+    // const polygonLike = polygonhttp.get(`/v0/review_like/${account}`)
+    // Promise.all([BscLike, polygonLike]).then((vals) => {
+    //   setuserLikeInfo([...vals[0].data.data, ...vals[1].data.data])
+    // })
   }
   const handlePostsOtherDetails = (type: string) => {
     if (type === 'collectQuantity') {
@@ -414,6 +447,9 @@ export const PostsContentPage = () => {
     const val = ele.currentTarget.value
     setrewardQuantity(val)
   }, [])
+  const handleImgError = (e: any) => {
+    e.target.src = defaultImg
+  }
 
   return (
     <PostsContent>
@@ -461,22 +497,21 @@ export const PostsContentPage = () => {
         </SendBox>
       </Dialog>
       <div className="user">
-        <img src={userinfo.image || defaultImg} />
+        <img src={userinfo.image} onError={handleImgError} />
         &nbsp;&nbsp;{userinfo.username}
       </div>
-      <div className="gameName">{postsItem.contractName}</div>
       <div className="time">
-        {postsItem.view} view · {getTime(postsItem.createdAt)}
+        {postsItem.view} view · {postsItem.datetime || postsItem.createdAt}
       </div>
       <div className="postsTitle text-center">{postsItem.title}</div>
       {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
       <div id="postsContent" className="postsContent"></div>
       <div className="otherDetails flex">
-        <div className="like flex flex-v-center">
+        <div className="like cursor flex flex-v-center">
           <img src={handlePostsOtherDetails('isLike').length ? liketrue : likefalse} onClick={postsLike} />
           <div className="quantity">{handlePostsOtherDetails('likeQuantity')}</div>
         </div>
-        <div className="repost flex flex-v-center">
+        <div className="repost cursor flex flex-v-center">
           <img src={handlePostsOtherDetails('isCollect').length ? collecttrue : collectfalse} onClick={postsCollect} />
           <div className="quantity">{handlePostsOtherDetails('collectQuantity')}</div>
         </div>
@@ -485,7 +520,7 @@ export const PostsContentPage = () => {
           <div className="quantity">{handlePostsOtherDetails('replayQuantity')}</div>
         </div>
         <div className="mint not-allowed">
-          <img src={mint} title="collects" />
+          <img src={mint} alt="mint" />
         </div>
         <div className="reward">
           <img className="" src={reward} onClick={showPostsRewarDialog} />

@@ -1418,7 +1418,7 @@ export const MyPage = () => {
     const params = {
       view: item.view + 1
     }
-    const res: any = await bschttp.put(`/v0/posts/${item.id}`, params)
+    bschttp.put(`/v0/posts/${item.id}`, params)
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value

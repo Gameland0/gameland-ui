@@ -10,11 +10,10 @@ import { useActiveWeb3React } from '../hooks'
 import { filterAddress, formatting } from '../utils'
 import { http, bschttp, polygonhttp } from './Store'
 import { OPENSEA_API_KEY, MORALIS_KEY, PolygonContract, BscContract } from '../constants'
-// import { add } from 'lodash'
-import { release } from 'os'
-import { resolve } from 'dns'
-import { add, reject } from 'lodash'
-import { logDOM } from '@testing-library/react'
+// import { release } from 'os'
+// import { resolve } from 'dns'
+// import { add, reject } from 'lodash'
+// import { logDOM } from '@testing-library/react'
 
 const RelationChartBox = styled.div`
   #main {
@@ -584,7 +583,7 @@ export const RelationChart = () => {
   const componentDidMount = () => {
     const dom = document.getElementById('main') as HTMLDivElement
     const myChart = echarts.init(dom)
-    myChart.setOption(option)
+    myChart.setOption(options)
   }
 
   return (
