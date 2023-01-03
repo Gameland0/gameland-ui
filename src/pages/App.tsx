@@ -35,7 +35,7 @@ const Popups = styled.div`
   border: 1px solid #bfedff;
   position: sticky;
   top: 6.25rem;
-  z-index: 10;
+  z-index: 60;
   .close {
     width: 40px;
     height: 40px;
@@ -98,6 +98,7 @@ function App() {
           <ToastContainer />
         </Wrap>
       </Web3Manager>
+      <div className="filling"></div>
     </div>
   )
 }

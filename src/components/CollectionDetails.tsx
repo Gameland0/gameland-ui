@@ -883,22 +883,7 @@ export const getTime = (time: any) => {
     return Math.floor(jetLag / 86400000) + ' day ago'
   }
 }
-// const beforeUpload = (file: RcFile) => {
-//   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
-//   if (!isJpgOrPng) {
-//     message.error('You can only upload JPG/PNG file!')
-//   }
-//   const isLt2M = file.size / 1024 / 1024 < 1
-//   if (!isLt2M) {
-//     message.error('Image must smaller than 1MB!')
-//   }
-//   return isJpgOrPng && isLt2M
-// }
-// const getBase64 = (img: RcFile, callback: (url: string) => void) => {
-//   const reader = new FileReader()
-//   reader.addEventListener('load', () => callback(reader.result as string))
-//   reader.readAsDataURL(img)
-// }
+
 export const compareTime = () => {
   return function (obj1: any, obj2: any) {
     const val1 = new Date(obj1.datetime).getTime()
@@ -977,7 +962,6 @@ export const CollectionDetails = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [description, setDescription] = useState('')
-  // const [transactionId, setTransactionId] = useState('')
   const [NFTStatsMadalType, setNFTStatsMadalType] = useState('')
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
@@ -986,7 +970,6 @@ export const CollectionDetails = () => {
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
-  // const bundlr = new Bundlr('http://node1.bundlr.network', 'arweave', key)
   const arweave = Arweave.init({
     host: 'arweave.net',
     port: 443,
@@ -1496,7 +1479,7 @@ export const CollectionDetails = () => {
         amount: rewardQuantity,
         paytype: rewardSelection
       }
-      const res: any = await http2.post(`/v0/review_reward/`, params)
+      const res: any = await http2.post(`/v0/review_reward`, params)
       if (res.data.code === 1) {
         toastify.success('succeed')
         setLending(false)
@@ -1923,28 +1906,12 @@ export const CollectionDetails = () => {
     const reader = new FileReader()
     reader.readAsArrayBuffer(Img)
     reader.onload = (res) => {
-      // console.log(res.target?.result)
       const imgData = res.target?.result
       createTransaction(imgData, type)
     }
-    // https://arweave.net/nO9zPgPFc60DGqJNg3Rr4Xfsvl6J1DW_mxmdR269Es4
-    // fetch(Img)
-    //   .then((res) => res.arrayBuffer())
-    //   .then((res) => {
-    //     // console.log(res)
-    //     createTransaction(res, type)
-    //   })
   }
   const createTransaction = async (datas: any, type: string) => {
     try {
-      // const wallet = new ArweaveWebWallet({
-      //   name: 'Gameland AR',
-      //   logo: 'https://dapp.gameland.network/logo192.png'
-      // })
-      // wallet.setUrl('arweave.app')
-      // await wallet.connect()
-      // await wallet.signTransaction(transaction)
-      // const dispatchResult = await wallet.dispatch(transaction)
       const transaction = await arweave.createTransaction({ data: datas })
       transaction.addTag('Content-Type', type)
       await arweave.transactions.sign(transaction, key)
@@ -1986,7 +1953,6 @@ export const CollectionDetails = () => {
     })
   }
   const UserPage = (item: any) => {
-    // console.log(item)
     let username
     if (item.username) {
       username = item.username
@@ -2022,12 +1988,9 @@ export const CollectionDetails = () => {
     setUploadImg(false)
     setrefreshBy(!refreshBy)
   }
-  const uploadButton = (
-    <div>
-      {loading ? <LoadingOutlined /> : <PlusOutlined />}
-      <div style={{ marginTop: 8 }}>Upload</div>
-    </div>
-  )
+  const handleImgError = (e: any) => {
+    e.target.src = defaultImg
+  }
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} visible={lendvisible} closable={false}>
@@ -2454,7 +2417,7 @@ export const CollectionDetails = () => {
         <div className="collection">
           <div className="info">
             <div className="top">
-              <img className="logo" src={collectionDetails.image} alt="" />
+              <img className="logo" src={collectionDetails.image} onError={handleImgError} />
               <div>
                 <div className="name">{collectionDetails.contractName}</div>
                 <div className="attributesLabel">

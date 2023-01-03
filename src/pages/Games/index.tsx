@@ -1,60 +1,57 @@
-import React, { useEffect, useCallback, useMemo, useState } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
-import { Row, Col } from 'antd'
 import { bschttp, polygonhttp } from '../../components/Store'
-// import { useActiveWeb3React } from '../../hooks'
+import { useActiveWeb3React } from '../../hooks'
 import { useHistory } from 'react-router-dom'
+import { toastify } from '../../components/Toastify'
+import loadd from '../../assets/loading.svg'
 import search from '../../assets/search_bar_icon_search.svg'
 import arrow from '../../assets/icon_select.svg'
 import star from '../../assets/icon_star.svg'
-import polygonIcon from '../../assets/polygon_icon.svg'
-import BNBIcon from '../../assets/bnb.svg'
-import { Filling } from '../App'
+import defaultImg from '../../assets/default.png'
+import imgBg from '../../assets/img_bg.svg'
+import followed from '../../assets/icon_followed.svg'
 
+const BgImg = styled.div`
+  position: absolute;
+  top: 0;
+  left: auto;
+  z-index: 10;
+  img {
+    width: 100%;
+  }
+`
 const Sort = styled.div`
+  position: relative;
+  width: 100%;
   height: 3.75rem;
-  display: flex;
-  background: #fff;
-  justify-content: space-between;
-  position: fixed;
-  z-index: 20;
-  margin-left: 1rem;
-
-  @media screen and (min-width: 1152px) {
-    width: 785px;
-  }
-  @media screen and (min-width: 1440px) {
-    width: 968px;
-  }
-  @media screen and (min-width: 1920px) {
-    width: 1188px;
-  }
+  z-index: 40;
+  margin-bottom: 32px;
   .filter {
-    width: 30.8%;
+    width: 18.75%;
     height: 3.75rem;
-    border-radius: 10px 10px 10px 10px;
-    border: 2px solid #e5e5e5;
-    position: absolute;
-    right: 0;
+    border-radius: 10px;
+    border: 2px solid rgba(1, 73, 57, 0.24);
     font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     line-height: 3.75rem;
     padding-left: 2rem;
-    cursor: pointer;
+    position: relative;
   }
   .sortSelect {
-    width: 30.8%;
+    width: 18.75%;
     height: 182px;
     background: #fff;
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
-    border-radius: 10px 10px 10px 10px;
+    border-radius: 10px;
     padding: 0 2rem;
     position: absolute;
     top: 4.5rem;
     right: 0;
-    z-index: 99;
+    z-index: auto;
     div {
+      position: relative;
       height: 61px;
       font-size: 18px;
       font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
@@ -62,57 +59,99 @@ const Sort = styled.div`
       color: #333333;
       line-height: 61px;
       cursor: pointer;
+      z-index: 60;
     }
   }
 `
 const CollectionBox = styled.div`
+  position: relative;
   min-height: 428px;
-  border: 2px solid #e5e5e5;
   border-radius: 10px;
-  margin: 92px 0 0 16px;
+  z-index: 20;
   .collectionItem {
-    display: flex;
     position: relative;
-    .border {
-      position: absolute;
-      top: 0;
-      height: 0px;
-      border: 1px solid #e5e5e5;
-    }
-    .serialNumber {
-      width: 93px;
-      line-height: 142px;
-      text-align: center;
-      font-size: 24px;
-      font-family: DIN-Bold, DIN;
-      font-weight: bold;
-      color: #333333;
-    }
+    width: 512px;
+    height: 320px;
+    box-shadow: 0px 2px 10px 1px rgba(1, 73, 57, 0.24);
+    border-radius: 10px;
+    margin-bottom: 32px;
+    padding: 32px;
     .logo {
-      width: 130px;
-      height: 130px;
+      width: 120px;
+      height: 120px;
       border-radius: 10px;
     }
+    .follow {
+      width: 147px;
+      height: 60px;
+      background: #35caa9;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 20px;
+      font-weight: bold;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      &:hover {
+        background: #41acef;
+      }
+    }
+    .followedBox {
+      position: relative;
+      width: 147px;
+      height: 60px;
+      font-size: 20px;
+      color: #fff;
+      font-weight: bold;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      div {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+      }
+      .followed {
+        background: #35caa9;
+        opacity: 0.5;
+      }
+      .unfollow {
+        background: red;
+        opacity: 0;
+      }
+      &:hover {
+        .followed {
+          opacity: 0;
+        }
+        .unfollow {
+          opacity: 1;
+        }
+      }
+    }
+    .name {
+      height: 38px;
+      margin-top: 32px;
+      font-size: 24px;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      font-weight: bold;
+      color: #333333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .information {
-      width: 230px;
-      margin: 0 32px 0 32px;
-      .name {
-        height: 38px;
-        margin-top: 16px;
-        font-size: 24px;
-        font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
-        font-weight: bold;
-        color: #333333;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+      margin-top: 32px;
+      .commentUser {
+        margin-left: 20px;
+        img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin-left: -20px;
+        }
       }
       .starRating {
         display: flex;
         align-items: center;
         font-size: 20px;
         color: #35caa9;
-        margin-top: 20px;
         img {
           width: 20px;
           height: 20px;
@@ -124,16 +163,6 @@ const CollectionBox = styled.div`
         }
       }
     }
-    .describe {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      font-size: 20px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
-      color: #666666;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 4;
-    }
   }
 
   @media screen and (min-width: 1152px) {
@@ -141,46 +170,37 @@ const CollectionBox = styled.div`
   }
   @media screen and (min-width: 1440px) {
     width: 968px;
-    .pad {
-      padding: 28px 0 36px 0;
-    }
-    .padd {
-      padding: 36px 0;
-    }
-    .collectionItem {
-      height: 184px;
-      .border {
-        width: 800px;
-        left: 142px;
-      }
-      .describe {
-        width: 410px;
-        height: 124px;
-      }
-    }
   }
 
   @media screen and (min-width: 1920px) {
-    width: 1188px;
-    .pad {
-      padding: 36px 0 48px 0;
-    }
-    .padd {
-      padding: 48px 0;
-    }
-    .collectionItem {
-      height: 214px;
-      .border {
-        width: 1010px;
-        left: 142px;
-      }
-      .describe {
-        width: 610px;
-        height: 124px;
-      }
-    }
+    width: 100%;
   }
 `
+const SeeMore = styled.div`
+  margin-top: 36px;
+  margin: auto;
+  width: 12px;
+  cursor: pointer;
+  div {
+    width: 12px;
+    height: 12px;
+    background: #41acef;
+    border-radius: 50%;
+    margin-bottom: 12px;
+  }
+`
+const LoadFailed = styled.div`
+  font-size: 40px;
+  font-weight: bold;
+  font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+`
+const Loadding = styled.div`
+  img {
+    width: 100px;
+    height: 100px;
+  }
+`
+
 export const compare = () => {
   return function (obj1: any, obj2: any) {
     const val1 = obj1.starRating
@@ -195,33 +215,63 @@ export const compare = () => {
   }
 }
 export const Games = () => {
-  // const { account, library, chainId } = useActiveWeb3React()
+  const { account } = useActiveWeb3React()
+  const [gamesFilter, setGamesFilter] = useState('ALL')
   const [collection, setCollection] = useState('')
   const [data, setData] = useState([] as any)
   const [games, setGames] = useState([] as any)
+  const [gameList, setGameList] = useState([] as any)
+  const [review, setReviewData] = useState([] as any)
+  const [userinfo, setUserinfo] = useState([] as any)
+  const [gameFollow, setGameFollow] = useState([] as any)
   const [collectionFilterResult, setCollectionFilterResult] = useState([] as any)
-  const [gamesFilter, setGamesFilter] = useState('ALL')
   const [filterMenu, setFilterMenu] = useState(false)
   const [showNotFound, setShowNotFound] = useState(false)
+  const [loadding, setLending] = useState(true)
+  const [refreshBy, setrefreshBy] = useState(false)
+  const [gamePage, setGamePage] = useState(1)
   const history = useHistory()
+
   useEffect(() => {
     const getGames = async () => {
-      const bsc = await bschttp.get('/v0/games')
-      const polygon = await polygonhttp.get('/v0/games')
-      let data
-      if (gamesFilter === 'ALL') {
-        data = [...bsc.data.data, ...polygon.data.data].sort(compare())
-      } else if (gamesFilter === 'Polygon') {
-        data = polygon.data.data.sort(compare())
-      } else {
-        data = bsc.data.data.sort(compare())
-      }
-      setGames(data)
-      setData(data)
+      const bsc = bschttp.get('/v0/games')
+      const polygon = polygonhttp.get('/v0/games')
+      const bscReview = bschttp.get('/v0/review')
+      const polygonReview = polygonhttp.get('/v0/review')
+      const userinfo = bschttp.get(`v0/userinfo`)
+      const bscFollow = bschttp.get('/v0/followGames')
+      const polygonFollow = polygonhttp.get('/v0/followGames')
+      Promise.all([bsc, polygon, bscReview, polygonReview, userinfo, bscFollow, polygonFollow])
+        .then((vals) => {
+          if (gamesFilter === 'ALL') {
+            setGames([...vals[0].data.data, ...vals[1].data.data].sort(compare()))
+            setData([...vals[0].data.data, ...vals[1].data.data].sort(compare()))
+            setReviewData([...vals[2].data.data, ...vals[3].data.data])
+            setGameFollow([...vals[5].data.data, ...vals[6].data.data])
+          } else if (gamesFilter === 'Polygon') {
+            setGames(vals[1].data.data.sort(compare()))
+            setData(vals[1].data.data.sort(compare()))
+            setReviewData(vals[3].data.data)
+            setGameFollow(vals[6].data.data)
+          } else {
+            setGames(vals[0].data.data.sort(compare()))
+            setData(vals[0].data.data.sort(compare()))
+            setReviewData(vals[2].data.data)
+            setGameFollow(vals[5].data.data)
+          }
+          setUserinfo(vals[4].data.data)
+          setLending(false)
+        })
+        .catch(() => {
+          setLending(false)
+        })
     }
     getGames()
-  }, [gamesFilter])
+  }, [gamesFilter, refreshBy])
 
+  useEffect(() => {
+    setGameList(games.slice(0, gamePage * 6))
+  }, [games, gamePage])
   useEffect(() => {
     const filterCollection = () => {
       const arr: any[] = []
@@ -256,6 +306,81 @@ export const Games = () => {
     }
     filterCollection()
   }, [collection])
+
+  const filterReviewLength = (contractAddress: any) => {
+    return review.filter((item: any) => {
+      return item.contractaddress === contractAddress
+    }).length
+  }
+  const filterReviewUser = (contractAddress: any) => {
+    const reviewData = review.filter((item: any) => {
+      return item.contractaddress === contractAddress
+    })
+    // if (!reviewData.length) return [defaultImg, defaultImg, defaultImg]
+    // const userimg = userinfo.filter((item: any) => {
+    //   return item.useraddress === reviewData[reviewData.length - 1].useraddress
+    // })
+    // if (reviewData.length === 1) return [userimg[0].image, defaultImg, defaultImg]
+    // const userimg1 = userinfo.filter((item: any) => {
+    //   return item.useraddress === reviewData[reviewData.length - 2].useraddress
+    // })
+    // if (reviewData.length === 2) return [userimg, userimg1, defaultImg]
+    // const userimg2 = userinfo.filter((item: any) => {
+    //   return item.useraddress === reviewData[reviewData.length - 3].useraddress
+    // })
+    // console.log(userimg, userimg1, userimg2)
+    // return [userimg, userimg1, userimg2]
+    const userimg = userinfo.filter((item: any) => {
+      return item.useraddress === reviewData[reviewData.length - 1].useraddress
+    })
+    if (userimg.length) {
+      console.log(userimg[0].image)
+      return userimg[0].image || defaultImg
+    }
+  }
+  const followState = (item: any) => {
+    if (!gameFollow.length) return 0
+    return gameFollow.filter((ele: any) => {
+      return ele.useraddress?.toLowerCase() === account?.toLowerCase() && ele.contractAddress === item.contractAddress
+    }).length
+  }
+  const followGame = async (item: any, e: any) => {
+    e.stopPropagation()
+    const params = {
+      useraddress: account,
+      contractAddress: item.contractAddress
+    }
+    let res: any
+    if (item.chain === 'bsc') {
+      res = await bschttp.post(`/v0/followGames`, params)
+    } else {
+      res = await polygonhttp.post(`/v0/followGames`, params)
+    }
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setrefreshBy(!refreshBy)
+    } else {
+      throw res.message || res.data.message
+    }
+  }
+  const unFollow = async (item: any, e: any) => {
+    e.stopPropagation()
+    const data = gameFollow.filter((ele: any) => {
+      return ele.useraddress?.toLowerCase() === account?.toLowerCase() && ele.contractAddress === item.contractAddress
+    })
+    let res: any
+    if (item.chain === 'bsc') {
+      res = await bschttp.delete(`/v0/followGames/${data[0].id}`)
+    } else {
+      res = await polygonhttp.delete(`/v0/followGames/${data[0].id}`)
+    }
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setrefreshBy(!refreshBy)
+    } else {
+      throw res.message || res.data.message
+    }
+  }
   const handleCollectionChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setCollection(val)
@@ -275,102 +400,122 @@ export const Games = () => {
       }
     })
   }
+  const seeMore = () => {
+    setGamePage(gamePage + 1)
+  }
   return (
     <div className="container">
-      <Filling></Filling>
-      <Row gutter={0}>
-        <Col span="6">
-          <div className="MenuBar">
-            <div className="collection">
-              <h2>Collection</h2>
-              <div className="search">
-                <span>
-                  <img src={search} />
-                </span>
-                <input onChange={handleCollectionChange} value={collection} placeholder="search" />
-              </div>
-              {collectionFilterResult && collectionFilterResult.length ? (
-                <div className="result">
-                  {collectionFilterResult.map((item: any, index: any) => (
-                    <div key={index} onClick={() => collectionFilter(item.contractName)}>
-                      {item.contractName}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                ''
-              )}
-              {showNotFound ? <div className="notFound">No items found</div> : ''}
-            </div>
+      {/* <Filling></Filling> */}
+      <div className="MenuBar">
+        <div className="collection">
+          <div className="search">
+            <span>
+              <img src={search} />
+            </span>
+            <input onChange={handleCollectionChange} value={collection} placeholder="search" />
           </div>
-        </Col>
-        <Col span="18">
-          <Sort>
-            <div className="filter" onClick={() => setFilterMenu(!filterMenu)}>
-              {gamesFilter}
-              <img src={arrow} className="arrowIcon" />
-            </div>
-            {filterMenu ? (
-              <div className="sortSelect">
-                <div
-                  className="border-bottom"
-                  onClick={() => {
-                    setGamesFilter('Polygon')
-                    setFilterMenu(false)
-                  }}
-                >
-                  Polygon
-                </div>
-                <div
-                  className="border-bottom"
-                  onClick={() => {
-                    setGamesFilter('BNB chain')
-                    setFilterMenu(false)
-                  }}
-                >
-                  BNB chain
-                </div>
-                <div
-                  onClick={() => {
-                    setGamesFilter('ALL')
-                    setFilterMenu(false)
-                  }}
-                >
-                  ALL
-                </div>
-              </div>
-            ) : (
-              ''
-            )}
-          </Sort>
-          {games && games.length ? (
-            <CollectionBox>
-              {games.map((item: any, index: any) => (
-                <div
-                  className={index === 0 ? 'collectionItem pad' : 'collectionItem padd'}
-                  key={index}
-                  onClick={() => link(item)}
-                >
-                  {index === 0 ? '' : <div className="border"></div>}
-                  <div className="serialNumber">{Number(index) + 1}</div>
-                  <img className="logo" src={item.image} alt="" />
-                  <div className="information">
-                    <div className="name">{item.contractName}</div>
-                    <div className="starRating">
-                      <img src={star} alt="" /> &nbsp;{item.starRating}
-                      <span>Rank {Number(index) + 1}</span>
-                      <img src={item.chain === 'bsc' ? BNBIcon : polygonIcon} alt="" />
-                    </div>
-                  </div>
-                  <div className="describe">{item.describe ? item.describe : 'No description yet'}</div>
+          {collectionFilterResult && collectionFilterResult.length ? (
+            <div className="result">
+              {collectionFilterResult.map((item: any, index: any) => (
+                <div key={index} onClick={() => collectionFilter(item.contractName)}>
+                  {item.contractName}
                 </div>
               ))}
-            </CollectionBox>
+            </div>
           ) : (
             ''
           )}
-        </Col>
-      </Row>
+          {showNotFound ? <div className="notFound">No items found</div> : ''}
+        </div>
+      </div>
+      <Sort className="flex flex-j-end">
+        <div className="filter cursor" onClick={() => setFilterMenu(!filterMenu)}>
+          {gamesFilter}
+          <img src={arrow} className="arrowIcon" />
+        </div>
+        {filterMenu ? (
+          <div className="sortSelect">
+            <div
+              className="border-bottom"
+              onClick={() => {
+                setGamesFilter('Polygon')
+                setFilterMenu(false)
+              }}
+            >
+              Polygon
+            </div>
+            <div
+              className="border-bottom"
+              onClick={() => {
+                setGamesFilter('BNB chain')
+                setFilterMenu(false)
+              }}
+            >
+              BNB chain
+            </div>
+            <div
+              onClick={() => {
+                setGamesFilter('ALL')
+                setFilterMenu(false)
+              }}
+            >
+              ALL
+            </div>
+          </div>
+        ) : (
+          ''
+        )}
+      </Sort>
+      <Loadding className="flex flex-center">{loadding ? <img src={loadd} /> : ''}</Loadding>
+      {gameList && gameList.length ? (
+        <CollectionBox className="flex wrap flex-h-between cursor">
+          {gameList.map((item: any, index: any) => (
+            <div className="collectionItem" key={index} onClick={() => link(item)}>
+              <div className="flex flex-h-between flex-v-center">
+                <img className="logo" src={item.image} alt="" />
+                {followState(item) ? (
+                  <div className="followedBox cursor" onClick={(e) => unFollow(item, e)}>
+                    <div className="followed flex flex-center">
+                      <img src={followed} />
+                    </div>
+                    <div className="unfollow flex flex-center">- UNFOLLOW</div>
+                  </div>
+                ) : (
+                  <div className="follow flex flex-center" onClick={(e) => followGame(item, e)}>
+                    + FOLLOW
+                  </div>
+                )}
+              </div>
+              <div className="name">{item.contractName}</div>
+              <div className="information flex flex-h-between">
+                <div className="commentUser">
+                  <img src={defaultImg} />
+                  <img src={defaultImg} />
+                  <img src={defaultImg} />
+                  &nbsp;+&nbsp;{filterReviewLength(item.contractAddress)}
+                </div>
+                <div className="starRating">
+                  <img src={star} alt="" /> &nbsp;{item.starRating}
+                </div>
+              </div>
+            </div>
+          ))}
+        </CollectionBox>
+      ) : (
+        <LoadFailed className="text-center">{loadding ? '' : 'Failed to load, please refresh the page'}</LoadFailed>
+      )}
+      <BgImg>
+        <img src={imgBg} />
+      </BgImg>
+      {gameList && gameList.length ? (
+        <SeeMore onClick={seeMore}>
+          <div></div>
+          <div></div>
+          <div></div>
+        </SeeMore>
+      ) : (
+        ''
+      )}
     </div>
   )
 }

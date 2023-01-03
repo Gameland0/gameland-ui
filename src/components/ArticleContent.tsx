@@ -246,11 +246,6 @@ export const ArticleContentPage = () => {
           })
       }
     }
-    // const BscLike = bschttp.get(`/v0/review_like/${account}`)
-    // const polygonLike = polygonhttp.get(`/v0/review_like/${account}`)
-    // Promise.all([BscLike, polygonLike]).then((vals) => {
-    //   setuserLikeInfo([...vals[0].data.data, ...vals[1].data.data])
-    // })
   }
   const handlePostsOtherDetails = (type: string) => {
     if (type === 'collectQuantity') {
@@ -306,29 +301,28 @@ export const ArticleContentPage = () => {
     return 0
   }
   const sendPostsReplay = async () => {
-    // if (!replayValue) return
-    // if (useraddress.toLowerCase() === account?.toLowerCase()) {
-    //   if (!replayWho) return
-    // }
-    // let text
-    // if (replayWho) {
-    //   text = replayWho + ':' + replayValue
-    // } else {
-    //   text = replayValue
-    // }
-    // const params = {
-    //   useraddress: account,
-    //   reviewid: postsItem.id,
-    //   username: userinfo.username,
-    //   context: text
-    // }
-    // const res: any = await bschttp.post(`/v0/posts_reply`, params)
-    // if (res.data.code === 1) {
-    //   setreplayValue('')
-    //   setrefreshBy(!refreshBy)
-    //   toastify.success('succeed')
-    // }
-    return 0
+    if (!replayValue) return
+    if (useraddress.toLowerCase() === account?.toLowerCase()) {
+      if (!replayWho) return
+    }
+    let text
+    if (replayWho) {
+      text = replayWho + ':' + replayValue
+    } else {
+      text = replayValue
+    }
+    const params = {
+      useraddress: account,
+      reviewid: postsItem.id,
+      username: userinfo.username,
+      context: text
+    }
+    const res: any = await bschttp.post(`/v0/posts_reply`, params)
+    if (res.data.code === 1) {
+      setreplayValue('')
+      setrefreshBy(!refreshBy)
+      toastify.success('succeed')
+    }
   }
   const postsRewar = async () => {
     if (!rewardQuantity || !library) return

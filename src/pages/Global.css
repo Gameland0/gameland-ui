@@ -22,6 +22,9 @@
 .flex-v-end{
   align-items: flex-end;
 }
+.flex-j-end {
+  justify-content: flex-end;
+}
 .flex-column-between{
   justify-content: space-between;
 }
@@ -94,4 +97,8 @@
 .quill img {
   width: 500px;
   height: 500px;
+}
+.filling {
+  width: 100%;
+  height: 48px;
 }
