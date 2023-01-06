@@ -7,6 +7,7 @@ import { toastify } from './Toastify'
 import { bschttp, http, polygonhttp } from './Store'
 import key from '../constants/arweave-keyfile.json'
 import loadding from '../assets/loading.svg'
+import arrow from '../assets/icon_select.svg'
 
 const RegisterBox = styled.div`
   width: 1600px;
@@ -27,13 +28,11 @@ const LeftBox = styled.div`
   height: 750px;
   .title {
     font-size: 28px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #000000;
   }
   .minTitle {
     font-size: 18px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #999999;
   }
 `
@@ -41,12 +40,29 @@ const RightBox = styled.div`
   width: 1100px;
   .optionTitle {
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     margin-bottom: 32px;
+    .Lens {
+      pointer-events: none;
+      color: #ccc;
+    }
+    div {
+      margin-left: 36px;
+      input {
+        margin-right: 3px;
+      }
+    }
+  }
+  .tipText {
+    color: #999999;
+    font-weight: 400;
+    font-size: 14px;
+    position: relative;
+    top: -36px;
   }
   .divBorder {
+    position: relative;
     margin-bottom: 48px;
     padding: 32px;
     width: 1030px;
@@ -54,6 +70,17 @@ const RightBox = styled.div`
     border-radius: 20px;
     border: 1px solid #707070;
     font-size: 24px;
+    .ContentsTab {
+      position: relative;
+      background: #ffffff;
+      z-index: 40;
+      padding: 0 24px;
+      div {
+        &:hover {
+          background: #41acef;
+        }
+      }
+    }
   }
   .submit {
     width: 240px;
@@ -75,6 +102,7 @@ export const Register = () => {
   const [Twitter, setTwitter] = useState('')
   const [Discord, setDiscord] = useState('')
   const [Telegram, setTelegram] = useState('')
+  const [Contents, setContents] = useState('')
   const [lending, setLending] = useState(false)
   const history = useHistory()
   const arweave = Arweave.init({
@@ -114,7 +142,8 @@ export const Register = () => {
       image: Avatar,
       Twitter: Twitter,
       Discord: Discord,
-      Telegram: Telegram
+      Telegram: Telegram,
+      mirror: Contents === 'allow' ? 1 : 2
     }
     const res: any = await bschttp.post(`/v0/userinfo`, params)
     if (res.data.code === 1) {
@@ -174,33 +203,55 @@ export const Register = () => {
     const val = ele.currentTarget.value
     setTelegram(val)
   }, [])
+  const Mirrow = () => {
+    if (Contents.length) {
+      setContents('')
+    } else {
+      setContents('allow')
+    }
+  }
   return (
     <RegisterBox className="flex">
       <LeftBox className="flex flex-center">
         <div>
-          <div className="title">Create user</div>
-          <div className="minTitle">Create new user</div>
+          <div className="title Chinese-Bold">Create user</div>
+          <div className="minTitle Chinese-Regular">Create new user</div>
         </div>
       </LeftBox>
       <div className="boxDivider"></div>
       <RightBox>
-        <div className="optionTitle">userAddress</div>
-        <div className="divBorder">{account}</div>
-        <div className="optionTitle">Name</div>
-        <input type="text" className="divBorder" value={userName} onChange={userNameChange} />
-        <div className="optionTitle">Avatar</div>
-        <div className="divBorder">
+        <div className="optionTitle Chinese-Bold">userAddress</div>
+        <div className="divBorder Chinese-Regular">{account}</div>
+        <div className="optionTitle Chinese-Bold">Name</div>
+        <input type="text" className="divBorder Chinese-Regular" value={userName} onChange={userNameChange} />
+        <div className="optionTitle Chinese-Bold">Avatar</div>
+        <div className="divBorder Chinese-Regular">
           <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
         </div>
-        <div className="optionTitle">Twitter</div>
-        <input type="text" className="divBorder" value={Twitter} onChange={TwitterChange} />
-        <div className="optionTitle">Discord</div>
-        <input type="text" className="divBorder" value={Discord} onChange={DiscordChange} />
-        <div className="optionTitle">Telegram</div>
-        <input type="text" className="divBorder" value={Telegram} onChange={TelegramChange} />
+        <div className="optionTitle Chinese-Bold">Twitter</div>
+        <input type="text" className="divBorder Chinese-Regular" value={Twitter} onChange={TwitterChange} />
+        <div className="optionTitle Chinese-Bold">Discord</div>
+        <input type="text" className="divBorder Chinese-Regular" value={Discord} onChange={DiscordChange} />
+        <div className="optionTitle Chinese-Bold">Telegram</div>
+        <input type="text" className="divBorder Chinese-Regular" value={Telegram} onChange={TelegramChange} />
+        <div className="optionTitle Chinese-Bold flex flex-v-center">
+          Mirror :
+          <div>
+            <input type="checkbox" name="allow" onClick={Mirrow} />
+            Allow
+          </div>
+          <div className="Lens">Lens :</div>
+          <div className="Lens">
+            <input className="Lens" type="checkbox" name="allow" disabled={false} />
+            Allow
+          </div>
+        </div>
+        <div className="tipText">
+          * The Gameland platform needs to review contents, and only game-related articles are available.
+        </div>
         <div className="submit flex flex-center cursor" onClick={Submit}>
           submit
-          {lending ? <img className="loadding" src={loadding} alt="" /> : ''}
+          {lending ? <img className="loadding" src={loadding} /> : ''}
         </div>
       </RightBox>
     </RegisterBox>

@@ -5,13 +5,14 @@ import { bschttp } from './Store'
 import { useActiveWeb3React } from '../hooks'
 import defaultImg from '../assets/default.png'
 
-const ExposeBox = styled.div`
+export const ExposeBox = styled.div`
+  width: 100%;
+  height: 100%;
   margin: auto;
   margin-top: 72px;
-  width: 1600px;
   min-height: 400px;
 `
-const ArticleBox = styled.div`
+export const ArticleBox = styled.div`
   border-bottom: 1px solid #e5e5e5;
   font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   color: #333333;
@@ -102,23 +103,25 @@ export const Expose = () => {
     }
   }
   return (
-    <ExposeBox>
-      {ArticleAll && ArticleAll.length
-        ? ArticleAll.map((item: any, index: any) => (
-            <ArticleBox key={index} onClick={() => ItemClick(item)} className="cursor">
-              <div className="information flex flex-v-center">
-                <img src={filterUserData(item)[0].image} onError={handleImgError} />
-                <div className="userName">{filterUserData(item)[0].username}</div>
-                <div className="time">· {item.datetime || item.createdAt}</div>
-              </div>
-              <div className="title">{item.title}</div>
-              <div className="context line-clamp">{item.context_text}</div>
-              <div className="frequency">
-                {item.view || 0} view · from {item.type}
-              </div>
-            </ArticleBox>
-          ))
-        : ''}
-    </ExposeBox>
+    <div className="container">
+      <ExposeBox>
+        {ArticleAll && ArticleAll.length
+          ? ArticleAll.map((item: any, index: any) => (
+              <ArticleBox key={index} onClick={() => ItemClick(item)} className="cursor">
+                <div className="information flex flex-v-center">
+                  <img src={filterUserData(item)[0].image} onError={handleImgError} />
+                  <div className="userName">{filterUserData(item)[0].username}</div>
+                  <div className="time">· {item.datetime || item.createdAt}</div>
+                </div>
+                <div className="title">{item.title}</div>
+                <div className="context line-clamp">{item.context_text}</div>
+                <div className="frequency">
+                  {item.view || 0} view · from {item.type}
+                </div>
+              </ArticleBox>
+            ))
+          : ''}
+      </ExposeBox>
+    </div>
   )
 }

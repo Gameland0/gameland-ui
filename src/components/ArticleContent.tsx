@@ -342,7 +342,8 @@ export const ArticleContentPage = () => {
         fromaddress: account,
         datetime: new Date().toJSON(),
         amount: rewardQuantity,
-        paytype: rewardSelection
+        paytype: rewardSelection,
+        articleType: type
       }
       const res: any = await bschttp.post(`/v0/posts_reward/`, params)
       if (res.data.code === 1) {

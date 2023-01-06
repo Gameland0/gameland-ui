@@ -10,6 +10,7 @@ import { useActiveWeb3React } from '../hooks'
 import { filterAddress, formatting } from '../utils'
 import { http, bschttp, polygonhttp } from './Store'
 import { OPENSEA_API_KEY, MORALIS_KEY, PolygonContract, BscContract } from '../constants'
+import { colorTable } from '../constants/colorTable'
 // import { release } from 'os'
 // import { resolve } from 'dns'
 // import { add, reject } from 'lodash'
@@ -61,13 +62,18 @@ const OrderList = styled.div`
     }
   }
 `
+const findAddressIndex = (arr: any, address: string) => {
+  return arr.findIndex((item: any) => {
+    return item.toLowerCase() === address.toLowerCase()
+  })
+}
 export const RelationChart = () => {
   const { account } = useActiveWeb3React()
   const { state } = useLocation() as any
   const [orderData, setOrderData] = useState([] as any)
   const [optionData, setOptionData] = useState([] as any)
+  const [optionLink, setOptionLink] = useState([] as any)
   const [NFTData, setNFTData] = useState([] as any)
-  const [usarDataAll, setUsarDataAll] = useState([] as any)
   const { contractName } = useParams() as any
   let contractAddress: any
   let useraddress: any
@@ -82,7 +88,7 @@ export const RelationChart = () => {
     chain = localStorage.getItem('contractChain')
   }
   const getUserInfoAll = async () => {
-    const userinfoAll = await bschttp.get('v0/userinfo')
+    // const userinfoAll = await bschttp.get('v0/userinfo')
     let oldOwnersData
     if (chain === 'bsc') {
       oldOwnersData = await bschttp.get(`v0/old_owners/${contractAddress}`)
@@ -91,32 +97,39 @@ export const RelationChart = () => {
     }
     const addressArr: any[] = []
     oldOwnersData.data.data.map((item: any) => {
-      addressArr.push(filterAddress(item.fromadd))
-      addressArr.push(filterAddress(item.toadd))
+      if (item.owner_now.toLowerCase() === account?.toLowerCase()) {
+        addressArr.push(filterAddress(item.fromadd))
+        addressArr.push(filterAddress(item.toadd))
+      }
     })
-    setUsarDataAll(userinfoAll.data.data)
+    // setUsarDataAll(userinfoAll.data.data)
     const data: any[] = []
     Array.from(new Set(addressArr)).map((item: any, index: number) => {
       const object = {
-        id: index,
-        symbolSize: 60,
+        symbolSize: 65,
         name: formatting(item as string),
-        x: 40 * index,
-        y: 40 * index,
-        draggable: true,
-        category: index,
-        label: {
-          show: false
-        },
-        emphasis: {
-          label: {
-            show: false
-          }
+        itemStyle: {
+          color: colorTable[index]
         }
       }
       data.push(object)
     })
+    const linkData: any[] = []
+    oldOwnersData.data.data.map((item: any) => {
+      if (item.owner_now.toLowerCase() === account?.toLowerCase()) {
+        const object = {
+          source: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.fromadd)),
+          target: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.toadd)),
+          value: `send #${item.nftid}`,
+          lineStyle: {
+            color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.fromadd))]
+          }
+        }
+        linkData.push(object)
+      }
+    })
     setOptionData(data)
+    setOptionLink(linkData)
   }
   useEffect(() => {
     if (state) {
@@ -128,10 +141,8 @@ export const RelationChart = () => {
   }, [contractName])
   useEffect(() => {
     componentDidMount()
-  }, [usarDataAll, optionData])
+  }, [optionData, optionLink])
   const options = {
-    colorBy: 'series',
-    color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
     animationDurationUpdate: 500,
     animationEasingUpdate: 'quinticInOut',
     animation: true,
@@ -153,7 +164,7 @@ export const RelationChart = () => {
       {
         name: 'Les Miserables',
         type: 'graph',
-        layout: 'none',
+        layout: 'circular',
         symbolSize: 45,
         focusNodeAdjacency: true,
         roam: true,
@@ -166,7 +177,7 @@ export const RelationChart = () => {
           }
         },
         force: {
-          repulsion: 1000
+          repulsion: 3000
         },
         edgeSymbolSize: [4, 10],
         edgeLabel: {
@@ -178,133 +189,119 @@ export const RelationChart = () => {
             formatter: '{c}'
           }
         },
-        data: [
-          {
-            name: formatting(account as string),
-            symbolSize: 90,
-            draggable: true,
-            x: 0,
-            y: 0,
-            category: 0
-          },
-          {
-            name: '0x17...7cc3',
-            symbolSize: 65,
-            draggable: true,
-            x: -126.82776,
-            y: 199.6904,
-            category: 1
-          },
-          {
-            name: '0x17...ccd3',
-            symbolSize: 65,
-            draggable: true,
-            x: 166.82776,
-            y: 199.6904,
-            category: 2
-          },
-          {
-            name: '0x17...7cdc',
-            symbolSize: 65,
-            draggable: true,
-            x: 26.82776,
-            y: 219.6904,
-            category: 3
-          },
-          {
-            name: '0x27...d6ab',
-            symbolSize: 65,
-            draggable: true,
-            x: -56.82776,
-            y: 249.6904,
-            category: 4
-          },
-          {
-            name: '0x27...8a76',
-            symbolSize: 65,
-            draggable: true,
-            x: -186.82776,
-            y: 259.6904,
-            category: 5
-          },
-          {
-            name: '0x27...992d',
-            symbolSize: 65,
-            draggable: true,
-            x: -266.82776,
-            y: 199.6904,
-            category: 6
-          },
-          {
-            name: '0x27...629a',
-            symbolSize: 65,
-            draggable: true,
-            x: -226.82776,
-            y: 49.6904,
-            category: 7
-          },
-          {
-            name: '0x27...aar5',
-            symbolSize: 65,
-            draggable: true,
-            x: -26.82776,
-            y: 19.6904,
-            category: 8
-          }
-        ],
-        links: [
-          {
-            source: 0,
-            target: 1,
-            category: 0,
-            value: 'send #591987'
-          },
-          {
-            source: 0,
-            target: 2,
-            value: 'send #591987'
-          },
-          {
-            source: 0,
-            target: 3,
-            value: 'send #591987'
-          },
-          {
-            source: 0,
-            target: 4,
-            value: 'send #591987'
-          },
-          {
-            source: 1,
-            target: 5,
-            value: 'send #591987'
-          },
-          {
-            source: 6,
-            target: 0,
-            value: 'send #591987'
-          },
-          {
-            source: 7,
-            target: 6,
-            value: 'send #591987'
-          },
-          {
-            source: 2,
-            target: 8,
-            value: 'send #591987'
-          },
-          {
-            source: 5,
-            target: 6,
-            value: 'send #591987'
-          },
-          {
-            source: 8,
-            target: 7,
-            value: 'send #591987'
-          }
-        ],
+        data: optionData,
+        links: optionLink,
+        // data: [
+        //   {
+        //     name: formatting(account as string),
+        //     symbolSize: 90,
+        //     itemStyle: {
+        //       color: colorTable[0]
+        //     }
+        //   },
+        //   {
+        //     name: '0x17...7cc3',
+        //     symbolSize: 65,
+        //     itemStyle: {
+        //       color: colorTable[1]
+        //     }
+        //   },
+        //   {
+        //     name: '0x17...ccd3',
+        //     symbolSize: 65
+        //   },
+        //   {
+        //     name: '0x17...7cdc',
+        //     symbolSize: 65
+        //   },
+        //   {
+        //     name: '0x27...d6ab',
+        //     symbolSize: 65
+        //   },
+        //   {
+        //     name: '0x27...8a76',
+        //     symbolSize: 65
+        //   },
+        //   {
+        //     name: '0x27...992d',
+        //     symbolSize: 65
+        //   },
+        //   {
+        //     name: '0x27...629a',
+        //     symbolSize: 65
+        //   },
+        //   {
+        //     name: '0x27...aar5',
+        //     symbolSize: 65
+        //   }
+        // ],
+        // links: [
+        //   {
+        //     source: 0,
+        //     target: 1,
+        //     value: 'send #591987',
+        //     lineStyle: {
+        //       color: colorTable[0]
+        //     }
+        //   },
+        //   {
+        //     source: 0,
+        //     target: 2,
+        //     value: 'send #591987',
+        //     lineStyle: {
+        //       color: colorTable[0]
+        //     }
+        //   },
+        //   {
+        //     source: 0,
+        //     target: 3,
+        //     value: 'send #591987',
+        //     lineStyle: {
+        //       color: colorTable[0]
+        //     }
+        //   },
+        //   {
+        //     source: 0,
+        //     target: 4,
+        //     value: 'send #591987',
+        //     lineStyle: {
+        //       color: colorTable[0]
+        //     }
+        //   },
+        //   {
+        //     source: 1,
+        //     target: 5,
+        //     value: 'send #591987',
+        //     lineStyle: {
+        //       color: colorTable[1]
+        //     }
+        //   },
+        //   {
+        //     source: 6,
+        //     target: 0,
+        //     value: 'send #591987'
+        //   },
+        //   {
+        //     source: 7,
+        //     target: 6,
+        //     value: 'send #591987'
+        //   },
+        //   {
+        //     source: 2,
+        //     target: 8,
+        //     value: 'send #591987'
+        //   },
+        //   {
+        //     source: 5,
+        //     target: 6,
+        //     value: 'send #591987'
+        //   },
+        //   {
+        //     source: 8,
+        //     target: 7,
+        //     value: 'send #591987'
+        //   }
+        // ],
         lineStyle: {
           normal: {
             opacity: 1,
@@ -317,226 +314,6 @@ export const RelationChart = () => {
         coordinateSystem: 'view',
         legendHoverLink: true,
         edgeSymbol: ['none', 'arrow']
-      }
-    ]
-  }
-  const option = {
-    animationDuration: 1500,
-    animationEasingUpdate: 'quinticInOut',
-    darkMode: 'auto',
-    colorBy: 'series',
-    color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc'],
-    gradientColor: ['#f6efa6', '#d88273', '#bf444c'],
-    aria: {
-      decal: {
-        decals: [
-          {
-            color: 'rgba(0, 0, 0, 0.2)',
-            dashArrayX: [1, 0],
-            dashArrayY: [2, 5],
-            symbolSize: 1,
-            rotation: 0.5235987755982988
-          },
-          {
-            color: 'rgba(0, 0, 0, 0.2)',
-            symbol: 'circle',
-            dashArrayX: [
-              [8, 8],
-              [0, 8, 8, 0]
-            ],
-            dashArrayY: [6, 0],
-            symbolSize: 0.8
-          },
-          {
-            color: 'rgba(0, 0, 0, 0.2)',
-            dashArrayX: [1, 0],
-            dashArrayY: [4, 3],
-            rotation: -0.7853981633974483
-          },
-          {
-            color: 'rgba(0, 0, 0, 0.2)',
-            dashArrayX: [
-              [6, 6],
-              [0, 6, 6, 0]
-            ],
-            dashArrayY: [6, 0]
-          },
-          {
-            color: 'rgba(0, 0, 0, 0.2)',
-            dashArrayX: [
-              [1, 0],
-              [1, 6]
-            ],
-            dashArrayY: [1, 0, 6, 0],
-            rotation: 0.7853981633974483
-          },
-          {
-            color: 'rgba(0, 0, 0, 0.2)',
-            symbol: 'triangle',
-            dashArrayX: [
-              [9, 9],
-              [0, 9, 9, 0]
-            ],
-            dashArrayY: [7, 2],
-            symbolSize: 0.75
-          }
-        ]
-      }
-    },
-    stateAnimation: {
-      duration: 300,
-      easing: 'cubicOut'
-    },
-    animation: true,
-    animationDurationUpdate: 500,
-    animationEasing: 'cubicInOut',
-    animationThreshold: 2000,
-    progressiveThreshold: 3000,
-    progressive: 400,
-    hoverLayerThreshold: 3000,
-    useUTC: false,
-    series: [
-      {
-        name: 'Les Miserables',
-        type: 'graph',
-        layout: 'none',
-        data: optionData,
-        links: [
-          {
-            source: '5',
-            target: '1'
-          },
-          {
-            source: '2',
-            target: '0'
-          },
-          {
-            source: '3',
-            target: '2'
-          },
-          {
-            source: '4',
-            target: '2'
-          },
-          {
-            source: '5',
-            target: '2'
-          },
-          {
-            source: '5',
-            target: '7'
-          },
-          {
-            source: '6',
-            target: '2'
-          },
-          {
-            source: '6',
-            target: '5'
-          },
-          {
-            source: '6',
-            target: '7'
-          },
-          {
-            source: '7',
-            target: '2'
-          },
-          {
-            source: '7',
-            target: '3'
-          },
-          {
-            source: '8',
-            target: '2'
-          }
-        ],
-        categories: [
-          {
-            name: 'A'
-          },
-          {
-            name: 'B'
-          },
-          {
-            name: 'C'
-          },
-          {
-            name: 'D'
-          },
-          {
-            name: 'E'
-          },
-          {
-            name: 'F'
-          },
-          {
-            name: 'G'
-          },
-          {
-            name: 'H'
-          },
-          {
-            name: 'I'
-          }
-        ],
-        roam: true,
-        label: {
-          position: 'right',
-          formatter: '{b}',
-          show: true
-        },
-        lineStyle: {
-          color: 'source',
-          curveness: 0.3,
-          width: 1,
-          opacity: 0.5
-        },
-        emphasis: {
-          focus: 'adjacency',
-          lineStyle: {
-            width: 10
-          },
-          scale: true,
-          label: {
-            show: true
-          },
-          edgeLabel: {}
-        },
-        z: 2,
-        coordinateSystem: 'view',
-        legendHoverLink: true,
-        edgeSymbol: ['none', 'arrow'],
-        circular: {
-          rotateLabel: false
-        },
-        force: {
-          initLayout: null,
-          repulsion: [0, 50],
-          gravity: 0.1,
-          friction: 0.6,
-          edgeLength: 30,
-          layoutAnimation: true
-        },
-        left: 'center',
-        top: 'center',
-        symbol: 'circle',
-        symbolSize: 10,
-        edgeSymbolSize: 10,
-        edgeLabel: {
-          position: 'middle',
-          distance: 5
-        },
-        draggable: false,
-        center: null,
-        zoom: 1,
-        nodeScaleRatio: 0.6,
-        itemStyle: {},
-        select: {
-          itemStyle: {
-            borderColor: '#212121'
-          }
-        }
       }
     ]
   }

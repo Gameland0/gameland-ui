@@ -69,10 +69,6 @@ export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, isExpired,
 
   return (
     <div style={{ overflow: 'hidden', height: 60 }}>
-      {/* {right || <p>{name}</p>}
-      <ProgressBar right={right}>
-        <InProgress progress={progress} isExpired={isExpired} />
-      </ProgressBar> */}
       <div style={{ overflow: 'hidden', width: 120, height: 20 }}>Expire</div>
       <p style={{ textAlign: right ? 'right' : undefined, fontSize: '.75rem', textAlignLast: 'left', marginTop: 8 }}>
         {isExpired ? 'Expired' : dayLeft}
@@ -83,13 +79,8 @@ export const ProgressLabels: React.FC<ProgressLabelProps> = ({ right, isExpired,
 export const Return: React.FC<ProgressLabelProps> = ({ right, borrowDay, isExpired, borrowAt }) => {
   const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
   const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt, borrowDay), [borrowAt])
-  // console.log(progress, dayLeft)
   return (
     <div style={{ overflow: 'hidden' }}>
-      {/* {right || <p>{name}</p>}
-      <ProgressBar right={right}>
-        <InProgress progress={progress} isExpired={isExpired} />
-      </ProgressBar> */}
       <div style={{ overflow: 'hidden', width: 100, height: 20 }}>Grace period ends</div>
       <p style={{ fontSize: '.75rem', marginTop: 9 }}>{isExpired ? 'Expired' : dayLeft}</p>
     </div>

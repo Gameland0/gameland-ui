@@ -687,6 +687,12 @@ const SettingsBox = styled.div`
     font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     color: #333333;
     margin-bottom: 32px;
+    div {
+      margin-left: 36px;
+      input {
+        margin-right: 3px;
+      }
+    }
   }
   .optionInput {
     margin-bottom: 48px;
@@ -823,6 +829,7 @@ export const MyPage = () => {
   const [TwitterValue, setTwitterValue] = useState('')
   const [DiscordValue, setDiscordValue] = useState('')
   const [TelegramValue, setTelegramValue] = useState('')
+  const [mirrorValue, setMirrorValue] = useState('')
   const [UserNameValue, setUserNameValue] = useState('')
   const [Avatar, setAvatar] = useState('')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
@@ -1345,23 +1352,28 @@ export const MyPage = () => {
     setShowSettings(true)
   }
   const saveEditProfile = async () => {
-    if (!TwitterValue && !DiscordValue && !TelegramValue && !UserNameValue && !Avatar) return
+    if (!TwitterValue && !DiscordValue && !TelegramValue && !UserNameValue && !Avatar && !mirrorValue) return
     const params: any = {}
     setLending(true)
-    if (TwitterValue) {
+    if (TwitterValue.length) {
       params.Twitter = TwitterValue
     }
-    if (DiscordValue) {
+    if (DiscordValue.length) {
       params.Discord = DiscordValue
     }
-    if (TelegramValue) {
+    if (TelegramValue.length) {
       params.Telegram = TelegramValue
     }
-    if (UserNameValue) {
+    if (UserNameValue.length) {
       params.username = UserNameValue
     }
     if (Avatar) {
       params.image = Avatar
+    }
+    if (mirrorValue === 'allow') {
+      params.mirror = 1
+    } else if (mirrorValue === 'unallow') {
+      params.mirror = 2
     }
     // console.log(params)
     const res: any = await bschttp.put(`/v0/userinfo/${account}`, params)
@@ -1444,6 +1456,10 @@ export const MyPage = () => {
     const val = ele.currentTarget.value
     setTelegramValue(val)
   }, [])
+  const MirrorChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setMirrorValue(val)
+  }, [])
 
   return (
     <UserBox>
@@ -1497,6 +1513,29 @@ export const MyPage = () => {
             value={TelegramValue}
             onChange={TelegramChange}
           />
+          <div className="optionTitle Chinese-Bold flex flex-v-center">
+            Mirror :
+            <div>
+              <input
+                type="radio"
+                defaultChecked={userinfo.mirror === 1 ? true : false}
+                name="allow"
+                value="allow"
+                onChange={MirrorChange}
+              />
+              Allow
+            </div>
+            <div>
+              <input
+                type="radio"
+                defaultChecked={userinfo.mirror === 2 ? true : false}
+                name="allow"
+                value="unallow"
+                onChange={MirrorChange}
+              />
+              UnAllow
+            </div>
+          </div>
           <div className="saveButton flex flex-center cursor" onClick={saveEditProfile}>
             save
             {lending ? <img className="loadding" src={loadding} alt="" /> : ''}

@@ -52,11 +52,12 @@ import { Icon } from '../components/Icon'
 import { bschttp, polygonhttp, http } from './Store'
 import { Close } from './UserPage'
 import { ImgBox, Title, SpanLabel, Tips, Properties, StatsBox, Description, FakeButton, Details } from '../pages/Rent'
+import { ExposeBox, ArticleBox } from './Expose'
 import { getContract, fetchAbi, SendBox } from '../pages/Dashboard'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
 import loadding from '../assets/loading.svg'
-import gameland from '../assets/network.svg'
+import website from '../assets/icon_globe.svg'
 import add from '../assets/icon_add.png'
 import defaultImg from '../assets/default.png'
 import defaultStar from '../assets/icon_review_star_default.svg'
@@ -69,10 +70,8 @@ import liketrue from '../assets/icon_like_click_comments.svg'
 import reward from '../assets/icon_reward.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
-// import { Return } from './RentingCard'
-// import deepHash from 'arweave/node/lib/deepHash'
-// import ArweaveBundles from 'arweave-bundles'
-// import { ArweaveWebWallet } from 'arweave-wallet-connector'
+import BUSDIcon from '../assets/busd.svg'
+import WETHIcon from '../assets/WETH.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -86,6 +85,9 @@ const DetailsBox = styled.div`
     width: 65.5%;
     overflow: auto;
     border-right: 1px solid #e5e5e5;
+    .BoxPadding {
+      padding: 0 44px;
+    }
     .info {
       .top {
         display: flex;
@@ -136,6 +138,33 @@ const DetailsBox = styled.div`
       .describe {
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
+      }
+      .tab {
+        margin: auto;
+        width: 384px;
+        height: 72px;
+        background: linear-gradient(90deg, #35caa9 0%, #41acef 100%);
+        border-radius: 36px;
+        div {
+          width: 184px;
+          height: 56px;
+          border-radius: 36px;
+          font-size: 24px;
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .selected {
+          background: #fff;
+          font-weight: bold;
+          color: #35caa9;
+          font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+        }
+        .unselect {
+          color: #fff;
+          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+        }
       }
       .nftBox {
         display: flex;
@@ -633,13 +662,62 @@ const Standard = styled.div`
 `
 const CardBox = styled.div<{ isLending?: boolean; have: number }>`
   position: relative;
-  background: #fff;
+  background: linear-gradient(225deg, #f1f5f7 0%, #fafbfb 82%, #f2f5f5 100%);
   margin: 12px 10px;
-  border: 1px solid #ddd;
+  border-radius: 10px;
   cursor: ${({ isLending, have }) => (isLending || have ? ' pointer' : 'not-allowed')};
   border-radius: 1rem;
   overflow: hidden;
   transition: all 0.3s ease;
+  .contractType {
+    width: 80px;
+    height: 28px;
+    border-radius: 14px;
+    border: 1px solid #41acef;
+    font-size: 12px;
+    margin: 16px 0 24px 24px;
+  }
+  .contractImg {
+    width: 85%;
+    height: 85%;
+    margin-left: 24px;
+    border-radius: 10px;
+  }
+  .name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333333;
+    padding: 24px;
+  }
+  .info {
+    padding: 24px;
+    .totalPrice {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333333;
+      img {
+        margin-left: 8px;
+      }
+    }
+    .day {
+      margin-left: 8px;
+      font-size: 16px;
+      color: #999999;
+    }
+    .Button {
+      width: 110px;
+      height: 48px;
+      background: #41acef;
+      color: #fff;
+      font-size: 16px;
+      border-radius: 24px;
+      opacity: 0.5;
+      margin-left: 40px;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
 
   @media screen and (min-width: 1152px) {
     width: 180px;
@@ -654,6 +732,7 @@ const CardBox = styled.div<{ isLending?: boolean; have: number }>`
   }
   &:hover {
     transform: translateY(-1%);
+    box-shadow: 0px 4px 10px 1px rgba(0, 0, 0, 0.1);
   }
 `
 const MyNFTCardBox = styled.div`
@@ -687,27 +766,24 @@ const CardDetails = styled.div`
   }
 `
 const FakeButtons = styled.div`
-  position: absolute;
-  bottom: 8px;
-  right: 24px;
+  padding: 24px;
   .button {
-    display: block;
-    height: 2rem;
-    padding: 0 1rem;
-    line-height: 2rem;
+    width: 110px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 16px;
-    color: var(--primary-color);
-    text-align: center;
     cursor: pointer;
-    border-radius: 1.25rem;
-    background: white;
-    border: 1px solid var(--primary-color);
-    margin-bottom: 8px;
-
+    color: #fff;
+    opacity: 0.5;
     &:hover {
-      background-color: #41acef;
-      color: white;
+      opacity: 1;
     }
+  }
+  .lend {
+    background: #35caa9;
+  }
+  .send {
+    background: #41acef;
   }
 `
 const NFTname = styled.p`
@@ -758,6 +834,9 @@ export interface CardProps {
   contract_type: string
   img: string
   have: number
+  price?: number
+  days?: number
+  chain: string
 }
 interface MyNFTCardProps {
   onClick?: () => void
@@ -780,7 +859,20 @@ const Labels: React.FC<LabelProps> = ({ name, type }) => {
     </div>
   )
 }
-const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contract_type, onLend, onSend }) => {
+const Card: React.FC<CardProps> = ({
+  img,
+  have,
+  name,
+  onClick,
+  isLending,
+  contract_type,
+  onLend,
+  price,
+  days,
+  onSend,
+  chain,
+  pay_type
+}) => {
   const { networkError } = useStore()
   const handleClick = () => {
     if (networkError) {
@@ -814,25 +906,43 @@ const Card: React.FC<CardProps> = ({ img, have, name, onClick, isLending, contra
       isLending={isLending}
       onClick={isLending ? handleClick : Click}
     >
+      <div className="contractType flex flex-center Chinese-Regular">#{contract_type}</div>
       {src === '.mp4' || src === 'webm' ? (
         <video width="238" height="238" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
-        <Img src={img} alt={name} />
+        <img className="contractImg" src={img} alt={name} />
       )}
-      <CardDetails className="flex flex-h-between">
-        <div>
-          <Labels name={name} type={contract_type} />
+      <div className="name Abbreviation Chinese-Bold">{name}</div>
+      {isLending ? (
+        <div className="info flex flex-v-center">
+          <div className="flex totalPrice Chinese-Bold">
+            {(days as number) * (price as number)}
+            <img
+              src={
+                chain === 'bsc'
+                  ? pay_type === 'eth'
+                    ? BNBIcon
+                    : BUSDIcon
+                  : pay_type === 'eth'
+                  ? polygonIcon
+                  : WETHIcon
+              }
+            />
+          </div>
+          <div className="day">{days} days</div>
+          <div className="Button flex flex-center Chinese-Regular">Rent</div>
         </div>
-      </CardDetails>
-      <Operate isLending={isLending} />
+      ) : (
+        ''
+      )}
       {have ? (
-        <FakeButtons>
-          <button className="button" onClick={Lend}>
+        <FakeButtons className="flex flex-h-between">
+          <div className="button flex flex-center lend" onClick={Lend}>
             Lend
-          </button>
-          <button className="button" onClick={send}>
+          </div>
+          <div className="button flex flex-center send" onClick={send}>
             send
-          </button>
+          </div>
         </FakeButtons>
       ) : (
         ''
@@ -910,9 +1020,8 @@ export const CollectionDetails = () => {
   const AssetContract = useAssetContract()
   const RewardContract = useRewardContract()
   const [starScore, setstarScore] = useState(0)
-  const [nextCursor, setnextCursor] = useState('')
-  const [username, setusername] = useState('')
-  const [textareaValue, settextareaValue] = useState('')
+  const [nftData, setnftData] = useState([] as any)
+  const [DataAll, setDataAll] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
   const [userScoreinfo, setUserScoreinfo] = useState([] as any)
   const [Collectionscoreinfo, setCollectionScoreinfo] = useState([] as any)
@@ -922,6 +1031,9 @@ export const CollectionDetails = () => {
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
   const [myNFTdata, setMyNFTdata] = useState([] as any)
+  const [RareAttribute, setRareAttribute] = useState([] as any)
+  const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
+  const [ArticleAll, setArticleAll] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -932,15 +1044,7 @@ export const CollectionDetails = () => {
   const [showSetUp, setshowSetUp] = useState(false)
   const [UserSettings, setUserSettings] = useState(false)
   const [showreward, setshowreward] = useState(false)
-  const [rewardItem, setrewardItem] = useState({} as any)
-  const [toAddress, setToAddress] = useState('')
-  const [rewardQuantity, setrewardQuantity] = useState('')
   const [withdrawable, setWithdrawable] = useState(false)
-  const [penalty, setPenalty] = useState('')
-  const [price, setPrice] = useState('')
-  const [days, setdays] = useState('')
-  const [collateral, setCollateral] = useState('')
-  const [newUserName, setNewUserName] = useState('')
   const [loading, setLoading] = useState(false)
   const [options, setOptions] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
@@ -952,21 +1056,29 @@ export const CollectionDetails = () => {
   const [lending, setLending] = useState(false)
   const [showMyNFTBox, setShowMyNFTBox] = useState(false)
   const [showMyNFTModal, setShowMyNFTModal] = useState(false)
-  const [LeaseDays, setLeaseDays] = useState('')
-  const [forward, setForward] = useState({} as any)
   const [renting, setRenting] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
-  const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
-  const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
+  const [rewardItem, setrewardItem] = useState({} as any)
+  const [forward, setForward] = useState({} as any)
   const [currentItem, setCurrentItem] = useState({} as any)
-  const [RareAttribute, setRareAttribute] = useState([] as any)
-  const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
-  const [description, setDescription] = useState('')
-  const [NFTStatsMadalType, setNFTStatsMadalType] = useState('')
-  const [nftData, setnftData] = useState([] as any)
-  const [DataAll, setDataAll] = useState([] as any)
   const [commentNFTItem, setCommentNFTItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
+  const [LeaseDays, setLeaseDays] = useState('')
+  const [nextCursor, setnextCursor] = useState('')
+  const [username, setusername] = useState('')
+  const [textareaValue, settextareaValue] = useState('')
+  const [toAddress, setToAddress] = useState('')
+  const [rewardQuantity, setrewardQuantity] = useState('')
+  const [penalty, setPenalty] = useState('')
+  const [price, setPrice] = useState('')
+  const [days, setdays] = useState('')
+  const [description, setDescription] = useState('')
+  const [NFTStatsMadalType, setNFTStatsMadalType] = useState('')
+  const [collateral, setCollateral] = useState('')
+  const [newUserName, setNewUserName] = useState('')
+  const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
+  const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
+  const [tap, setTab] = useState('NFT')
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -1132,6 +1244,7 @@ export const CollectionDetails = () => {
         })
       }
     }
+    getData()
     getUserinfo()
   }, [account, chainId, refreshBy])
   useEffect(() => {
@@ -1154,6 +1267,23 @@ export const CollectionDetails = () => {
     return _cost.plus(collateral).plus(Penalty).toString()
   }, [LeaseDays])
 
+  const getData = async () => {
+    const mirrowData = (await bschttp.get('v0/mirrow_article')).data.data
+    mirrowData.map((item: any) => {
+      item.type = 'Mirror'
+    })
+    const postsdata = (await bschttp.get(`v0/posts`)).data.data
+    postsdata.map((item: any) => {
+      item.type = 'Gameland'
+    })
+    const articleData = [...mirrowData, ...postsdata].filter((item) => {
+      return item.is_use === 1
+    })
+    const arr = articleData.sort(() => {
+      return Math.random() - 0.5
+    })
+    setArticleAll(arr)
+  }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
       return item.reviewid === id
@@ -1980,6 +2110,34 @@ export const CollectionDetails = () => {
       setclickStatus(false)
     })
   }
+  const switchOverTab = (tab: string) => {
+    setTab(tab)
+  }
+  const ItemClick = async (item: any) => {
+    history.push({
+      pathname: `/Article/${item.type}/${item.owner || item.useraddress}/${item.id}`
+    })
+    if (item.owner.toLowerCase() === account?.toLowerCase()) return
+    const params = {
+      view: item.view + 1
+    }
+    if (item.type === 'Mirror') {
+      bschttp.put(`/v0/mirrow_article/${item.id}`, params)
+    } else if (item.type === 'Gameland') {
+      bschttp.put(`/v0/posts/${item.id}`, params)
+    }
+  }
+  const filterUserData = (item: any) => {
+    if (item.type === 'Mirror') {
+      return userinfoAll.filter((ele: any) => {
+        return ele.useraddress.toLowerCase() === item.owner.toLowerCase()
+      })
+    } else if (item.type === 'Gameland') {
+      return userinfoAll.filter((ele: any) => {
+        return ele.useraddress.toLowerCase() === item.useraddress.toLowerCase()
+      })
+    }
+  }
   const closeShowSetUp = () => {
     setshowSetUp(false)
     setrefreshBy(!refreshBy)
@@ -1993,7 +2151,7 @@ export const CollectionDetails = () => {
   }
   return (
     <div className="container">
-      <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} visible={lendvisible} closable={false}>
+      <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} open={lendvisible} closable={false}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <NftCard
@@ -2101,7 +2259,7 @@ export const CollectionDetails = () => {
           </Col>
         </Row>
       </Modal>
-      <Modal footer={null} onCancel={() => setVisible(false)} visible={visible} destroyOnClose closable={false}>
+      <Modal footer={null} onCancel={() => setVisible(false)} open={visible} destroyOnClose closable={false}>
         <Row gutter={[24, 24]}>
           <Col span="12" xl={12} sm={24}>
             <ImgBox>
@@ -2268,7 +2426,7 @@ export const CollectionDetails = () => {
           <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
         )}
       </NFTStatsMadal>
-      <Dialog footer={null} onCancel={() => setPrompt(false)} visible={prompt} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={() => setPrompt(false)} open={prompt} destroyOnClose closable={false}>
         <ContentBox>
           <div className="title">Prompt</div>
           <p>
@@ -2279,7 +2437,7 @@ export const CollectionDetails = () => {
           </p>
         </ContentBox>
       </Dialog>
-      <Dialog footer={null} onCancel={closeShowSetUp} visible={showSetUp} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeShowSetUp} open={showSetUp} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Up</div>
           <h2>Set userName</h2>
@@ -2292,13 +2450,13 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeUploadImg} open={UploadImg} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Avatar</div>
           <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
         </SendBox>
       </Dialog>
-      <Dialog footer={null} onCancel={() => setrentPrompt(false)} visible={rentprompt} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={() => setrentPrompt(false)} open={rentprompt} destroyOnClose closable={false}>
         <ContentBox>
           <div className="title">Prompt</div>
           <p>
@@ -2316,7 +2474,7 @@ export const CollectionDetails = () => {
           </div>
         </ContentBox>
       </Dialog>
-      <Dialog footer={null} onCancel={() => setShowSend(false)} visible={showSend} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={() => setShowSend(false)} open={showSend} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Transfer your NFT</div>
           <h2>Address</h2>
@@ -2329,13 +2487,7 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog
-        footer={null}
-        onCancel={() => setUserSettings(false)}
-        visible={UserSettings}
-        destroyOnClose
-        closable={false}
-      >
+      <Dialog footer={null} onCancel={() => setUserSettings(false)} open={UserSettings} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">user setting</div>
           <div className="input">
@@ -2347,7 +2499,7 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={() => setshowreward(false)} open={showreward} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">give a reward</div>
           <h2>Quantity</h2>
@@ -2390,13 +2542,7 @@ export const CollectionDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog
-        footer={null}
-        onCancel={() => setscoreDialog(false)}
-        visible={scoreDialog}
-        destroyOnClose
-        closable={false}
-      >
+      <Dialog footer={null} onCancel={() => setscoreDialog(false)} open={scoreDialog} destroyOnClose closable={false}>
         <ContentBox>
           <div className="title">Prompt</div>
           <p>
@@ -2431,7 +2577,7 @@ export const CollectionDetails = () => {
                   </a>
                   <img src={discord} alt="" />
                   <a href={collectionDetails.officialWebsite} target="_blank" rel="noreferrer">
-                    <img src={gameland} alt="" />
+                    <img src={website} title="website" />
                   </a>
                 </div>
               </div>
@@ -2446,40 +2592,77 @@ export const CollectionDetails = () => {
               </div>
             </div>
             <div className="describe">{collectionDetails.describe}</div>
-            <div className="nftBox">
-              {DataAll.length
-                ? DataAll.map((item: any, index: any) => (
-                    <Card
-                      key={index}
-                      nftId={item.token_id}
-                      onLend={() => lendNftClick(item)}
-                      onSend={() => handleSendNft(item)}
-                      onClick={() => handleShowModal(item)}
-                      name={item.metadata?.name}
-                      img={item.metadata?.image || item.metadata?.imageUrl}
-                      isLending={item.isLending ? item.isLending : 0}
-                      contract_type={item.contract_type ? item.contract_type : item.standard}
-                      pay_type={item.pay_type}
-                      have={item.have}
-                    />
-                  ))
-                : ''}
-              {DataAll.length ? (
-                <div className="paginationBox flex flex-justify-content">
-                  <div className="More cursor flex flex-center" onClick={() => (clickStatus ? '' : SeeMore())}>
-                    See More
-                    {loading ? <img className="loadding" src={loadding} alt="" /> : ''}
-                  </div>
-                </div>
-              ) : (
-                ''
-              )}
+            <div className="tab flex flex-center">
+              <div className={tap === 'NFT' ? 'selected' : 'unselect'} onClick={() => switchOverTab('NFT')}>
+                NFT
+              </div>
+              <div className={tap === 'Articles' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Articles')}>
+                Articles
+              </div>
             </div>
+            {tap === 'NFT' ? (
+              <div className="nftBox">
+                {DataAll.length
+                  ? DataAll.map((item: any, index: any) => (
+                      <Card
+                        key={index}
+                        nftId={item.token_id}
+                        onLend={() => lendNftClick(item)}
+                        onSend={() => handleSendNft(item)}
+                        onClick={() => handleShowModal(item)}
+                        name={item.metadata?.name}
+                        img={item.metadata?.image || item.metadata?.imageUrl}
+                        isLending={item.isLending ? item.isLending : 0}
+                        contract_type={item.contract_type ? item.contract_type : item.standard}
+                        pay_type={item.pay_type}
+                        price={item.price}
+                        days={item.days}
+                        have={item.have}
+                        chain={chain}
+                      />
+                    ))
+                  : ''}
+                {DataAll.length ? (
+                  <div className="paginationBox flex flex-justify-content">
+                    <div className="More cursor flex flex-center" onClick={() => (clickStatus ? '' : SeeMore())}>
+                      See More
+                      {loading ? <img className="loadding" src={loadding} alt="" /> : ''}
+                    </div>
+                  </div>
+                ) : (
+                  ''
+                )}
+              </div>
+            ) : (
+              ''
+            )}
+            {tap === 'Articles' ? (
+              <ExposeBox className="BoxPadding">
+                {ArticleAll && ArticleAll.length
+                  ? ArticleAll.map((item: any, index: any) => (
+                      <ArticleBox key={index} onClick={() => ItemClick(item)} className="cursor">
+                        <div className="information flex flex-v-center">
+                          <img src={filterUserData(item)[0].image} onError={handleImgError} />
+                          <div className="userName">{filterUserData(item)[0].username}</div>
+                          <div className="time">· {item.datetime || item.createdAt}</div>
+                        </div>
+                        <div className="title">{item.title}</div>
+                        <div className="context line-clamp">{item.context_text}</div>
+                        <div className="frequency">
+                          {item.view || 0} view · from {item.type}
+                        </div>
+                      </ArticleBox>
+                    ))
+                  : ''}
+              </ExposeBox>
+            ) : (
+              ''
+            )}
           </div>
         </div>
         <div className="comment">
           <div className="user" onClick={() => UserPage(userinfo)}>
-            <img className="userImage cursor" src={userinfo.image || defaultImg} />
+            <img className="userImage cursor" src={userinfo.image} onError={handleImgError} />
             <div className="userName cursor" onClick={() => setUserSettings(true)}>
               {userinfo.username || `user #${userinfo.useraddress}`}
             </div>
@@ -2553,7 +2736,7 @@ export const CollectionDetails = () => {
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
                     <div className="userInfo" onClick={() => UserPage(item)}>
-                      <img src={getUserImage(item.useraddress)} className="userImage" alt="" />
+                      <img src={getUserImage(item.useraddress)} className="userImage" onError={handleImgError} />
                       <div className="starName">
                         <div className="name">{item.username || `user #${userinfo.useraddress}`}</div>
                         <div className="star">
