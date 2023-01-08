@@ -247,34 +247,34 @@ export const ArticleContentPage = () => {
       }
     }
   }
-  const handlePostsOtherDetails = (type: string) => {
-    if (type === 'collectQuantity') {
+  const handlePostsOtherDetails = (handletype: string) => {
+    if (handletype === 'collectQuantity') {
       const quantity = PostsLike.filter((item: any) => {
         return item.collect === postsItem.id
       })
       return quantity.length
     }
-    if (type === 'likeQuantity') {
+    if (handletype === 'likeQuantity') {
       const quantity = PostsLike.filter((item: any) => {
         return item.reviewid === postsItem.id
       })
       return quantity.length
     }
-    if (type === 'isLike') {
+    if (handletype === 'isLike') {
       const quantity = PostsLike.filter((item: any) => {
         return item.useraddress === account && item.reviewid === postsItem.id
       })
       return quantity
     }
-    if (type === 'isCollect') {
+    if (handletype === 'isCollect') {
       const quantity = PostsLike.filter((item: any) => {
         return item.useraddress === account && item.collect === postsItem.id
       })
       return quantity
     }
-    if (type === 'BNBTotal') {
+    if (handletype === 'BNBTotal') {
       const data = postsRewardData.filter((item: any) => {
-        return item.reviewid === postsItem.id && item.paytype === 'BNB'
+        return item.reviewid === postsItem.id && item.paytype === 'BNB' && item.articleType === type
       })
       let Total = 0
       data.map((item: any) => {
@@ -282,9 +282,9 @@ export const ArticleContentPage = () => {
       })
       return Total
     }
-    if (type === 'MATICTotal') {
+    if (handletype === 'MATICTotal') {
       const data = postsRewardData.filter((item: any) => {
-        return item.reviewid === postsItem.id && item.paytype === 'MATIC'
+        return item.reviewid === postsItem.id && item.paytype === 'MATIC' && item.articleType === type
       })
       let Total = 0
       data.map((item: any) => {
@@ -292,7 +292,7 @@ export const ArticleContentPage = () => {
       })
       return Total
     }
-    if (type === 'replayQuantity') {
+    if (handletype === 'replayQuantity') {
       const quantity = postsReplayData.filter((item: any) => {
         return item.reviewid === postsItem.id
       })
@@ -328,7 +328,13 @@ export const ArticleContentPage = () => {
     if (!rewardQuantity || !library) return
     setLending(true)
     try {
-      const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
+      let address
+      if (type === 'Gameland') {
+        address = rewardItem.useraddress
+      } else {
+        address = rewardItem.owner
+      }
+      const rented = await RewardContract?.connect(library.getSigner()).reward(address, {
         value: parseEther(rewardQuantity)
       })
       const receipt = await fetchReceipt(rented.hash, library)
@@ -338,7 +344,7 @@ export const ArticleContentPage = () => {
       }
       const params = {
         reviewid: rewardItem.id,
-        toaddress: rewardItem.useraddress,
+        toaddress: address,
         fromaddress: account,
         datetime: new Date().toJSON(),
         amount: rewardQuantity,

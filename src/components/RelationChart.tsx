@@ -7,10 +7,12 @@ import * as echarts from 'echarts/lib/echarts'
 // import { TooltipComponent, LegendComponent } from 'echarts/components'
 import 'echarts/lib/chart/graph'
 import { useActiveWeb3React } from '../hooks'
-import { filterAddress, formatting } from '../utils'
+import { LoadFailed, Loadding } from '../pages/Games'
+import { filterAddress, formatting, filterNftid } from '../utils'
 import { http, bschttp, polygonhttp } from './Store'
 import { OPENSEA_API_KEY, MORALIS_KEY, PolygonContract, BscContract } from '../constants'
 import { colorTable } from '../constants/colorTable'
+import loadd from '../assets/loading.svg'
 // import { release } from 'os'
 // import { resolve } from 'dns'
 // import { add, reject } from 'lodash'
@@ -70,9 +72,11 @@ const findAddressIndex = (arr: any, address: string) => {
 export const RelationChart = () => {
   const { account } = useActiveWeb3React()
   const { state } = useLocation() as any
+  const [loadding, setLending] = useState(true)
   const [orderData, setOrderData] = useState([] as any)
   const [optionData, setOptionData] = useState([] as any)
   const [optionLink, setOptionLink] = useState([] as any)
+  const [oldOwners, setOldOwners] = useState([] as any)
   const [NFTData, setNFTData] = useState([] as any)
   const { contractName } = useParams() as any
   let contractAddress: any
@@ -95,6 +99,7 @@ export const RelationChart = () => {
     } else {
       oldOwnersData = await polygonhttp.get(`v0/old_owners/${contractAddress}`)
     }
+    setOldOwners(oldOwnersData)
     const addressArr: any[] = []
     oldOwnersData.data.data.map((item: any) => {
       if (item.owner_now.toLowerCase() === account?.toLowerCase()) {
@@ -106,7 +111,7 @@ export const RelationChart = () => {
     const data: any[] = []
     Array.from(new Set(addressArr)).map((item: any, index: number) => {
       const object = {
-        symbolSize: 65,
+        symbolSize: item.toLowerCase() === account?.toLowerCase() ? 90 : 65,
         name: formatting(item as string),
         itemStyle: {
           color: colorTable[index]
@@ -120,7 +125,7 @@ export const RelationChart = () => {
         const object = {
           source: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.fromadd)),
           target: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.toadd)),
-          value: `send #${item.nftid}`,
+          value: `send #${filterNftid(item.nftid)}`,
           lineStyle: {
             color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.fromadd))]
           }
@@ -130,6 +135,7 @@ export const RelationChart = () => {
     })
     setOptionData(data)
     setOptionLink(linkData)
+    setLending(false)
   }
   useEffect(() => {
     if (state) {
@@ -141,7 +147,7 @@ export const RelationChart = () => {
   }, [contractName])
   useEffect(() => {
     componentDidMount()
-  }, [optionData, optionLink])
+  }, [optionLink])
   const options = {
     animationDurationUpdate: 500,
     animationEasingUpdate: 'quinticInOut',
@@ -177,7 +183,7 @@ export const RelationChart = () => {
           }
         },
         force: {
-          repulsion: 3000
+          repulsion: 5000
         },
         edgeSymbolSize: [4, 10],
         edgeLabel: {
@@ -390,7 +396,9 @@ export const RelationChart = () => {
           <NoOrder>No listings yet</NoOrder>
         )}
       </Listings> */}
+      <Loadding className="flex flex-center">{loadding ? <img src={loadd} /> : ''}</Loadding>
       <div id="main"></div>
+      {/* <LoadFailed className="text-center">{loadding ? '' : 'Failed to load, please refresh the page'}</LoadFailed> */}
     </RelationChartBox>
   )
 }

@@ -11,6 +11,10 @@ import star from '../../assets/icon_star.svg'
 import defaultImg from '../../assets/default.png'
 import imgBg from '../../assets/img_bg.svg'
 import followed from '../../assets/icon_followed.svg'
+import avatar1 from '../../assets/icon_avatar_1.svg'
+import avatar2 from '../../assets/icon_avatar_2.png'
+import PolygonImg from '../../assets/polygon.svg'
+import BSCImg from '../../assets/binance.svg'
 
 const BgImg = styled.div`
   position: absolute;
@@ -60,6 +64,9 @@ const Sort = styled.div`
       line-height: 61px;
       cursor: pointer;
       z-index: 60;
+      img {
+        margin-right: 10px;
+      }
     }
   }
 `
@@ -189,12 +196,12 @@ const SeeMore = styled.div`
     margin-bottom: 12px;
   }
 `
-const LoadFailed = styled.div`
+export const LoadFailed = styled.div`
   font-size: 40px;
   font-weight: bold;
   font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
 `
-const Loadding = styled.div`
+export const Loadding = styled.div`
   img {
     width: 100px;
     height: 100px;
@@ -306,37 +313,15 @@ export const Games = () => {
     }
     filterCollection()
   }, [collection])
-
-  const filterReviewLength = (contractAddress: any) => {
-    return review.filter((item: any) => {
-      return item.contractaddress === contractAddress
-    }).length
-  }
-  const filterReviewUser = (contractAddress: any) => {
+  const filterReviewUser = (contractAddress: any, index: number) => {
     const reviewData = review.filter((item: any) => {
       return item.contractaddress === contractAddress
     })
-    // if (!reviewData.length) return [defaultImg, defaultImg, defaultImg]
-    // const userimg = userinfo.filter((item: any) => {
-    //   return item.useraddress === reviewData[reviewData.length - 1].useraddress
-    // })
-    // if (reviewData.length === 1) return [userimg[0].image, defaultImg, defaultImg]
-    // const userimg1 = userinfo.filter((item: any) => {
-    //   return item.useraddress === reviewData[reviewData.length - 2].useraddress
-    // })
-    // if (reviewData.length === 2) return [userimg, userimg1, defaultImg]
-    // const userimg2 = userinfo.filter((item: any) => {
-    //   return item.useraddress === reviewData[reviewData.length - 3].useraddress
-    // })
-    // console.log(userimg, userimg1, userimg2)
-    // return [userimg, userimg1, userimg2]
-    const userimg = userinfo.filter((item: any) => {
-      return item.useraddress === reviewData[reviewData.length - 1].useraddress
-    })
-    if (userimg.length) {
-      console.log(userimg[0].image)
-      return userimg[0].image || defaultImg
-    }
+    const userimg =
+      userinfo.filter((item: any) => {
+        return item.useraddress === reviewData[reviewData.length - index]?.useraddress
+      })[0]?.image || avatar1
+    return userimg
   }
   const followState = (item: any) => {
     if (!gameFollow.length) return 0
@@ -403,6 +388,9 @@ export const Games = () => {
   const seeMore = () => {
     setGamePage(gamePage + 1)
   }
+  const handleImgError = (e: any) => {
+    e.target.src = defaultImg
+  }
   return (
     <div className="container">
       {/* <Filling></Filling> */}
@@ -430,7 +418,8 @@ export const Games = () => {
       </div>
       <Sort className="flex flex-j-end">
         <div className="filter cursor" onClick={() => setFilterMenu(!filterMenu)}>
-          {gamesFilter}
+          <img src={gamesFilter === 'Polygon' ? PolygonImg : gamesFilter === 'ALL' ? '' : BSCImg} />
+          &nbsp;{gamesFilter}
           <img src={arrow} className="arrowIcon" />
         </div>
         {filterMenu ? (
@@ -442,6 +431,7 @@ export const Games = () => {
                 setFilterMenu(false)
               }}
             >
+              <img src={PolygonImg} />
               Polygon
             </div>
             <div
@@ -451,6 +441,7 @@ export const Games = () => {
                 setFilterMenu(false)
               }}
             >
+              <img src={BSCImg} alt="" />
               BNB chain
             </div>
             <div
@@ -478,21 +469,21 @@ export const Games = () => {
                     <div className="followed flex flex-center">
                       <img src={followed} />
                     </div>
-                    <div className="unfollow flex flex-center">- UNFOLLOW</div>
+                    <div className="unfollow flex flex-center">- Unfollow</div>
                   </div>
                 ) : (
                   <div className="follow flex flex-center" onClick={(e) => followGame(item, e)}>
-                    + FOLLOW
+                    + Follow
                   </div>
                 )}
               </div>
               <div className="name">{item.contractName}</div>
               <div className="information flex flex-h-between">
                 <div className="commentUser">
-                  <img src={defaultImg} />
-                  <img src={defaultImg} />
-                  <img src={defaultImg} />
-                  &nbsp;+&nbsp;{filterReviewLength(item.contractAddress)}
+                  <img src={filterReviewUser(item.contractAddress, 1)} onError={handleImgError} />
+                  <img src={filterReviewUser(item.contractAddress, 2)} onError={handleImgError} />
+                  <img src={filterReviewUser(item.contractAddress, 3)} onError={handleImgError} />
+                  &nbsp;...
                 </div>
                 <div className="starRating">
                   <img src={star} alt="" /> &nbsp;{item.starRating}

@@ -11,7 +11,7 @@ import { hashMessage } from 'ethers/lib/utils'
 import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
 import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
-import { formatting, fixDigitalId, fetchReceipt, ChainHttp } from '../utils'
+import { formatting, fixDigitalId, fetchReceipt, handleImgError } from '../utils'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
@@ -86,24 +86,21 @@ export const Card: React.FC<CardProps> = ({
   const src = img?.slice(-4)
   return (
     <CardBox className="flex flex-column-between flex-column">
+      <div className="contractType flex flex-center Chinese-Regular">#{contract_type}</div>
       {src === '.mp4' || src === 'webm' ? (
         <video width="328" height="328" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
-        <Img src={img} alt={name} />
+        <img className="contractImg" src={img} alt={name} onError={handleImgError} />
       )}
-      <CardDetails className="flex flex-h-between">
-        <div>
-          <Labels name={name} type={contract_type} nftId={nftId} />
-        </div>
-      </CardDetails>
+      <div className="name Abbreviation Chinese-Bold">{name}</div>
       {account.toLowerCase() === useraddress.toLowerCase() ? (
-        <FakeButtons>
-          <button className="button" onClick={Lend}>
+        <FakeButtons className="flex flex-h-between">
+          <div className="button lend flex flex-center" onClick={Lend}>
             Lend
-          </button>
-          <button className="button" onClick={send}>
+          </div>
+          <div className="button send flex flex-center" onClick={send}>
             send
-          </button>
+          </div>
         </FakeButtons>
       ) : (
         ''
@@ -465,15 +462,40 @@ const CardBox = styled.div`
   position: relative;
   width: 330px;
   min-height: 396px;
-  background: #fff;
   margin: 0 51px 50px 0;
-  border: 1px solid #ddd;
-  border-radius: 1rem;
+  background: linear-gradient(225deg, #f1f5f7 0%, #fafbfb 82%, #f2f5f5 100%);
+  margin: 12px 10px;
+  border-radius: 10px;
   overflow: hidden;
   transition: all 0.3s ease;
+  .contractType {
+    width: 80px;
+    height: 28px;
+    border-radius: 14px;
+    border: 1px solid #41acef;
+    font-size: 12px;
+    margin: 16px 0 24px 24px;
+  }
+  .contractImg {
+    width: 85%;
+    height: 85%;
+    margin-left: 24px;
+    border-radius: 10px;
+  }
+  .name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333333;
+    padding: 24px;
+  }
+
   @media screen and (max-width: 1440px) {
     width: 255px;
     margin: 0 20px 20px 0;
+  }
+  &:hover {
+    transform: translateY(-1%);
+    box-shadow: 0px 4px 10px 1px rgba(0, 0, 0, 0.1);
   }
 `
 const NFTname = styled.p`
@@ -495,26 +517,24 @@ const Standard = styled.div`
   margin-bottom: 0.5rem;
 `
 const FakeButtons = styled.div`
-  position: absolute;
-  top: 346px;
-  right: 24px;
+  padding: 24px;
   .button {
-    display: block;
-    height: 2rem;
-    padding: 0 1rem;
-    line-height: 2rem;
+    width: 110px;
+    height: 48px;
+    border-radius: 24px;
     font-size: 16px;
-    color: var(--primary-color);
-    text-align: center;
     cursor: pointer;
-    border-radius: 1.25rem;
-    background: white;
-    border: 1px solid var(--primary-color);
-    margin-bottom: 8px;
+    color: #fff;
+    opacity: 0.5;
     &:hover {
-      background-color: #41acef;
-      color: white;
+      opacity: 1;
     }
+  }
+  .lend {
+    background: #35caa9;
+  }
+  .send {
+    background: #41acef;
   }
   @media screen and (max-width: 1440px) {
     top: 300px;

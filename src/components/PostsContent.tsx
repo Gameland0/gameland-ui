@@ -246,7 +246,7 @@ export const PostsContentPage = () => {
     }
     if (type === 'BNBTotal') {
       const data = postsRewardData.filter((item: any) => {
-        return item.reviewid === postsItem.id && item.paytype === 'BNB'
+        return item.reviewid === postsItem.id && item.paytype === 'BNB' && item.articleType === 'Gameland'
       })
       let Total = 0
       data.map((item: any) => {
@@ -256,7 +256,7 @@ export const PostsContentPage = () => {
     }
     if (type === 'MATICTotal') {
       const data = postsRewardData.filter((item: any) => {
-        return item.reviewid === postsItem.id && item.paytype === 'MATIC'
+        return item.reviewid === postsItem.id && item.paytype === 'MATIC' && item.articleType === 'Gameland'
       })
       let Total = 0
       data.map((item: any) => {
@@ -273,29 +273,28 @@ export const PostsContentPage = () => {
     return 0
   }
   const sendPostsReplay = async () => {
-    // if (!replayValue) return
-    // if (useraddress.toLowerCase() === account?.toLowerCase()) {
-    //   if (!replayWho) return
-    // }
-    // let text
-    // if (replayWho) {
-    //   text = replayWho + ':' + replayValue
-    // } else {
-    //   text = replayValue
-    // }
-    // const params = {
-    //   useraddress: account,
-    //   reviewid: postsItem.id,
-    //   username: userinfo.username,
-    //   context: text
-    // }
-    // const res: any = await bschttp.post(`/v0/posts_reply`, params)
-    // if (res.data.code === 1) {
-    //   setreplayValue('')
-    //   setrefreshBy(!refreshBy)
-    //   toastify.success('succeed')
-    // }
-    return 0
+    if (!replayValue) return
+    if (useraddress.toLowerCase() === account?.toLowerCase()) {
+      if (!replayWho) return
+    }
+    let text
+    if (replayWho) {
+      text = replayWho + ':' + replayValue
+    } else {
+      text = replayValue
+    }
+    const params = {
+      useraddress: account,
+      reviewid: postsItem.id,
+      username: userinfo.username,
+      context: text
+    }
+    const res: any = await bschttp.post(`/v0/posts_reply`, params)
+    if (res.data.code === 1) {
+      setreplayValue('')
+      setrefreshBy(!refreshBy)
+      toastify.success('succeed')
+    }
   }
   const postsRewar = async () => {
     if (!rewardQuantity || !library) return
@@ -315,7 +314,8 @@ export const PostsContentPage = () => {
         fromaddress: account,
         datetime: new Date().toJSON(),
         amount: rewardQuantity,
-        paytype: rewardSelection
+        paytype: rewardSelection,
+        articleType: 'Gameland'
       }
       const res: any = await bschttp.post(`/v0/posts_reward/`, params)
       if (res.data.code === 1) {

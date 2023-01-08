@@ -1,4 +1,5 @@
 export const colorTable = [
+  '#000000',
   '#ffff00',
   '#e3cf57',
   '#FF9912',

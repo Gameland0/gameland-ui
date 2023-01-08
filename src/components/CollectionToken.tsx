@@ -36,7 +36,6 @@ import arrow from '../assets/icon_select.svg'
 import defaultImg from '../assets/default.png'
 import avatar1 from '../assets/icon_avatar_1.svg'
 import avatar2 from '../assets/icon_avatar_2.png'
-import { type } from 'os'
 
 const TokenBox = styled.div`
   width: 100%;

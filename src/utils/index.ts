@@ -3,6 +3,7 @@ import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { TransactionReceipt } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
 import { bschttp, polygonhttp } from '../components/Store'
+import defaultImg from '../assets/default.png'
 
 export const NetworkContextName = 'GAMELAND'
 
@@ -47,6 +48,13 @@ export const formatting = (address: string, places = 4): string => {
   const start = address.substring(0, places)
   const end = address.substring(len - places, len)
   return `${start}...${end}`
+}
+export const filterNftid = (address: string, places = 3): string => {
+  if (address.length <= 6) return address
+  const len = address.length
+  const start = address.substring(0, places)
+  const end = address.substring(len - places, len)
+  return `${start}..${end}`
 }
 
 export const filterAddress = (address: any) => {
@@ -277,4 +285,8 @@ export const fetchReceipt = async (transactionHash: string, provider: any): Prom
     }
   }
   return await getReceipt(transactionHash, provider)
+}
+
+export const handleImgError = (e: any) => {
+  e.target.src = defaultImg
 }

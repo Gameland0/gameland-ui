@@ -2,6 +2,7 @@ import styled from 'styled-components'
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { bschttp } from './Store'
+import { dateConvert } from './CollectionDetails'
 import { useActiveWeb3React } from '../hooks'
 import defaultImg from '../assets/default.png'
 
@@ -11,6 +12,11 @@ export const ExposeBox = styled.div`
   margin: auto;
   margin-top: 72px;
   min-height: 400px;
+  .noArticle {
+    font-size: 24px;
+    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+    font-weight: bold;
+  }
 `
 export const ArticleBox = styled.div`
   border-bottom: 1px solid #e5e5e5;
@@ -111,7 +117,7 @@ export const Expose = () => {
                 <div className="information flex flex-v-center">
                   <img src={filterUserData(item)[0].image} onError={handleImgError} />
                   <div className="userName">{filterUserData(item)[0].username}</div>
-                  <div className="time">· {item.datetime || item.createdAt}</div>
+                  <div className="time">· {item.datetime || dateConvert(item.createdAt)}</div>
                 </div>
                 <div className="title">{item.title}</div>
                 <div className="context line-clamp">{item.context_text}</div>

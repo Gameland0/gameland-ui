@@ -4,9 +4,8 @@ import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
 import { Row, Col, Button } from 'antd'
 // import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
-import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
-import type { UploadChangeParam } from 'antd/es/upload'
-import { isEmpty } from 'lodash'
+import { LoadFailed, Loadding } from '../pages/Games'
+import { divide, isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { lowerCase } from 'lower-case'
 import axios from 'axios'
@@ -24,7 +23,15 @@ import {
 } from '../hooks'
 import { useFetchMyNfts } from '../hooks/useFetchMyNfts'
 import { handleClick } from './Header'
-import { fetchReceipt, fixDigitalId, formatAddress, ZeroAddress, ChainCurrencyName, formatting } from '../utils'
+import {
+  fetchReceipt,
+  fixDigitalId,
+  formatAddress,
+  ZeroAddress,
+  ChainCurrencyName,
+  formatting,
+  handleImgError
+} from '../utils'
 import { ABIs } from '../constants/Abis/ABIs'
 import {
   MORALIS_KEY,
@@ -145,6 +152,7 @@ const DetailsBox = styled.div`
         height: 72px;
         background: linear-gradient(90deg, #35caa9 0%, #41acef 100%);
         border-radius: 36px;
+        margin-bottom: 10px;
         div {
           width: 184px;
           height: 56px;
@@ -859,7 +867,7 @@ const Labels: React.FC<LabelProps> = ({ name, type }) => {
     </div>
   )
 }
-const Card: React.FC<CardProps> = ({
+export const Card: React.FC<CardProps> = ({
   img,
   have,
   name,
@@ -910,7 +918,7 @@ const Card: React.FC<CardProps> = ({
       {src === '.mp4' || src === 'webm' ? (
         <video width="238" height="238" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
-        <img className="contractImg" src={img} alt={name} />
+        <img className="contractImg" src={img} alt={name} onError={handleImgError} />
       )}
       <div className="name Abbreviation Chinese-Bold">{name}</div>
       {isLending ? (
@@ -1012,6 +1020,11 @@ export const getLabelArr = (item: any) => {
   if (!arr) return []
   return arr
 }
+export const dateConvert = (time: any) => {
+  const date = new Date(time)
+  const arr = date.toUTCString().split(' ')
+  return `${arr[2]} ${arr[1]}th, ${arr[3]}`
+}
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
@@ -1034,6 +1047,7 @@ export const CollectionDetails = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [ArticleAll, setArticleAll] = useState([] as any)
+
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1159,6 +1173,12 @@ export const CollectionDetails = () => {
     `)
     const rantData = http2.get(`v0/opensea/${address}`)
     const Details = await http2.get(`v0/games/${address}`)
+    bschttp.get(`v0/posts`).then((vals) => {
+      const data = vals.data.data.filter((item: any) => {
+        return item.contractName === Details?.data.data[0].contractName
+      })
+      setArticleAll(data)
+    })
     Promise.all([myNft, nftCollection, rantData]).then((vals) => {
       setnextCursor(vals[1].data.cursor)
       setMyNFTdata(vals[0].data.result)
@@ -1217,6 +1237,7 @@ export const CollectionDetails = () => {
         setUploadImg(true)
         return
       } else {
+        setLending(true)
         setUserinfo(userinfo.data.data[0])
         const params = { useraddress: account }
         const userscore = http2.post(`/v0/score/${address}`, params)
@@ -1225,26 +1246,30 @@ export const CollectionDetails = () => {
         const userlike = http2.get(`/v0/review_like/${account}`)
         const Rewardinfo = http2.get(`/v0/review_reward`)
         const userAll = bschttp.get(`v0/userinfo`)
-        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo, userAll]).then((vals) => {
-          setUserScoreinfo(vals[0].data.data)
-          setCollectionScoreinfo(vals[1].data.data)
-          const revieweFilter = vals[2].data.data.filter((ele: any) => {
-            return !ele.SuperiorIndex
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo, userAll])
+          .then((vals) => {
+            setUserScoreinfo(vals[0].data.data)
+            setCollectionScoreinfo(vals[1].data.data)
+            const revieweFilter = vals[2].data.data.filter((ele: any) => {
+              return !ele.SuperiorIndex
+            })
+            const reviewData = [] as any
+            revieweFilter.map((item: any, index: any) => {
+              if (index < 20) {
+                reviewData.push(item)
+              }
+            })
+            setrevieweinfo(reviewData.sort(compareTime()))
+            setuserLikeInfo(vals[3].data.data)
+            setrewardinfo(vals[4].data.data)
+            setuserinfoAll(vals[5].data.data)
+            setLending(false)
           })
-          const reviewData = [] as any
-          revieweFilter.map((item: any, index: any) => {
-            if (index < 20) {
-              reviewData.push(item)
-            }
+          .catch(() => {
+            setLending(false)
           })
-          setrevieweinfo(reviewData.sort(compareTime()))
-          setuserLikeInfo(vals[3].data.data)
-          setrewardinfo(vals[4].data.data)
-          setuserinfoAll(vals[5].data.data)
-        })
       }
     }
-    getData()
     getUserinfo()
   }, [account, chainId, refreshBy])
   useEffect(() => {
@@ -1266,24 +1291,6 @@ export const CollectionDetails = () => {
     }
     return _cost.plus(collateral).plus(Penalty).toString()
   }, [LeaseDays])
-
-  const getData = async () => {
-    const mirrowData = (await bschttp.get('v0/mirrow_article')).data.data
-    mirrowData.map((item: any) => {
-      item.type = 'Mirror'
-    })
-    const postsdata = (await bschttp.get(`v0/posts`)).data.data
-    postsdata.map((item: any) => {
-      item.type = 'Gameland'
-    })
-    const articleData = [...mirrowData, ...postsdata].filter((item) => {
-      return item.is_use === 1
-    })
-    const arr = articleData.sort(() => {
-      return Math.random() - 0.5
-    })
-    setArticleAll(arr)
-  }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
       return item.reviewid === id
@@ -2115,28 +2122,18 @@ export const CollectionDetails = () => {
   }
   const ItemClick = async (item: any) => {
     history.push({
-      pathname: `/Article/${item.type}/${item.owner || item.useraddress}/${item.id}`
+      pathname: `/Article/Gameland/${item.owner || item.useraddress}/${item.id}`
     })
     if (item.owner.toLowerCase() === account?.toLowerCase()) return
     const params = {
       view: item.view + 1
     }
-    if (item.type === 'Mirror') {
-      bschttp.put(`/v0/mirrow_article/${item.id}`, params)
-    } else if (item.type === 'Gameland') {
-      bschttp.put(`/v0/posts/${item.id}`, params)
-    }
+    bschttp.put(`/v0/posts/${item.id}`, params)
   }
   const filterUserData = (item: any) => {
-    if (item.type === 'Mirror') {
-      return userinfoAll.filter((ele: any) => {
-        return ele.useraddress.toLowerCase() === item.owner.toLowerCase()
-      })
-    } else if (item.type === 'Gameland') {
-      return userinfoAll.filter((ele: any) => {
-        return ele.useraddress.toLowerCase() === item.useraddress.toLowerCase()
-      })
-    }
+    return userinfoAll.filter((ele: any) => {
+      return ele.useraddress.toLowerCase() === item.useraddress.toLowerCase()
+    })
   }
   const closeShowSetUp = () => {
     setshowSetUp(false)
@@ -2600,28 +2597,33 @@ export const CollectionDetails = () => {
                 Articles
               </div>
             </div>
+            <Loadding className="flex flex-center">{lending ? <img src={loadding} /> : ''}</Loadding>
             {tap === 'NFT' ? (
               <div className="nftBox">
-                {DataAll.length
-                  ? DataAll.map((item: any, index: any) => (
-                      <Card
-                        key={index}
-                        nftId={item.token_id}
-                        onLend={() => lendNftClick(item)}
-                        onSend={() => handleSendNft(item)}
-                        onClick={() => handleShowModal(item)}
-                        name={item.metadata?.name}
-                        img={item.metadata?.image || item.metadata?.imageUrl}
-                        isLending={item.isLending ? item.isLending : 0}
-                        contract_type={item.contract_type ? item.contract_type : item.standard}
-                        pay_type={item.pay_type}
-                        price={item.price}
-                        days={item.days}
-                        have={item.have}
-                        chain={chain}
-                      />
-                    ))
-                  : ''}
+                {DataAll.length ? (
+                  DataAll.map((item: any, index: any) => (
+                    <Card
+                      key={index}
+                      nftId={item.token_id}
+                      onLend={() => lendNftClick(item)}
+                      onSend={() => handleSendNft(item)}
+                      onClick={() => handleShowModal(item)}
+                      name={item.metadata?.name}
+                      img={item.metadata?.image || item.metadata?.imageUrl}
+                      isLending={item.isLending ? item.isLending : 0}
+                      contract_type={item.contract_type ? item.contract_type : item.standard}
+                      pay_type={item.pay_type}
+                      price={item.price}
+                      days={item.days}
+                      have={item.have}
+                      chain={chain}
+                    />
+                  ))
+                ) : (
+                  <LoadFailed className="text-center">
+                    {loadding ? '' : 'Failed to load, please refresh the page'}
+                  </LoadFailed>
+                )}
                 {DataAll.length ? (
                   <div className="paginationBox flex flex-justify-content">
                     <div className="More cursor flex flex-center" onClick={() => (clickStatus ? '' : SeeMore())}>
@@ -2638,22 +2640,24 @@ export const CollectionDetails = () => {
             )}
             {tap === 'Articles' ? (
               <ExposeBox className="BoxPadding">
-                {ArticleAll && ArticleAll.length
-                  ? ArticleAll.map((item: any, index: any) => (
-                      <ArticleBox key={index} onClick={() => ItemClick(item)} className="cursor">
-                        <div className="information flex flex-v-center">
-                          <img src={filterUserData(item)[0].image} onError={handleImgError} />
-                          <div className="userName">{filterUserData(item)[0].username}</div>
-                          <div className="time">· {item.datetime || item.createdAt}</div>
-                        </div>
-                        <div className="title">{item.title}</div>
-                        <div className="context line-clamp">{item.context_text}</div>
-                        <div className="frequency">
-                          {item.view || 0} view · from {item.type}
-                        </div>
-                      </ArticleBox>
-                    ))
-                  : ''}
+                {ArticleAll && ArticleAll.length ? (
+                  ArticleAll.map((item: any, index: any) => (
+                    <ArticleBox key={index} onClick={() => ItemClick(item)} className="cursor">
+                      <div className="information flex flex-v-center">
+                        <img src={filterUserData(item)[0].image} onError={handleImgError} />
+                        <div className="userName">{filterUserData(item)[0].username}</div>
+                        <div className="time">· {dateConvert(item.createdAt)}</div>
+                      </div>
+                      <div className="title">{item.title}</div>
+                      <div className="context line-clamp">{item.context_text}</div>
+                      <div className="frequency">
+                        {item.view || 0} view · from {item.type}
+                      </div>
+                    </ArticleBox>
+                  ))
+                ) : (
+                  <div className="noArticle text-center">No related articles</div>
+                )}
               </ExposeBox>
             ) : (
               ''
