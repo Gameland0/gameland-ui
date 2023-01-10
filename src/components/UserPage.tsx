@@ -42,6 +42,12 @@ import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
 import Telegram from '../assets/Telegram.png'
 import deleteIcon from '../assets/delete.png'
+import Mirror from '../assets/mirror.jpeg'
+import cyber from '../assets/cyber.jpeg'
+import github from '../assets/github.jpeg'
+import lens from '../assets/lens.jpeg'
+import rss3 from '../assets/rss3.png'
+import galxe from '../assets/galxe.png'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -1709,6 +1715,26 @@ export const UserPage = () => {
             </a>
             <a href={userinfo.Telegram} target="_blank" rel="noreferrer">
               <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
+            </a>
+            <a href={userinfo.Mirror} target="_blank" rel="noreferrer">
+              <img src={Mirror} className="transparency" />
+            </a>
+            <a href={userinfo.cyber} target="_blank" rel="noreferrer">
+              <img src={cyber} className="transparency" />
+            </a>
+          </div>
+          <div className="socialize flex">
+            <a href={userinfo.github} target="_blank" rel="noreferrer">
+              <img src={github} className="transparency" />
+            </a>
+            <a href={userinfo.rss3} target="_blank" rel="noreferrer">
+              <img src={rss3} className="transparency" />
+            </a>
+            <a href={userinfo.galxe} target="_blank" rel="noreferrer">
+              <img src={galxe} className="transparency" />
+            </a>
+            <a href={userinfo.lens} target="_blank" rel="noreferrer">
+              <img src={lens} className="transparency" />
             </a>
           </div>
           {useraddress.toLowerCase() === account?.toLowerCase() ? (

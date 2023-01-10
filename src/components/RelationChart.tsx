@@ -23,6 +23,7 @@ import discord from '../assets/icon_discord.svg'
 import Telegram from '../assets/Telegram.png'
 import Mirror from '../assets/mirror.jpeg'
 import cyber from '../assets/cyber.jpeg'
+import lens from '../assets/lens.jpeg'
 import github from '../assets/github.jpeg'
 import rss3 from '../assets/rss3.png'
 import galxe from '../assets/galxe.png'
@@ -111,7 +112,7 @@ const UserInfoBox = styled.div`
     img {
       width: 40px;
       height: 40px;
-      margin-right: 12px;
+      margin: 6px 12px 6px 0;
       border-radius: 20px;
     }
   }
@@ -233,6 +234,8 @@ export const RelationChart = () => {
   const [UserInfoItem, setUserInfoItem] = useState({} as any)
   const [postsPage, setPostsPage] = useState(1)
   const [reviewPage, setReviewPage] = useState(1)
+  const [myFollowe, setmyFollowe] = useState(0)
+  const [FolloweMy, setFolloweMy] = useState(0)
   const { contractName } = useParams() as any
   const history = useHistory()
   let contractAddress: any
@@ -248,8 +251,6 @@ export const RelationChart = () => {
     chain = localStorage.getItem('contractChain')
   }
   const getUserInfoAll = async () => {
-    // const userinfoAll = await bschttp.get('v0/userinfo')
-    bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     let oldOwnersData
     if (chain === 'bsc') {
       oldOwnersData = await bschttp.get(`v0/old_owners/${contractAddress}`)
@@ -259,7 +260,7 @@ export const RelationChart = () => {
     setOldOwners(oldOwnersData)
     const addressArr: any[] = []
     oldOwnersData.data.data.map((item: any) => {
-      if (item.owner_now.toLowerCase() === account?.toLowerCase()) {
+      if (item.owner_now.toLowerCase() === useraddress?.toLowerCase()) {
         addressArr.push(filterAddress(item.fromadd))
         addressArr.push(filterAddress(item.toadd))
       }
@@ -278,7 +279,7 @@ export const RelationChart = () => {
     })
     const linkData: any[] = []
     oldOwnersData.data.data.map((item: any) => {
-      if (item.owner_now.toLowerCase() === account?.toLowerCase()) {
+      if (item.owner_now.toLowerCase() === useraddress?.toLowerCase()) {
         const object = {
           source: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.fromadd)),
           target: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.toadd)),
@@ -303,6 +304,9 @@ export const RelationChart = () => {
       setPostsData(vals[2].data.data)
     })
   }
+  const getFollowData = () => {
+    bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
+  }
   useEffect(() => {
     if (state) {
       localStorage.setItem('contractAddress', state.contractAddress)
@@ -311,6 +315,7 @@ export const RelationChart = () => {
     }
     getUserInfoAll()
     getReviewData()
+    getFollowData()
   }, [contractName])
   useEffect(() => {
     if (optionLink.length && ReviewData.length && PostsData.length) {
@@ -569,12 +574,14 @@ export const RelationChart = () => {
       const data = followeDataAll.filter((item: any) => {
         return item.useraddress.toLowerCase() === address?.toLowerCase()
       })
+      setmyFollowe(data.length)
       return data.length
     }
     if (type === 'FolloweMy') {
       const data = followeDataAll.filter((item: any) => {
         return item.followeUserAddress.toLowerCase() === address?.toLowerCase()
       })
+      setFolloweMy(data.length)
       return data.length
     }
   }
@@ -584,6 +591,8 @@ export const RelationChart = () => {
     })
     if (data.length && data) {
       setMyposts(data.slice(0, postsPage * 2))
+    } else {
+      setMyposts([])
     }
   }
   const getMyReview = (address: string) => {
@@ -592,6 +601,8 @@ export const RelationChart = () => {
     })
     if (data.length && data) {
       setMyreview(data.slice(0, reviewPage * 2))
+    } else {
+      setMyreview([])
     }
   }
   const Follow = async () => {
@@ -602,7 +613,9 @@ export const RelationChart = () => {
     const res: any = await bschttp.post(`v0/followe`, params)
     if (res.data.code === 1) {
       toastify.success('succeed')
+      getFollowData()
       setFollowState(true)
+      setFolloweMy(FolloweMy + 1)
     } else {
       throw res.message || res.data.message
     }
@@ -612,7 +625,9 @@ export const RelationChart = () => {
     const res: any = await bschttp.delete(`v0/followe/${data[0].id}`)
     if (res.data.code === 1) {
       toastify.success('succeed')
+      getFollowData()
       setFollowState(false)
+      setFolloweMy(FolloweMy - 1)
     } else {
       throw res.message || res.data.message
     }
@@ -647,6 +662,8 @@ export const RelationChart = () => {
         getMyReview(Item[0].useraddress)
         getMyArticle(Item[0].useraddress)
         getFollowState(Item[0].useraddress)
+        getFollowe('myFollowe', Item[0]?.useraddress)
+        getFollowe('FolloweMy', Item[0]?.useraddress)
         setUserInfoItem(Item[0])
         if (Item[0].useraddress.toLowerCase() === account?.toLowerCase()) return
         setShowUserInfo(true)
@@ -671,10 +688,10 @@ export const RelationChart = () => {
             <div>
               <div className="username Abbreviation">{UserInfoItem?.username || ''}</div>
               <div className="following flex">
-                Following <b>{getFollowe('myFollowe', UserInfoItem?.useraddress)}</b>
+                Following <b>{myFollowe}</b>
               </div>
               <div className="following flex">
-                Followers <b>{getFollowe('FolloweMy', UserInfoItem?.useraddress)}</b>
+                Followers <b>{FolloweMy}</b>
               </div>
             </div>
           </div>
@@ -690,20 +707,23 @@ export const RelationChart = () => {
             <a href={UserInfoItem?.Telegram} target="_blank" rel="noreferrer">
               <img src={Telegram} className={UserInfoItem?.Telegram ? '' : 'transparency'} />
             </a>
-            <a href={''} target="_blank" rel="noreferrer">
+            <a href={UserInfoItem?.Mirror} target="_blank" rel="noreferrer">
               <img src={Mirror} className="transparency" />
             </a>
-            <a href={''} target="_blank" rel="noreferrer">
+            <a href={UserInfoItem?.cyber} target="_blank" rel="noreferrer">
               <img src={cyber} className="transparency" />
             </a>
-            <a href={''} target="_blank" rel="noreferrer">
+            <a href={UserInfoItem?.github} target="_blank" rel="noreferrer">
               <img src={github} className="transparency" />
             </a>
-            <a href={''} target="_blank" rel="noreferrer">
+            <a href={UserInfoItem?.rss3} target="_blank" rel="noreferrer">
               <img src={rss3} className="transparency" />
             </a>
-            <a href={''} target="_blank" rel="noreferrer">
+            <a href={UserInfoItem?.galxe} target="_blank" rel="noreferrer">
               <img src={galxe} className="transparency" />
+            </a>
+            <a href={UserInfoItem?.lens} target="_blank" rel="noreferrer">
+              <img src={lens} className="transparency" />
             </a>
           </div>
           <div className="button">
