@@ -7,7 +7,8 @@ import { toastify } from './Toastify'
 import { bschttp, http, polygonhttp } from './Store'
 import key from '../constants/arweave-keyfile.json'
 import loadding from '../assets/loading.svg'
-import arrow from '../assets/icon_select.svg'
+import avatar_upload from '../assets/icon_avatar_upload.svg'
+import line from '../assets/img_line.svg'
 
 const RegisterBox = styled.div`
   width: 1600px;
@@ -19,7 +20,7 @@ const RegisterBox = styled.div`
   margin-top: 48px;
   padding: 48px 64px;
   .boxDivider {
-    border: 1px solid #e5e5e5;
+    border: 1px dashed #e5e5e5;
     margin: 0 64px;
   }
 `
@@ -59,7 +60,7 @@ const RightBox = styled.div`
     font-weight: 400;
     font-size: 14px;
     position: relative;
-    top: -36px;
+    top: -32px;
   }
   .divBorder {
     position: relative;
@@ -68,8 +69,19 @@ const RightBox = styled.div`
     width: 1030px;
     height: 92px;
     border-radius: 20px;
-    border: 1px solid #707070;
+    border: 1px solid #d5d5d5;
     font-size: 24px;
+    div {
+      font-size: 18px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      color: #41acef;
+    }
+    .Border {
+      width: 0px;
+      height: 48px;
+      border: 1px solid #41acef;
+      margin: 0 30px;
+    }
     .ContentsTab {
       position: relative;
       background: #ffffff;
@@ -80,6 +92,9 @@ const RightBox = styled.div`
           background: #41acef;
         }
       }
+    }
+    #inputFile {
+      display: none;
     }
   }
   .submit {
@@ -99,6 +114,7 @@ export const Register = () => {
   const { account } = useActiveWeb3React()
   const [userName, setUserName] = useState('')
   const [Avatar, setAvatar] = useState('')
+  const [AvatarName, setAvatarName] = useState('')
   const [Twitter, setTwitter] = useState('')
   const [Discord, setDiscord] = useState('')
   const [Telegram, setTelegram] = useState('')
@@ -156,10 +172,14 @@ export const Register = () => {
       toastify.error(res.message || res.data.message)
     }
   }
+  const userAvatarClick = () => {
+    const fileInput = document.getElementById('inputFile')
+    fileInput?.click()
+  }
   const UploadImgChange = async (e: any) => {
-    // const Img = e.target.value
     const Img = e.target.files[0]
     const fileSize = Img.size
+    const name = Img.name
     const size = fileSize / 1024
     const type = Img.type
     if (size > 1024) {
@@ -169,12 +189,11 @@ export const Register = () => {
     const reader = new FileReader()
     reader.readAsArrayBuffer(Img)
     reader.onload = (res) => {
-      // console.log(res.target?.result)
       const imgData = res.target?.result
-      createTransaction(imgData, type)
+      createTransaction(imgData, type, name)
     }
   }
-  const createTransaction = async (datas: any, type: string) => {
+  const createTransaction = async (datas: any, type: string, name: string) => {
     try {
       const transaction = await arweave.createTransaction({ data: datas })
       transaction.addTag('Content-Type', type)
@@ -182,6 +201,7 @@ export const Register = () => {
       await arweave.transactions.post(transaction)
       if (transaction) {
         setAvatar(`https://arweave.net/${transaction.id}`)
+        setAvatarName(name)
       }
     } catch (err: any) {
       toastify.error(err)
@@ -225,8 +245,14 @@ export const Register = () => {
         <div className="optionTitle Chinese-Bold">Name</div>
         <input type="text" className="divBorder Chinese-Regular" value={userName} onChange={userNameChange} />
         <div className="optionTitle Chinese-Bold">Avatar</div>
-        <div className="divBorder Chinese-Regular">
-          <input type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
+        <div className="divBorder Chinese-Regular flex flex-v-center">
+          <div className="flex flex-v-center flex-column-between cursor" onClick={userAvatarClick}>
+            <img src={avatar_upload} />
+            &nbsp;Upload
+            <div className="Border"></div>
+          </div>
+          <input id="inputFile" type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
+          {AvatarName}
         </div>
         <div className="optionTitle Chinese-Bold">Twitter</div>
         <input type="text" className="divBorder Chinese-Regular" value={Twitter} onChange={TwitterChange} />
@@ -247,7 +273,7 @@ export const Register = () => {
           </div>
         </div>
         <div className="tipText">
-          * The Gameland platform needs to review contents, and only game-related articles are available.
+          The Gameland platform needs to review contents, and only game-related articles are available.
         </div>
         <div className="submit flex flex-center cursor" onClick={Submit}>
           submit

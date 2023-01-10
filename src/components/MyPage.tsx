@@ -40,6 +40,11 @@ import BNBIcon from '../assets/bnb.svg'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
 import Telegram from '../assets/Telegram.png'
+import Mirror from '../assets/mirror.jpeg'
+import cyber from '../assets/cyber.jpeg'
+import github from '../assets/github.jpeg'
+import rss3 from '../assets/rss3.png'
+import galxe from '../assets/galxe.png'
 import deleteIcon from '../assets/delete.png'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
@@ -231,6 +236,7 @@ const InfoLeft = styled.div`
       width: 40px;
       height: 40px;
       margin: 0 6px;
+      border-radius: 20px;
     }
     .transparency {
       opacity: 0.3;
@@ -735,7 +741,7 @@ const SettingsBox = styled.div`
 `
 const MyNftBox = styled.div``
 const { TabPane } = Tabs
-const MyTabs = styled(Tabs)`
+export const MyTabs = styled(Tabs)`
   margin-top: 2rem;
 `
 export const ButtonBox = styled.div`
@@ -765,7 +771,7 @@ export const ButtonBox = styled.div`
     }
   }
 `
-const TabPaneBox = styled(TabPane)`
+export const TabPaneBox = styled(TabPane)`
   padding-top: 1rem;
   padding-bottom: 2rem;
 `
@@ -1645,6 +1651,23 @@ export const MyPage = () => {
             </a>
             <a href={userinfo.Telegram} target="_blank" rel="noreferrer">
               <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={Mirror} className="transparency" />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={cyber} className="transparency" />
+            </a>
+          </div>
+          <div className="socialize flex">
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={github} className="transparency" />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={rss3} className="transparency" />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={galxe} className="transparency" />
             </a>
           </div>
           <div className="settings flex flex-justify-content">

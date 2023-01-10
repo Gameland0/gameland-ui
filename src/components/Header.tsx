@@ -240,11 +240,11 @@ export const Header = () => {
               <Link to="/lend">
                 <span>Lend</span>
               </Link>
-              <Link to="/dashboard">
-                <span>Dashboard</span>
-              </Link>
               <Link to="/expose">
                 <span>Expose</span>
+              </Link>
+              <Link to="/dashboard">
+                <span>Dashboard</span>
               </Link>
             </div>
             <div className="chain">

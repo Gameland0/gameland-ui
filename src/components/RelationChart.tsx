@@ -1,18 +1,32 @@
-import React, { useEffect, useCallback, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import axios from 'axios'
 import styled from 'styled-components'
+import { useHistory } from 'react-router-dom'
 import BigNumber from 'bignumber.js'
 import * as echarts from 'echarts/lib/echarts'
 // import { TooltipComponent, LegendComponent } from 'echarts/components'
 import 'echarts/lib/chart/graph'
-import { useActiveWeb3React } from '../hooks'
-import { LoadFailed, Loadding } from '../pages/Games'
-import { filterAddress, formatting, filterNftid } from '../utils'
+import { SmallDialog } from './SmallDialog'
+import { useActiveWeb3React, useStore } from '../hooks'
+import { toastify } from './Toastify'
+// import { LoadFailed, Loadding } from '../pages/Games'
+import { filterAddress, formatting, filterNftid, handleImgError } from '../utils'
 import { http, bschttp, polygonhttp } from './Store'
 import { OPENSEA_API_KEY, MORALIS_KEY, PolygonContract, BscContract } from '../constants'
 import { colorTable } from '../constants/colorTable'
-import loadd from '../assets/loading.svg'
+import { MyTabs, TabPaneBox } from './MyPage'
+// import loadd from '../assets/loading.svg'
+import defaultImg from '../assets/default.png'
+import twitter from '../assets/icon_twitter.svg'
+import discord from '../assets/icon_discord.svg'
+import Telegram from '../assets/Telegram.png'
+import Mirror from '../assets/mirror.jpeg'
+import cyber from '../assets/cyber.jpeg'
+import github from '../assets/github.jpeg'
+import rss3 from '../assets/rss3.png'
+import galxe from '../assets/galxe.png'
+import news from '../assets/news.svg'
 // import { release } from 'os'
 // import { resolve } from 'dns'
 // import { add, reject } from 'lodash'
@@ -64,6 +78,136 @@ const OrderList = styled.div`
     }
   }
 `
+const UserInfoBox = styled.div`
+  min-height: 400px;
+  .userImg {
+    width: 180px;
+    height: 180px;
+    border-radius: 20px;
+    margin-right: 48px;
+  }
+  .username {
+    max-width: 160px;
+    font-size: 48px;
+    font-weight: bold;
+  }
+  .following {
+    font-size: 28px;
+    color: #8994a2;
+    b {
+      color: #000;
+      margin-left: 12px;
+    }
+  }
+  .GameId {
+    margin-top: 32px;
+    font-size: 24px;
+  }
+  .address {
+    font-size: 24px;
+  }
+  .iconBar {
+    margin: 24px 0;
+    img {
+      width: 40px;
+      height: 40px;
+      margin-right: 12px;
+      border-radius: 20px;
+    }
+  }
+  .Follow {
+    height: 48px;
+    background: #35caa9;
+    border-radius: 24px;
+    color: #fff;
+    font-size: 24px;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+  .unFollow {
+    width: 35%;
+    height: 48px;
+    border-radius: 24px;
+    border: 1px solid #f95b46;
+    color: #f95b46;
+    font-size: 24px;
+    margin-right: 40px;
+  }
+  .Chat {
+    width: 25%;
+    opacity: 0.3;
+    border-radius: 24px;
+    background: #000;
+    color: #fff;
+    font-size: 24px;
+    img {
+      width: 35px;
+      height: 35px;
+    }
+  }
+  .transparency {
+    opacity: 0.3;
+  }
+  .seeMore {
+    margin: 16px 0;
+    font-size: 12px;
+    color: #208ddf;
+  }
+`
+const Comments = styled.div`
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  font-size: 18px;
+  padding: 12px;
+  margin-bottom: 16px;
+  .userInfo {
+    .userImage {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+    }
+    .name {
+      color: #333333;
+      margin-left: 24px;
+    }
+  }
+  .CommentContent {
+    color: #333333;
+    margin: 19px 0 10px 0;
+  }
+  .CommentNFTBox {
+    margin: 16px 0;
+    img {
+      width: 60px;
+      height: 60px;
+    }
+    .CommentNFTname {
+      width: 60px;
+      height: 20px;
+      font-size: 12px;
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+`
+const Article = styled.div`
+  padding: 20px 10px;
+  position: relative;
+  font-size: 20px;
+  height: 80px;
+  .gameName {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 12px;
+    color: #9a9191;
+  }
+  &:hover {
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+  }
+`
+
 const findAddressIndex = (arr: any, address: string) => {
   return arr.findIndex((item: any) => {
     return item.toLowerCase() === address.toLowerCase()
@@ -72,13 +216,25 @@ const findAddressIndex = (arr: any, address: string) => {
 export const RelationChart = () => {
   const { account } = useActiveWeb3React()
   const { state } = useLocation() as any
+  const { userinfo } = useStore()
   const [loadding, setLending] = useState(true)
+  const [showUserInfo, setShowUserInfo] = useState(false)
+  const [FollowState, setFollowState] = useState(false)
   const [orderData, setOrderData] = useState([] as any)
   const [optionData, setOptionData] = useState([] as any)
   const [optionLink, setOptionLink] = useState([] as any)
   const [oldOwners, setOldOwners] = useState([] as any)
   const [NFTData, setNFTData] = useState([] as any)
+  const [followeDataAll, setFolloweDataAll] = useState([] as any)
+  const [ReviewData, setReviewData] = useState([] as any)
+  const [Myreview, setMyreview] = useState([] as any)
+  const [PostsData, setPostsData] = useState([] as any)
+  const [Myposts, setMyposts] = useState([] as any)
+  const [UserInfoItem, setUserInfoItem] = useState({} as any)
+  const [postsPage, setPostsPage] = useState(1)
+  const [reviewPage, setReviewPage] = useState(1)
   const { contractName } = useParams() as any
+  const history = useHistory()
   let contractAddress: any
   let useraddress: any
   let chain: any
@@ -93,6 +249,7 @@ export const RelationChart = () => {
   }
   const getUserInfoAll = async () => {
     // const userinfoAll = await bschttp.get('v0/userinfo')
+    bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     let oldOwnersData
     if (chain === 'bsc') {
       oldOwnersData = await bschttp.get(`v0/old_owners/${contractAddress}`)
@@ -137,6 +294,15 @@ export const RelationChart = () => {
     setOptionLink(linkData)
     setLending(false)
   }
+  const getReviewData = async () => {
+    const BscReview = bschttp.get('/v0/review')
+    const PolygonReview = polygonhttp.get('/v0/review')
+    const posts = bschttp.get(`v0/posts`)
+    Promise.all([BscReview, PolygonReview, posts]).then((vals) => {
+      setReviewData([...vals[0].data.data, ...vals[1].data.data])
+      setPostsData(vals[2].data.data)
+    })
+  }
   useEffect(() => {
     if (state) {
       localStorage.setItem('contractAddress', state.contractAddress)
@@ -144,10 +310,23 @@ export const RelationChart = () => {
       localStorage.setItem('contractChain', state.chain)
     }
     getUserInfoAll()
+    getReviewData()
   }, [contractName])
   useEffect(() => {
-    componentDidMount()
-  }, [optionLink])
+    if (optionLink.length && ReviewData.length && PostsData.length) {
+      componentDidMount()
+    }
+  }, [optionLink, userinfo, ReviewData, PostsData])
+  useEffect(() => {
+    if (postsPage > 1) {
+      getMyArticle(UserInfoItem?.useraddress)
+    }
+  }, [postsPage])
+  useEffect(() => {
+    if (reviewPage > 1) {
+      getMyReview(UserInfoItem?.useraddress)
+    }
+  }, [reviewPage])
   const options = {
     animationDurationUpdate: 500,
     animationEasingUpdate: 'quinticInOut',
@@ -363,14 +542,235 @@ export const RelationChart = () => {
       setOrderData(orderData.data.orders)
     }
   }
+  const getFollowState = (address: string) => {
+    const data = followeDataAll.filter((item: any) => {
+      return (
+        item.useraddress.toLowerCase() === account?.toLowerCase() &&
+        item.followeUserAddress.toLowerCase() === address.toLowerCase()
+      )
+    })
+    if (data.length && data) {
+      setFollowState(true)
+    }
+  }
+  const getFolloweData = () => {
+    if (!followeDataAll || !followeDataAll.length) return 0
+    const data = followeDataAll.filter((item: any) => {
+      return (
+        item.useraddress.toLowerCase() === account?.toLowerCase() &&
+        item.followeUserAddress.toLowerCase() === UserInfoItem?.useraddress.toLowerCase()
+      )
+    })
+    if (!data.length) return 0
+    return data
+  }
+  const getFollowe = (type: string, address: string) => {
+    if (type === 'myFollowe') {
+      const data = followeDataAll.filter((item: any) => {
+        return item.useraddress.toLowerCase() === address?.toLowerCase()
+      })
+      return data.length
+    }
+    if (type === 'FolloweMy') {
+      const data = followeDataAll.filter((item: any) => {
+        return item.followeUserAddress.toLowerCase() === address?.toLowerCase()
+      })
+      return data.length
+    }
+  }
+  const getMyArticle = (address: string) => {
+    const data = PostsData.filter((item: any) => {
+      return item.useraddress.toLowerCase() === address.toLowerCase()
+    })
+    if (data.length && data) {
+      setMyposts(data.slice(0, postsPage * 2))
+    }
+  }
+  const getMyReview = (address: string) => {
+    const data = ReviewData.filter((item: any) => {
+      return item.useraddress.toLowerCase() === address.toLowerCase()
+    })
+    if (data.length && data) {
+      setMyreview(data.slice(0, reviewPage * 2))
+    }
+  }
+  const Follow = async () => {
+    const params = {
+      useraddress: account,
+      followeUserAddress: UserInfoItem?.useraddress
+    }
+    const res: any = await bschttp.post(`v0/followe`, params)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setFollowState(true)
+    } else {
+      throw res.message || res.data.message
+    }
+  }
+  const UnFollow = async () => {
+    const data = getFolloweData()
+    const res: any = await bschttp.delete(`v0/followe/${data[0].id}`)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setFollowState(false)
+    } else {
+      throw res.message || res.data.message
+    }
+  }
+  const seeMore = (type: string) => {
+    if (type === 'Posts') {
+      setPostsPage(postsPage + 1)
+    } else {
+      setReviewPage(reviewPage + 1)
+    }
+  }
+  const link = (type: string, item: any) => {
+    if (type === 'Posts') {
+      history.push({
+        pathname: `/Article/Gameland/${item.useraddress}/${item.id}`
+      })
+    } else {
+      history.push({
+        pathname: `/user/${UserInfoItem?.username.replace(/ /g, '')}`,
+        state: {
+          useraddress: UserInfoItem?.useraddress
+        }
+      })
+    }
+  }
+  const echartsDataClick = (params: any) => {
+    if (userinfo) {
+      const Item = userinfo.filter((item: any) => {
+        return formatting(item.useraddress).toLowerCase() === params.name.toLowerCase()
+      })
+      if (Item.length && Item) {
+        getMyReview(Item[0].useraddress)
+        getMyArticle(Item[0].useraddress)
+        getFollowState(Item[0].useraddress)
+        setUserInfoItem(Item[0])
+        if (Item[0].useraddress.toLowerCase() === account?.toLowerCase()) return
+        setShowUserInfo(true)
+      }
+    }
+  }
   const componentDidMount = () => {
     const dom = document.getElementById('main') as HTMLDivElement
     const myChart = echarts.init(dom)
     myChart.setOption(options)
+    myChart.on('click', echartsDataClick)
   }
 
   return (
     <RelationChartBox>
+      <SmallDialog footer={null} onCancel={() => setShowUserInfo(false)} open={showUserInfo} closable={false}>
+        <UserInfoBox>
+          <div className="flex">
+            <div>
+              <img className="userImg" src={UserInfoItem?.image || defaultImg} onError={handleImgError} />
+            </div>
+            <div>
+              <div className="username Abbreviation">{UserInfoItem?.username || ''}</div>
+              <div className="following flex">
+                Following <b>{getFollowe('myFollowe', UserInfoItem?.useraddress)}</b>
+              </div>
+              <div className="following flex">
+                Followers <b>{getFollowe('FolloweMy', UserInfoItem?.useraddress)}</b>
+              </div>
+            </div>
+          </div>
+          <div className="GameId">Game ID: &nbsp;{contractName}</div>
+          <div className="address">{formatting(UserInfoItem?.useraddress || '0x00', 9)}</div>
+          <div className="iconBar">
+            <a href={UserInfoItem?.Twitter} target="_blank" rel="noreferrer">
+              <img src={twitter} className={UserInfoItem?.Twitter ? '' : 'transparency'} />
+            </a>
+            <a href={UserInfoItem?.Discord} target="_blank" rel="noreferrer">
+              <img src={discord} className={UserInfoItem?.Discord ? '' : 'transparency'} />
+            </a>
+            <a href={UserInfoItem?.Telegram} target="_blank" rel="noreferrer">
+              <img src={Telegram} className={UserInfoItem?.Telegram ? '' : 'transparency'} />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={Mirror} className="transparency" />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={cyber} className="transparency" />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={github} className="transparency" />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={rss3} className="transparency" />
+            </a>
+            <a href={''} target="_blank" rel="noreferrer">
+              <img src={galxe} className="transparency" />
+            </a>
+          </div>
+          <div className="button">
+            {FollowState ? (
+              <div className="flex">
+                <div className="unFollow flex flex-center cursor" onClick={UnFollow}>
+                  - Unfollow
+                </div>
+                <div className="Chat flex flex-center">
+                  <img src={news} />
+                  Chat
+                </div>
+              </div>
+            ) : (
+              <div className="Follow flex flex-center cursor" onClick={Follow}>
+                + Follow
+              </div>
+            )}
+          </div>
+          <MyTabs defaultActiveKey="1">
+            <TabPaneBox tab={<span className="clearGap">Comments</span>} key="1">
+              {Myreview && Myreview.length ? (
+                Myreview.map((item: any, index: any) => (
+                  <Comments key={index} onClick={() => link('Review', item)}>
+                    <div className="userInfo flex flex-v-center flex-h-between">
+                      <div className="flex flex-v-center">
+                        <img src={UserInfoItem?.image || defaultImg} className="userImage" onError={handleImgError} />
+                        <div className="name">{UserInfoItem?.username}</div>
+                      </div>
+                      <div className="contractName">{item.contractName}</div>
+                    </div>
+                    {item.NFTData ? (
+                      <div className="CommentNFTBox">
+                        <img src={JSON.parse(item.NFTData)?.image || JSON.parse(item.NFTData)?.imageUrl} />
+                        <div className="CommentNFTname Abbreviation">{JSON.parse(item.NFTData)?.name}</div>
+                      </div>
+                    ) : (
+                      ''
+                    )}
+                    <div className="CommentContent">{item.context}</div>
+                  </Comments>
+                ))
+              ) : (
+                <div>No content yet</div>
+              )}
+              <div className="seeMore cursor" onClick={() => seeMore('Review')}>
+                View more replies &gt;&gt;
+              </div>
+            </TabPaneBox>
+            <TabPaneBox tab={<span className="clearGap">Article</span>} key="2">
+              {Myposts && Myposts.length ? (
+                Myposts.map((item: any, index: any) => (
+                  <Article key={index} onClick={() => link('Posts', item)}>
+                    <div className="title Abbreviation">{item.title}</div>
+                    <div className="gameName">{item.contractName}</div>
+                  </Article>
+                ))
+              ) : (
+                <div>No content yet</div>
+              )}
+              <div className="seeMore cursor" onClick={() => seeMore('Posts')}>
+                View more replies &gt;&gt;
+              </div>
+            </TabPaneBox>
+          </MyTabs>
+        </UserInfoBox>
+      </SmallDialog>
       {/* <Listings>
         <div className="title">Listings</div>
         {orderData && orderData.length ? (
@@ -396,7 +796,7 @@ export const RelationChart = () => {
           <NoOrder>No listings yet</NoOrder>
         )}
       </Listings> */}
-      <Loadding className="flex flex-center">{loadding ? <img src={loadd} /> : ''}</Loadding>
+      {/* <Loadding className="flex flex-center">{loadding ? <img src={loadd} /> : ''}</Loadding> */}
       <div id="main"></div>
       {/* <LoadFailed className="text-center">{loadding ? '' : 'Failed to load, please refresh the page'}</LoadFailed> */}
     </RelationChartBox>

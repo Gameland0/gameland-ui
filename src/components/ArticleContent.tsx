@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import styled from 'styled-components'
 import { parseEther } from '@ethersproject/units'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useParams, useHistory } from 'react-router-dom'
 import { bschttp, http, polygonhttp } from './Store'
 import { useActiveWeb3React, useRewardContract } from '../hooks'
 import { fetchReceipt } from '../utils'
 import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
 import { SendBox } from '../pages/Dashboard'
-import { getTime } from './CollectionDetails'
+import { dateConvert } from './CollectionDetails'
 import defaultImg from '../assets/default.png'
 import loadding from '../assets/loading.svg'
 import likefalse from '../assets/icon_like_default_comments.svg'
@@ -183,6 +183,7 @@ export const ArticleContentPage = () => {
   const [rewardQuantity, setrewardQuantity] = useState('')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const { type, useraddress, Id } = useParams() as any
+  const history = useHistory()
   useEffect(() => {
     getUserInfo()
   }, [account, refreshBy])
@@ -208,7 +209,6 @@ export const ArticleContentPage = () => {
         Dom.innerHTML = Data[0]?.context
         document.getElementById('postsContent')?.appendChild(Dom)
         const noscript = document.getElementsByTagName('noscript')
-        console.log(noscript.length)
         const imgArr = []
         for (let i = 0; i < noscript.length; i++) {
           if (i > 0) {
@@ -225,7 +225,6 @@ export const ArticleContentPage = () => {
         for (let index = 0; index < rehypefigure.length; index++) {
           const span = rehypefigure[index].getElementsByTagName('span')
           if (span.length) {
-            console.log(span, index)
             const img = span[0].getElementsByTagName('img')[1]
             const img1 = span[0].getElementsByTagName('img')[0]
             img.src = 'https://mirror.xyz' + imgArr[imgArrIndex]
@@ -391,6 +390,14 @@ export const ArticleContentPage = () => {
       }
     }
   }
+  const link = () => {
+    history.push({
+      pathname: `/user/${userinfo?.username.replace(/ /g, '')}`,
+      state: {
+        useraddress: userinfo?.useraddress
+      }
+    })
+  }
   const postsCollect = async () => {
     if (useraddress.toLowerCase() === account?.toLowerCase()) return
     if (handlePostsOtherDetails('isCollect').length) {
@@ -497,12 +504,12 @@ export const ArticleContentPage = () => {
           </div>
         </SendBox>
       </Dialog>
-      <div className="user">
+      <div className="user cursor" onClick={link}>
         <img src={userinfo.image} onError={handleImgError} />
         &nbsp;&nbsp;{userinfo.username}
       </div>
       <div className="time">
-        {postsItem.view} view · {postsItem.datetime || postsItem.createdAt}
+        {postsItem.view} view · {postsItem.datetime || dateConvert(postsItem.createdAt)}
       </div>
       <div className="postsTitle text-center">{postsItem.title}</div>
       {lending ? <img className="loadding" src={loadding} alt="" /> : ''}

@@ -8,7 +8,7 @@ import { fetchReceipt } from '../utils'
 import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
 import { SendBox } from '../pages/Dashboard'
-import { getTime } from './CollectionDetails'
+import { dateConvert } from './CollectionDetails'
 import defaultImg from '../assets/default.png'
 import loadding from '../assets/loading.svg'
 import likefalse from '../assets/icon_like_default_comments.svg'
@@ -466,7 +466,7 @@ export const PostsContentPage = () => {
       </div>
       <div className="gameName">{postsItem.contractName}</div>
       <div className="time">
-        {postsItem.view} view · {getTime(postsItem.createdAt)}
+        {postsItem.view} view · {dateConvert(postsItem.createdAt)}
       </div>
       <div className="postsTitle text-center">{postsItem.title}</div>
       {lending ? <img className="loadding" src={loadding} alt="" /> : ''}

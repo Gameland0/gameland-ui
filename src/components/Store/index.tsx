@@ -16,6 +16,7 @@ export interface StoreData {
   nfts: Record<string, any>
   // BSCmutateDebts: KeyedMutator<any>
   // polygonmutateDebts: KeyedMutator<any>
+  userinfo: Record<string, any>
   lastBlockNumber: string
   setLastBlockNumber: React.Dispatch<React.SetStateAction<string>>
   contracts: any
@@ -54,6 +55,7 @@ export const Store = ({ children }: { children: JSX.Element }) => {
   const [lastBlockNumber, setLastBlockNumber] = useState('')
   const [contracts, setContracts] = useState([])
   const [nfts, setNfts] = useState([] as any)
+  const [userinfo, setUserinfo] = useState([] as any)
   // const AssetContract = useAssetContract()
 
   // useEffect(() => {
@@ -67,20 +69,21 @@ export const Store = ({ children }: { children: JSX.Element }) => {
   //   }
   //   syncFn()
   // }, [AssetContract?.address])
-
-  useEffect(() => {
-    const getNftData = async () => {
-      if (!chainId) return
-      if (chainId === 56) {
-        const BSCdata = await bschttp.get(`/v0/opensea`)
-        setNfts(BSCdata.data.data)
-      } else if (chainId === 137) {
-        const polygondata = await polygonhttp.get(`/v0/opensea`)
-        setNfts(polygondata.data.data)
-      } else {
-        setNfts([])
-      }
+  const getNftData = async () => {
+    if (!chainId) return
+    if (chainId === 56) {
+      const BSCdata = await bschttp.get(`/v0/opensea`)
+      setNfts(BSCdata.data.data)
+    } else if (chainId === 137) {
+      const polygondata = await polygonhttp.get(`/v0/opensea`)
+      setNfts(polygondata.data.data)
+    } else {
+      setNfts([])
     }
+    const userdata = await bschttp.get(`v0/userinfo`)
+    setUserinfo(userdata.data.data)
+  }
+  useEffect(() => {
     getNftData()
   }, [chainId])
 
@@ -97,9 +100,10 @@ export const Store = ({ children }: { children: JSX.Element }) => {
       setLastBlockNumber,
       // BSCmutateDebts,
       // polygonmutateDebts,
+      userinfo,
       contracts
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [networkError, loading, contracts, activatingConnector, nfts, lastBlockNumber])
+  }, [networkError, loading, contracts, activatingConnector, nfts, lastBlockNumber, userinfo])
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
 }
