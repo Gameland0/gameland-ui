@@ -109,13 +109,13 @@ export const WritePosts = () => {
   const [lending, setLending] = useState(false)
   const [gameData, setGameData] = useState([] as any)
   const history = useHistory()
-  const arweave = Arweave.init({
-    host: 'arweave.net',
-    port: 443,
-    protocol: 'https',
-    timeout: 20000,
-    logging: false
-  })
+  // const arweave = Arweave.init({
+  //   host: 'arweave.net',
+  //   port: 443,
+  //   protocol: 'https',
+  //   timeout: 20000,
+  //   logging: false
+  // })
   useEffect(() => {
     const getGames = async () => {
       const bsc = await bschttp.get('/v0/games')
@@ -133,7 +133,6 @@ export const WritePosts = () => {
       toastify.error('Title length must be 10 or more')
       return
     }
-    const dom = document.getElementById('ContentEditable')
     const domcontent = value
     if ((domcontent?.length as number) < 46) {
       toastify.error('Content length must be 30 or more')

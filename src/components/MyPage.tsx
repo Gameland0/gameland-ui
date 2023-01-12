@@ -742,9 +742,7 @@ const SettingsBox = styled.div`
 `
 const MyNftBox = styled.div``
 const { TabPane } = Tabs
-export const MyTabs = styled(Tabs)`
-  margin-top: 2rem;
-`
+export const MyTabs = styled(Tabs)``
 export const ButtonBox = styled.div`
   margin-top: 20px;
   font-size: 20px;

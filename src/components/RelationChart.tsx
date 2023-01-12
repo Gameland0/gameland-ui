@@ -5,9 +5,8 @@ import styled from 'styled-components'
 import { useHistory } from 'react-router-dom'
 import BigNumber from 'bignumber.js'
 import * as echarts from 'echarts/lib/echarts'
-// import { TooltipComponent, LegendComponent } from 'echarts/components'
 import 'echarts/lib/chart/graph'
-import { SmallDialog } from './SmallDialog'
+import { UserInfoDialog } from './SmallDialog'
 import { useActiveWeb3React, useStore } from '../hooks'
 import { toastify } from './Toastify'
 // import { LoadFailed, Loadding } from '../pages/Games'
@@ -16,7 +15,7 @@ import { http, bschttp, polygonhttp } from './Store'
 import { OPENSEA_API_KEY, MORALIS_KEY, PolygonContract, BscContract } from '../constants'
 import { colorTable } from '../constants/colorTable'
 import { MyTabs, TabPaneBox } from './MyPage'
-// import loadd from '../assets/loading.svg'
+import loadd from '../assets/loading.svg'
 import defaultImg from '../assets/default.png'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
@@ -28,10 +27,6 @@ import github from '../assets/github.jpeg'
 import rss3 from '../assets/rss3.png'
 import galxe from '../assets/galxe.png'
 import news from '../assets/news.svg'
-// import { release } from 'os'
-// import { resolve } from 'dns'
-// import { add, reject } from 'lodash'
-// import { logDOM } from '@testing-library/react'
 
 const RelationChartBox = styled.div`
   #main {
@@ -81,6 +76,7 @@ const OrderList = styled.div`
 `
 const UserInfoBox = styled.div`
   min-height: 400px;
+  font-size: 16px;
   .userImg {
     width: 180px;
     height: 180px;
@@ -89,23 +85,25 @@ const UserInfoBox = styled.div`
   }
   .username {
     max-width: 160px;
-    font-size: 48px;
+    font-size: 40px;
     font-weight: bold;
+    position: relative;
+    top: -22px;
+  }
+  .follow {
+    position: relative;
+    top: 18px;
   }
   .following {
-    font-size: 28px;
+    font-size: 20px;
+    margin-right: 18px;
     color: #8994a2;
+    align-items: center;
     b {
       color: #000;
-      margin-left: 12px;
+      margin-right: 6px;
+      font-size: 24px;
     }
-  }
-  .GameId {
-    margin-top: 32px;
-    font-size: 24px;
-  }
-  .address {
-    font-size: 24px;
   }
   .iconBar {
     margin: 24px 0;
@@ -116,36 +114,45 @@ const UserInfoBox = styled.div`
       border-radius: 20px;
     }
   }
-  .Follow {
-    height: 48px;
-    background: #35caa9;
-    border-radius: 24px;
-    color: #fff;
-    font-size: 24px;
-    &:hover {
-      opacity: 0.8;
+  .button {
+    width: 150px;
+    margin-left: 20px;
+    .Follow {
+      height: 48px;
+      background: #35caa9;
+      border-radius: 24px;
+      color: #fff;
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+    .unFollow {
+      height: 48px;
+      border-radius: 24px;
+      border: 1px solid #f95b46;
+      color: #f95b46;
+      margin-bottom: 20px;
+    }
+    .Chat {
+      opacity: 0.3;
+      border-radius: 24px;
+      background: #000;
+      color: #fff;
+      img {
+        width: 35px;
+        height: 35px;
+      }
     }
   }
-  .unFollow {
-    width: 35%;
-    height: 48px;
-    border-radius: 24px;
-    border: 1px solid #f95b46;
-    color: #f95b46;
-    font-size: 24px;
-    margin-right: 40px;
+  .boder {
+    height: 1px;
+    background: linear-gradient(to right, #e5e5e5, #e5e5e5, #e5e5e5);
+    margin: 20px 0;
   }
-  .Chat {
-    width: 25%;
-    opacity: 0.3;
-    border-radius: 24px;
-    background: #000;
-    color: #fff;
-    font-size: 24px;
-    img {
-      width: 35px;
-      height: 35px;
-    }
+  .verticalboder {
+    width: 1px;
+    background: linear-gradient(to right, #e5e5e5, #e5e5e5, #e5e5e5);
+    margin: 0 60px;
   }
   .transparency {
     opacity: 0.3;
@@ -208,20 +215,62 @@ const Article = styled.div`
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
   }
 `
+const Box = styled.div`
+  height: 50px;
+  div {
+    margin: 0 6px;
+  }
+  img {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+  }
+`
+const Line = styled.div`
+  div {
+    flex: 1;
+  }
+`
+const LoadFailed = styled.div``
 
 const findAddressIndex = (arr: any, address: string) => {
   return arr.findIndex((item: any) => {
     return item.toLowerCase() === address.toLowerCase()
   })
 }
+const fetchData = (data: any[], chain: string) => {
+  if (!data || !data.length) return []
+  return data.map(async (item: any) => {
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        'X-Api-Key': '60aee01eae2f89f6fb4b81177df15c8c'
+      }
+    })
+    item.chain = chain
+    try {
+      const { data } = await getdata.get(
+        `https://api.element.market/openapi/v1/asset?chain=${chain}&token_id=${item.token_id}&contract_address=${item.token_address}`
+      )
+      item.metadata = {
+        name: data.data?.name,
+        image: data.data?.imageUrl
+      }
+    } catch (error) {
+      item.metadata = JSON.parse(item.metadata)
+    }
+    return item
+  })
+}
 export const RelationChart = () => {
   const { account } = useActiveWeb3React()
   const { state } = useLocation() as any
   const { userinfo } = useStore()
-  const [loadding, setLending] = useState(true)
+  const [loadding, setLending] = useState(false)
   const [showUserInfo, setShowUserInfo] = useState(false)
   const [FollowState, setFollowState] = useState(false)
-  const [orderData, setOrderData] = useState([] as any)
+  const [Failed, setFailed] = useState(false)
+  // const [orderData, setOrderData] = useState([] as any)
   const [optionData, setOptionData] = useState([] as any)
   const [optionLink, setOptionLink] = useState([] as any)
   const [oldOwners, setOldOwners] = useState([] as any)
@@ -231,6 +280,8 @@ export const RelationChart = () => {
   const [Myreview, setMyreview] = useState([] as any)
   const [PostsData, setPostsData] = useState([] as any)
   const [Myposts, setMyposts] = useState([] as any)
+  const [GameData, setGameData] = useState([] as any)
+  const [MyGame, setMyGame] = useState([] as any)
   const [UserInfoItem, setUserInfoItem] = useState({} as any)
   const [postsPage, setPostsPage] = useState(1)
   const [reviewPage, setReviewPage] = useState(1)
@@ -265,7 +316,6 @@ export const RelationChart = () => {
         addressArr.push(filterAddress(item.toadd))
       }
     })
-    // setUsarDataAll(userinfoAll.data.data)
     const data: any[] = []
     Array.from(new Set(addressArr)).map((item: any, index: number) => {
       const object = {
@@ -293,7 +343,6 @@ export const RelationChart = () => {
     })
     setOptionData(data)
     setOptionLink(linkData)
-    setLending(false)
   }
   const getReviewData = async () => {
     const BscReview = bschttp.get('/v0/review')
@@ -307,21 +356,27 @@ export const RelationChart = () => {
   const getFollowData = () => {
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
   }
+  const getGames = async () => {
+    const bsc = await bschttp.get('/v0/games')
+    const polygon = await polygonhttp.get('/v0/games')
+    setGameData([...bsc.data.data, ...polygon.data.data])
+  }
   useEffect(() => {
     if (state) {
       localStorage.setItem('contractAddress', state.contractAddress)
       localStorage.setItem('useraddress', state.useraddress)
       localStorage.setItem('contractChain', state.chain)
     }
+    getGames()
     getUserInfoAll()
     getReviewData()
     getFollowData()
   }, [contractName])
   useEffect(() => {
-    if (optionLink.length && ReviewData.length && PostsData.length) {
+    if (optionLink.length && ReviewData.length && PostsData.length && GameData.length) {
       componentDidMount()
     }
-  }, [optionLink, userinfo, ReviewData, PostsData])
+  }, [optionLink, userinfo, ReviewData, PostsData, GameData])
   useEffect(() => {
     if (postsPage > 1) {
       getMyArticle(UserInfoItem?.useraddress)
@@ -517,35 +572,73 @@ export const RelationChart = () => {
     })
     return JSON.parse(filter[0].metadata).name
   }
-  const getNftData = async () => {
+  const getNftData = async (address: string) => {
+    setMyGame([])
+    setNFTData([])
+    setLending(true)
+    setFailed(false)
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
-    const BscNft = await http.get(`https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=bsc&format=decimal`)
-    const polygonNft = await http.get(`
-      https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=polygon&format=decimal`)
-    const filterDataPolygon = polygonNft.data.result.filter((item: any) => {
-      return PolygonContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
-    })
-    const filterDataBsc = BscNft.data.result.filter((item: any) => {
-      return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
-    })
-    setNFTData([...filterDataBsc, ...filterDataPolygon])
-    const getdata = axios.create({
-      timeout: 10000,
-      headers: {
-        'X-Api-Key': OPENSEA_API_KEY
-      }
-    })
-    const filterData = [...filterDataBsc, ...filterDataPolygon].filter((item: any) => {
-      return item.token_address.toLowerCase() === contractAddress.toLowerCase()
-    })
-    let tokenids = `https://api.opensea.io/v2/orders/matic/seaport/listings?asset_contract_address=${contractAddress}`
-    filterData.map((item: any) => {
-      tokenids = tokenids + `&token_ids=${item.token_id}`
-    })
-    if (filterData.length) {
-      const orderData = await getdata.get(tokenids)
-      setOrderData(orderData.data.orders)
-    }
+    const BscNft = http.get(`https://deep-index.moralis.io/api/v2/${address}/nft?chain=bsc&format=decimal`)
+    const polygonNft = http.get(`
+      https://deep-index.moralis.io/api/v2/${address}/nft?chain=polygon&format=decimal`)
+    Promise.all([BscNft, polygonNft])
+      .then((vals) => {
+        const filterDataPolygon = vals[1].data.result.filter((item: any) => {
+          return PolygonContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+        })
+        const filterDataBsc = vals[0].data.result.filter((item: any) => {
+          return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+        })
+        const findDataBsc = fetchData(filterDataBsc, 'bsc')
+        const findDataPolygon = fetchData(filterDataPolygon, 'polygon')
+        Promise.all([...findDataBsc, ...findDataPolygon])
+          .then((vals) => {
+            const nftarr = vals
+              .sort(() => {
+                return Math.random() - 0.5
+              })
+              .slice(0, 3)
+            const filterGame = GameData.filter((item: any) => {
+              return (
+                vals.findIndex((ele: any) => ele.token_address.toLowerCase() === item.contractAddress.toLowerCase()) >=
+                0
+              )
+            })
+            const gamearr = filterGame
+              .sort(() => {
+                return Math.random() - 0.5
+              })
+              .slice(0, 3)
+            setMyGame(gamearr)
+            setNFTData(nftarr)
+            setLending(false)
+          })
+          .catch(() => {
+            setLending(false)
+            setFailed(true)
+          })
+      })
+      .catch(() => {
+        setLending(false)
+        setFailed(true)
+      })
+    // const getdata = axios.create({
+    //   timeout: 10000,
+    //   headers: {
+    //     'X-Api-Key': OPENSEA_API_KEY
+    //   }
+    // })
+    // const filterData = [...filterDataBsc, ...filterDataPolygon].filter((item: any) => {
+    //   return item.token_address.toLowerCase() === contractAddress.toLowerCase()
+    // })
+    // let tokenids = `https://api.opensea.io/v2/orders/matic/seaport/listings?asset_contract_address=${contractAddress}`
+    // filterData.map((item: any) => {
+    //   tokenids = tokenids + `&token_ids=${item.token_id}`
+    // })
+    // if (filterData.length) {
+    //   const orderData = await getdata.get(tokenids)
+    //   setOrderData(orderData.data.orders)
+    // }
   }
   const getFollowState = (address: string) => {
     const data = followeDataAll.filter((item: any) => {
@@ -556,6 +649,8 @@ export const RelationChart = () => {
     })
     if (data.length && data) {
       setFollowState(true)
+    } else {
+      setFollowState(false)
     }
   }
   const getFolloweData = () => {
@@ -659,6 +754,7 @@ export const RelationChart = () => {
         return formatting(item.useraddress).toLowerCase() === params.name.toLowerCase()
       })
       if (Item.length && Item) {
+        getNftData(Item[0].useraddress)
         getMyReview(Item[0].useraddress)
         getMyArticle(Item[0].useraddress)
         getFollowState(Item[0].useraddress)
@@ -679,69 +775,114 @@ export const RelationChart = () => {
 
   return (
     <RelationChartBox>
-      <SmallDialog footer={null} onCancel={() => setShowUserInfo(false)} open={showUserInfo} closable={false}>
+      <UserInfoDialog footer={null} onCancel={() => setShowUserInfo(false)} open={showUserInfo} closable={false}>
         <UserInfoBox>
-          <div className="flex">
+          <div className="flex flex-v-center">
             <div>
               <img className="userImg" src={UserInfoItem?.image || defaultImg} onError={handleImgError} />
             </div>
             <div>
               <div className="username Abbreviation">{UserInfoItem?.username || ''}</div>
-              <div className="following flex">
-                Following <b>{myFollowe}</b>
-              </div>
-              <div className="following flex">
-                Followers <b>{FolloweMy}</b>
+              <div className="address">{formatting(UserInfoItem?.useraddress || '0x00', 9)}</div>
+              <div className="GameId">Game ID: &nbsp;{contractName}</div>
+              <div className="follow flex flex-v-cente">
+                <div className="following flex">
+                  <b>{myFollowe}</b> Following
+                </div>
+                <div className="following flex">
+                  <b>{FolloweMy}</b> Followers
+                </div>
               </div>
             </div>
-          </div>
-          <div className="GameId">Game ID: &nbsp;{contractName}</div>
-          <div className="address">{formatting(UserInfoItem?.useraddress || '0x00', 9)}</div>
-          <div className="iconBar">
-            <a href={UserInfoItem?.Twitter} target="_blank" rel="noreferrer">
-              <img src={twitter} className={UserInfoItem?.Twitter ? '' : 'transparency'} />
-            </a>
-            <a href={UserInfoItem?.Discord} target="_blank" rel="noreferrer">
-              <img src={discord} className={UserInfoItem?.Discord ? '' : 'transparency'} />
-            </a>
-            <a href={UserInfoItem?.Telegram} target="_blank" rel="noreferrer">
-              <img src={Telegram} className={UserInfoItem?.Telegram ? '' : 'transparency'} />
-            </a>
-            <a href={UserInfoItem?.Mirror} target="_blank" rel="noreferrer">
-              <img src={Mirror} className="transparency" />
-            </a>
-            <a href={UserInfoItem?.cyber} target="_blank" rel="noreferrer">
-              <img src={cyber} className="transparency" />
-            </a>
-            <a href={UserInfoItem?.github} target="_blank" rel="noreferrer">
-              <img src={github} className="transparency" />
-            </a>
-            <a href={UserInfoItem?.rss3} target="_blank" rel="noreferrer">
-              <img src={rss3} className="transparency" />
-            </a>
-            <a href={UserInfoItem?.galxe} target="_blank" rel="noreferrer">
-              <img src={galxe} className="transparency" />
-            </a>
-            <a href={UserInfoItem?.lens} target="_blank" rel="noreferrer">
-              <img src={lens} className="transparency" />
-            </a>
-          </div>
-          <div className="button">
-            {FollowState ? (
-              <div className="flex">
-                <div className="unFollow flex flex-center cursor" onClick={UnFollow}>
-                  - Unfollow
+            <div className="button">
+              {FollowState ? (
+                <div className="">
+                  <div className="unFollow flex flex-center cursor" onClick={UnFollow}>
+                    - Unfollow
+                  </div>
+                  <div className="Chat flex flex-center">
+                    <img src={news} />
+                    Chat
+                  </div>
                 </div>
-                <div className="Chat flex flex-center">
-                  <img src={news} />
-                  Chat
+              ) : (
+                <div className="Follow flex flex-center cursor" onClick={Follow}>
+                  + Follow
                 </div>
+              )}
+            </div>
+          </div>
+          <div className="boder"></div>
+          <div className="flex flex-h-between">
+            <div className="iconBar flex-1">
+              <div>
+                <a href={UserInfoItem?.Twitter} target="_blank" rel="noreferrer">
+                  <img src={twitter} className={UserInfoItem?.Twitter ? '' : 'transparency'} />
+                </a>
+                <a href={UserInfoItem?.Discord} target="_blank" rel="noreferrer">
+                  <img src={discord} className={UserInfoItem?.Discord ? '' : 'transparency'} />
+                </a>
+                <a href={UserInfoItem?.Telegram} target="_blank" rel="noreferrer">
+                  <img src={Telegram} className={UserInfoItem?.Telegram ? '' : 'transparency'} />
+                </a>
+                <a href={UserInfoItem?.Mirror} target="_blank" rel="noreferrer">
+                  <img src={Mirror} className="transparency" />
+                </a>
+                <a href={UserInfoItem?.cyber} target="_blank" rel="noreferrer">
+                  <img src={cyber} className="transparency" />
+                </a>
               </div>
-            ) : (
-              <div className="Follow flex flex-center cursor" onClick={Follow}>
-                + Follow
+              <div>
+                <a href={UserInfoItem?.github} target="_blank" rel="noreferrer">
+                  <img src={github} className="transparency" />
+                </a>
+                <a href={UserInfoItem?.rss3} target="_blank" rel="noreferrer">
+                  <img src={rss3} className="transparency" />
+                </a>
+                <a href={UserInfoItem?.galxe} target="_blank" rel="noreferrer">
+                  <img src={galxe} className="transparency" />
+                </a>
+                <a href={UserInfoItem?.lens} target="_blank" rel="noreferrer">
+                  <img src={lens} className="transparency" />
+                </a>
               </div>
-            )}
+            </div>
+            <div className="verticalboder"></div>
+            <div className="flex-1">
+              <Box className="flex flex-center">
+                {MyGame && MyGame.length ? (
+                  MyGame.map((item: any, index: any) => (
+                    <div key={index}>
+                      <img src={item.image} />
+                    </div>
+                  ))
+                ) : (
+                  <LoadFailed>
+                    <div className="">{loadding ? <img src={loadd} /> : ''}</div>
+                    {loadding ? '' : Failed ? 'Failed to load, please reopen' : 'No content yet'}
+                  </LoadFailed>
+                )}
+              </Box>
+              <Line className="flex flex-v-center">
+                <div className="boder"></div>
+                <div className="text-center">Game</div>
+                <div className="boder"></div>
+              </Line>
+              <Box className="flex flex-center">
+                {NFTData && NFTData.length ? (
+                  NFTData.map((item: any, index: any) => (
+                    <div key={index}>
+                      <img src={item.metadata.image} />
+                    </div>
+                  ))
+                ) : (
+                  <LoadFailed>
+                    <div className="">{loadding ? <img src={loadd} /> : ''}</div>
+                    {loadding ? '' : Failed ? 'Failed to load, please reopen' : 'No content yet'}
+                  </LoadFailed>
+                )}
+              </Box>
+            </div>
           </div>
           <MyTabs defaultActiveKey="1">
             <TabPaneBox tab={<span className="clearGap">Comments</span>} key="1">
@@ -770,7 +911,7 @@ export const RelationChart = () => {
                 <div>No content yet</div>
               )}
               <div className="seeMore cursor" onClick={() => seeMore('Review')}>
-                View more replies &gt;&gt;
+                View more &gt;&gt;
               </div>
             </TabPaneBox>
             <TabPaneBox tab={<span className="clearGap">Article</span>} key="2">
@@ -785,12 +926,12 @@ export const RelationChart = () => {
                 <div>No content yet</div>
               )}
               <div className="seeMore cursor" onClick={() => seeMore('Posts')}>
-                View more replies &gt;&gt;
+                View more &gt;&gt;
               </div>
             </TabPaneBox>
           </MyTabs>
         </UserInfoBox>
-      </SmallDialog>
+      </UserInfoDialog>
       {/* <Listings>
         <div className="title">Listings</div>
         {orderData && orderData.length ? (

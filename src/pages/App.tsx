@@ -64,14 +64,12 @@ function App() {
       {visible ? (
         <Popups>
           <div className="container flex flex-center">
-            <a style={{ marginRight: '.5rem', textDecoration: 'underline' }} href="mailto:hello@gameland.network">
-              Contact us
-            </a>{' '}
-            to support your NFT projects.
+            the higher the G Point you get, the higher the probability you will get rewards (airdrops, incentives, etc.)
+            in the future. This link tells how to get reputation points
           </div>
-          <div className="close" onClick={close}>
+          {/* <div className="close" onClick={close}>
             x
-          </div>
+          </div> */}
         </Popups>
       ) : (
         <div className="sticky"></div>
