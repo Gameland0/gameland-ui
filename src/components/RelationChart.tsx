@@ -238,7 +238,7 @@ const findAddressIndex = (arr: any, address: string) => {
     return item.toLowerCase() === address.toLowerCase()
   })
 }
-const fetchData = (data: any[], chain: string) => {
+export const fetchData = (data: any[], chain: string) => {
   if (!data || !data.length) return []
   return data.map(async (item: any) => {
     const getdata = axios.create({
