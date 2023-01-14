@@ -357,7 +357,6 @@ export const Dashboard = () => {
         } else if (!!nftContract?.isApprovedForAll) {
           // check ERC1155 approve
           const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
-          // console.log(isApproved)
 
           isApproved ? setIsApproved(true) : setIsApproved(false)
         }
@@ -515,7 +514,6 @@ export const Dashboard = () => {
         } else {
           approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
-        // console.log(approvetx)
         const receipt = await fetchReceipt(approvetx.hash, library)
         if (!receipt.status) {
           throw new Error('failed')

@@ -154,9 +154,12 @@ const PostsContent = styled.div`
       cursor: pointer;
     }
   }
-  @media screen and (max-width: 1440px) {
-    width: 82rem;
+  @media screen and (min-width: 1440px) {
+    width: 1312px;
     min-height: 600px;
+  }
+  @media screen and (min-width: 1920px) {
+    width: 1600px;
   }
 `
 export const ArticleContentPage = () => {
@@ -232,7 +235,6 @@ export const ArticleContentPage = () => {
             imgArrIndex++
           }
         }
-        // console.log(img)
         setLending(false)
       } else if (type === 'Gameland') {
         fetch(Data[0]?.link)

@@ -16,7 +16,7 @@ import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
-import { Img } from './Img'
+// import { Img } from './Img'
 import { Dialog } from './Dialog'
 import { CollectionToken } from './CollectionToken'
 import { Modal } from './Modal'
@@ -114,25 +114,25 @@ export const Card: React.FC<CardProps> = ({
     </CardBox>
   )
 }
-interface LabelProps {
-  name: string
-  nftId: string
-  type: any
-}
-const Labels: React.FC<LabelProps> = ({ name, type, nftId }) => {
-  return (
-    <div style={{ overflow: 'hidden', height: 90 }}>
-      <NFTname>{name}</NFTname>
-      <NftId>{nftId}</NftId>
-      <Standard>{type}</Standard>
-    </div>
-  )
-}
-interface FolloweProps {
-  Followeitem: any
-  onFollowe: () => void
-  onUnFollowe: () => void
-}
+// interface LabelProps {
+//   name: string
+//   nftId: string
+//   type: any
+// }
+// const Labels: React.FC<LabelProps> = ({ name, type, nftId }) => {
+//   return (
+//     <div style={{ overflow: 'hidden', height: 90 }}>
+//       <NFTname>{name}</NFTname>
+//       <NftId>{nftId}</NftId>
+//       <Standard>{type}</Standard>
+//     </div>
+//   )
+// }
+// interface FolloweProps {
+//   Followeitem: any
+//   onFollowe: () => void
+//   onUnFollowe: () => void
+// }
 const UserBox = styled.div`
   .replyWindow {
     font-size: 24px;
@@ -403,7 +403,7 @@ const CommentsBox = styled.div`
       }
     }
   }
-  @media screen and (max-width: 1440px) {
+  @media screen and (min-width: 1440px) {
     .CommentItem {
       .userInfo {
         .userImage {
@@ -451,20 +451,20 @@ const PostsBox = styled.div`
     }
   }
 `
-const NFTsBox = styled.div`
-  position: relative;
-  div:nth-child(3n) {
-    margin: 0 0 40px 0;
-  }
-`
-const CardDetails = styled.div`
-  position: relative;
-  margin-top: 1rem;
-  padding: 0 1rem 8px;
-  p {
-    margin-bottom: 0.3rem;
-  }
-`
+// const NFTsBox = styled.div`
+//   position: relative;
+//   div:nth-child(3n) {
+//     margin: 0 0 40px 0;
+//   }
+// `
+// const CardDetails = styled.div`
+//   position: relative;
+//   margin-top: 1rem;
+//   padding: 0 1rem 8px;
+//   p {
+//     margin-bottom: 0.3rem;
+//   }
+// `
 const CardBox = styled.div`
   position: relative;
   width: 330px;
@@ -505,24 +505,24 @@ const CardBox = styled.div`
     box-shadow: 0px 4px 10px 1px rgba(0, 0, 0, 0.1);
   }
 `
-const NFTname = styled.p`
-  display: block;
-  width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`
-const NftId = styled.div`
-  width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`
-const Standard = styled.div`
-  color: #d0d0d0;
-  font-size: 14px;
-  margin-bottom: 0.5rem;
-`
+// const NFTname = styled.p`
+//   display: block;
+//   width: 120px;
+//   white-space: nowrap;
+//   overflow: hidden;
+//   text-overflow: ellipsis;
+// `
+// const NftId = styled.div`
+//   width: 120px;
+//   white-space: nowrap;
+//   overflow: hidden;
+//   text-overflow: ellipsis;
+// `
+// const Standard = styled.div`
+//   color: #d0d0d0;
+//   font-size: 14px;
+//   margin-bottom: 0.5rem;
+// `
 const FakeButtons = styled.div`
   padding: 24px;
   .button {
@@ -740,7 +740,6 @@ const SettingsBox = styled.div`
     font-size: 24px;
   }
 `
-const MyNftBox = styled.div``
 const { TabPane } = Tabs
 export const MyTabs = styled(Tabs)``
 export const ButtonBox = styled.div`
@@ -813,9 +812,7 @@ export const fetchAbi = async (address: string, chain: any) => {
 }
 export const MyPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
-  // const [UploadImg, setUploadImg] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
-  // const [recompute, setRecompute] = useState(false)
   const [showreward, setshowreward] = useState(false)
   const [rewardoptions, setrewardoptions] = useState(false)
   const [lending, setLending] = useState(false)
@@ -829,8 +826,8 @@ export const MyPage = () => {
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [deletePostsItem, setDeletePostsItem] = useState({} as any)
+  const [userinfo, setUserinfo] = useState({} as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
-  const [userinfo, setUserinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
@@ -969,21 +966,23 @@ export const MyPage = () => {
       setuserLikeInfo([...vals[0].data.data, ...vals[1].data.data])
     })
   }
-  const getNftData = async () => {
+  const getNftData = () => {
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
-    const BscNft = await http.get(`https://deep-index.moralis.io/api/v2/${account}/nft?chain=bsc&format=decimal`)
-    const polygonNft = await http.get(`
+    const BscNft = http.get(`https://deep-index.moralis.io/api/v2/${account}/nft?chain=bsc&format=decimal`)
+    const polygonNft = http.get(`
       https://deep-index.moralis.io/api/v2/${account}/nft?chain=polygon&format=decimal`)
-    const filterDataBsc = BscNft.data.result.filter((item: any) => {
-      return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
-    })
-    const findDataBsc = fetchData(filterDataBsc, BscContract, 'bsc')
-    const filterDataPolygon = polygonNft.data.result.filter((item: any) => {
-      return PolygonContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
-    })
-    const findDataPolygon = fetchData(filterDataPolygon, PolygonContract, 'polygon')
-    Promise.all([...findDataBsc, ...findDataPolygon]).then((vals) => {
-      setMyNFT(vals)
+    Promise.all([BscNft, polygonNft]).then((vals) => {
+      const filterDataBsc = vals[0].data.result.filter((item: any) => {
+        return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+      })
+      const findDataBsc = fetchData(filterDataBsc, BscContract, 'bsc')
+      const filterDataPolygon = vals[1].data.result.filter((item: any) => {
+        return PolygonContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+      })
+      const findDataPolygon = fetchData(filterDataPolygon, PolygonContract, 'polygon')
+      Promise.all([...findDataBsc, ...findDataPolygon]).then((vals) => {
+        setMyNFT(vals)
+      })
     })
   }
   const getReviewData = async () => {
@@ -1198,7 +1197,6 @@ export const MyPage = () => {
     } else {
       total = item.likes + 1
     }
-    console.log(type, total)
     const params = {
       likes: total
     }
@@ -1400,7 +1398,6 @@ export const MyPage = () => {
     } else if (mirrorValue === 'unallow') {
       params.mirror = 2
     }
-    // console.log(params)
     const res: any = await bschttp.put(`/v0/userinfo/${account}`, params)
     if (res.data.code === 1) {
       setShowSettings(false)
@@ -1429,7 +1426,6 @@ export const MyPage = () => {
     const reader = new FileReader()
     reader.readAsArrayBuffer(Img)
     reader.onload = (res) => {
-      // console.log(res.target?.result)
       const imgData = res.target?.result
       ImgTransaction(imgData, type)
     }
@@ -1652,7 +1648,7 @@ export const MyPage = () => {
               <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
             </a>
             <a href={userinfo.Mirror} target="_blank" rel="noreferrer">
-              <img src={Mirror} className="transparency" />
+              <img src={Mirror} className={userinfo.mirror === 1 ? '' : 'transparency'} />
             </a>
             <a href={userinfo.cyber} target="_blank" rel="noreferrer">
               <img src={cyber} className="transparency" />

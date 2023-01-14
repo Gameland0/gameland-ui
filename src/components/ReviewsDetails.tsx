@@ -10,7 +10,7 @@ import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadChangeParam } from 'antd/es/upload'
 import { useActiveWeb3React, useRewardContract } from '../hooks'
-import { fetchReceipt } from '../utils'
+import { fetchReceipt, handleImgError } from '../utils'
 import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
 import { toastify } from './Toastify'
 import { Dialog } from '../components/Dialog'
@@ -658,14 +658,22 @@ export const ReviewsDetails = () => {
     }
     return [0, 0]
   }
-  const getUserImage = (useraddress: string) => {
+  const getUser = (useraddress: string, type: string) => {
     const findData = userinfoAll.filter((ele: any) => {
       return ele.useraddress === useraddress
     })
-    if (findData.length) {
-      return findData[0].image ? findData[0].image : defaultImg
+    if (type === 'image') {
+      if (findData.length) {
+        return findData[0].image ? findData[0].image : defaultImg
+      }
+      return defaultImg
     }
-    return defaultImg
+    if (type === 'name') {
+      if (findData.length) {
+        return findData[0].username ? findData[0].username : useraddress
+      }
+      return useraddress
+    }
   }
   const getForwardData = (id: any, type: any) => {
     const data = revieweinfo.filter((ele: any) => {
@@ -992,7 +1000,6 @@ export const ReviewsDetails = () => {
     })
   }
   const UploadImgChange = async (e: any) => {
-    console.log(e.target.files[0])
     // const Img = e.target.value
     const Img = e.target.files[0]
     const fileSize = Img.size
@@ -1005,17 +1012,9 @@ export const ReviewsDetails = () => {
     const reader = new FileReader()
     reader.readAsArrayBuffer(Img)
     reader.onload = (res) => {
-      // console.log(res.target?.result)
       const imgData = res.target?.result
       createTransaction(imgData, type)
     }
-    // https://arweave.net/nO9zPgPFc60DGqJNg3Rr4Xfsvl6J1DW_mxmdR269Es4
-    // fetch(Img)
-    //   .then((res) => res.arrayBuffer())
-    //   .then((res) => {
-    //     // console.log(res)
-    //     createTransaction(res, type)
-    //   })
   }
   const createTransaction = async (data: any, type: string) => {
     try {
@@ -1028,7 +1027,6 @@ export const ReviewsDetails = () => {
       // while (!uploader.isComplete) {
       //   await uploader.uploadChunk()
       // }
-      // console.log('transaction', transaction)
       if (transaction) {
         const params = {
           image: `https://arweave.net/${transaction.id}`
@@ -1079,7 +1077,7 @@ export const ReviewsDetails = () => {
       >
         <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
       </NFTStatsMadal>
-      <Dialog footer={null} onCancel={closeShowSetUp} visible={showSetUp} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeShowSetUp} open={showSetUp} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Up</div>
           <h2>Set userName</h2>
@@ -1092,7 +1090,7 @@ export const ReviewsDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog footer={null} onCancel={() => setshowreward(false)} visible={showreward} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={() => setshowreward(false)} open={showreward} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">give a reward</div>
           <h2>Quantity</h2>
@@ -1135,13 +1133,7 @@ export const ReviewsDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog
-        footer={null}
-        onCancel={() => setUserSettings(false)}
-        visible={UserSettings}
-        destroyOnClose
-        closable={false}
-      >
+      <Dialog footer={null} onCancel={() => setUserSettings(false)} open={UserSettings} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">user setting</div>
           <div className="input">
@@ -1153,7 +1145,7 @@ export const ReviewsDetails = () => {
           </div>
         </SendBox>
       </Dialog>
-      <Dialog footer={null} onCancel={closeUploadImg} visible={UploadImg} destroyOnClose closable={false}>
+      <Dialog footer={null} onCancel={closeUploadImg} open={UploadImg} destroyOnClose closable={false}>
         <SendBox>
           <div className="title">Set Avatar</div>
           {/* <Upload
@@ -1222,9 +1214,9 @@ export const ReviewsDetails = () => {
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
                     <div className="userInfo" onClick={() => UserPage(item)}>
-                      <img src={item.userimage || defaultImg} className="userImage" alt="" />
+                      <img src={getUser(item.useraddress, 'image')} className="userImage" onError={handleImgError} />
                       <div className="starName">
-                        <div className="name">{item.username}</div>
+                        <div className="name">{getUser(item.useraddress, 'name')}</div>
                         <div className="star">
                           <div className={userScoreinfo[0]?.score >= 1 ? 'scoreStar' : 'defaultStar'}></div>
                           <div className={userScoreinfo[0]?.score >= 2 ? 'scoreStar' : 'defaultStar'}></div>
@@ -1301,8 +1293,8 @@ export const ReviewsDetails = () => {
                               key={index}
                               onClick={() => setreplayWho('@' + ele.username)}
                             >
-                              <img src={getUserImage(ele.useraddress)} className="userImage" alt="" /> &nbsp;
-                              {ele.username}
+                              <img src={getUser(ele.useraddress, 'image')} className="userImage" /> &nbsp;
+                              {getUser(ele.useraddress, 'name')}
                               <div className="replyContent">{ele.context}</div>
                             </div>
                           ))

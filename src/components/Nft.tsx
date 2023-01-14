@@ -119,7 +119,6 @@ const LabelsWrap = styled.div`
 const Return: React.FC<ProgressLabelProps> = ({ right, borrowDay, isExpired, borrowAt }) => {
   // const progress = useMemo(() => getTimeOutProgress(borrowAt), [borrowAt])
   const dayLeft = useMemo(() => getTimeOutLeftText(borrowAt, borrowDay), [borrowAt])
-  // console.log(progress, dayLeft)
   return (
     <div style={{ overflow: 'hidden' }}>
       {/* {right || <p>{name}</p>}
@@ -243,7 +242,6 @@ const Operate: React.FC<OperateProps> = ({
   useEffect(() => {
     if (!dayLeft) return
     if (!nftId) return
-    // console.log(dayLeft)
     if (dayLeft === 'Expired') {
       setOverTime(true)
       const currentTime = Math.floor(new Date().valueOf() / 1000) + 28800

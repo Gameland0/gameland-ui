@@ -172,11 +172,19 @@ const CollectionBox = styled.div`
     }
   }
 
-  @media screen and (min-width: 1152px) {
-    width: 785px;
-  }
   @media screen and (min-width: 1440px) {
-    width: 968px;
+    width: 100%;
+    .collectionItem {
+      padding: 22px;
+      width: 409px;
+      height: 272px;
+      .name {
+        margin-top: 16px;
+      }
+      .information {
+        margin-top: 16px;
+      }
+    }
   }
 
   @media screen and (min-width: 1920px) {

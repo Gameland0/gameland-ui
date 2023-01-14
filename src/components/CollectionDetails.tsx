@@ -44,7 +44,7 @@ import {
   OPENSEA_URL
 } from '../constants'
 import { toastify } from './Toastify'
-import { Operate } from './RentCard'
+// import { Operate } from './RentCard'
 import { Img } from './Img'
 import { Dialog } from '../components/Dialog'
 import { Modal } from '../components/Modal'
@@ -1047,7 +1047,6 @@ export const CollectionDetails = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [ArticleAll, setArticleAll] = useState([] as any)
-
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1145,7 +1144,6 @@ export const CollectionDetails = () => {
             mode: 'no-cors'
           })
           const dataJson = await data.json()
-          // console.log(dataJson)
           item.metadata = dataJson
         } catch (error) {
           try {
@@ -1154,7 +1152,6 @@ export const CollectionDetails = () => {
           } catch (error) {
             item.metadata = JSON.parse(item.metadata)
           }
-          // console.log(JSON.parse(data.data.metadata_json))
         }
       } else {
         item.metadata = JSON.parse(item.metadata)
@@ -1323,14 +1320,22 @@ export const CollectionDetails = () => {
       oneStar: oneStar.length
     }
   }
-  const getUserImage = (useraddress: string) => {
+  const getUser = (useraddress: string, type: string) => {
     const findData = userinfoAll.filter((ele: any) => {
       return ele.useraddress === useraddress
     })
-    if (findData.length) {
-      return findData[0].image ? findData[0].image : defaultImg
+    if (type === 'image') {
+      if (findData.length) {
+        return findData[0].image ? findData[0].image : defaultImg
+      }
+      return defaultImg
     }
-    return defaultImg
+    if (type === 'name') {
+      if (findData.length) {
+        return findData[0].username ? findData[0].username : useraddress
+      }
+      return useraddress
+    }
   }
   const getForwardData = (id: any, type: any) => {
     const data = revieweinfo.filter((ele: any) => {
@@ -1415,9 +1420,7 @@ export const CollectionDetails = () => {
           }
         } else if (!!nftContract?.isApprovedForAll) {
           // check ERC1155 approve
-          console.log(AssetContractAddress)
           const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
-          console.log(isApproved)
 
           isApproved ? setIsApproved(true) : setIsApproved(false)
         }
@@ -1473,7 +1476,6 @@ export const CollectionDetails = () => {
         } else {
           approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
-        // console.log(approvetx)
         const receipt = await fetchReceipt(approvetx.hash, library)
         if (!receipt.status) {
           throw new Error('failed')
@@ -1980,7 +1982,6 @@ export const CollectionDetails = () => {
       if (data.data.attributes) {
         setRareAttribute(data.data.attributes)
       } else {
-        console.log(data.data)
         setSpecificAttribute(data.data.properties || [])
         setRareAttribute(data.data.stats || data.data.levels)
       }
@@ -2077,7 +2078,6 @@ export const CollectionDetails = () => {
   const commentNFTOKButton = async () => {
     setShowMyNFTBox(false)
     setShowMyNFTModal(false)
-    console.log(NFTStatsMadalData)
     setCommentNFTItem(NFTStatsMadalData)
   }
   const link = () => {
@@ -2109,7 +2109,6 @@ export const CollectionDetails = () => {
     const nftCollection = await http.get(`
       https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain}&format=decimal&limit=30&cursor=${nextCursor}
     `)
-    // console.log(nftCollection.data)
     const data = fetchMetadata(nftCollection.data.result)
     Promise.all(data).then((vals) => {
       setDataAll([...DataAll, ...vals])
@@ -2142,9 +2141,6 @@ export const CollectionDetails = () => {
   const closeUploadImg = () => {
     setUploadImg(false)
     setrefreshBy(!refreshBy)
-  }
-  const handleImgError = (e: any) => {
-    e.target.src = defaultImg
   }
   return (
     <div className="container">
@@ -2740,9 +2736,9 @@ export const CollectionDetails = () => {
               ? revieweinfo.map((item: any, index: any) => (
                   <div className="CommentItem" key={index}>
                     <div className="userInfo" onClick={() => UserPage(item)}>
-                      <img src={getUserImage(item.useraddress)} className="userImage" onError={handleImgError} />
+                      <img src={getUser(item.useraddress, 'image')} className="userImage" onError={handleImgError} />
                       <div className="starName">
-                        <div className="name">{item.username || `user #${userinfo.useraddress}`}</div>
+                        <div className="name">{getUser(item.useraddress, 'name')}</div>
                         <div className="star">
                           <div className={getReviewScore(item.useraddress) >= 1 ? 'scoreStar' : 'defaultStar'}></div>
                           <div className={getReviewScore(item.useraddress) >= 2 ? 'scoreStar' : 'defaultStar'}></div>

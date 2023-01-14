@@ -702,7 +702,6 @@ export const Rent = () => {
       const amount = collateral.plus(cost).plus(Penalty).toString()
       let rented
       // const allowance = await ERC20Contract?.allowance(account, ControlContractAddress)
-      // console.log(allowance.toString(), amount)
       if (currentItem.pay_type === 'eth') {
         rented = await ControlContract?.connect(library.getSigner()).rent(currentItem.lendIndex, LeaseDays, {
           value: parseEther(amount)

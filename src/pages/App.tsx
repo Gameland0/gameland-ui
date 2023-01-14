@@ -63,10 +63,16 @@ function App() {
       <Header />
       {visible ? (
         <Popups>
-          <div className="container flex flex-center">
-            the higher the G Point you get, the higher the probability you will get rewards (airdrops, incentives, etc.)
-            in the future. This link tells how to get reputation points
-          </div>
+          <a
+            target="_blank"
+            rel="noreferrer"
+            href="https://dapp.gameland.network/#/Article/Mirror/0x7a387E6f725a837dF5922e3Fe71827450A76A3E5/27d753d0-9a95-4c3a-9362-3d196d01772d"
+          >
+            <div className="container flex flex-center">
+              the higher the G Point you get, the higher the probability you will get rewards (airdrops, incentives,
+              etc.) in the future. This link tells how to get reputation points
+            </div>
+          </a>
           {/* <div className="close" onClick={close}>
             x
           </div> */}

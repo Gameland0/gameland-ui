@@ -778,11 +778,15 @@ export const RelationChart = () => {
       <UserInfoDialog footer={null} onCancel={() => setShowUserInfo(false)} open={showUserInfo} closable={false}>
         <UserInfoBox>
           <div className="flex flex-v-center">
-            <div>
+            <div onClick={() => link('Review', UserInfoItem)}>
               <img className="userImg" src={UserInfoItem?.image || defaultImg} onError={handleImgError} />
             </div>
             <div>
-              <div className="username Abbreviation">{UserInfoItem?.username || ''}</div>
+              <a href={UserInfoItem?.dd} target="_blank" rel="noreferrer">
+                <div className="username Abbreviation" onClick={() => link('Review', UserInfoItem)}>
+                  {UserInfoItem?.username || ''}
+                </div>
+              </a>
               <div className="address">{formatting(UserInfoItem?.useraddress || '0x00', 9)}</div>
               <div className="GameId">Game ID: &nbsp;{contractName}</div>
               <div className="follow flex flex-v-cente">
@@ -826,7 +830,7 @@ export const RelationChart = () => {
                   <img src={Telegram} className={UserInfoItem?.Telegram ? '' : 'transparency'} />
                 </a>
                 <a href={UserInfoItem?.Mirror} target="_blank" rel="noreferrer">
-                  <img src={Mirror} className="transparency" />
+                  <img src={Mirror} className={UserInfoItem?.mirror === 1 ? '' : 'transparency'} />
                 </a>
                 <a href={UserInfoItem?.cyber} target="_blank" rel="noreferrer">
                   <img src={cyber} className="transparency" />

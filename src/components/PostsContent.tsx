@@ -25,7 +25,6 @@ import mint from '../assets/mint.png'
 
 const PostsContent = styled.div`
   position: relative;
-  width: 1600px;
   min-height: 600px;
   padding: 24px 48px;
   border-radius: 8px;
@@ -155,9 +154,12 @@ const PostsContent = styled.div`
       cursor: pointer;
     }
   }
-  @media screen and (max-width: 1440px) {
-    width: 82rem;
+  @media screen and (min-width: 1440px) {
+    width: 1312px;
     min-height: 600px;
+  }
+  @media screen and (min-width: 1920px) {
+    width: 1600px;
   }
 `
 export const PostsContentPage = () => {
@@ -197,7 +199,6 @@ export const PostsContentPage = () => {
     const postData = await bschttp.get(`v0/posts/${postsId}`)
     if (postData.data.data.length) {
       setPostsItem(postData.data.data[0])
-      console.log(postData.data.data)
       setLending(true)
       fetch(postData.data.data[0].link)
         .then((res) => res.json())

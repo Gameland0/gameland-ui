@@ -421,7 +421,7 @@ const CommentsBox = styled.div`
       }
     }
   }
-  @media screen and (max-width: 1440px) {
+  @media screen and (min-width: 1440px) {
     .CommentItem {
       .userInfo {
         .userImage {
@@ -979,21 +979,23 @@ export const UserPage = () => {
       setuserLikeInfo([...vals[0].data.data, ...vals[1].data.data])
     })
   }
-  const getNftData = async () => {
+  const getNftData = () => {
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
-    const BscNft = await http.get(`https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=bsc&format=decimal`)
-    const polygonNft = await http.get(`
+    const BscNft = http.get(`https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=bsc&format=decimal`)
+    const polygonNft = http.get(`
       https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=polygon&format=decimal`)
-    const filterDataBsc = BscNft.data.result.filter((item: any) => {
-      return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
-    })
-    const findDataBsc = fetchData(filterDataBsc, BscContract, 'bsc')
-    const filterDataPolygon = polygonNft.data.result.filter((item: any) => {
-      return PolygonContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
-    })
-    const findDataPolygon = fetchData(filterDataPolygon, PolygonContract, 'polygon')
-    Promise.all([...findDataBsc, ...findDataPolygon]).then((vals) => {
-      setMyNFT(vals)
+    Promise.all([BscNft, polygonNft]).then((vals) => {
+      const filterDataBsc = vals[0].data.result.filter((item: any) => {
+        return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+      })
+      const findDataBsc = fetchData(filterDataBsc, BscContract, 'bsc')
+      const filterDataPolygon = vals[1].data.result.filter((item: any) => {
+        return PolygonContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+      })
+      const findDataPolygon = fetchData(filterDataPolygon, PolygonContract, 'polygon')
+      Promise.all([...findDataBsc, ...findDataPolygon]).then((vals) => {
+        setMyNFT(vals)
+      })
     })
   }
   const getReviewData = async () => {
@@ -1284,7 +1286,6 @@ export const UserPage = () => {
     } else {
       total = item.likes + 1
     }
-    console.log(type, total)
     const params = {
       likes: total
     }
@@ -1489,7 +1490,6 @@ export const UserPage = () => {
     if (Avatar) {
       params.image = Avatar
     }
-    // console.log(params)
     const res: any = await bschttp.put(`/v0/userinfo/${account}`, params)
     if (res.data.code === 1) {
       setShowSettings(false)
@@ -1506,7 +1506,6 @@ export const UserPage = () => {
     })
   }
   const ImgChange = async (e: any) => {
-    // const Img = e.target.value
     const Img = e.target.files[0]
     const fileSize = Img.size
     const size = fileSize / 1024
@@ -1518,7 +1517,6 @@ export const UserPage = () => {
     const reader = new FileReader()
     reader.readAsArrayBuffer(Img)
     reader.onload = (res) => {
-      // console.log(res.target?.result)
       const imgData = res.target?.result
       ImgTransaction(imgData, type)
     }
@@ -1717,7 +1715,7 @@ export const UserPage = () => {
               <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
             </a>
             <a href={userinfo.Mirror} target="_blank" rel="noreferrer">
-              <img src={Mirror} className="transparency" />
+              <img src={Mirror} className={userinfo.mirror === 1 ? '' : 'transparency'} />
             </a>
             <a href={userinfo.cyber} target="_blank" rel="noreferrer">
               <img src={cyber} className="transparency" />

@@ -218,7 +218,7 @@ export const Lend = () => {
   return (
     <div className="container">
       <RentBox>
-        <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} visible={visible}>
+        <Modal destroyOnClose footer={null} onCancel={() => setVisible(false)} open={visible}>
           <Row gutter={[24, 24]}>
             <Col span="12" xl={12} sm={24}>
               <Nft

@@ -10,7 +10,6 @@ export const useMyNfts = (): NFTData[] => {
   return useMemo(() => {
     if (!nfts) return []
     if (!account) return []
-    // console.log(nfts)
 
     const data = nfts.filter((item: any) => {
       // const ownerAddress = lowerCase(item.owner.address as string)

@@ -137,7 +137,6 @@ export const RentingCard: React.FC<RentingProps> = ({
   useEffect(() => {
     if (!dayLeft) return
     if (!nftId) return
-    // console.log(dayLeft)
     if (dayLeft === 'Expired') {
       setOverTime(true)
       const currentTime = Math.floor(new Date().valueOf() / 1000) + 28800

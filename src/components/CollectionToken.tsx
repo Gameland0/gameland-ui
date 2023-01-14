@@ -209,7 +209,6 @@ export const CollectionToken = (NFT: any) => {
           )
         })
         if (filterPolygonData.length) {
-          console.log(filterPolygonData)
           filterPolygonData.map((item: any) => {
             const list = {
               nftcollectionaddress: item.token_address,
@@ -342,16 +341,13 @@ export const CollectionToken = (NFT: any) => {
         if (item.contract_type === 'ERC721' && nftContract?.getApproved) {
           const approveAddress = await nftContract?.getApproved(item.token_id)
           if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
-            // console.log(true)
             setIsApproved(true)
           } else {
             setIsApproved(false)
-            // console.log(false)
           }
         } else if (!!nftContract?.isApprovedForAll) {
           // check ERC1155 approve
           const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
-          console.log(isApproved)
 
           isApproved ? setIsApproved(true) : setIsApproved(false)
         }
@@ -377,7 +373,6 @@ export const CollectionToken = (NFT: any) => {
         } else {
           approvetx = await currentItem.contract.setApprovalForAll(AssetContractAddress, true)
         }
-        // console.log(approvetx)
         const receipt = await fetchReceipt(approvetx.hash, library)
         if (!receipt.status) {
           throw new Error('failed')
@@ -692,7 +687,7 @@ export const CollectionToken = (NFT: any) => {
                   {item.symbol.length && item.symbol ? (
                     item.symbol.map((ele: any, i: any) => (
                       <div className="token" key={i}>
-                        {0 || item.token[i]} <img src={ele} />
+                        {item.token[i] ? item.token[i] : 0} <img src={ele} />
                       </div>
                     ))
                   ) : (

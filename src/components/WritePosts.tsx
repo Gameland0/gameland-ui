@@ -245,7 +245,6 @@ export const WritePosts = () => {
       const findDataBsc = fetchData(filterDataBsc, 'bsc')
       const findDataPolygon = fetchData(filterDataPolygon, 'polygon')
       Promise.all([...findDataBsc, ...findDataPolygon]).then((vals) => {
-        console.log(vals)
         setNFTData(vals)
       })
     })
@@ -256,7 +255,6 @@ export const WritePosts = () => {
   }
   const insertNft = (img: any, name: any) => {
     const paragraph = document.getElementsByClassName('ce-paragraph')
-    console.log(paragraph.length)
     const focus = paragraph[paragraph.length - 1] as HTMLElement
     focus.focus()
     const dom = `<div class="ce-block__content"><div class="cdx-block image-tool--filled"><img src=${img} /></div><div class="NftName">${name}</div></div>`
