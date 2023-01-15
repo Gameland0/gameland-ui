@@ -189,7 +189,7 @@ export const PostsContentPage = () => {
   const { useraddress, postsId } = useParams() as any
   useEffect(() => {
     getUserInfo()
-  }, [account])
+  }, [account, refreshBy])
   const getUserInfo = async () => {
     if (!account || !useraddress) return
     const data = await bschttp.get(`v0/userinfo/${useraddress}`)
@@ -203,9 +203,12 @@ export const PostsContentPage = () => {
       fetch(postData.data.data[0].link)
         .then((res) => res.json())
         .then((data) => {
-          const Dom = document.createElement('div')
-          Dom.innerHTML = data.content
-          document.getElementById('postsContent')?.appendChild(Dom)
+          const Content = document.getElementById('postsContent')
+          if (!Content?.innerHTML.length) {
+            const Dom = document.createElement('div')
+            Dom.innerHTML = data.content
+            document.getElementById('postsContent')?.appendChild(Dom)
+          }
           setLending(false)
         })
     }
@@ -339,8 +342,8 @@ export const PostsContentPage = () => {
       const data = handlePostsOtherDetails('isLike')
       const res: any = await bschttp.delete(`v0/posts_like/${data[0].id}`)
       if (res.data.code === 1) {
-        setrefreshBy(!refreshBy)
         toastify.success('succeed')
+        setrefreshBy(!refreshBy)
       } else {
         throw res.message || res.data.message
       }
@@ -351,8 +354,8 @@ export const PostsContentPage = () => {
       }
       const res: any = await bschttp.post(`v0/posts_like`, params)
       if (res.data.code === 1) {
-        setrefreshBy(!refreshBy)
         toastify.success('succeed')
+        setrefreshBy(!refreshBy)
       } else {
         throw res.message || res.data.message
       }

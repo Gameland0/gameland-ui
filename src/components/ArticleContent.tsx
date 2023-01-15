@@ -208,31 +208,34 @@ export const ArticleContentPage = () => {
       setPostsItem(Data[0])
       setLending(true)
       if (type === 'Mirror') {
-        const Dom = document.createElement('div')
-        Dom.innerHTML = Data[0]?.context
-        document.getElementById('postsContent')?.appendChild(Dom)
-        const noscript = document.getElementsByTagName('noscript')
-        const imgArr = []
-        for (let i = 0; i < noscript.length; i++) {
-          if (i > 0) {
-            const srt = noscript[i].innerText
-            const src = srt.substring(srt.indexOf('src="'))
-            const regExp = new RegExp('" decoding', 'g')
-            const regExp2 = new RegExp('amp;', 'g')
-            const regExpsrc = src.split('="')[1].replace(regExp, '').replace(regExp2, '').replace(/ /g, '')
-            imgArr.push(regExpsrc)
+        const Content = document.getElementById('postsContent')
+        if (!Content?.innerHTML.length) {
+          const Dom = document.createElement('div')
+          Dom.innerHTML = Data[0]?.context
+          document.getElementById('postsContent')?.appendChild(Dom)
+          const noscript = document.getElementsByTagName('noscript')
+          const imgArr = []
+          for (let i = 0; i < noscript.length; i++) {
+            if (i > 0) {
+              const srt = noscript[i].innerText
+              const src = srt.substring(srt.indexOf('src="'))
+              const regExp = new RegExp('" decoding', 'g')
+              const regExp2 = new RegExp('amp;', 'g')
+              const regExpsrc = src.split('="')[1].replace(regExp, '').replace(regExp2, '').replace(/ /g, '')
+              imgArr.push(regExpsrc)
+            }
           }
-        }
-        const rehypefigure = document.getElementsByClassName('rehype-figure')
-        let imgArrIndex = 0
-        for (let index = 0; index < rehypefigure.length; index++) {
-          const span = rehypefigure[index].getElementsByTagName('span')
-          if (span.length) {
-            const img = span[0].getElementsByTagName('img')[1]
-            const img1 = span[0].getElementsByTagName('img')[0]
-            img.src = 'https://mirror.xyz' + imgArr[imgArrIndex]
-            img1.src = 'https://mirror.xyz' + imgArr[imgArrIndex]
-            imgArrIndex++
+          const rehypefigure = document.getElementsByClassName('rehype-figure')
+          let imgArrIndex = 0
+          for (let index = 0; index < rehypefigure.length; index++) {
+            const span = rehypefigure[index].getElementsByTagName('span')
+            if (span.length) {
+              const img = span[0].getElementsByTagName('img')[1]
+              const img1 = span[0].getElementsByTagName('img')[0]
+              img.src = 'https://mirror.xyz' + imgArr[imgArrIndex]
+              img1.src = 'https://mirror.xyz' + imgArr[imgArrIndex]
+              imgArrIndex++
+            }
           }
         }
         setLending(false)
@@ -240,9 +243,12 @@ export const ArticleContentPage = () => {
         fetch(Data[0]?.link)
           .then((res) => res.json())
           .then((data) => {
-            const Dom = document.createElement('div')
-            Dom.innerHTML = data.content
-            document.getElementById('postsContent')?.appendChild(Dom)
+            const Content = document.getElementById('postsContent')
+            if (!Content?.innerHTML.length) {
+              const Dom = document.createElement('div')
+              Dom.innerHTML = data.content
+              document.getElementById('postsContent')?.appendChild(Dom)
+            }
             setLending(false)
           })
       }

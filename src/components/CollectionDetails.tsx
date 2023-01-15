@@ -245,6 +245,7 @@ const DetailsBox = styled.div`
           border-radius: 10px;
         }
         .forward {
+          position: relative;
           overflow: auto;
           width: 90%;
           height: 120px;
@@ -256,6 +257,16 @@ const DetailsBox = styled.div`
             width: 48px;
             height: 48px;
             border-radius: 24px;
+          }
+          .closeforward {
+            width: 15px;
+            height: 15px;
+            background: #ccc;
+            border-radius: 8px;
+            font-size: 12px;
+            position: absolute;
+            top: 3px;
+            right: 3px;
           }
           .CommentContent {
             font-size: 16px;
@@ -271,8 +282,19 @@ const DetailsBox = styled.div`
           font-size: 12px;
         }
         .CommentNFTBox {
+          position: relative;
           width: 80%;
           margin-top: 12px;
+          .closeCommentNFTBox {
+            width: 15px;
+            height: 15px;
+            background: #ccc;
+            border-radius: 8px;
+            font-size: 12px;
+            position: absolute;
+            top: -12px;
+            left: 106px;
+          }
           img {
             width: 106px;
             height: 106px;
@@ -708,6 +730,8 @@ const CardBox = styled.div<{ isLending?: boolean; have: number }>`
       font-weight: bold;
       color: #333333;
       img {
+        width: 20px;
+        height: 20px;
         margin-left: 8px;
       }
     }
@@ -936,7 +960,7 @@ export const Card: React.FC<CardProps> = ({
       <div className="name Abbreviation Chinese-Bold">{name}</div>
       {isLending ? (
         <div className="info flex flex-v-center flex-h-between">
-          <div className="flex totalPrice Chinese-Bold">
+          <div className="flex totalPrice flex-v-center Chinese-Bold">
             {(days as number) * (price as number)}
             <img
               src={
@@ -1039,7 +1063,7 @@ export const getLabelArr = (item: any) => {
 export const dateConvert = (time: any) => {
   const date = new Date(time)
   const arr = date.toUTCString().split(' ')
-  return `${arr[2]} ${arr[1]}th, ${arr[3]}`
+  return `${arr[2]} ${arr[1]}, ${arr[3]}`
 }
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
@@ -2158,6 +2182,12 @@ export const CollectionDetails = () => {
     setUploadImg(false)
     setrefreshBy(!refreshBy)
   }
+  const closeCommentNFTBox = () => {
+    setCommentNFTItem({})
+  }
+  const closeforward = () => {
+    setForward({})
+  }
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} open={lendvisible} closable={false}>
@@ -2704,6 +2734,9 @@ export const CollectionDetails = () => {
               ></textarea>
               {Object.keys(forward).length ? (
                 <div className="forward">
+                  <div className="closeforward flex flex-center cursor" onClick={closeforward}>
+                    x
+                  </div>
                   <img src={forward.userimage || defaultImg} className="userImage" alt="" /> &nbsp;{forward.username}
                   <div className="CommentContent">{forward.context}</div>
                 </div>
@@ -2712,12 +2745,15 @@ export const CollectionDetails = () => {
               )}
               {Object.keys(commentNFTItem).length ? (
                 <div className="CommentNFTBox">
+                  <div className="closeCommentNFTBox flex flex-center cursor" onClick={closeCommentNFTBox}>
+                    x
+                  </div>
                   <img src={commentNFTItem.imageUrl} />
                   <div className="CommentNFTname">{commentNFTItem.name}</div>
                 </div>
               ) : (
                 <div className="addCommentNFT cursor" onClick={() => setShowMyNFTBox(!showMyNFTBox)}>
-                  inset NFT
+                  Insert NFT
                 </div>
               )}
             </div>

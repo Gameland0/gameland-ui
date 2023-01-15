@@ -11,13 +11,13 @@ import { LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadChangeParam } from 'antd/es/upload'
 import { useActiveWeb3React, useRewardContract } from '../hooks'
 import { fetchReceipt, handleImgError } from '../utils'
-import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
+import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL, MORALIS_KEY } from '../constants'
 import { toastify } from './Toastify'
 import { Dialog } from '../components/Dialog'
 import { NFTStatsMadal } from './NFTStatsMadal'
-import { bschttp, polygonhttp } from './Store'
+import { bschttp, polygonhttp, http } from './Store'
 import { compare } from '../pages/Games'
-import { compareTime } from './CollectionDetails'
+import { CommentNFTButton, compareTime, MyNFTBox, MyNFTCard } from './CollectionDetails'
 import { getTime, getLabelArr } from './CollectionDetails'
 import { handleClick } from './Header'
 import { SendBox } from '../pages/Dashboard'
@@ -111,6 +111,7 @@ const DetailsBox = styled.div`
         }
       }
       .commentaryInput {
+        position: relative;
         width: 94%;
         margin-top: 36px;
         box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -126,22 +127,62 @@ const DetailsBox = styled.div`
           padding-left: 10px;
         }
         .forward {
+          position: relative;
+          overflow: auto;
           width: 90%;
           height: 220px;
           border: 1px solid #e5e5e5;
           border-radius: 10px;
-          margin: 0 0 0 5%;
+          margin: auto;
           padding: 16px;
           .userImage {
             width: 96px;
             height: 96px;
             border-radius: 48px;
           }
+          .closeforward {
+            width: 15px;
+            height: 15px;
+            background: #ccc;
+            border-radius: 8px;
+            font-size: 12px;
+            position: absolute;
+            top: 3px;
+            right: 3px;
+          }
           .CommentContent {
             font-size: 24px;
             font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
             margin-top: 16px;
+          }
+        }
+        .addCommentNFT {
+          position: absolute;
+          top: 6px;
+          right: 12px;
+          font-size: 12px;
+        }
+        .CommentNFTBox {
+          position: relative;
+          width: 80%;
+          margin-top: 12px;
+          .closeCommentNFTBox {
+            width: 15px;
+            height: 15px;
+            background: #ccc;
+            border-radius: 8px;
+            font-size: 12px;
+            position: absolute;
+            top: -12px;
+            left: 106px;
+          }
+          img {
+            width: 106px;
+            height: 106px;
+          }
+          .CommentNFTname {
+            font-size: 14px;
           }
         }
       }
@@ -571,6 +612,21 @@ export const ReviewsDetails = () => {
     if (!account) return
     const Details = await http2.get(`v0/games/${address}`)
     setcollectionDetails(Details?.data.data[0])
+    http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
+    const myNft = http
+      .get(
+        `https://deep-index.moralis.io/api/v2/${account}/nft?chain=${chain}&format=decimal&token_addresses=${address}
+      `
+      )
+      .then((vals) => {
+        console.log(vals.data.result)
+        const data = vals.data.result
+        data.map((item: any) => {
+          item.metadata = JSON.parse(item.metadata)
+          return item
+        })
+        setMyNFTdata(data)
+      })
   }
   const getGames = async () => {
     const bsc = bschttp.get('/v0/games')
@@ -937,6 +993,37 @@ export const ReviewsDetails = () => {
     const val = ele.currentTarget.value
     setusername(val)
   }, [])
+  const handleMyNFTdata = async (item: any) => {
+    const getdata = axios.create({
+      timeout: 10000,
+      headers: {
+        'X-Api-Key': '60aee01eae2f89f6fb4b81177df15c8c'
+      }
+    })
+    try {
+      const { data } = await getdata.get(
+        `https://api.element.market/openapi/v1/asset?chain=${chain}&token_id=${item.token_id}&contract_address=${item.token_address}`
+      )
+      // item.metadata = JSON.parse(data.data.metadata_json)
+      setNFTStatsMadalData(data.data)
+      setNFTStatsMadalType('create')
+      if (data.data.description) {
+        setDescription(data.data.description)
+      } else {
+        setDescription(data.data.collection?.description)
+      }
+      if (data.data.attributes) {
+        setRareAttribute(data.data.attributes)
+      } else {
+        setSpecificAttribute(data.data.properties || [])
+        setRareAttribute(data.data.stats || data.data.levels)
+      }
+      setShowMyNFTModal(true)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   // const handlerewardAddressChange = useCallback((ele) => {
   //   const val = ele.currentTarget.value
   //   setrewardAddress(val)
@@ -1023,10 +1110,6 @@ export const ReviewsDetails = () => {
       transaction.addTag('Content-Type', type)
       await arweave.transactions.sign(transaction, key)
       await arweave.transactions.post(transaction)
-      // const uploader = await arweave.transactions.getUploader(transaction)
-      // while (!uploader.isComplete) {
-      //   await uploader.uploadChunk()
-      // }
       if (transaction) {
         const params = {
           image: `https://arweave.net/${transaction.id}`
@@ -1066,6 +1149,22 @@ export const ReviewsDetails = () => {
       }
     })
   }
+  const commentNFTOKButton = async () => {
+    setShowMyNFTBox(false)
+    setShowMyNFTModal(false)
+    setCommentNFTItem(NFTStatsMadalData)
+  }
+  const changeOne = async () => {
+    setCommentNFTItem([])
+    setShowMyNFTModal(false)
+  }
+  const closeCommentNFTBox = () => {
+    setCommentNFTItem({})
+  }
+  const closeforward = () => {
+    setForward({})
+  }
+
   return (
     <div className="container">
       <NFTStatsMadal
@@ -1075,7 +1174,14 @@ export const ReviewsDetails = () => {
         SpecificAttribute={SpecificAttribute}
         RareAttribute={RareAttribute}
       >
-        <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
+        {NFTStatsMadalType === 'create' ? (
+          <CommentNFTButton className="flex flex-justify-content">
+            <div onClick={changeOne}>change one</div>
+            <div onClick={commentNFTOKButton}>OK</div>
+          </CommentNFTButton>
+        ) : (
+          <Close onClick={() => setShowMyNFTModal(false)}>close</Close>
+        )}
       </NFTStatsMadal>
       <Dialog footer={null} onCancel={closeShowSetUp} open={showSetUp} destroyOnClose closable={false}>
         <SendBox>
@@ -1196,13 +1302,49 @@ export const ReviewsDetails = () => {
               ></textarea>
               {Object.keys(forward).length ? (
                 <div className="forward">
+                  <div className="closeforward flex flex-center cursor" onClick={closeforward}>
+                    x
+                  </div>
                   <img src={forward.useriamge || defaultImg} className="userImage" alt="" /> &nbsp;{forward.username}
                   <div className="CommentContent">{forward.context}</div>
                 </div>
               ) : (
                 ''
               )}
+              {Object.keys(commentNFTItem).length ? (
+                <div className="CommentNFTBox">
+                  <div className="closeCommentNFTBox flex flex-center cursor" onClick={closeCommentNFTBox}>
+                    x
+                  </div>
+                  <img src={commentNFTItem.imageUrl} />
+                  <div className="CommentNFTname">{commentNFTItem.name}</div>
+                </div>
+              ) : (
+                <div className="addCommentNFT cursor" onClick={() => setShowMyNFTBox(!showMyNFTBox)}>
+                  Insert NFT
+                </div>
+              )}
             </div>
+            {showMyNFTBox ? (
+              <MyNFTBox className="flex wrap">
+                {myNFTdata.length
+                  ? myNFTdata.map((item: any, index: any) => (
+                      <MyNFTCard
+                        key={index}
+                        nftId={item.token_id}
+                        onClick={() => handleMyNFTdata(item)}
+                        name={item.metadata?.name}
+                        img={item.metadata?.image || item.metadata?.imageUrl}
+                        contract_type={item.contract_type}
+                        pay_type={item.pay_type}
+                        item={item}
+                      />
+                    ))
+                  : ''}
+              </MyNFTBox>
+            ) : (
+              ''
+            )}
             <div className="button" onClick={() => (!userScoreinfo[0].renew ? setscoreDialog(true) : submit())}>
               submit
             </div>
