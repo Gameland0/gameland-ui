@@ -77,8 +77,6 @@ const CollectionBox = styled.div`
   z-index: 20;
   .collectionItem {
     position: relative;
-    width: 512px;
-    height: 320px;
     box-shadow: 0px 2px 10px 1px rgba(1, 73, 57, 0.24);
     border-radius: 10px;
     margin-bottom: 32px;
@@ -134,7 +132,6 @@ const CollectionBox = styled.div`
     }
     .name {
       height: 38px;
-      margin-top: 32px;
       font-size: 24px;
       font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
@@ -144,7 +141,6 @@ const CollectionBox = styled.div`
       white-space: nowrap;
     }
     .information {
-      margin-top: 32px;
       .commentUser {
         margin-left: 20px;
         img {
@@ -189,6 +185,16 @@ const CollectionBox = styled.div`
 
   @media screen and (min-width: 1920px) {
     width: 100%;
+    .collectionItem {
+      width: 512px;
+      height: 320px;
+      .name {
+        margin-top: 32px;
+      }
+      .information {
+        margin-top: 32px;
+      }
+    }
   }
 `
 const SeeMore = styled.div`
@@ -286,7 +292,7 @@ export const Games = () => {
 
   useEffect(() => {
     setGameList(games.slice(0, gamePage * 6))
-  }, [games, gamePage])
+  }, [games, gamesFilter, gamePage])
   useEffect(() => {
     const filterCollection = () => {
       const arr: any[] = []

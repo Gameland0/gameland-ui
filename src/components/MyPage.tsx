@@ -467,7 +467,6 @@ const PostsBox = styled.div`
 // `
 const CardBox = styled.div`
   position: relative;
-  width: 330px;
   min-height: 396px;
   margin: 0 51px 50px 0;
   background: linear-gradient(225deg, #f1f5f7 0%, #fafbfb 82%, #f2f5f5 100%);
@@ -496,9 +495,13 @@ const CardBox = styled.div`
     padding: 24px;
   }
 
-  @media screen and (max-width: 1440px) {
+  @media screen and (min-width: 1440px) {
     width: 255px;
     margin: 0 20px 20px 0;
+  }
+  @media screen and (min-width: 1920px) {
+    width: 330px;
+    margin: 0 51px 50px 0;
   }
   &:hover {
     transform: translateY(-1%);
@@ -524,7 +527,6 @@ const CardBox = styled.div`
 //   margin-bottom: 0.5rem;
 // `
 const FakeButtons = styled.div`
-  padding: 24px;
   .button {
     width: 110px;
     height: 48px;
@@ -543,8 +545,11 @@ const FakeButtons = styled.div`
   .send {
     background: #41acef;
   }
-  @media screen and (max-width: 1440px) {
-    top: 300px;
+  @media screen and (min-width: 1440px) {
+    padding: 12px;
+  }
+  @media screen and (min-width: 1920px) {
+    padding: 24px;
   }
 `
 export const Close = styled.div`
@@ -576,11 +581,15 @@ const PostsList = styled.div`
     z-index: 200;
     cursor: pointer;
   }
-  .title {
-    width: 500px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  @media screen and (min-width: 1440px) {
+    .poststitle {
+      width: 430px;
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    .poststitle {
+      width: 500px;
+    }
   }
   &:hover {
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -1919,7 +1928,7 @@ export const MyPage = () => {
                       <PostsList key={index}>
                         <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
                         <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
-                          <div className="title">{item.title}</div>
+                          <div className="poststitle Abbreviation">{item.title}</div>
                           <div className="gameName">{item.contractName}</div>
                           <div className="view">
                             {item.view} view · {getTime(item.createdAt)}

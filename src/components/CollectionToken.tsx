@@ -682,7 +682,11 @@ export const CollectionToken = (NFT: any) => {
                   <div className="gameName">{getGameDetails(item.NFTaddress)[0]?.contractName}</div>
                 </div>
                 <div className="RATING text-center">{getGameDetails(item.NFTaddress)[0]?.starRating}</div>
-                <div className="CHAIN text-center">{getGameDetails(item.NFTaddress)[0]?.chain}</div>
+                <div className="CHAIN text-center">
+                  {getGameDetails(item.NFTaddress)[0]?.chain === 'bsc'
+                    ? 'BNB'
+                    : getGameDetails(item.NFTaddress)[0]?.chain}
+                </div>
                 <div className="EARN text-center">
                   {item.symbol.length && item.symbol ? (
                     item.symbol.map((ele: any, i: any) => (

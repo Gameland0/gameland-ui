@@ -256,6 +256,7 @@ const InfoLeft = styled.div`
       width: 40px;
       height: 40px;
       margin: 0 6px;
+      border-radius: 20px;
     }
     .transparency {
       opacity: 0.3;
@@ -577,8 +578,8 @@ const FakeButtons = styled.div`
       color: white;
     }
   }
-  @media screen and (max-width: 1440px) {
-    top: 300px;
+  @media screen and (min-width: 1440px) {
+    padding: 12px;
   }
 `
 export const Close = styled.div`
@@ -610,11 +611,15 @@ const PostsList = styled.div`
     z-index: 200;
     cursor: pointer;
   }
-  .title {
-    width: 500px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  @media screen and (min-width: 1440px) {
+    .poststitle {
+      width: 430px;
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    .poststitle {
+      width: 500px;
+    }
   }
   &:hover {
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
@@ -1998,7 +2003,7 @@ export const UserPage = () => {
                           ''
                         )}
                         <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
-                          <div className="title">{item.title}</div>
+                          <div className="poststitle Abbreviation">{item.title}</div>
                           <div className="gameName">{item.contractName}</div>
                           <div className="view">
                             {item.view} view · {getTime(item.createdAt)}

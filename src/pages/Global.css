@@ -28,6 +28,9 @@
 .flex-j-end {
   justify-content: flex-end;
 }
+.flex-j-start {
+  justify-content: flex-start;
+}
 .flex-column-between{
   justify-content: space-between;
 }

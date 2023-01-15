@@ -229,11 +229,13 @@ const DetailsBox = styled.div`
         }
       }
       .commentaryInput {
+        position: relative;
         width: 94%;
         margin-top: 24px;
         font-size: 18px;
         box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
         border-radius: 10px;
+        padding: 10px;
         textarea {
           width: 100%;
           height: 100px;
@@ -241,14 +243,14 @@ const DetailsBox = styled.div`
           border: 0;
           outline: 0;
           border-radius: 10px;
-          padding-left: 10px;
         }
         .forward {
+          overflow: auto;
           width: 90%;
           height: 120px;
           border: 1px solid #e5e5e5;
           border-radius: 10px;
-          margin: 0 0 0 5%;
+          margin: auto;
           padding: 16px;
           .userImage {
             width: 48px;
@@ -263,11 +265,14 @@ const DetailsBox = styled.div`
           }
         }
         .addCommentNFT {
-          width: 70px;
-          height: 70px;
-          opacity: 0.6;
+          position: absolute;
+          top: 6px;
+          right: 12px;
+          font-size: 12px;
         }
         .CommentNFTBox {
+          width: 80%;
+          margin-top: 12px;
           img {
             width: 106px;
             height: 106px;
@@ -687,7 +692,6 @@ const CardBox = styled.div<{ isLending?: boolean; have: number }>`
   }
   .contractImg {
     width: 85%;
-    height: 85%;
     margin-left: 24px;
     border-radius: 10px;
   }
@@ -708,35 +712,38 @@ const CardBox = styled.div<{ isLending?: boolean; have: number }>`
       }
     }
     .day {
-      margin-left: 8px;
       font-size: 16px;
       color: #999999;
     }
     .Button {
-      width: 110px;
-      height: 48px;
       background: #41acef;
       color: #fff;
       font-size: 16px;
       border-radius: 24px;
       opacity: 0.5;
-      margin-left: 40px;
       &:hover {
         opacity: 1;
       }
     }
   }
-
-  @media screen and (min-width: 1152px) {
-    width: 180px;
-  }
   @media screen and (min-width: 1440px) {
     width: 240px;
     min-height: 360px;
+    .info {
+      padding: 12px;
+    }
+    .Button {
+      width: 80px;
+      height: 35px;
+    }
   }
   @media screen and (min-width: 1920px) {
     width: 300px;
     min-height: 400px;
+    .Button {
+      width: 110px;
+      height: 48px;
+    }
   }
   &:hover {
     transform: translateY(-1%);
@@ -774,10 +781,7 @@ const CardDetails = styled.div`
   }
 `
 const FakeButtons = styled.div`
-  padding: 24px;
   .button {
-    width: 110px;
-    height: 48px;
     border-radius: 24px;
     font-size: 16px;
     cursor: pointer;
@@ -792,6 +796,20 @@ const FakeButtons = styled.div`
   }
   .send {
     background: #41acef;
+  }
+  @media screen and (min-width: 1440px) {
+    padding: 12px;
+    .button {
+      width: 90px;
+      height: 40px;
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    padding: 24px;
+    .button {
+      width: 110px;
+      height: 48px;
+    }
   }
 `
 const NFTname = styled.p`
@@ -908,12 +926,7 @@ export const Card: React.FC<CardProps> = ({
   }
   const src = img?.slice(-4)
   return (
-    <CardBox
-      className="flex flex-column-between flex-column"
-      have={have}
-      isLending={isLending}
-      onClick={isLending ? handleClick : Click}
-    >
+    <CardBox className="flex flex-column" have={have} isLending={isLending} onClick={isLending ? handleClick : Click}>
       <div className="contractType flex flex-center Chinese-Regular">#{contract_type}</div>
       {src === '.mp4' || src === 'webm' ? (
         <video width="238" height="238" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
@@ -922,7 +935,7 @@ export const Card: React.FC<CardProps> = ({
       )}
       <div className="name Abbreviation Chinese-Bold">{name}</div>
       {isLending ? (
-        <div className="info flex flex-v-center">
+        <div className="info flex flex-v-center flex-h-between">
           <div className="flex totalPrice Chinese-Bold">
             {(days as number) * (price as number)}
             <img
@@ -937,7 +950,10 @@ export const Card: React.FC<CardProps> = ({
               }
             />
           </div>
-          <div className="day">{days} days</div>
+          <div className="day flex flex-j-start">
+            <div>{days}</div>&nbsp;
+            <div>days</div>
+          </div>
           <div className="Button flex flex-center Chinese-Regular">Rent</div>
         </div>
       ) : (
@@ -2700,7 +2716,9 @@ export const CollectionDetails = () => {
                   <div className="CommentNFTname">{commentNFTItem.name}</div>
                 </div>
               ) : (
-                <img className="addCommentNFT cursor" src={add} onClick={() => setShowMyNFTBox(!showMyNFTBox)} />
+                <div className="addCommentNFT cursor" onClick={() => setShowMyNFTBox(!showMyNFTBox)}>
+                  inset NFT
+                </div>
               )}
             </div>
             {showMyNFTBox ? (

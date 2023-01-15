@@ -67,54 +67,54 @@ export const Lend = () => {
   const { nfts } = useStore()
   const http2 = ChainHttp(chainId)
 
-  useEffect(() => {
-    const getLendList = async () => {
-      const gamelandNftIdList = await AssetContract?.get_nfts_list()
-      const gamelandNftIdArr = gamelandNftIdList.map((item: any) => {
-        return item._hex
-      })
-      const newArr = gamelandNftIdArr.filter((item: any) => {
-        return item !== '0x00'
-      })
-      if (newArr.length < nfts.length) {
-        nfts.map(async (item: any) => {
-          const index = newArr.indexOf(item.gamelandNftId)
-          if (index < 0) {
-            await http2?.delete(`/v0/opensea/${item.id}`)
-          }
-        })
-      }
-      for (let i = 0; i < newArr.length; i++) {
-        const list = await AssetContract?.get_nfts(newArr[i])
-        for (let j = 0; j < nfts.length; j++) {
-          if (!nfts[j].isBorrowed && list.borrow_status && nfts[j].gamelandNftId === newArr[i]) {
-            const borrow = await AssetContract?.get_borrowInfo(newArr[i])
-            const index = await AssetContract?.get_borrowindex(newArr[i])
-            const borrowAt = Number(borrow.time_now.toString() + '000') + 28800000
-            const params = {
-              isBorrowed: true,
-              borrower: borrow.borrower,
-              borrowAt: new Date(borrowAt).toJSON(),
-              borrowDay: borrow.due_date.toString(),
-              rentIndex: index.toString()
-            }
-            await http2?.put(`/v0/opensea/${newArr[i]}`, params)
-          } else if (nfts[j].isBorrowed && !list.borrow_status && nfts[j].gamelandNftId === newArr[i]) {
-            const params = {
-              borrower: null,
-              borrowAt: null,
-              isBorrowed: false,
-              borrowDay: 0,
-              rentIndex: '',
-              isLending: true
-            }
-            await http2?.put(`/v0/opensea/${newArr[i]}`, params)
-          }
-        }
-      }
-    }
-    getLendList()
-  }, [])
+  // useEffect(() => {
+  //   const getLendList = async () => {
+  //     const gamelandNftIdList = await AssetContract?.get_nfts_list()
+  //     const gamelandNftIdArr = gamelandNftIdList.map((item: any) => {
+  //       return item._hex
+  //     })
+  //     const newArr = gamelandNftIdArr.filter((item: any) => {
+  //       return item !== '0x00'
+  //     })
+  //     if (newArr.length < nfts.length) {
+  //       nfts.map(async (item: any) => {
+  //         const index = newArr.indexOf(item.gamelandNftId)
+  //         if (index < 0) {
+  //           await http2?.delete(`/v0/opensea/${item.id}`)
+  //         }
+  //       })
+  //     }
+  //     for (let i = 0; i < newArr.length; i++) {
+  //       const list = await AssetContract?.get_nfts(newArr[i])
+  //       for (let j = 0; j < nfts.length; j++) {
+  //         if (!nfts[j].isBorrowed && list.borrow_status && nfts[j].gamelandNftId === newArr[i]) {
+  //           const borrow = await AssetContract?.get_borrowInfo(newArr[i])
+  //           const index = await AssetContract?.get_borrowindex(newArr[i])
+  //           const borrowAt = Number(borrow.time_now.toString() + '000') + 28800000
+  //           const params = {
+  //             isBorrowed: true,
+  //             borrower: borrow.borrower,
+  //             borrowAt: new Date(borrowAt).toJSON(),
+  //             borrowDay: borrow.due_date.toString(),
+  //             rentIndex: index.toString()
+  //           }
+  //           await http2?.put(`/v0/opensea/${newArr[i]}`, params)
+  //         } else if (nfts[j].isBorrowed && !list.borrow_status && nfts[j].gamelandNftId === newArr[i]) {
+  //           const params = {
+  //             borrower: null,
+  //             borrowAt: null,
+  //             isBorrowed: false,
+  //             borrowDay: 0,
+  //             rentIndex: '',
+  //             isLending: true
+  //           }
+  //           await http2?.put(`/v0/opensea/${newArr[i]}`, params)
+  //         }
+  //       }
+  //     }
+  //   }
+  //   getLendList()
+  // }, [])
 
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
