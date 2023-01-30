@@ -611,16 +611,6 @@ const PostsList = styled.div`
     z-index: 200;
     cursor: pointer;
   }
-  @media screen and (min-width: 1440px) {
-    .poststitle {
-      width: 430px;
-    }
-  }
-  @media screen and (min-width: 1920px) {
-    .poststitle {
-      width: 500px;
-    }
-  }
   &:hover {
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
     .deleteIcon {
@@ -633,8 +623,8 @@ const PostsItem = styled.div`
   position: relative;
   font-size: 28px;
   height: 80px;
-  .title {
-    width: 460px;
+  .poststitle {
+    width: 60%;
   }
   .gameName {
     position: absolute;
@@ -642,9 +632,6 @@ const PostsItem = styled.div`
     left: 12px;
     font-size: 14px;
     color: #9a9191;
-  }
-  .time {
-    width: 260px;
   }
 `
 const PostsContent = styled.div`
@@ -835,14 +822,15 @@ export const UserPage = () => {
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [deletePostsItem, setDeletePostsItem] = useState({} as any)
+  const [userinfo, setUserinfo] = useState({} as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
-  const [userinfo, setUserinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
   const [postsReplayData, setPostsReplayData] = useState([] as any)
   const [userinfoAll, setuserinfoAll] = useState([] as any)
   const [userPosts, setuserPosts] = useState([] as any)
+  const [mirrorPost, setMirrorPost] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [reviewAllData, setReviewAllData] = useState([] as any)
   const [myReview, setMyRevie] = useState([] as any)
@@ -920,7 +908,9 @@ export const UserPage = () => {
         return ele.createdAt.slice(0, 10)
       })
     const P0stsRewardIntegral = Integral(PostsRewardTimeArr, 5, 5)
-    setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral + PostsIntegral + P0stsRewardIntegral)
+    let mirrorPoints = 0
+    if (userinfo.mirror) mirrorPoints = 20
+    setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral + PostsIntegral + P0stsRewardIntegral + mirrorPoints)
   }, [reviewAllData, rewardinfo, myReview, userPosts])
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
@@ -959,20 +949,36 @@ export const UserPage = () => {
   }
   const getUserInfo = async () => {
     if (!account) return
-    const data = await bschttp.get(`v0/userinfo/${useraddress}`)
-    if (data.data.data.length) {
-      setUserinfo(data.data.data[0])
+    const userdata = await bschttp.get(`v0/userinfo/${useraddress}`)
+    if (userdata.data.data.length) {
+      setUserinfo(userdata.data.data[0])
     } else {
       history.push({
         pathname: `/createUser`
       })
     }
-    bschttp.get(`v0/posts`).then((vals) => {
-      const data = vals.data.data.filter((item: any) => {
-        return item.useraddress === useraddress
+    if (userdata.data.data[0].mirror) {
+      console.log(userdata.data.data[0])
+      const mirrowData = bschttp.get('v0/mirrow_article')
+      const postsdata = bschttp.get(`v0/posts`)
+      Promise.all([mirrowData, postsdata]).then((vals) => {
+        const mirror = vals[0].data.data.filter((item: any) => {
+          return item.owner.toLowerCase() === useraddress.toLowerCase()
+        })
+        const post = vals[1].data.data.filter((item: any) => {
+          return item.useraddress.toLowerCase() === useraddress.toLowerCase()
+        })
+        setMirrorPost(mirror)
+        setuserPosts(post)
       })
-      setuserPosts(data)
-    })
+    } else {
+      bschttp.get(`v0/posts`).then((vals) => {
+        const data = vals.data.data.filter((item: any) => {
+          return item.useraddress.toLowerCase() === useraddress.toLowerCase()
+        })
+        setuserPosts(data)
+      })
+    }
     bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
@@ -1539,15 +1545,21 @@ export const UserPage = () => {
       toastify.error(err)
     }
   }
-  const PostsItemClick = async (item: any) => {
+  const ItemClick = async (item: any) => {
     history.push({
-      pathname: `/PostsContent/${item.useraddress}/${item.id}`
+      pathname: `/Article/${item.type || 'Mirror'}/${item.owner || item.useraddress}/${item.id}`
     })
-    if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (item.owner.toLowerCase() === account?.toLowerCase()) return
     const params = {
       view: item.view + 1
     }
-    const res: any = await bschttp.put(`/v0/posts/${item.id}`, params)
+    if (item.type === 'Mirror') {
+      bschttp.put(`/v0/mirrow_article/${item.id}`, params)
+    } else if (item.type === 'Gameland') {
+      bschttp.put(`/v0/posts/${item.id}`, params)
+    } else {
+      bschttp.put(`/v0/mirrow_article/${item.id}`, params)
+    }
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -1994,19 +2006,19 @@ export const UserPage = () => {
                 </PostsContent>
               ) : (
                 <div>
-                  {userPosts && userPosts.length ? (
-                    userPosts.map((item: any, index: any) => (
+                  {[...userPosts, ...mirrorPost] && [...userPosts, ...mirrorPost].length ? (
+                    [...userPosts, ...mirrorPost].map((item: any, index: any) => (
                       <PostsList key={index}>
                         {useraddress.toLowerCase() === account?.toLowerCase() ? (
                           <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
                         ) : (
                           ''
                         )}
-                        <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
+                        <PostsItem className="flex flex-h-between cursor" onClick={() => ItemClick(item)}>
                           <div className="poststitle Abbreviation">{item.title}</div>
                           <div className="gameName">{item.contractName}</div>
-                          <div className="view">
-                            {item.view} view · {getTime(item.createdAt)}
+                          <div className="frequency">
+                            {item.view || 0} view · from {item.type || 'Mirror'}
                           </div>
                         </PostsItem>
                       </PostsList>

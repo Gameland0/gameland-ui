@@ -62,13 +62,7 @@ export const Expose = () => {
     const userdata = await bschttp.get(`v0/userinfo`)
     setUserInfo(userdata.data.data)
     const mirrowData = (await bschttp.get('v0/mirrow_article')).data.data
-    mirrowData.map((item: any) => {
-      item.type = 'Mirror'
-    })
     const postsdata = (await bschttp.get(`v0/posts`)).data.data
-    postsdata.map((item: any) => {
-      item.type = 'Gameland'
-    })
     const articleData = [...mirrowData, ...postsdata].filter((item) => {
       return item.is_use === 1
     })
@@ -89,6 +83,10 @@ export const Expose = () => {
       return userInfo.filter((ele: any) => {
         return ele.useraddress.toLowerCase() === item.useraddress.toLowerCase()
       })
+    } else {
+      return userInfo.filter((ele: any) => {
+        return ele.useraddress.toLowerCase() === item.owner.toLowerCase()
+      })
     }
   }
   const handleImgError = (e: any) => {
@@ -96,7 +94,7 @@ export const Expose = () => {
   }
   const ItemClick = async (item: any) => {
     history.push({
-      pathname: `/Article/${item.type}/${item.owner || item.useraddress}/${item.id}`
+      pathname: `/Article/${item.type || 'Mirror'}/${item.owner || item.useraddress}/${item.id}`
     })
     if (item.owner.toLowerCase() === account?.toLowerCase()) return
     const params = {
@@ -106,6 +104,8 @@ export const Expose = () => {
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     } else if (item.type === 'Gameland') {
       bschttp.put(`/v0/posts/${item.id}`, params)
+    } else {
+      bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }
   return (
@@ -122,7 +122,7 @@ export const Expose = () => {
                 <div className="title">{item.title}</div>
                 <div className="context line-clamp">{item.context_text}</div>
                 <div className="frequency">
-                  {item.view || 0} view · from {item.type}
+                  {item.view || 0} view · from {item.type || 'Mirror'}
                 </div>
               </ArticleBox>
             ))

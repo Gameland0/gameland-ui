@@ -911,7 +911,9 @@ export const MyPage = () => {
         return ele.createdAt.slice(0, 10)
       })
     const P0stsRewardIntegral = Integral(PostsRewardTimeArr, 5, 5)
-    setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral + PostsIntegral + P0stsRewardIntegral)
+    let mirrorPoints = 0
+    if (userinfo.mirror) mirrorPoints = 20
+    setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral + PostsIntegral + P0stsRewardIntegral + mirrorPoints)
   }, [reviewAllData, rewardinfo, myReview, userPosts])
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
@@ -1452,15 +1454,21 @@ export const MyPage = () => {
       toastify.error(err)
     }
   }
-  const PostsItemClick = async (item: any) => {
+  const ItemClick = async (item: any) => {
     history.push({
-      pathname: `/PostsContent/${item.useraddress}/${item.id}`
+      pathname: `/Article/${item.type || 'Mirror'}/${item.owner || item.useraddress}/${item.id}`
     })
-    if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (item.owner.toLowerCase() === account?.toLowerCase()) return
     const params = {
       view: item.view + 1
     }
-    bschttp.put(`/v0/posts/${item.id}`, params)
+    if (item.type === 'Mirror') {
+      bschttp.put(`/v0/mirrow_article/${item.id}`, params)
+    } else if (item.type === 'Gameland') {
+      bschttp.put(`/v0/posts/${item.id}`, params)
+    } else {
+      bschttp.put(`/v0/mirrow_article/${item.id}`, params)
+    }
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -1927,11 +1935,11 @@ export const MyPage = () => {
                     userPosts.map((item: any, index: any) => (
                       <PostsList key={index}>
                         <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
-                        <PostsItem className="flex flex-h-between cursor" onClick={() => PostsItemClick(item)}>
+                        <PostsItem className="flex flex-h-between cursor" onClick={() => ItemClick(item)}>
                           <div className="poststitle Abbreviation">{item.title}</div>
                           <div className="gameName">{item.contractName}</div>
-                          <div className="view">
-                            {item.view} view · {getTime(item.createdAt)}
+                          <div className="frequency">
+                            {item.view || 0} view · from {item.type || 'Mirror'}
                           </div>
                         </PostsItem>
                       </PostsList>
