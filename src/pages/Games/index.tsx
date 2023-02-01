@@ -389,6 +389,7 @@ export const Games = () => {
       return item.contractName === collection
     })
     setGames(Nfts)
+    setCollectionFilterResult([])
   }
   const link = (item: any) => {
     history.push({

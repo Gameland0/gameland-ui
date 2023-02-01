@@ -81,6 +81,7 @@ import REVO from '../assets/revo.png'
 import WAL from '../assets/wal.png'
 import CAC from '../assets/cac.png'
 import MIT from '../assets/mit.png'
+import moj from '../assets/moj.jpg'
 
 export const SECOND = 1000
 export const MINUTE = 60 * SECOND
@@ -205,7 +206,8 @@ export const BscContract = [
   '0x62b3ffc01c7859cde7d8c60b759bb5821c6145a7',
   '0x4b5c4b2be2fe1656f8efedd27393c61a7357b6e7',
   '0x89c68098af9fd68e0b95e75e96164cd268b70c00',
-  '0xc1ffddb43097f91fb75569f216a8d1db0a9434b7'
+  '0xc1ffddb43097f91fb75569f216a8d1db0a9434b7',
+  '0x5f8e4797b681a20f330a914f946293b726dc7b4f'
 ]
 
 export const GameTokenDetails = [
@@ -1046,6 +1048,12 @@ export const GameTokenDetails = [
     NFTaddress: '0x41f4845d0ed269f6205d4542a5165255a9d6e8cf',
     tokenAddress: [],
     symbol: [],
+    chain: 'polygon'
+  },
+  {
+    NFTaddress: '0x90c45bb702384812825da4971054fdb6836582a0',
+    tokenAddress: ['0x60Eb57d085C59932d5fAa6c6026268A4386927d0'],
+    symbol: [moj],
     chain: 'polygon'
   }
 ]

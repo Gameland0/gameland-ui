@@ -260,6 +260,7 @@ const InfoLeft = styled.div`
     }
     .transparency {
       opacity: 0.3;
+      cursor: not-allowed;
     }
   }
   .settings {
@@ -958,7 +959,6 @@ export const UserPage = () => {
       })
     }
     if (userdata.data.data[0].mirror) {
-      console.log(userdata.data.data[0])
       const mirrowData = bschttp.get('v0/mirrow_article')
       const postsdata = bschttp.get(`v0/posts`)
       Promise.all([mirrowData, postsdata]).then((vals) => {
@@ -1005,6 +1005,7 @@ export const UserPage = () => {
       })
       const findDataPolygon = fetchData(filterDataPolygon, PolygonContract, 'polygon')
       Promise.all([...findDataBsc, ...findDataPolygon]).then((vals) => {
+        console.log(vals)
         setMyNFT(vals)
       })
     })
@@ -1731,7 +1732,11 @@ export const UserPage = () => {
             <a href={userinfo.Telegram} target="_blank" rel="noreferrer">
               <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
             </a>
-            <a href={userinfo.Mirror} target="_blank" rel="noreferrer">
+            <a
+              href={userinfo.mirror === 1 ? `https://mirror.xyz/${userinfo.useraddress}` : userinfo.Mirror}
+              target="_blank"
+              rel="noreferrer"
+            >
               <img src={Mirror} className={userinfo.mirror === 1 ? '' : 'transparency'} />
             </a>
             <a href={userinfo.cyber} target="_blank" rel="noreferrer">

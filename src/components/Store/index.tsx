@@ -31,14 +31,14 @@ export const swrConfig = {
 }
 
 export const http = axios.create({
-  timeout: 10000
+  timeout: 30000
 })
 export const bschttp = axios.create({
-  timeout: 10000,
+  timeout: 30000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://bsc-api.gameland.network' : 'http://localhost:8091'
 })
 export const polygonhttp = axios.create({
-  timeout: 10000,
+  timeout: 30000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089'
 })
 
