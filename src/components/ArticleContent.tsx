@@ -309,7 +309,7 @@ export const ArticleContentPage = () => {
   }
   const sendPostsReplay = async () => {
     if (!replayValue) return
-    if (useraddress.toLowerCase() === account?.toLowerCase()) {
+    if (useraddress?.toLowerCase() === account?.toLowerCase()) {
       if (!replayWho) return
     }
     let text
@@ -374,7 +374,7 @@ export const ArticleContentPage = () => {
     }
   }
   const postsLike = async () => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (useraddress?.toLowerCase() === account?.toLowerCase()) return
     if (handlePostsOtherDetails('isLike').length) {
       const data = handlePostsOtherDetails('isLike')
       const res: any = await bschttp.delete(`v0/posts_like/${data[0].id}`)
@@ -407,7 +407,7 @@ export const ArticleContentPage = () => {
     })
   }
   const postsCollect = async () => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (useraddress?.toLowerCase() === account?.toLowerCase()) return
     if (handlePostsOtherDetails('isCollect').length) {
       const data = handlePostsOtherDetails('isCollect')
       const res: any = await bschttp.delete(`v0/posts_like/${data[0].id}`)
@@ -435,7 +435,7 @@ export const ArticleContentPage = () => {
     setShowPostsReplayWindow(!showPostsReplayWindow)
   }
   const showPostsRewarDialog = () => {
-    if (useraddress.toLowerCase() === account?.toLowerCase()) return
+    if (useraddress?.toLowerCase() === account?.toLowerCase()) return
     setshowreward(true)
     setRewarType('PostsRewar')
     setrewardItem(postsItem)

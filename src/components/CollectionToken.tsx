@@ -673,67 +673,69 @@ export const CollectionToken = (NFT: any) => {
         <div>NFT</div>
         <div>PLAYER</div>
       </BoxTap>
-      {TokenData.length && TokenData
-        ? TokenData.map((item: any, index: any) => (
-            <div key={index}>
-              <TokenDetails className="flex flex-v-center cursor">
-                <div className="NAME flex flex-v-center">
-                  <img src={getGameDetails(item.NFTaddress)[0]?.image} />
-                  <div className="gameName">{getGameDetails(item.NFTaddress)[0]?.contractName}</div>
-                </div>
-                <div className="RATING text-center">{getGameDetails(item.NFTaddress)[0]?.starRating}</div>
-                <div className="CHAIN text-center">
-                  {getGameDetails(item.NFTaddress)[0]?.chain === 'bsc'
-                    ? 'BNB'
-                    : getGameDetails(item.NFTaddress)[0]?.chain}
-                </div>
-                <div className="EARN text-center">
-                  {item.symbol.length && item.symbol ? (
-                    item.symbol.map((ele: any, i: any) => (
-                      <div className="token" key={i}>
-                        {item.token[i] ? item.token[i] : 0} <img src={ele} />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="token">
-                      {item.token[0]} <img src={defaultImg} />
+      {TokenData.length && TokenData ? (
+        TokenData.map((item: any, index: any) => (
+          <div key={index}>
+            <TokenDetails className="flex flex-v-center cursor">
+              <div className="NAME flex flex-v-center">
+                <img src={getGameDetails(item.NFTaddress)[0]?.image} />
+                <div className="gameName">{getGameDetails(item.NFTaddress)[0]?.contractName}</div>
+              </div>
+              <div className="RATING text-center">{getGameDetails(item.NFTaddress)[0]?.starRating}</div>
+              <div className="CHAIN text-center">
+                {getGameDetails(item.NFTaddress)[0]?.chain === 'bsc'
+                  ? 'BNB'
+                  : getGameDetails(item.NFTaddress)[0]?.chain}
+              </div>
+              <div className="EARN text-center">
+                {item.symbol.length && item.symbol ? (
+                  item.symbol.map((ele: any, i: any) => (
+                    <div className="token" key={i}>
+                      {item.token[i] ? item.token[i] : 0} <img src={ele} />
                     </div>
-                  )}
-                </div>
-                <div className="NFT text-center" onClick={() => showBSCNFTBox(index, item.NFTaddress)}>
-                  {filterNft(item.NFTaddress).length}
-                </div>
-                <div className="PLAYER flex flex-justify-content" onClick={() => toRelationChart(item)}>
-                  <img src={avatar1} />
-                  <img className="avatar2" src={avatar2} />
-                  ...
-                </div>
-              </TokenDetails>
-              {showNFTBox === index ? (
-                <NFTBox className="flex wrap">
-                  {filterNft(item.NFTaddress).length && filterNft(item.NFTaddress)
-                    ? filterNft(item.NFTaddress).map((item: any, index: any) => (
-                        <Card
-                          key={index}
-                          nftId={item.token_id}
-                          onLend={() => lendNftClick(item)}
-                          onSend={() => handleSendNft(item)}
-                          name={item.metadata?.name}
-                          img={item.metadata?.image}
-                          contract_type={item.contract_type ? item.contract_type : item.standard}
-                          pay_type={item.pay_type}
-                          account={account}
-                          useraddress={NFT.user}
-                        />
-                      ))
-                    : ''}
-                </NFTBox>
-              ) : (
-                ''
-              )}
-            </div>
-          ))
-        : ''}
+                  ))
+                ) : (
+                  <div className="token">
+                    {item.token[0]} <img src={defaultImg} />
+                  </div>
+                )}
+              </div>
+              <div className="NFT text-center" onClick={() => showBSCNFTBox(index, item.NFTaddress)}>
+                {filterNft(item.NFTaddress).length}
+              </div>
+              <div className="PLAYER flex flex-justify-content" onClick={() => toRelationChart(item)}>
+                <img src={avatar1} />
+                <img className="avatar2" src={avatar2} />
+                ...
+              </div>
+            </TokenDetails>
+            {showNFTBox === index ? (
+              <NFTBox className="flex wrap">
+                {filterNft(item.NFTaddress).length && filterNft(item.NFTaddress)
+                  ? filterNft(item.NFTaddress).map((item: any, index: any) => (
+                      <Card
+                        key={index}
+                        nftId={item.token_id}
+                        onLend={() => lendNftClick(item)}
+                        onSend={() => handleSendNft(item)}
+                        name={item.metadata?.name}
+                        img={item.metadata?.image}
+                        contract_type={item.contract_type ? item.contract_type : item.standard}
+                        pay_type={item.pay_type}
+                        account={account}
+                        useraddress={NFT.user}
+                      />
+                    ))
+                  : ''}
+              </NFTBox>
+            ) : (
+              ''
+            )}
+          </div>
+        ))
+      ) : (
+        <div>No content yet</div>
+      )}
     </TokenBox>
   )
 }

@@ -1949,7 +1949,11 @@ export const MyPage = () => {
                   {[...userPosts, ...mirrorPost] && [...userPosts, ...mirrorPost].length ? (
                     [...userPosts, ...mirrorPost].map((item: any, index: any) => (
                       <PostsList key={index}>
-                        <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
+                        {item.type === 'Gameland' ? (
+                          <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
+                        ) : (
+                          ''
+                        )}
                         <PostsItem className="flex flex-h-between cursor" onClick={() => ItemClick(item)}>
                           <div className="poststitle Abbreviation">{item.title}</div>
                           <div className="gameName">{item.contractName}</div>
@@ -1960,7 +1964,7 @@ export const MyPage = () => {
                       </PostsList>
                     ))
                   ) : (
-                    <div>no content yet</div>
+                    <div>No content yet</div>
                   )}
                   <div className="WriteButton text-center" onClick={toWritePosts}>
                     Write
