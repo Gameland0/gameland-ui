@@ -241,6 +241,7 @@ const InfoLeft = styled.div`
     }
     .transparency {
       opacity: 0.3;
+      cursor: not-allowed;
     }
   }
   .settings {
@@ -849,6 +850,7 @@ export const MyPage = () => {
   const [myNFT, setMyNFT] = useState([] as any)
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
+  const [mirrorPost, setMirrorPost] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [showTabs, setShowTabs] = useState('Posts')
@@ -960,12 +962,17 @@ export const MyPage = () => {
         pathname: `/createUser`
       })
     }
-    bschttp.get(`v0/posts`).then((vals) => {
-      const data = vals.data.data.filter((item: any) => {
-        return item.useraddress === account
+    if (data.data.data[0].mirror) {
+      bschttp.get(`v0/mirrow_article/user/${account}`).then((vals) => setMirrorPost(vals.data.data))
+      bschttp.get(`v0/posts/user/${account}`).then((vals) => setuserPosts(vals.data.data))
+    } else {
+      bschttp.get(`v0/posts`).then((vals) => {
+        const data = vals.data.data.filter((item: any) => {
+          return item.useraddress.toLowerCase() === account.toLowerCase()
+        })
+        setuserPosts(data)
       })
-      setuserPosts(data)
-    })
+    }
     bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
@@ -1655,7 +1662,11 @@ export const MyPage = () => {
           <div className="userName text-center">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
           <div className="socialize flex flex-justify-content">
-            <a href={userinfo.Twitter} target="_blank" rel="noreferrer">
+            <a
+              href={userinfo.Twitter ? `https://twitter.com/${userinfo.Twitter}` : userinfo.Twitter}
+              target="_blank"
+              rel="noreferrer"
+            >
               <img src={twitter} className={userinfo.Twitter ? '' : 'transparency'} />
             </a>
             <a href={userinfo.Discord} target="_blank" rel="noreferrer">
@@ -1664,7 +1675,11 @@ export const MyPage = () => {
             <a href={userinfo.Telegram} target="_blank" rel="noreferrer">
               <img src={Telegram} className={userinfo.Telegram ? '' : 'transparency'} />
             </a>
-            <a href={userinfo.Mirror} target="_blank" rel="noreferrer">
+            <a
+              href={userinfo.mirror === 1 ? `https://mirror.xyz/${userinfo.useraddress}` : userinfo.Mirror}
+              target="_blank"
+              rel="noreferrer"
+            >
               <img src={Mirror} className={userinfo.mirror === 1 ? '' : 'transparency'} />
             </a>
             <a href={userinfo.cyber} target="_blank" rel="noreferrer">
@@ -1931,8 +1946,8 @@ export const MyPage = () => {
                 </PostsContent>
               ) : (
                 <div>
-                  {userPosts && userPosts.length ? (
-                    userPosts.map((item: any, index: any) => (
+                  {[...userPosts, ...mirrorPost] && [...userPosts, ...mirrorPost].length ? (
+                    [...userPosts, ...mirrorPost].map((item: any, index: any) => (
                       <PostsList key={index}>
                         <img className="deleteIcon" src={deleteIcon} onClick={() => ShowDeletePostsDialog(item)} />
                         <PostsItem className="flex flex-h-between cursor" onClick={() => ItemClick(item)}>

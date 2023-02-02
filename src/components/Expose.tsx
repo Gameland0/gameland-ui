@@ -53,17 +53,31 @@ export const ArticleBox = styled.div`
     margin: 24px 0;
   }
 `
+const SeeMore = styled.div`
+  width: 120px;
+  height: 40px;
+  border: 1px solid #35caa9;
+  border-radius: 10px;
+  color: #35caa9;
+  cursor: pointer;
+  margin: auto;
+`
 export const Expose = () => {
   const { account } = useActiveWeb3React()
+  const [mirrorPage, setMirrorPage] = useState(1)
   const [ArticleAll, setArticleAll] = useState([] as any)
   const [userInfo, setUserInfo] = useState([] as any)
   const history = useHistory()
   const getData = async () => {
     const userdata = await bschttp.get(`v0/userinfo`)
     setUserInfo(userdata.data.data)
-    const mirrowData = (await bschttp.get('v0/mirrow_article')).data.data
+    const param = {
+      page: 1,
+      pagesize: 8
+    }
+    const mirrorData = (await bschttp.post('v0/mirrow_article/paging', param)).data.data
     const postsdata = (await bschttp.get(`v0/posts`)).data.data
-    const articleData = [...mirrowData, ...postsdata].filter((item) => {
+    const articleData = [...mirrorData, ...postsdata].filter((item) => {
       return item.is_use === 1
     })
     const arr = articleData.sort(() => {
@@ -108,6 +122,17 @@ export const Expose = () => {
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }
+  const seeMore = async () => {
+    const param = {
+      page: mirrorPage + 1,
+      pagesize: 8
+    }
+    const mirrorData = (await bschttp.post('v0/mirrow_article/paging', param)).data.data
+    const articleData = mirrorData.filter((item: any) => {
+      return item.is_use === 1
+    })
+    setArticleAll([...ArticleAll, ...articleData])
+  }
   return (
     <div className="container">
       <ExposeBox>
@@ -127,6 +152,13 @@ export const Expose = () => {
               </ArticleBox>
             ))
           : ''}
+        {ArticleAll && ArticleAll.length ? (
+          <SeeMore className="flex flex-center" onClick={seeMore}>
+            See More
+          </SeeMore>
+        ) : (
+          ''
+        )}
       </ExposeBox>
     </div>
   )

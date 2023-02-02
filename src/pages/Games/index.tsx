@@ -302,6 +302,7 @@ export const Games = () => {
             arr.push(item)
           } else {
             setCollectionFilterResult([])
+            setrefreshBy(!refreshBy)
           }
         }
       })

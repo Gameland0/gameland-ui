@@ -959,18 +959,8 @@ export const UserPage = () => {
       })
     }
     if (userdata.data.data[0].mirror) {
-      const mirrowData = bschttp.get('v0/mirrow_article')
-      const postsdata = bschttp.get(`v0/posts`)
-      Promise.all([mirrowData, postsdata]).then((vals) => {
-        const mirror = vals[0].data.data.filter((item: any) => {
-          return item.owner.toLowerCase() === useraddress.toLowerCase()
-        })
-        const post = vals[1].data.data.filter((item: any) => {
-          return item.useraddress.toLowerCase() === useraddress.toLowerCase()
-        })
-        setMirrorPost(mirror)
-        setuserPosts(post)
-      })
+      bschttp.get(`v0/mirrow_article/user/${useraddress}`).then((vals) => setMirrorPost(vals.data.data))
+      bschttp.get(`v0/posts/user/${useraddress}`).then((vals) => setuserPosts(vals.data.data))
     } else {
       bschttp.get(`v0/posts`).then((vals) => {
         const data = vals.data.data.filter((item: any) => {
@@ -1723,7 +1713,11 @@ export const UserPage = () => {
           <div className="userName text-center">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
           <div className="socialize flex flex-justify-content">
-            <a href={userinfo.Twitter} target="_blank" rel="noreferrer">
+            <a
+              href={userinfo.Twitter ? `https://twitter.com/${userinfo.Twitter}` : userinfo.Twitter}
+              target="_blank"
+              rel="noreferrer"
+            >
               <img src={twitter} className={userinfo.Twitter ? '' : 'transparency'} />
             </a>
             <a href={userinfo.Discord} target="_blank" rel="noreferrer">
