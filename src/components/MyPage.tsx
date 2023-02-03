@@ -1465,15 +1465,17 @@ export const MyPage = () => {
     history.push({
       pathname: `/Article/${item.type || 'Mirror'}/${item.owner || item.useraddress}/${item.id}`
     })
-    if (item.owner.toLowerCase() === account?.toLowerCase()) return
     const params = {
       view: item.view + 1
     }
     if (item.type === 'Mirror') {
+      if (item.owner.toLowerCase() === account?.toLowerCase()) return
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     } else if (item.type === 'Gameland') {
+      if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
       bschttp.put(`/v0/posts/${item.id}`, params)
     } else {
+      if (item.owner.toLowerCase() === account?.toLowerCase()) return
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }

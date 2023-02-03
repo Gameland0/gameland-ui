@@ -1545,10 +1545,13 @@ export const UserPage = () => {
       view: item.view + 1
     }
     if (item.type === 'Mirror') {
+      if (item.owner.toLowerCase() === account?.toLowerCase()) return
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     } else if (item.type === 'Gameland') {
+      if (item.useraddress.toLowerCase() === account?.toLowerCase()) return
       bschttp.put(`/v0/posts/${item.id}`, params)
     } else {
+      if (item.owner.toLowerCase() === account?.toLowerCase()) return
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }

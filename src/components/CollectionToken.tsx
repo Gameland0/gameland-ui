@@ -41,6 +41,11 @@ const TokenBox = styled.div`
   width: 100%;
   height: 440px;
   overflow-y: auto;
+  .Nocontent {
+    font-size: 20px;
+    margin-top: 48px;
+    color: #a29c9c;
+  }
 `
 const BoxTap = styled.div`
   div {
@@ -734,7 +739,7 @@ export const CollectionToken = (NFT: any) => {
           </div>
         ))
       ) : (
-        <div>No content yet</div>
+        <div className="Nocontent text-center">No content yet</div>
       )}
     </TokenBox>
   )

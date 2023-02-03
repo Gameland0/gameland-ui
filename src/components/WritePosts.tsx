@@ -130,6 +130,7 @@ const Editor = styled.div`
   border-radius: 20px;
   padding: 32px;
   .ce-block__content {
+    max-width: 100%;
     margin: 0;
   }
   .ce-toolbar__content {
@@ -274,12 +275,20 @@ export const WritePosts = () => {
     })
   }
   const PostButtonClick = async () => {
+    if (inputValue.length < 10) {
+      toastify.error('Title length must be 10 or more')
+      return
+    }
+    if (lending) return
+    const cdxbutton = document.getElementsByClassName('cdx-button')
+    for (let i = 0; i < cdxbutton.length; i++) {
+      cdxbutton[i].innerHTML = ''
+    }
     const domcontent = document.getElementsByClassName('codex-editor__redactor')[0]?.innerHTML
     if ((domcontent?.length as number) < 46) {
       toastify.error('Content length must be 30 or more')
       return
     }
-    if (lending) return
     setLending(true)
     const datas = {
       title: inputValue,
@@ -329,10 +338,6 @@ export const WritePosts = () => {
       toastify.error('upload failed')
     }
   }
-  // const PostButtonClick = () => {
-  //   const value = document.getElementsByClassName('codex-editor__redactor')[0]?.innerHTML
-  //   console.log(value)
-  // }
   const TitleInputChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setInputValue(val)
