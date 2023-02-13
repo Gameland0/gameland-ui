@@ -24,6 +24,7 @@ import { PostsContentPage } from '../components/PostsContent'
 import { ArticleContentPage } from '../components/ArticleContent'
 import { RelationChart } from '../components/RelationChart'
 import { Expose } from '../components/Expose'
+import { Circle } from '../components/Circle'
 
 const browserHistory = createBrowserHistory()
 const Wrap = styled.div`
@@ -89,6 +90,7 @@ function App() {
             <Route exact path="/dashboard" component={MyPage} />
             <Route exact path="/" component={Games} />
             <Route exact path="/expose" component={Expose} />
+            <Route exact path="/circle" component={Circle} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
             <Route exact path="/user/:username" component={UserPage} />

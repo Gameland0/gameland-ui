@@ -243,6 +243,9 @@ export const Header = () => {
               <Link to="/expose">
                 <span>Expose</span>
               </Link>
+              <Link to="/circle">
+                <span>Circle</span>
+              </Link>
               <Link to="/dashboard">
                 <span>Dashboard</span>
               </Link>
@@ -271,27 +274,6 @@ export const Header = () => {
           <UnorderedListOutlined onClick={() => setVisible(true)} style={{ fontSize: '1.5rem' }} />
         )}
       </div>
-
-      {/* <MobileDrawer placement="right" width="75%" onClose={() => setVisible(false)} visible={visible}>
-        <p>
-          <MobileNav onClick={() => setVisible(false)} exact to="/">
-            <span>Rent</span>
-          </MobileNav>
-        </p>
-        <p>
-          <MobileNav onClick={() => setVisible(false)} to="/lend">
-            <span>Lend</span>
-          </MobileNav>
-        </p>
-        <p>
-          <MobileNav onClick={() => setVisible(false)} to="/dashboard">
-            <span>Dashboard</span>
-          </MobileNav>
-        </p>
-        <p>
-          <AccountBar key="accountbar" />
-        </p>
-      </MobileDrawer> */}
     </HeaderBox>
   )
 }

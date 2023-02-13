@@ -235,7 +235,7 @@ const LoadFailed = styled.div``
 
 const findAddressIndex = (arr: any, address: string) => {
   return arr.findIndex((item: any) => {
-    return item.toLowerCase() === address.toLowerCase()
+    return item?.toLowerCase() === address?.toLowerCase()
   })
 }
 export const fetchData = (data: any[], chain: string) => {
@@ -311,7 +311,7 @@ export const RelationChart = () => {
     setOldOwners(oldOwnersData)
     const addressArr: any[] = []
     oldOwnersData.data.data.map((item: any) => {
-      if (item.owner_now.toLowerCase() === useraddress?.toLowerCase()) {
+      if (item.owner_now?.toLowerCase() === useraddress?.toLowerCase()) {
         addressArr.push(filterAddress(item.fromadd))
         addressArr.push(filterAddress(item.toadd))
       }
@@ -319,7 +319,7 @@ export const RelationChart = () => {
     const data: any[] = []
     Array.from(new Set(addressArr)).map((item: any, index: number) => {
       const object = {
-        symbolSize: item.toLowerCase() === account?.toLowerCase() ? 90 : 65,
+        symbolSize: item?.toLowerCase() === account?.toLowerCase() ? 90 : 65,
         name: formatting(item as string),
         itemStyle: {
           color: colorTable[index]
@@ -329,7 +329,7 @@ export const RelationChart = () => {
     })
     const linkData: any[] = []
     oldOwnersData.data.data.map((item: any) => {
-      if (item.owner_now.toLowerCase() === useraddress?.toLowerCase()) {
+      if (item.owner_now?.toLowerCase() === useraddress?.toLowerCase()) {
         const object = {
           source: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.fromadd)),
           target: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.toadd)),
@@ -473,10 +473,10 @@ export const RelationChart = () => {
     Promise.all([BscNft, polygonNft])
       .then((vals) => {
         const filterDataPolygon = vals[1].data.result.filter((item: any) => {
-          return PolygonContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+          return PolygonContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
         })
         const filterDataBsc = vals[0].data.result.filter((item: any) => {
-          return BscContract.findIndex((ele: any) => ele.toLowerCase() === item.token_address.toLowerCase()) >= 0
+          return BscContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
         })
         const findDataBsc = fetchData(filterDataBsc, 'bsc')
         const findDataPolygon = fetchData(filterDataPolygon, 'polygon')
@@ -515,8 +515,8 @@ export const RelationChart = () => {
   const getFollowState = (address: string) => {
     const data = followeDataAll.filter((item: any) => {
       return (
-        item.useraddress.toLowerCase() === account?.toLowerCase() &&
-        item.followeUserAddress.toLowerCase() === address.toLowerCase()
+        item.useraddress?.toLowerCase() === account?.toLowerCase() &&
+        item.followeUserAddress?.toLowerCase() === address?.toLowerCase()
       )
     })
     if (data.length && data) {
@@ -554,7 +554,7 @@ export const RelationChart = () => {
   }
   const getMyArticle = (address: string) => {
     const data = PostsData.filter((item: any) => {
-      return item.useraddress.toLowerCase() === address.toLowerCase()
+      return item.useraddress?.toLowerCase() === address?.toLowerCase()
     })
     if (data.length && data) {
       setMyposts(data.slice(0, postsPage * 2))
@@ -564,7 +564,7 @@ export const RelationChart = () => {
   }
   const getMyReview = (address: string) => {
     const data = ReviewData.filter((item: any) => {
-      return item.useraddress.toLowerCase() === address.toLowerCase()
+      return item.useraddress?.toLowerCase() === address?.toLowerCase()
     })
     if (data.length && data) {
       setMyreview(data.slice(0, reviewPage * 2))
@@ -623,7 +623,7 @@ export const RelationChart = () => {
   const echartsDataClick = (params: any) => {
     if (userinfo) {
       const Item = userinfo.filter((item: any) => {
-        return formatting(item.useraddress).toLowerCase() === params.name.toLowerCase()
+        return formatting(item.useraddress)?.toLowerCase() === params.name?.toLowerCase()
       })
       if (Item.length && Item) {
         getNftData(Item[0].useraddress)
@@ -633,7 +633,7 @@ export const RelationChart = () => {
         getFollowe('myFollowe', Item[0]?.useraddress)
         getFollowe('FolloweMy', Item[0]?.useraddress)
         setUserInfoItem(Item[0])
-        if (Item[0].useraddress.toLowerCase() === account?.toLowerCase()) return
+        if (Item[0].useraddress?.toLowerCase() === account?.toLowerCase()) return
         setShowUserInfo(true)
       }
     }

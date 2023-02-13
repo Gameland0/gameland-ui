@@ -2825,7 +2825,7 @@ export const CollectionDetails = () => {
                       <div className="repost">
                         <img
                           src={repost}
-                          className={item.useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                          className={item.useraddress?.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
                           onClick={() => commentsForward(item)}
                         />
                         <div className="quantity">{item.forwards || 0}</div>
@@ -2837,7 +2837,7 @@ export const CollectionDetails = () => {
                       <div className="like">
                         <img
                           src={isLike(item.id) ? liketrue : likefalse}
-                          className={item.useraddress.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
+                          className={item.useraddress?.toLowerCase() === account?.toLowerCase() ? '' : 'cursor'}
                           onClick={() => likeClick(item)}
                         />
                         <div className="quantity">{item.likes || 0}</div>
