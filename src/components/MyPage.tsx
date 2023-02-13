@@ -5,9 +5,9 @@ import styled from 'styled-components'
 import { Tabs } from 'antd'
 import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
-import { useParams } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
+import * as echarts from 'echarts'
 import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
 import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
@@ -16,7 +16,6 @@ import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
-// import { Img } from './Img'
 import { Dialog } from './Dialog'
 import { CollectionToken } from './CollectionToken'
 import { Modal } from './Modal'
@@ -47,6 +46,7 @@ import lens from '../assets/lens.jpeg'
 import rss3 from '../assets/rss3.png'
 import galxe from '../assets/galxe.png'
 import deleteIcon from '../assets/delete.png'
+import analysis from '../assets/Analysis.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -114,25 +114,6 @@ export const Card: React.FC<CardProps> = ({
     </CardBox>
   )
 }
-// interface LabelProps {
-//   name: string
-//   nftId: string
-//   type: any
-// }
-// const Labels: React.FC<LabelProps> = ({ name, type, nftId }) => {
-//   return (
-//     <div style={{ overflow: 'hidden', height: 90 }}>
-//       <NFTname>{name}</NFTname>
-//       <NftId>{nftId}</NftId>
-//       <Standard>{type}</Standard>
-//     </div>
-//   )
-// }
-// interface FolloweProps {
-//   Followeitem: any
-//   onFollowe: () => void
-//   onUnFollowe: () => void
-// }
 const UserBox = styled.div`
   .replyWindow {
     font-size: 24px;
@@ -313,6 +294,10 @@ const InfoRight = styled.div`
       text-align: right;
       padding: 13px 16px;
       cursor: pointer;
+      img {
+        width: 24px;
+        height: 24px;
+      }
       span {
         background: #a8e5fb;
         border-radius: 12px;
@@ -452,20 +437,28 @@ const PostsBox = styled.div`
     }
   }
 `
-// const NFTsBox = styled.div`
-//   position: relative;
-//   div:nth-child(3n) {
-//     margin: 0 0 40px 0;
-//   }
-// `
-// const CardDetails = styled.div`
-//   position: relative;
-//   margin-top: 1rem;
-//   padding: 0 1rem 8px;
-//   p {
-//     margin-bottom: 0.3rem;
-//   }
-// `
+export const AnalysisBox = styled.div`
+  .pie {
+    width: 500px;
+    height: 400px;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  #Activity {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  #Tokens {
+    margin: 20px 0;
+  }
+  #Preferred {
+    margin: 20px 0;
+  }
+`
 const CardBox = styled.div`
   position: relative;
   min-height: 396px;
@@ -509,24 +502,6 @@ const CardBox = styled.div`
     box-shadow: 0px 4px 10px 1px rgba(0, 0, 0, 0.1);
   }
 `
-// const NFTname = styled.p`
-//   display: block;
-//   width: 120px;
-//   white-space: nowrap;
-//   overflow: hidden;
-//   text-overflow: ellipsis;
-// `
-// const NftId = styled.div`
-//   width: 120px;
-//   white-space: nowrap;
-//   overflow: hidden;
-//   text-overflow: ellipsis;
-// `
-// const Standard = styled.div`
-//   color: #d0d0d0;
-//   font-size: 14px;
-//   margin-bottom: 0.5rem;
-// `
 const FakeButtons = styled.div`
   .button {
     width: 110px;
@@ -831,7 +806,6 @@ export const MyPage = () => {
   const [showPostsReplayWindow, setShowPostsReplayWindow] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showDeletePosts, setShowDeletePosts] = useState(false)
-  const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
@@ -851,6 +825,7 @@ export const MyPage = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [mirrorPost, setMirrorPost] = useState([] as any)
+  const [PieChartData, setPieChartData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [showTabs, setShowTabs] = useState('Posts')
@@ -879,7 +854,8 @@ export const MyPage = () => {
     getUserInfo()
     getNftData()
     getReviewData()
-  }, [account, username, refreshBy])
+    getPieChartData()
+  }, [account, refreshBy])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
       .filter((item: any) => {
@@ -917,6 +893,11 @@ export const MyPage = () => {
     if (userinfo.mirror) mirrorPoints = 20
     setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral + PostsIntegral + P0stsRewardIntegral + mirrorPoints)
   }, [reviewAllData, rewardinfo, myReview, userPosts])
+  useEffect(() => {
+    if (showTabs === 'Analysis') {
+      componentDidMount()
+    }
+  }, [PieChartData, showTabs])
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -951,6 +932,14 @@ export const MyPage = () => {
       }
       return item
     })
+  }
+  const getPieChartData = () => {
+    // const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
+    http
+      .get(`https://api.rss3.io/v1/notes/${account}?limit=500&include_poap=false&count_only=false&query_status=false`)
+      .then((vals) => {
+        setPieChartData(vals.data.result)
+      })
   }
   const getUserInfo = async () => {
     if (!account) return
@@ -1479,6 +1468,238 @@ export const MyPage = () => {
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }
+  const componentDidMount = () => {
+    if (PieChartData && PieChartData.length) {
+      const chainarr: any[] = []
+      const collationarr: any[] = []
+      const timearr: any[] = []
+      const tagarr: any[] = []
+      const Tokensarr: any[] = []
+      PieChartData?.map((item: any) => {
+        chainarr.push(item.network)
+        tagarr.push(item.tag)
+        if (item.tag === 'collectible' && item.actions[0].metadata.collection)
+          collationarr.push(item.actions[0].metadata.collection)
+        if (item.tag === 'exchange') {
+          // console.log(item.actions)
+          item.actions.map((ele: any) => {
+            if (ele.address_from?.toLowerCase() === account?.toLowerCase()) {
+              if (ele.type === 'swap') {
+                Tokensarr.push(ele.metadata.from.symbol·······)
+                Tokensarr.push(ele.metadata.to.symbol)
+              } else {
+                Tokensarr.push(ele.metadata.symbol)
+              }
+            }
+          })
+        }
+        timearr.push(item.timestamp.substr(0, 10))
+      })
+      const chainarrDeduplication = [...new Set(chainarr)]
+      const Chainsoptionsdata: any[] = []
+      chainarrDeduplication.map((item) => {
+        const quantity = chainarr.filter((ele) => {
+          return ele === item
+        })
+        Chainsoptionsdata.push({ value: quantity.length, name: item })
+      })
+      const collationarrDeduplication = [...new Set(collationarr)]
+      const Collationoptionsdata: any[] = []
+      collationarrDeduplication.map((item) => {
+        Collationoptionsdata.push({ value: 1, name: item })
+      })
+      const tagarrDeduplication = [...new Set(tagarr)]
+      const timearrDeduplication = [...new Set(timearr)].slice(0, 15)
+      const Activityoptionsseries: any[] = []
+      const xAxisdata: any[] = []
+      timearrDeduplication.map((item) => {
+        xAxisdata.push(item.substr(5, 5))
+      })
+      const Preferredoptionsdata: any[] = []
+      tagarrDeduplication.map((item) => {
+        const quantity = PieChartData.filter((ele: any) => {
+          return ele.tag === item
+        })
+        Preferredoptionsdata.push({ value: quantity.length, name: item })
+      })
+      chainarrDeduplication.map((item) => {
+        const seriesdata: any[] = []
+        timearrDeduplication.map((ele) => {
+          const filtertime = PieChartData.filter((data: any) => {
+            return data.timestamp.indexOf(ele) !== -1
+          })
+          const filtertag = filtertime.filter((data: any) => {
+            return data.network === item
+          })
+          seriesdata.push(filtertag.length)
+        })
+        Activityoptionsseries.push({
+          name: item,
+          type: 'line',
+          data: seriesdata
+        })
+      })
+      const TokensarrDeduplication = [...new Set(Tokensarr)]
+      const Tokensoptionsdata: any[] = []
+      TokensarrDeduplication.map((item) => {
+        Tokensoptionsdata.push({ value: 1, name: item })
+      })
+      const Collationoptions = {
+        title: {
+          text: 'Cellations',
+          left: 'center'
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item' as any
+        },
+        series: [
+          {
+            name: 'Access From',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            data: Collationoptionsdata,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      }
+      const Chainsoptions = {
+        title: {
+          text: 'Chains',
+          left: 'center'
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item' as any
+        },
+        series: [
+          {
+            name: 'Access From',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            data: Chainsoptionsdata,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      }
+      const Preferredoptions = {
+        title: {
+          text: 'Preferred Domains',
+          left: 'center'
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item' as any
+        },
+        series: [
+          {
+            name: 'Access From',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            data: Preferredoptionsdata,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      }
+      const Tokensoptions = {
+        title: {
+          text: 'Tokens',
+          left: 'center'
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item' as any
+        },
+        series: [
+          {
+            name: 'Access From',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            data: Tokensoptionsdata,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      }
+      const Activityoptions = {
+        title: {
+          text: 'Activity'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: chainarrDeduplication
+        },
+        xAxis: {
+          data: xAxisdata
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: Activityoptionsseries
+      }
+      const Collationdom = document.getElementById('Collation') as HTMLDivElement
+      const CollationChart = echarts.init(Collationdom)
+      CollationChart.setOption(Collationoptions)
+      const Chainsdom = document.getElementById('Chains') as HTMLDivElement
+      const ChainsChart = echarts.init(Chainsdom)
+      ChainsChart.setOption(Chainsoptions)
+      const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
+      const TokensChart = echarts.init(Tokensdom)
+      TokensChart.setOption(Tokensoptions)
+      const Preferreddom = document.getElementById('Preferred') as HTMLDivElement
+      const PreferredChart = echarts.init(Preferreddom)
+      PreferredChart.setOption(Preferredoptions)
+      const Activitydom = document.getElementById('Activity') as HTMLDivElement
+      const ActivityChart = echarts.init(Activitydom)
+      ActivityChart.setOption(Activityoptions)
+    }
+  }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setrewardQuantity(val)
@@ -1729,6 +1950,10 @@ export const MyPage = () => {
         <div className="boxDivider"></div>
         <InfoRight>
           <div className="Tabs flex">
+            <div className={showTabs === 'Analysis' ? 'blueBg' : ''} onClick={() => cutoverTabs('Analysis')}>
+              <img src={analysis} alt="analysis" />
+              &nbsp;&nbsp;Analysis
+            </div>
             <div className={showTabs === 'Posts' ? 'blueBg' : ''} onClick={() => cutoverTabs('Posts')}>
               <img src={tabsIconPosts} />
               &nbsp;&nbsp;Posts
@@ -1974,6 +2199,21 @@ export const MyPage = () => {
                 </div>
               )}
             </PostsBox>
+          ) : (
+            ''
+          )}
+          {showTabs === 'Analysis' && PieChartData.length ? (
+            <AnalysisBox>
+              <div className="flex flex-column-between">
+                <div id="Chains" className="pie"></div>
+                <div id="Collation" className="pie"></div>
+              </div>
+              <div className="flex flex-column-between">
+                <div id="Tokens" className="pie"></div>
+                <div id="Preferred" className="pie"></div>
+              </div>
+              <div id="Activity"></div>
+            </AnalysisBox>
           ) : (
             ''
           )}
