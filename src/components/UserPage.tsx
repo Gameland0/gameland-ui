@@ -958,7 +958,8 @@ export const UserPage = () => {
         pathname: `/createUser`
       })
     }
-    if (userdata.data.data[0].mirror) {
+    if (userdata.data.data[0].mirror === 1) {
+      console.log(userdata.data.data[0].mirror)
       bschttp.get(`v0/mirrow_article/user/${useraddress}`).then((vals) => setMirrorPost(vals.data.data))
       bschttp.get(`v0/posts/user/${useraddress}`).then((vals) => setuserPosts(vals.data.data))
     } else {
@@ -966,6 +967,7 @@ export const UserPage = () => {
         const data = vals.data.data.filter((item: any) => {
           return item.useraddress.toLowerCase() === useraddress.toLowerCase()
         })
+        console.log(data)
         setuserPosts(data)
       })
     }
@@ -995,7 +997,6 @@ export const UserPage = () => {
       })
       const findDataPolygon = fetchData(filterDataPolygon, PolygonContract, 'polygon')
       Promise.all([...findDataBsc, ...findDataPolygon]).then((vals) => {
-        console.log(vals)
         setMyNFT(vals)
       })
     })

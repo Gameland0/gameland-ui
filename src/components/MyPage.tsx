@@ -962,7 +962,7 @@ export const MyPage = () => {
         pathname: `/createUser`
       })
     }
-    if (data.data.data[0].mirror) {
+    if (data.data.data[0].mirror === 1) {
       bschttp.get(`v0/mirrow_article/user/${account}`).then((vals) => setMirrorPost(vals.data.data))
       bschttp.get(`v0/posts/user/${account}`).then((vals) => setuserPosts(vals.data.data))
     } else {

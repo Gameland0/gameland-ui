@@ -235,7 +235,7 @@ const LoadFailed = styled.div``
 
 const findAddressIndex = (arr: any, address: string) => {
   return arr.findIndex((item: any) => {
-    return item.toLowerCase() === address.toLowerCase()
+    return item?.toLowerCase() === address?.toLowerCase()
   })
 }
 export const fetchData = (data: any[], chain: string) => {
@@ -311,7 +311,7 @@ export const RelationChart = () => {
     setOldOwners(oldOwnersData)
     const addressArr: any[] = []
     oldOwnersData.data.data.map((item: any) => {
-      if (item.owner_now.toLowerCase() === useraddress?.toLowerCase()) {
+      if (item.owner_now?.toLowerCase() === useraddress?.toLowerCase()) {
         addressArr.push(filterAddress(item.fromadd))
         addressArr.push(filterAddress(item.toadd))
       }
@@ -319,7 +319,7 @@ export const RelationChart = () => {
     const data: any[] = []
     Array.from(new Set(addressArr)).map((item: any, index: number) => {
       const object = {
-        symbolSize: item.toLowerCase() === account?.toLowerCase() ? 90 : 65,
+        symbolSize: item?.toLowerCase() === account?.toLowerCase() ? 90 : 65,
         name: formatting(item as string),
         itemStyle: {
           color: colorTable[index]
@@ -329,7 +329,7 @@ export const RelationChart = () => {
     })
     const linkData: any[] = []
     oldOwnersData.data.data.map((item: any) => {
-      if (item.owner_now.toLowerCase() === useraddress?.toLowerCase()) {
+      if (item.owner_now?.toLowerCase() === useraddress?.toLowerCase()) {
         const object = {
           source: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.fromadd)),
           target: findAddressIndex(Array.from(new Set(addressArr)), filterAddress(item.toadd)),
@@ -436,117 +436,6 @@ export const RelationChart = () => {
         },
         data: optionData,
         links: optionLink,
-        // data: [
-        //   {
-        //     name: formatting(account as string),
-        //     symbolSize: 90,
-        //     itemStyle: {
-        //       color: colorTable[0]
-        //     }
-        //   },
-        //   {
-        //     name: '0x17...7cc3',
-        //     symbolSize: 65,
-        //     itemStyle: {
-        //       color: colorTable[1]
-        //     }
-        //   },
-        //   {
-        //     name: '0x17...ccd3',
-        //     symbolSize: 65
-        //   },
-        //   {
-        //     name: '0x17...7cdc',
-        //     symbolSize: 65
-        //   },
-        //   {
-        //     name: '0x27...d6ab',
-        //     symbolSize: 65
-        //   },
-        //   {
-        //     name: '0x27...8a76',
-        //     symbolSize: 65
-        //   },
-        //   {
-        //     name: '0x27...992d',
-        //     symbolSize: 65
-        //   },
-        //   {
-        //     name: '0x27...629a',
-        //     symbolSize: 65
-        //   },
-        //   {
-        //     name: '0x27...aar5',
-        //     symbolSize: 65
-        //   }
-        // ],
-        // links: [
-        //   {
-        //     source: 0,
-        //     target: 1,
-        //     value: 'send #591987',
-        //     lineStyle: {
-        //       color: colorTable[0]
-        //     }
-        //   },
-        //   {
-        //     source: 0,
-        //     target: 2,
-        //     value: 'send #591987',
-        //     lineStyle: {
-        //       color: colorTable[0]
-        //     }
-        //   },
-        //   {
-        //     source: 0,
-        //     target: 3,
-        //     value: 'send #591987',
-        //     lineStyle: {
-        //       color: colorTable[0]
-        //     }
-        //   },
-        //   {
-        //     source: 0,
-        //     target: 4,
-        //     value: 'send #591987',
-        //     lineStyle: {
-        //       color: colorTable[0]
-        //     }
-        //   },
-        //   {
-        //     source: 1,
-        //     target: 5,
-        //     value: 'send #591987',
-        //     lineStyle: {
-        //       color: colorTable[1]
-        //     }
-        //   },
-        //   {
-        //     source: 6,
-        //     target: 0,
-        //     value: 'send #591987'
-        //   },
-        //   {
-        //     source: 7,
-        //     target: 6,
-        //     value: 'send #591987'
-        //   },
-        //   {
-        //     source: 2,
-        //     target: 8,
-        //     value: 'send #591987'
-        //   },
-        //   {
-        //     source: 5,
-        //     target: 6,
-        //     value: 'send #591987'
-        //   },
-        //   {
-        //     source: 8,
-        //     target: 7,
-        //     value: 'send #591987'
-        //   }
-        // ],
         lineStyle: {
           normal: {
             opacity: 1,
@@ -622,29 +511,12 @@ export const RelationChart = () => {
         setLending(false)
         setFailed(true)
       })
-    // const getdata = axios.create({
-    //   timeout: 10000,
-    //   headers: {
-    //     'X-Api-Key': OPENSEA_API_KEY
-    //   }
-    // })
-    // const filterData = [...filterDataBsc, ...filterDataPolygon].filter((item: any) => {
-    //   return item.token_address.toLowerCase() === contractAddress.toLowerCase()
-    // })
-    // let tokenids = `https://api.opensea.io/v2/orders/matic/seaport/listings?asset_contract_address=${contractAddress}`
-    // filterData.map((item: any) => {
-    //   tokenids = tokenids + `&token_ids=${item.token_id}`
-    // })
-    // if (filterData.length) {
-    //   const orderData = await getdata.get(tokenids)
-    //   setOrderData(orderData.data.orders)
-    // }
   }
   const getFollowState = (address: string) => {
     const data = followeDataAll.filter((item: any) => {
       return (
-        item.useraddress.toLowerCase() === account?.toLowerCase() &&
-        item.followeUserAddress.toLowerCase() === address.toLowerCase()
+        item.useraddress?.toLowerCase() === account?.toLowerCase() &&
+        item.followeUserAddress?.toLowerCase() === address?.toLowerCase()
       )
     })
     if (data.length && data) {
@@ -657,8 +529,8 @@ export const RelationChart = () => {
     if (!followeDataAll || !followeDataAll.length) return 0
     const data = followeDataAll.filter((item: any) => {
       return (
-        item.useraddress.toLowerCase() === account?.toLowerCase() &&
-        item.followeUserAddress.toLowerCase() === UserInfoItem?.useraddress.toLowerCase()
+        item.useraddress?.toLowerCase() === account?.toLowerCase() &&
+        item.followeUserAddress?.toLowerCase() === UserInfoItem?.useraddress.toLowerCase()
       )
     })
     if (!data.length) return 0
@@ -667,14 +539,14 @@ export const RelationChart = () => {
   const getFollowe = (type: string, address: string) => {
     if (type === 'myFollowe') {
       const data = followeDataAll.filter((item: any) => {
-        return item.useraddress.toLowerCase() === address?.toLowerCase()
+        return item.useraddress?.toLowerCase() === address?.toLowerCase()
       })
       setmyFollowe(data.length)
       return data.length
     }
     if (type === 'FolloweMy') {
       const data = followeDataAll.filter((item: any) => {
-        return item.followeUserAddress.toLowerCase() === address?.toLowerCase()
+        return item.followeUserAddress?.toLowerCase() === address?.toLowerCase()
       })
       setFolloweMy(data.length)
       return data.length
@@ -682,7 +554,7 @@ export const RelationChart = () => {
   }
   const getMyArticle = (address: string) => {
     const data = PostsData.filter((item: any) => {
-      return item.useraddress.toLowerCase() === address.toLowerCase()
+      return item.useraddress?.toLowerCase() === address?.toLowerCase()
     })
     if (data.length && data) {
       setMyposts(data.slice(0, postsPage * 2))
@@ -692,7 +564,7 @@ export const RelationChart = () => {
   }
   const getMyReview = (address: string) => {
     const data = ReviewData.filter((item: any) => {
-      return item.useraddress.toLowerCase() === address.toLowerCase()
+      return item.useraddress?.toLowerCase() === address?.toLowerCase()
     })
     if (data.length && data) {
       setMyreview(data.slice(0, reviewPage * 2))
@@ -751,7 +623,7 @@ export const RelationChart = () => {
   const echartsDataClick = (params: any) => {
     if (userinfo) {
       const Item = userinfo.filter((item: any) => {
-        return formatting(item.useraddress).toLowerCase() === params.name.toLowerCase()
+        return formatting(item.useraddress)?.toLowerCase() === params.name?.toLowerCase()
       })
       if (Item.length && Item) {
         getNftData(Item[0].useraddress)
@@ -761,7 +633,7 @@ export const RelationChart = () => {
         getFollowe('myFollowe', Item[0]?.useraddress)
         getFollowe('FolloweMy', Item[0]?.useraddress)
         setUserInfoItem(Item[0])
-        if (Item[0].useraddress.toLowerCase() === account?.toLowerCase()) return
+        if (Item[0].useraddress?.toLowerCase() === account?.toLowerCase()) return
         setShowUserInfo(true)
       }
     }
