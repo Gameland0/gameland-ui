@@ -74,7 +74,7 @@ const OrderList = styled.div`
     }
   }
 `
-const UserInfoBox = styled.div`
+export const UserInfoBox = styled.div`
   min-height: 400px;
   font-size: 16px;
   .userImg {
@@ -163,7 +163,7 @@ const UserInfoBox = styled.div`
     color: #208ddf;
   }
 `
-const Comments = styled.div`
+export const Comments = styled.div`
   position: relative;
   border-radius: 8px;
   border: 1px solid #e5e5e5;
@@ -199,7 +199,7 @@ const Comments = styled.div`
     }
   }
 `
-const Article = styled.div`
+export const Article = styled.div`
   padding: 20px 10px;
   position: relative;
   font-size: 20px;
@@ -215,7 +215,7 @@ const Article = styled.div`
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
   }
 `
-const Box = styled.div`
+export const Box = styled.div`
   height: 50px;
   div {
     margin: 0 6px;
@@ -226,12 +226,12 @@ const Box = styled.div`
     border-radius: 10px;
   }
 `
-const Line = styled.div`
+export const Line = styled.div`
   div {
     flex: 1;
   }
 `
-const LoadFailed = styled.div``
+export const LoadFailed = styled.div``
 
 const findAddressIndex = (arr: any, address: string) => {
   return arr.findIndex((item: any) => {

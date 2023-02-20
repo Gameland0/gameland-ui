@@ -1656,7 +1656,7 @@ export const UserPage = () => {
       })
       const Collationoptions = {
         title: {
-          text: 'Cellations',
+          text: 'Collections',
           left: 'center'
         },
         tooltip: {

@@ -439,8 +439,6 @@ const PostsBox = styled.div`
 `
 export const AnalysisBox = styled.div`
   .pie {
-    width: 500px;
-    height: 400px;
     border: 1px solid #e5e5e5;
     border-radius: 10px;
     padding: 10px;
@@ -457,6 +455,18 @@ export const AnalysisBox = styled.div`
   }
   #Preferred {
     margin: 20px 0;
+  }
+  @media screen and (min-width: 1440px) {
+    .pie {
+      width: 400px;
+      height: 350px;
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    .pie {
+      width: 500px;
+      height: 400px;
+    }
   }
 `
 const CardBox = styled.div`
@@ -1546,7 +1556,7 @@ export const MyPage = () => {
       })
       const Collationoptions = {
         title: {
-          text: 'Cellations',
+          text: 'Collections',
           left: 'center'
         },
         tooltip: {
