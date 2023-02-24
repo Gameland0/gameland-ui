@@ -23,7 +23,7 @@ import { Dialog } from './Dialog'
 import { CollectionToken } from './CollectionToken'
 import { Modal } from './Modal'
 import { NFTStatsMadal } from './NFTStatsMadal'
-import { AnalysisBox } from './MyPage'
+import { AnalysisBox, PieOption } from './MyPage'
 import defaultImg from '../assets/default.png'
 import tabsIconNFT from '../assets/icon_NFT.svg'
 import tabsIconComment from '../assets/icon_comment.svg'
@@ -848,6 +848,7 @@ export const UserPage = () => {
   const [PieChartData, setPieChartData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
+  const [activityTab, setActivityTab] = useState('Chains')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
   const [rewardQuantity, setrewardQuantity] = useState('')
@@ -926,7 +927,7 @@ export const UserPage = () => {
     if (showTabs === 'Analysis') {
       componentDidMount()
     }
-  }, [PieChartData, showTabs])
+  }, [PieChartData, showTabs, activityTab])
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -1649,131 +1650,29 @@ export const UserPage = () => {
           data: seriesdata
         })
       })
+      const collationActivity = [] as any
+      collationarrDeduplication.map((item: any) => {
+        const seriesdata = [] as any
+        timearrDeduplication.map((ele) => {
+          const filtertime = PieChartData.filter((data: any) => {
+            return data.timestamp.indexOf(ele) !== -1
+          })
+          const filtercollation = filtertime.filter((data: any) => {
+            return data.actions[0].metadata.collection === item
+          })
+          seriesdata.push(filtercollation.length)
+        })
+        collationActivity.push({
+          name: item,
+          type: 'line',
+          data: seriesdata
+        })
+      })
       const TokensarrDeduplication = [...new Set(Tokensarr)]
       const Tokensoptionsdata: any[] = []
       TokensarrDeduplication.map((item) => {
         Tokensoptionsdata.push({ value: 1, name: item })
       })
-      const Collationoptions = {
-        title: {
-          text: 'Collections',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: Collationoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
-      const Chainsoptions = {
-        title: {
-          text: 'Chains',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: Chainsoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
-      const Preferredoptions = {
-        title: {
-          text: 'Preferred Domains',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: Preferredoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
-      const Tokensoptions = {
-        title: {
-          text: 'Tokens',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: Tokensoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
       const Activityoptions = {
         title: {
           text: 'Activity'
@@ -1792,21 +1691,46 @@ export const UserPage = () => {
         },
         series: Activityoptionsseries
       }
+      const collationActivityoption = {
+        title: {
+          text: ''
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: collationarrDeduplication
+        },
+        xAxis: {
+          data: xAxisdata
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: collationActivity
+      }
       const Collationdom = document.getElementById('Collation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(Collationoptions)
+      CollationChart.setOption(PieOption('Collections', Collationoptionsdata))
       const Chainsdom = document.getElementById('Chains') as HTMLDivElement
       const ChainsChart = echarts.init(Chainsdom)
-      ChainsChart.setOption(Chainsoptions)
+      ChainsChart.setOption(PieOption('Chains', Chainsoptionsdata))
       const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
       const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(Tokensoptions)
+      TokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
       const Preferreddom = document.getElementById('Preferred') as HTMLDivElement
       const PreferredChart = echarts.init(Preferreddom)
-      PreferredChart.setOption(Preferredoptions)
-      const Activitydom = document.getElementById('Activity') as HTMLDivElement
-      const ActivityChart = echarts.init(Activitydom)
-      ActivityChart.setOption(Activityoptions)
+      PreferredChart.setOption(PieOption('Preferred Domains', Preferredoptionsdata))
+      if (activityTab === 'Chains') {
+        const Activitydom = document.getElementById('Activity') as HTMLDivElement
+        const ActivityChart = echarts.init(Activitydom)
+        ActivityChart.setOption(Activityoptions)
+      }
+      if (activityTab === 'Collections') {
+        const collationActivitydom = document.getElementById('collationActivity') as HTMLDivElement
+        const collationActivityChart = echarts.init(collationActivitydom)
+        collationActivityChart.setOption(collationActivityoption)
+      }
     }
   }
   const handlerewardQuantityChange = useCallback((ele) => {
@@ -2309,7 +2233,24 @@ export const UserPage = () => {
                 <div id="Tokens" className="pie"></div>
                 <div id="Preferred" className="pie"></div>
               </div>
-              <div id="Activity"></div>
+              <div className="Activity">
+                <div className="tab flex">
+                  <div className={activityTab === 'Chains' ? 'select' : ''} onClick={() => setActivityTab('Chains')}>
+                    Chains
+                  </div>
+                  <div
+                    className={activityTab === 'Collections' ? 'select' : ''}
+                    onClick={() => setActivityTab('Collections')}
+                  >
+                    Collections
+                  </div>
+                </div>
+                {activityTab === 'Chains' ? (
+                  <div id="Activity" className="lineChart"></div>
+                ) : (
+                  <div id="collationActivity" className="lineChart"></div>
+                )}
+              </div>
             </AnalysisBox>
           ) : (
             ''

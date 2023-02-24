@@ -82,6 +82,18 @@ import WAL from '../assets/wal.png'
 import CAC from '../assets/cac.png'
 import MIT from '../assets/mit.png'
 import moj from '../assets/moj.jpg'
+import AVG from '../assets/AVG.png'
+import BPT from '../assets/bpt.webp'
+import GF from '../assets/GF.png'
+import GGG from '../assets/GGG.png'
+import GUILD from '../assets/GUILD.png'
+import INDI from '../assets/INDI.webp'
+import MC from '../assets/mc.png'
+import PATH from '../assets/PATH.webp'
+import PERC from '../assets/PERC.png'
+import PIF from '../assets/PIF.png'
+import UNIX from '../assets/UNIX.png'
+import YGG from '../assets/ygg.png'
 
 export const SECOND = 1000
 export const MINUTE = 60 * SECOND
@@ -210,6 +222,12 @@ export const BscContract = [
   '0x5f8e4797b681a20f330a914f946293b726dc7b4f'
 ]
 
+export const ETHSCANKEY = '5BCXEYI6ATAC8W93PHXY8UR598YSGNBWCT'
+export const ETHControlContractAddress = '0xe44458cb3082370dda4c041b5abd97e0d49c8ab6'
+export const ETHAssetContractAddress = '0x217c9b5f41207255fa557825dd7f4b8c5063583d'
+export const ETHRewardAddress = '0x5c93a2C51CCE092676a91E197a37D7e10589a59C'
+export const USDT = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+export const tsetUSDT = '0xEc33FFA4cd1B8e681841BC3f7254321f59b76063'
 export const GameTokenDetails = [
   {
     NFTaddress: '0x24fADCEfd2117719C4078C08b352b22C74542418',
@@ -1055,5 +1073,80 @@ export const GameTokenDetails = [
     tokenAddress: ['0x60Eb57d085C59932d5fAa6c6026268A4386927d0'],
     symbol: [moj],
     chain: 'polygon'
+  }
+]
+
+export const GameGuild = [
+  {
+    name: 'Merit Circle',
+    tokenAddress: '0x949d48eca67b17269629c7194f4b727d4ef9e5d6',
+    chain: 'ETH',
+    icon: MC
+  },
+  {
+    name: 'Yield Guild Games',
+    tokenAddress: '0x25f8087ead173b73d6e8b84329989a8eea16cf73',
+    chain: 'ETH',
+    icon: YGG
+  },
+  {
+    name: 'GuildFi',
+    tokenAddress: '0xaaef88cea01475125522e117bfe45cf32044e238',
+    chain: 'ETH',
+    icon: GF
+  },
+  {
+    name: 'Blackpool',
+    tokenAddress: '0x0ec9f76202a7061eb9b3a7d6b59d36215a7e37da',
+    chain: 'ETH',
+    icon: BPT
+  },
+  {
+    name: 'PathDAO',
+    tokenAddress: '0x2a2550e0a75acec6d811ae3930732f7f3ad67588',
+    chain: 'ETH',
+    icon: PATH
+  },
+  {
+    name: 'Perion',
+    tokenAddress: '0x60be1e1fe41c1370adaf5d8e66f07cf1c2df2268',
+    chain: 'ETH',
+    icon: PERC
+  },
+  {
+    name: 'Blockchain Space',
+    tokenAddress: '0x83e9f223e1edb3486f876ee888d76bfba26c475a',
+    chain: 'ETH',
+    icon: GUILD
+  },
+  {
+    name: 'UniX Gaming',
+    tokenAddress: '0xddd6a0ecc3c6f6c102e5ea3d8af7b801d1a77ac8',
+    chain: 'ETH',
+    icon: UNIX
+  },
+  {
+    name: 'Avocado DAO',
+    tokenAddress: '0xa41f142b6eb2b164f8164cae0716892ce02f311f',
+    chain: 'ETH',
+    icon: AVG
+  },
+  {
+    name: 'Play It Forward DAO',
+    tokenAddress: '0xb30f5d11b94efbbfdeaa4de38edffceec0be6513',
+    chain: 'ETH',
+    icon: PIF
+  },
+  // {
+  //   name: 'IndiGG',
+  //   tokenAddress: '0x3392d8a60b77f8d3eaa4fb58f09d835bd31add29',
+  //   chain: 'ETH',
+  //   icon: INDI
+  // },
+  {
+    name: 'Good Games Guild',
+    tokenAddress: '0xd8047afecb86e44eff3add991b9f063ed4ca716b',
+    chain: 'BNB',
+    icon: GGG
   }
 ]

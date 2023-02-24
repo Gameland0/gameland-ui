@@ -9,7 +9,15 @@ import { useHistory } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
 import * as echarts from 'echarts'
 import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
-import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
+import {
+  MORALIS_KEY,
+  BscContract,
+  PolygonContract,
+  BSCSCAN_KEY,
+  POLYGONSCAN_KEY,
+  GameGuild,
+  ETHSCANKEY
+} from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt, handleImgError } from '../utils'
 import { getTime } from './CollectionDetails'
@@ -442,19 +450,28 @@ export const AnalysisBox = styled.div`
     border: 1px solid #e5e5e5;
     border-radius: 10px;
     padding: 10px;
+    margin-bottom: 20px;
   }
-  #Activity {
+  .Activity {
     width: 100%;
-    height: 400px;
+    height: 500px;
     border: 1px solid #e5e5e5;
     border-radius: 10px;
     padding: 10px;
-  }
-  #Tokens {
-    margin: 20px 0;
-  }
-  #Preferred {
-    margin: 20px 0;
+    margin-bottom: 20px;
+    .lineChart {
+      width: 100%;
+      height: 400px;
+    }
+    .tab {
+      div {
+        cursor: pointer;
+        margin-right: 16px;
+      }
+    }
+    .select {
+      border-bottom: 2px solid #41acef;
+    }
   }
   @media screen and (min-width: 1440px) {
     .pie {
@@ -805,6 +822,39 @@ export const fetchAbi = async (address: string, chain: any) => {
     return []
   }
 }
+export const PieOption = (title: string, data: any) => {
+  return {
+    title: {
+      text: title,
+      left: 'center'
+    },
+    tooltip: {
+      show: true,
+      trigger: 'item' as any
+    },
+    series: [
+      {
+        name: 'Access From',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        data: data,
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  }
+}
 export const MyPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const [refreshBy, setrefreshBy] = useState(false)
@@ -838,6 +888,7 @@ export const MyPage = () => {
   const [PieChartData, setPieChartData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
+  const [activityTab, setActivityTab] = useState('Chains')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
   const [rewardQuantity, setrewardQuantity] = useState('')
@@ -907,7 +958,7 @@ export const MyPage = () => {
     if (showTabs === 'Analysis') {
       componentDidMount()
     }
-  }, [PieChartData, showTabs])
+  }, [PieChartData, showTabs, activityTab])
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -942,6 +993,19 @@ export const MyPage = () => {
       }
       return item
     })
+  }
+  const getETHToken = async () => {
+    const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
+    const ETHData = await fetch(
+      `https://api.etherscan.io/api?module=account&action=balance&address=${aa}&apikey=${ETHSCANKEY}`,
+      {
+        method: 'GET',
+        mode: 'cors'
+      }
+    )
+    const ETHJosn = await ETHData.json()
+    console.log(ETHJosn)
+    // return ETHJosn.result
   }
   const getPieChartData = () => {
     // const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
@@ -1513,7 +1577,7 @@ export const MyPage = () => {
         })
         Chainsoptionsdata.push({ value: quantity.length, name: item })
       })
-      const collationarrDeduplication = [...new Set(collationarr)]
+      const collationarrDeduplication = [...new Set(collationarr)].slice(0, 10)
       const Collationoptionsdata: any[] = []
       collationarrDeduplication.map((item) => {
         Collationoptionsdata.push({ value: 1, name: item })
@@ -1549,135 +1613,32 @@ export const MyPage = () => {
           data: seriesdata
         })
       })
+      const collationActivity = [] as any
+      collationarrDeduplication.map((item: any) => {
+        const seriesdata = [] as any
+        timearrDeduplication.map((ele) => {
+          const filtertime = PieChartData.filter((data: any) => {
+            return data.timestamp.indexOf(ele) !== -1
+          })
+          const filtercollation = filtertime.filter((data: any) => {
+            return data.actions[0].metadata.collection === item
+          })
+          seriesdata.push(filtercollation.length)
+        })
+        collationActivity.push({
+          name: item,
+          type: 'line',
+          data: seriesdata
+        })
+      })
       const TokensarrDeduplication = [...new Set(Tokensarr)]
       const Tokensoptionsdata: any[] = []
       TokensarrDeduplication.map((item) => {
         Tokensoptionsdata.push({ value: 1, name: item })
       })
-      const Collationoptions = {
-        title: {
-          text: 'Collections',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            avoidLabelOverlap: false,
-            data: Collationoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
-      const Chainsoptions = {
-        title: {
-          text: 'Chains',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: Chainsoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
-      const Preferredoptions = {
-        title: {
-          text: 'Preferred Domains',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: Preferredoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
-      const Tokensoptions = {
-        title: {
-          text: 'Tokens',
-          left: 'center'
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item' as any
-        },
-        series: [
-          {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            data: Tokensoptionsdata,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#fff',
-              borderWidth: 2
-            },
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
-            }
-          }
-        ]
-      }
       const Activityoptions = {
         title: {
-          text: 'Activity'
+          text: ''
         },
         tooltip: {
           trigger: 'axis' as any
@@ -1693,21 +1654,46 @@ export const MyPage = () => {
         },
         series: Activityoptionsseries
       }
+      const collationActivityoption = {
+        title: {
+          text: ''
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: collationarrDeduplication
+        },
+        xAxis: {
+          data: xAxisdata
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: collationActivity
+      }
       const Collationdom = document.getElementById('Collation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(Collationoptions)
+      CollationChart.setOption(PieOption('Collections', Collationoptionsdata))
       const Chainsdom = document.getElementById('Chains') as HTMLDivElement
       const ChainsChart = echarts.init(Chainsdom)
-      ChainsChart.setOption(Chainsoptions)
+      ChainsChart.setOption(PieOption('Chains', Chainsoptionsdata))
       const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
       const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(Tokensoptions)
+      TokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
       const Preferreddom = document.getElementById('Preferred') as HTMLDivElement
       const PreferredChart = echarts.init(Preferreddom)
-      PreferredChart.setOption(Preferredoptions)
-      const Activitydom = document.getElementById('Activity') as HTMLDivElement
-      const ActivityChart = echarts.init(Activitydom)
-      ActivityChart.setOption(Activityoptions)
+      PreferredChart.setOption(PieOption('Preferred Domains', Preferredoptionsdata))
+      if (activityTab === 'Chains') {
+        const Activitydom = document.getElementById('Activity') as HTMLDivElement
+        const ActivityChart = echarts.init(Activitydom)
+        ActivityChart.setOption(Activityoptions)
+      }
+      if (activityTab === 'Collections') {
+        const collationActivitydom = document.getElementById('collationActivity') as HTMLDivElement
+        const collationActivityChart = echarts.init(collationActivitydom)
+        collationActivityChart.setOption(collationActivityoption)
+      }
     }
   }
   const handlerewardQuantityChange = useCallback((ele) => {
@@ -2222,7 +2208,25 @@ export const MyPage = () => {
                 <div id="Tokens" className="pie"></div>
                 <div id="Preferred" className="pie"></div>
               </div>
-              <div id="Activity"></div>
+              <div className="Activity">
+                <div className="tab flex">
+                  <div className={activityTab === 'Chains' ? 'select' : ''} onClick={() => setActivityTab('Chains')}>
+                    Chains
+                  </div>
+                  <div
+                    className={activityTab === 'Collections' ? 'select' : ''}
+                    onClick={() => setActivityTab('Collections')}
+                  >
+                    Collections
+                  </div>
+                </div>
+                {activityTab === 'Chains' ? (
+                  <div id="Activity" className="lineChart"></div>
+                ) : (
+                  <div id="collationActivity" className="lineChart"></div>
+                )}
+              </div>
+              {/* <div id="collationActivity" className="Activity"></div> */}
             </AnalysisBox>
           ) : (
             ''

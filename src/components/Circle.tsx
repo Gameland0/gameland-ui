@@ -9,7 +9,7 @@ import { UserInfoDialog } from './SmallDialog'
 import { Article, Box, Comments, fetchData, Line, LoadFailed, UserInfoBox } from './RelationChart'
 import { MyTabs, TabPaneBox } from './MyPage'
 import { BscContract, MORALIS_KEY, PolygonContract } from '../constants'
-import { formatting, handleImgError } from '../utils'
+import { client, formatting, handleImgError, Recommended, getinfo } from '../utils'
 import defaultImg from '../assets/default.png'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
@@ -41,19 +41,26 @@ const CircleBox = styled.div`
     text-align: center;
   }
   .filterMenu {
-    margin-bottom: 16px;
-    div {
-      width: 140px;
-      height: 50px;
-      background: #35caa9;
-      border-radius: 10px;
-      color: #fff;
+    margin-bottom: 32px;
+    .item {
+      position: relative;
+      height: 35px;
+      color: #000;
       font-size: 24px;
-      margin-right: 24px;
-    }
-    .disabled {
-      background: #ccc;
-      cursor: not-allowed;
+      margin-right: 48px;
+      div {
+        position: absolute;
+        bottom: 0;
+        width: 120%;
+        height: 16px;
+        border-radius: 10px;
+      }
+      .disabled {
+        background: rgba(13, 12, 34, 0.05);
+      }
+      .select {
+        background: rgba(65, 172, 239, 0.2);
+      }
     }
   }
 `
@@ -110,6 +117,7 @@ export const Circle = () => {
   const [ReviewData, setReviewData] = useState([] as any)
   const [Myreview, setMyreview] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
+  const [RecommendData, setRecommendData] = useState([] as any)
   const [UserInfoItem, setUserInfoItem] = useState({} as any)
   const [showUserInfo, setShowUserInfo] = useState(false)
   const [loadding, setLending] = useState(false)
@@ -124,6 +132,7 @@ export const Circle = () => {
   useEffect(() => {
     if (userinfo.length) {
       getFollowes()
+      // getRecommendedFriend()
     }
     // getMyCollection()
     getGames()
@@ -138,6 +147,26 @@ export const Circle = () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')
     setGameData([...bsc.data.data, ...polygon.data.data])
+  }
+  const getRecommendedFriend = async () => {
+    const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
+    const response = await client.query({
+      query: Recommended,
+      variables: { address: aa, chainId: 1 }
+    })
+    const data = [] as any
+    response.data.address.wallet.recommendation.userRecommendation.map(async (item: any) => {
+      console.log(item.userToFollow)
+      const res = userinfo.filter((ele: any) => {
+        return ele.useraddress?.toLowerCase() === item.userToFollow?.toLowerCase()
+      })
+      if (res && res.length) {
+        data.push(res[0])
+      }
+    })
+    // console.log(data)
+    setRecommendData(data)
+    setShowData([])
   }
   const getMyCollection = () => {
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
@@ -594,13 +623,26 @@ export const Circle = () => {
           </MyTabs>
         </UserInfoBox>
       </UserInfoDialog>
-      <div className="container filterMenu flex">
-        <div className="disabled flex flex-center">Game</div>
-        <div className="disabled flex flex-center">NFT</div>
-        <div className="disabled flex flex-center">Fans</div>
+      <div className="container filterMenu flex flex-justify-content">
+        <div className="item flex flex-justify-content not-allowed">
+          <div className="select"></div>
+          Game
+        </div>
+        <div className="item flex flex-justify-content not-allowed">
+          <div className="disabled"></div>
+          NFT
+        </div>
+        <div className="item flex flex-justify-content not-allowed">
+          <div className="disabled"></div>
+          Fans
+        </div>
+        <div className="item flex flex-justify-content" onClick={getRecommendedFriend}>
+          <div className="disabled"></div>
+          Recommend
+        </div>
       </div>
       <div className="container flex wrap flex-h-between">
-        {showData && showData.length ? (
+        {showData && showData.length && !RecommendData.length ? (
           showData.map((item: any, index: number) => (
             <InfoCard key={index} className="cursor" onClick={() => echartsDataClick(item.address)}>
               <div className="avatar flex flex-h-between flex-v-center">
@@ -612,6 +654,19 @@ export const Circle = () => {
           ))
         ) : (
           <div className="Nocontent">No friends</div>
+        )}
+        {RecommendData && RecommendData.length ? (
+          showData.map((item: any, index: number) => (
+            <InfoCard key={index} className="cursor" onClick={() => echartsDataClick(item.useraddress)}>
+              <div className="avatar flex flex-h-between flex-v-center">
+                <img src={item?.image || defaultImg} onError={handleImgError} />
+                <div className="More flex flex-center">See More</div>
+              </div>
+              <div className="name Abbreviation">{item.useraddress?.username || `user#${index}`}</div>
+            </InfoCard>
+          ))
+        ) : (
+          <div className="Nocontent"></div>
         )}
       </div>
       {showData && showData.length ? (
