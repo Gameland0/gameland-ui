@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useHistory } from 'react-router-dom'
 import { bschttp } from './Store'
 import { dateConvert } from './CollectionDetails'
-import { useActiveWeb3React } from '../hooks'
+import { useActiveWeb3React, useStore } from '../hooks'
 import defaultImg from '../assets/default.png'
 import search from '../assets/search_bar_icon_search.svg'
 import arrow from '../assets/icon_select.svg'
@@ -163,6 +163,7 @@ const SeeMore = styled.div`
 `
 export const Expose = () => {
   const { account } = useActiveWeb3React()
+  const { userinfo } = useStore()
   const [mirrorPage, setMirrorPage] = useState(1)
   const [searchContent, setSearchContent] = useState('')
   const [articleType, setArticleType] = useState('All')
@@ -171,12 +172,12 @@ export const Expose = () => {
   const [refreshBy, setrefreshBy] = useState(false)
   const [ArticleAll, setArticleAll] = useState([] as any)
   const [ArticleData, setArticleData] = useState([] as any)
-  const [userInfo, setUserInfo] = useState([] as any)
+  // const [userInfo, setUserInfo] = useState([] as any)
   const [articleSearchResult, setArticleSearchResult] = useState([] as any)
   const history = useHistory()
   const getData = async () => {
-    const userdata = await bschttp.get(`v0/userinfo`)
-    setUserInfo(userdata.data.data)
+    // const userdata = await bschttp.get(`v0/userinfo`)
+    // setUserInfo(userdata.data.data)
     const param = {
       page: 1,
       pagesize: 8
@@ -246,15 +247,15 @@ export const Expose = () => {
   }
   const filterUserData = (item: any) => {
     if (item.type === 'Mirror') {
-      return userInfo.filter((ele: any) => {
+      return userinfo.filter((ele: any) => {
         return ele.useraddress.toLowerCase() === item.owner.toLowerCase()
       })
     } else if (item.type === 'Gameland') {
-      return userInfo.filter((ele: any) => {
+      return userinfo.filter((ele: any) => {
         return ele.useraddress.toLowerCase() === item.useraddress.toLowerCase()
       })
     } else {
-      return userInfo.filter((ele: any) => {
+      return userinfo.filter((ele: any) => {
         return ele.useraddress.toLowerCase() === item.owner.toLowerCase()
       })
     }
@@ -358,8 +359,8 @@ export const Expose = () => {
           ? ArticleAll.map((item: any, index: any) => (
               <ArticleBox key={index} onClick={() => ItemClick(item)} className="cursor">
                 <div className="information flex flex-v-center">
-                  <img src={filterUserData(item)[0].image} onError={handleImgError} />
-                  <div className="userName">{filterUserData(item)[0].username}</div>
+                  <img src={filterUserData(item)[0]?.image} onError={handleImgError} />
+                  <div className="userName">{filterUserData(item)[0]?.username}</div>
                   <div className="time">· {item.datetime || dateConvert(item.createdAt)}</div>
                 </div>
                 <div className="title">{item.title}</div>

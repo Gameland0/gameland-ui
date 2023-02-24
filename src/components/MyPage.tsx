@@ -842,7 +842,7 @@ export const MyPage = () => {
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
   const [postsReplayData, setPostsReplayData] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [userinfoAll, setuserinfoAll] = useState(useStore().userinfo)
   const [userPosts, setuserPosts] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [reviewAllData, setReviewAllData] = useState([] as any)
@@ -973,7 +973,7 @@ export const MyPage = () => {
         setuserPosts(data)
       })
     }
-    bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
+    // bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
     bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
