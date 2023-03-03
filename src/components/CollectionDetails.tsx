@@ -56,7 +56,7 @@ import { NumInput } from '../components/NumInput'
 import { NFTStatsMadal } from './NFTStatsMadal'
 import { ScoreStatistics } from './ScoreStatistics'
 import { Icon } from '../components/Icon'
-import { bschttp, polygonhttp, http } from './Store'
+import { bschttp, polygonhttp, http, newhttp } from './Store'
 import { Close } from './UserPage'
 import { ImgBox, Title, SpanLabel, Tips, Properties, StatsBox, Description, FakeButton, Details } from '../pages/Rent'
 import { ExposeBox, ArticleBox } from './Expose'
@@ -148,7 +148,7 @@ const DetailsBox = styled.div`
       }
       .tab {
         margin: auto;
-        width: 384px;
+        width: 552px;
         height: 72px;
         background: linear-gradient(90deg, #35caa9 0%, #41acef 100%);
         border-radius: 36px;
@@ -871,6 +871,86 @@ export const CommentNFTButton = styled.div`
     }
   }
 `
+const ApproveTable = styled.div`
+  width: 96%;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px;
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  .title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+  }
+  .tableTab {
+    div {
+      flex: 1;
+      text-align: center;
+      font-size: 14px;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      font-weight: bold;
+    }
+    .Address {
+      flex: 3;
+    }
+  }
+  .bag {
+    background: #f5f5f5;
+  }
+  .tableContent {
+    div {
+      flex: 1;
+      height: 24px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 10px;
+      font-size: 13px;
+    }
+    .Address {
+      flex: 3;
+    }
+  }
+  .Notrecords {
+    margin-top: 20px;
+  }
+  .notShow {
+    display: none;
+  }
+  .switchMenu {
+    margin: 10px 0;
+    border-bottom: 1px solid #e5e5e5;
+    div {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .borderbg {
+      border-bottom: 1px solid #41acef;
+    }
+  }
+  .tablePage {
+    margin-top: 10px;
+    div {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 5px;
+      margin-right: 5px;
+      cursor: pointer;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      align-content: center;
+    }
+    .selected {
+      background: #41acef;
+    }
+  }
+`
 export interface CardProps {
   onClick?: () => void
   onLend: () => void
@@ -1065,6 +1145,19 @@ export const dateConvert = (time: any) => {
   const arr = date.toUTCString().split(' ')
   return `${arr[2]} ${arr[1]}, ${arr[3]}`
 }
+const compare = (property: any, property2: any) => {
+  return (a: any, b: any) => {
+    const value1 = a[property]
+    const value2 = b[property]
+    if (value2 === value1) {
+      const value3 = a[property2]
+      const value4 = b[property2]
+      return value4 - value3
+    }
+    return value2 - value1
+  }
+}
+
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
@@ -1073,6 +1166,10 @@ export const CollectionDetails = () => {
   const AssetContract = useAssetContract()
   const RewardContract = useRewardContract()
   const [starScore, setstarScore] = useState(0)
+  const [approveTotalPage, setApproveTotalPage] = useState(0)
+  const [approveTablePage, setApproveTablePage] = useState(0)
+  const [transactionsTotalPage, setTransactionsTotalPage] = useState(0)
+  const [transactionsTablePage, setTransactionsTablePage] = useState(0)
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
@@ -1087,6 +1184,10 @@ export const CollectionDetails = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [ArticleAll, setArticleAll] = useState([] as any)
+  const [actionDataAll, setActionDataAll] = useState([] as any)
+  const [actionData, setActionData] = useState([] as any)
+  const [transactionsDataAll, setTransactionsDataAll] = useState([] as any)
+  const [transactionsData, setTransactionsData] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1132,6 +1233,7 @@ export const CollectionDetails = () => {
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [tap, setTab] = useState('NFT')
+  const [transactionsType, setTransactionsType] = useState('All')
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -1254,6 +1356,7 @@ export const CollectionDetails = () => {
       localStorage.setItem('chain', state.chain)
     }
     getCollectionInfo()
+    getActiveData()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1261,7 +1364,6 @@ export const CollectionDetails = () => {
       setDataAll(vals)
     })
   }, [nftData])
-
   useEffect(() => {
     const getUserinfo = async () => {
       if (!account) return
@@ -1328,6 +1430,180 @@ export const CollectionDetails = () => {
     }
     return _cost.plus(collateral).plus(Penalty).toString()
   }, [LeaseDays])
+  useEffect(() => {
+    if (actionData && actionData.length) {
+      getTransactionsData()
+    }
+  }, [actionData, transactionsType])
+  const getActiveData = () => {
+    const actions = newhttp.get(`v0/active_actions/${address}`)
+    const users = newhttp.get(`v0/active_users/${address}`)
+    Promise.all([actions, users]).then((vlas) => {
+      const userarr = [] as any
+      const approveData = [] as any
+      vlas[0].data.data.map((item: any) => {
+        if (item.tokenid === 0) {
+          approveData.push(item)
+          userarr.push(item.address)
+        }
+      })
+      const userNftArr = [] as any
+      vlas[1].data.data.map((item: any) => {
+        if (item.nftcount > 0) {
+          userNftArr.push(item)
+        }
+      })
+      const tableData = [] as any
+      userNftArr.map((item: any) => {
+        const data = approveData.filter((ele: any) => {
+          return ele.address === item.address
+        })
+        if (data.length > 0) {
+          tableData.push({
+            address: item.address,
+            nftTotal: item.nftcount,
+            actiontotal: data.length
+          })
+        }
+      })
+      const sortdata = tableData.sort(compare('actiontotal', 'nftTotal'))
+      sortdata.map((item: any, index: number) => {
+        item.ranking = index + 1
+      })
+      setApproveTotalPage(Math.ceil(sortdata.length / 10))
+      setActionDataAll(sortdata)
+      setActionData(sortdata.slice(0, 10))
+    })
+  }
+  const getTransactionsData = async () => {
+    const res = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[0].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res1 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[1].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res2 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[2].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res3 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[3].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res4 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[4].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res5 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[5].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res6 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[6].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res7 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[7].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const data = [
+      ...res.data.result,
+      ...res1.data.result,
+      ...res2.data.result,
+      ...res3.data.result,
+      ...res4.data.result,
+      ...res5.data.result,
+      ...res6.data.result,
+      ...res7.data.result
+    ]
+    const Tabledata = [] as any
+    const TabledataAll = [] as any
+    data.map((item: any) => {
+      if (item.tag === 'collectible' && item.type === 'mint') {
+        item.actions.map((ele: any) => {
+          if (ele.type === 'mint') {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            TabledataAll.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Mint',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+          if (ele.type === 'mint' && ele.metadata.contract_address?.toLowerCase() === address?.toLowerCase()) {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            Tabledata.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Mint',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+        })
+      }
+      if (item.tag === 'collectible' && item.type === 'trade') {
+        item.actions.map((ele: any) => {
+          if (ele.type === 'trade') {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            Tabledata.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Bought',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+          if (ele.type === 'trade' && ele.metadata.contract_address?.toLowerCase() === address?.toLowerCase()) {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            TabledataAll.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Bought',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+        })
+      }
+    })
+    if (transactionsType === 'All') {
+      setTransactionsDataAll(TabledataAll)
+      setTransactionsData(TabledataAll.slice(0, 10))
+      setTransactionsTotalPage(Math.ceil(TabledataAll.length / 10))
+    } else {
+      setTransactionsDataAll(Tabledata)
+      setTransactionsData(Tabledata.slice(0, 10))
+      setTransactionsTotalPage(Math.ceil(Tabledata.length / 10))
+    }
+  }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
       return item.reviewid === id
@@ -2188,6 +2464,22 @@ export const CollectionDetails = () => {
   const closeforward = () => {
     setForward({})
   }
+  const approvenext = (index: number) => {
+    setApproveTablePage(index)
+    setActionData(actionDataAll.slice(10 * index, 10 * index + 10))
+  }
+  const transactionsnext = (index: number) => {
+    setTransactionsTablePage(index)
+    setTransactionsData(transactionsDataAll.slice(10 * index, 10 * index + 10))
+  }
+  const TransactionsButtonAll = () => {
+    setTransactionsData([])
+    setTransactionsType('All')
+  }
+  const TransactionsAll = () => {
+    setTransactionsData([])
+    setTransactionsType('colletion')
+  }
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} open={lendvisible} closable={false}>
@@ -2638,8 +2930,11 @@ export const CollectionDetails = () => {
               <div className={tap === 'Articles' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Articles')}>
                 Articles
               </div>
+              <div className={tap === 'Analysis' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Analysis')}>
+                Analysis
+              </div>
             </div>
-            <Loadding className="flex flex-center">{lending ? <img src={loadding} /> : ''}</Loadding>
+            {/* <Loadding className="flex flex-center">{lending ? <img src={loadding} /> : ''}</Loadding> */}
             {tap === 'NFT' ? (
               <div className="nftBox">
                 {DataAll.length ? (
@@ -2701,6 +2996,112 @@ export const CollectionDetails = () => {
                   <div className="noArticle text-center">No related articles</div>
                 )}
               </ExposeBox>
+            ) : (
+              ''
+            )}
+            {tap === 'Analysis' ? (
+              <div>
+                <ApproveTable>
+                  <div className="title">Most Active Users</div>
+                  <div className="tableTab flex">
+                    <div>Ranking</div>
+                    <div className="Address">Address</div>
+                    <div>NFT Total</div>
+                    <div>Active</div>
+                  </div>
+                  {actionData && actionData.length ? (
+                    actionData.map((item: any, index: number) => (
+                      <div
+                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                        key={index}
+                      >
+                        <div>{item?.ranking}</div>
+                        <div className="Address">{item?.address}</div>
+                        <div>{item?.nftTotal}</div>
+                        <div>{item?.actiontotal}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {actionData && actionData.length
+                      ? actionData.map((item: any, index: number) => (
+                          <div
+                            className={
+                              index + 1 > approveTotalPage
+                                ? 'notShow'
+                                : approveTablePage === index
+                                ? 'flex selected'
+                                : 'flex'
+                            }
+                            key={index}
+                            onClick={() => approvenext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                  </div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div className="title">Transactions</div>
+                  <div className="switchMenu flex">
+                    <div className={transactionsType === 'All' ? 'borderbg' : ''} onClick={TransactionsButtonAll}>
+                      All
+                    </div>
+                    <div className={transactionsType === 'All' ? '' : 'borderbg'} onClick={TransactionsAll}>
+                      {collectionDetails.contractName}
+                    </div>
+                  </div>
+                  <div className="tableTab flex">
+                    <div>Address</div>
+                    <div>Collation</div>
+                    <div>NFT Name</div>
+                    <div>Price</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                    <div>Time</div>
+                  </div>
+                  {transactionsData && transactionsData.length ? (
+                    transactionsData.map((item: any, index: number) => (
+                      <div
+                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                        key={index}
+                      >
+                        <div>{item?.address}</div>
+                        <div>{item?.collation}</div>
+                        <div>{item?.nftname}</div>
+                        <div>{item?.price}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                        <div>{item?.time}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {transactionsData && transactionsData.length
+                      ? transactionsData.map((item: any, index: number) => (
+                          <div
+                            className={
+                              index + 1 > transactionsTotalPage
+                                ? 'notShow'
+                                : transactionsTablePage === index
+                                ? 'flex selected'
+                                : 'flex'
+                            }
+                            key={index}
+                            onClick={() => transactionsnext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                  </div>
+                </ApproveTable>
+              </div>
             ) : (
               ''
             )}

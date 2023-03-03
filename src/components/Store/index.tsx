@@ -42,6 +42,11 @@ export const polygonhttp = axios.create({
   baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089'
 })
 
+export const newhttp = axios.create({
+  timeout: 30000,
+  baseURL: process.env.NODE_ENV === 'production' ? 'http://118.193.47.26:10013' : 'http://localhost:8099'
+})
+
 export const fetcher = (url: string) => {
   const _url = url.startsWith('/moralis') ? 'https://deep-index.moralis.io/api/v2' + url.substring(8) : ''
   return http.get(_url).then((res) => res.data)

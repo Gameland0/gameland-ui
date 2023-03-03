@@ -15,7 +15,7 @@ import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
-import { ButtonBox } from './MyPage'
+import { ButtonBox, CollationTable } from './MyPage'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
 import { Img } from './Img'
@@ -850,8 +850,12 @@ export const UserPage = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [PieChartData, setPieChartData] = useState([] as any)
+  const [tableDataAll, setTableDataAll] = useState([] as any)
+  const [tableData, setTableData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
+  const [totalPage, setTotalPage] = useState(0)
+  const [tablePage, setTablePage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
@@ -1583,6 +1587,10 @@ export const UserPage = () => {
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }
+  const nextPage = (index: number) => {
+    setTablePage(index)
+    setTableData(tableDataAll.slice(10 * index, 10 * index + 10))
+  }
   const componentDidMount = () => {
     if (PieChartData && PieChartData.length) {
       const chainarr: any[] = []
@@ -1590,11 +1598,55 @@ export const UserPage = () => {
       const timearr: any[] = []
       const tagarr: any[] = []
       const Tokensarr: any[] = []
+      const Tabledata = [] as any
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
-        if (item.tag === 'collectible' && item.actions[0].metadata.collection)
+        if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
           collationarr.push(item.actions[0].metadata.collection)
+        }
+        if (item.tag === 'collectible' && item.type === 'mint') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'mint') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              let prices
+              if (ele.metadata.cost) {
+                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              } else {
+                prices = 0
+              }
+              Tabledata.push({
+                collation: ele.metadata.collection,
+                nftname: ele.metadata.name,
+                price: prices,
+                chain: chains,
+                type: 'Mint',
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'collectible' && item.type === 'trade') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'trade') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              let prices
+              if (ele.metadata.cost) {
+                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              } else {
+                prices = 0
+              }
+              Tabledata.push({
+                collation: ele.metadata.collection,
+                nftname: ele.metadata.name,
+                price: prices,
+                chain: chains,
+                type: 'Bought',
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
         if (item.tag === 'exchange') {
           // console.log(item.actions)
           item.actions.map((ele: any) => {
@@ -1610,6 +1662,9 @@ export const UserPage = () => {
         }
         timearr.push(item.timestamp.substr(0, 10))
       })
+      setTableDataAll(Tabledata)
+      setTableData(Tabledata.slice(0, 10))
+      setTotalPage(Math.ceil(Tabledata.length / 10))
       const chainarrDeduplication = [...new Set(chainarr)]
       const Chainsoptionsdata: any[] = []
       chainarrDeduplication.map((item) => {
@@ -2243,6 +2298,44 @@ export const UserPage = () => {
                 <div id="Tokens" className="pie"></div>
                 <div id="Preferred" className="pie"></div>
               </div>
+              <CollationTable>
+                <div className="title">Transactions</div>
+                <div className="tab flex">
+                  <div>COLLATION</div>
+                  <div>NFTNAME</div>
+                  <div>PRICE</div>
+                  <div>CHAIN</div>
+                  <div>TYPE</div>
+                  <div>TIME</div>
+                </div>
+                {tableData && tableData.length ? (
+                  tableData.map((item: any, index: number) => (
+                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                      <div>{item?.collation}</div>
+                      <div>{item?.nftname}</div>
+                      <div>{item?.price}</div>
+                      <div>{item?.chain}</div>
+                      <div>{item?.type}</div>
+                      <div>{item?.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                )}
+                <div className="tablePage flex">
+                  {tableData && tableData.length
+                    ? tableData.map((item: any, index: number) => (
+                        <div
+                          className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
+                          key={index}
+                          onClick={() => nextPage(index)}
+                        >
+                          {index + 1}
+                        </div>
+                      ))
+                    : ''}
+                </div>
+              </CollationTable>
               <div className="Activity">
                 <div className="tab flex">
                   <div className={activityTab === 'Chains' ? 'select' : ''} onClick={() => setActivityTab('Chains')}>

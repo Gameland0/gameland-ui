@@ -789,11 +789,17 @@ export const TabPaneBox = styled(TabPane)`
   padding-top: 1rem;
   padding-bottom: 2rem;
 `
-const CollationTable = styled.div`
+export const CollationTable = styled.div`
   border: 1px solid #e5e5e5;
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 20px;
+  .title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+  }
   .tab {
     div {
       flex: 1;
@@ -817,6 +823,9 @@ const CollationTable = styled.div`
       padding: 0 10px;
       font-size: 13px;
     }
+  }
+  .Notrecords {
+    margin-top: 20px;
   }
   .notShow {
     display: none;
@@ -1070,7 +1079,7 @@ export const MyPage = () => {
     const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
     const cc = '0x668f92d429c47dbc07df9597b00a7f5f9302ff87'
     http
-      .get(`https://api.rss3.io/v1/notes/${aa}?limit=500&include_poap=false&count_only=false&query_status=false`)
+      .get(`https://api.rss3.io/v1/notes/${account}?limit=500&include_poap=false&count_only=false&query_status=false`)
       .then((vals) => {
         setPieChartData(vals.data.result)
       })
@@ -2326,6 +2335,7 @@ export const MyPage = () => {
                 <div id="Preferred" className="pie"></div>
               </div>
               <CollationTable>
+                <div className="title">Transactions</div>
                 <div className="tab flex">
                   <div>COLLATION</div>
                   <div>NFTNAME</div>
@@ -2346,7 +2356,7 @@ export const MyPage = () => {
                     </div>
                   ))
                 ) : (
-                  <div></div>
+                  <div className="Notrecords flex flex-justify-content">No records</div>
                 )}
                 <div className="tablePage flex">
                   {tableData && tableData.length
