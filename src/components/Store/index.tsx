@@ -44,7 +44,7 @@ export const polygonhttp = axios.create({
 
 export const newhttp = axios.create({
   timeout: 30000,
-  baseURL: process.env.NODE_ENV === 'production' ? 'http://118.193.47.26:10013' : 'http://localhost:8099'
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://118.193.47.26:10013' : 'http://localhost:8099'
 })
 
 export const fetcher = (url: string) => {
