@@ -358,8 +358,8 @@ export const Expose = () => {
           ? ArticleAll.map((item: any, index: any) => (
               <ArticleBox key={index} onClick={() => ItemClick(item)} className="cursor">
                 <div className="information flex flex-v-center">
-                  <img src={filterUserData(item)[0].image} onError={handleImgError} />
-                  <div className="userName">{filterUserData(item)[0].username}</div>
+                  <img src={filterUserData(item)[0]?.image} onError={handleImgError} />
+                  <div className="userName">{filterUserData(item)[0]?.username}</div>
                   <div className="time">· {item.datetime || dateConvert(item.createdAt)}</div>
                 </div>
                 <div className="title">{item.title}</div>

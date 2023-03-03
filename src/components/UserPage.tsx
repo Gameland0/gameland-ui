@@ -241,6 +241,7 @@ const InfoLeft = styled.div`
     margin-bottom: 20px;
   }
   .userName {
+    width: 260px;
     font-size: 24px;
     font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
@@ -300,6 +301,9 @@ const InfoLeft = styled.div`
     .avatar {
       width: 180px;
       height: 180px;
+    }
+    .userName {
+      width: 180px;
     }
     .socialize {
       img {
@@ -836,7 +840,7 @@ export const UserPage = () => {
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
   const [postsReplayData, setPostsReplayData] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [userinfoAll, setuserinfoAll] = useState(useStore().userinfo)
   const [userPosts, setuserPosts] = useState([] as any)
   const [mirrorPost, setMirrorPost] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
@@ -994,7 +998,7 @@ export const UserPage = () => {
         setuserPosts(data)
       })
     }
-    bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
+    // bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
     bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
@@ -1614,7 +1618,7 @@ export const UserPage = () => {
         })
         Chainsoptionsdata.push({ value: quantity.length, name: item })
       })
-      const collationarrDeduplication = [...new Set(collationarr)]
+      const collationarrDeduplication = [...new Set(collationarr)].slice(0, 10)
       const Collationoptionsdata: any[] = []
       collationarrDeduplication.map((item) => {
         Collationoptionsdata.push({ value: 1, name: item })
@@ -1675,7 +1679,8 @@ export const UserPage = () => {
       })
       const Activityoptions = {
         title: {
-          text: 'Activity'
+          text: 'Activity',
+          top: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -1693,7 +1698,8 @@ export const UserPage = () => {
       }
       const collationActivityoption = {
         title: {
-          text: ''
+          text: 'Activity',
+          top: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -1891,7 +1897,7 @@ export const UserPage = () => {
           ) : (
             <FolloweButton Followeitem={getFolloweData()} onFollowe={Followe} onUnFollowe={UnFollowe} />
           )}
-          <div className="userName text-center">{userinfo.username}</div>
+          <div className="userName text-center Abbreviation">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
           <div className="socialize flex flex-justify-content">
             <a
@@ -1928,8 +1934,12 @@ export const UserPage = () => {
             <a href={userinfo.galxe} target="_blank" rel="noreferrer">
               <img src={galxe} className="transparency" />
             </a>
-            <a href={userinfo.lens} target="_blank" rel="noreferrer">
-              <img src={lens} className="transparency" />
+            <a
+              href={userinfo.lens_handle ? `https://lenster.xyz/u/${userinfo.lens_handle}` : userinfo.lens_handle}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img src={lens} className={userinfo?.lens_handle ? '' : 'transparency'} />
             </a>
           </div>
           {useraddress.toLowerCase() === account?.toLowerCase() ? (

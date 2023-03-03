@@ -208,6 +208,7 @@ const InfoLeft = styled.div`
     margin-bottom: 20px;
   }
   .userName {
+    width: 260px;
     font-size: 24px;
     font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
@@ -267,6 +268,9 @@ const InfoLeft = styled.div`
     .avatar {
       width: 180px;
       height: 180px;
+    }
+    .userName {
+      width: 180px;
     }
     .socialize {
       img {
@@ -785,6 +789,57 @@ export const TabPaneBox = styled(TabPane)`
   padding-top: 1rem;
   padding-bottom: 2rem;
 `
+const CollationTable = styled.div`
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 20px;
+  .tab {
+    div {
+      flex: 1;
+      text-align: center;
+      font-size: 14px;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      font-weight: bold;
+    }
+  }
+  .bag {
+    background: #f5f5f5;
+  }
+  .tableContent {
+    div {
+      flex: 1;
+      height: 24px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 10px;
+      font-size: 13px;
+    }
+  }
+  .notShow {
+    display: none;
+  }
+  .tablePage {
+    margin-top: 10px;
+    div {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 5px;
+      margin-right: 5px;
+      cursor: pointer;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      align-content: center;
+    }
+    .selected {
+      background: #41acef;
+    }
+  }
+`
 const getHttp = (chain: any) => {
   if (chain === 'bsc') {
     return bschttp
@@ -876,7 +931,7 @@ export const MyPage = () => {
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
   const [postsReplayData, setPostsReplayData] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [userinfoAll, setuserinfoAll] = useState(useStore().userinfo)
   const [userPosts, setuserPosts] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [reviewAllData, setReviewAllData] = useState([] as any)
@@ -886,8 +941,12 @@ export const MyPage = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [mirrorPost, setMirrorPost] = useState([] as any)
   const [PieChartData, setPieChartData] = useState([] as any)
+  const [tableDataAll, setTableDataAll] = useState([] as any)
+  const [tableData, setTableData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
+  const [totalPage, setTotalPage] = useState(0)
+  const [tablePage, setTablePage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
@@ -1008,9 +1067,10 @@ export const MyPage = () => {
     // return ETHJosn.result
   }
   const getPieChartData = () => {
-    // const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
+    const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
+    const cc = '0x668f92d429c47dbc07df9597b00a7f5f9302ff87'
     http
-      .get(`https://api.rss3.io/v1/notes/${account}?limit=500&include_poap=false&count_only=false&query_status=false`)
+      .get(`https://api.rss3.io/v1/notes/${aa}?limit=500&include_poap=false&count_only=false&query_status=false`)
       .then((vals) => {
         setPieChartData(vals.data.result)
       })
@@ -1036,7 +1096,7 @@ export const MyPage = () => {
         setuserPosts(data)
       })
     }
-    bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
+    // bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
     bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
@@ -1542,6 +1602,10 @@ export const MyPage = () => {
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }
+  const nextPage = (index: number) => {
+    setTablePage(index)
+    setTableData(tableDataAll.slice(10 * index, 10 * index + 10))
+  }
   const componentDidMount = () => {
     if (PieChartData && PieChartData.length) {
       const chainarr: any[] = []
@@ -1549,11 +1613,55 @@ export const MyPage = () => {
       const timearr: any[] = []
       const tagarr: any[] = []
       const Tokensarr: any[] = []
+      const Tabledata = [] as any
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
-        if (item.tag === 'collectible' && item.actions[0].metadata.collection)
+        if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
           collationarr.push(item.actions[0].metadata.collection)
+        }
+        if (item.tag === 'collectible' && item.type === 'mint') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'mint') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              let prices
+              if (ele.metadata.cost) {
+                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              } else {
+                prices = 0
+              }
+              Tabledata.push({
+                collation: ele.metadata.collection,
+                nftname: ele.metadata.name,
+                price: prices,
+                chain: chains,
+                type: 'Mint',
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'collectible' && item.type === 'trade') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'trade') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              let prices
+              if (ele.metadata.cost) {
+                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              } else {
+                prices = 0
+              }
+              Tabledata.push({
+                collation: ele.metadata.collection,
+                nftname: ele.metadata.name,
+                price: prices,
+                chain: chains,
+                type: 'Bought',
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
         if (item.tag === 'exchange') {
           // console.log(item.actions)
           item.actions.map((ele: any) => {
@@ -1569,6 +1677,9 @@ export const MyPage = () => {
         }
         timearr.push(item.timestamp.substr(0, 10))
       })
+      setTableDataAll(Tabledata)
+      setTableData(Tabledata.slice(0, 10))
+      setTotalPage(Math.ceil(Tabledata.length / 10))
       const chainarrDeduplication = [...new Set(chainarr)]
       const Chainsoptionsdata: any[] = []
       chainarrDeduplication.map((item) => {
@@ -1638,7 +1749,8 @@ export const MyPage = () => {
       })
       const Activityoptions = {
         title: {
-          text: ''
+          text: 'Activity',
+          top: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -1656,7 +1768,8 @@ export const MyPage = () => {
       }
       const collationActivityoption = {
         title: {
-          text: ''
+          text: 'Activity',
+          top: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -1878,7 +1991,7 @@ export const MyPage = () => {
       <UserInfo className="flex">
         <InfoLeft>
           <img src={userinfo.image || defaultImg} className="avatar" />
-          <div className="userName text-center">{userinfo.username}</div>
+          <div className="userName text-center Abbreviation">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
           <div className="socialize flex flex-justify-content">
             <a
@@ -1915,8 +2028,12 @@ export const MyPage = () => {
             <a href={userinfo.galxe} target="_blank" rel="noreferrer">
               <img src={galxe} className="transparency" />
             </a>
-            <a href={userinfo.lens} target="_blank" rel="noreferrer">
-              <img src={lens} className="transparency" />
+            <a
+              href={userinfo.lens_handle ? `https://lenster.xyz/u/${userinfo.lens_handle}` : userinfo.lens_handle}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img src={lens} className={userinfo?.lens_handle ? '' : 'transparency'} />
             </a>
           </div>
           <div className="settings flex flex-justify-content">
@@ -2208,6 +2325,43 @@ export const MyPage = () => {
                 <div id="Tokens" className="pie"></div>
                 <div id="Preferred" className="pie"></div>
               </div>
+              <CollationTable>
+                <div className="tab flex">
+                  <div>COLLATION</div>
+                  <div>NFTNAME</div>
+                  <div>PRICE</div>
+                  <div>CHAIN</div>
+                  <div>TYPE</div>
+                  <div>TIME</div>
+                </div>
+                {tableData && tableData.length ? (
+                  tableData.map((item: any, index: number) => (
+                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                      <div>{item?.collation}</div>
+                      <div>{item?.nftname}</div>
+                      <div>{item?.price}</div>
+                      <div>{item?.chain}</div>
+                      <div>{item?.type}</div>
+                      <div>{item?.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div></div>
+                )}
+                <div className="tablePage flex">
+                  {tableData && tableData.length
+                    ? tableData.map((item: any, index: number) => (
+                        <div
+                          className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
+                          key={index}
+                          onClick={() => nextPage(index)}
+                        >
+                          {index + 1}
+                        </div>
+                      ))
+                    : ''}
+                </div>
+              </CollationTable>
               <div className="Activity">
                 <div className="tab flex">
                   <div className={activityTab === 'Chains' ? 'select' : ''} onClick={() => setActivityTab('Chains')}>
@@ -2226,7 +2380,6 @@ export const MyPage = () => {
                   <div id="collationActivity" className="lineChart"></div>
                 )}
               </div>
-              {/* <div id="collationActivity" className="Activity"></div> */}
             </AnalysisBox>
           ) : (
             ''

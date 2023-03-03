@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
 import { bschttp, polygonhttp } from '../../components/Store'
-import { useActiveWeb3React } from '../../hooks'
+import { useActiveWeb3React, useStore } from '../../hooks'
 import { useHistory } from 'react-router-dom'
 import { toastify } from '../../components/Toastify'
 import loadd from '../../assets/loading.svg'
@@ -237,13 +237,14 @@ export const compare = () => {
 }
 export const Games = () => {
   const { account } = useActiveWeb3React()
+  const { userinfo } = useStore()
   const [gamesFilter, setGamesFilter] = useState('ALL')
   const [collection, setCollection] = useState('')
   const [data, setData] = useState([] as any)
   const [games, setGames] = useState([] as any)
   const [gameList, setGameList] = useState([] as any)
   const [review, setReviewData] = useState([] as any)
-  const [userinfo, setUserinfo] = useState([] as any)
+  // const [userinfo, setUserinfo] = useState([] as any)
   const [gameFollow, setGameFollow] = useState([] as any)
   const [collectionFilterResult, setCollectionFilterResult] = useState([] as any)
   const [filterMenu, setFilterMenu] = useState(false)
@@ -259,28 +260,26 @@ export const Games = () => {
       const polygon = polygonhttp.get('/v0/games')
       const bscReview = bschttp.get('/v0/review')
       const polygonReview = polygonhttp.get('/v0/review')
-      const userinfo = bschttp.get(`v0/userinfo`)
       const bscFollow = bschttp.get('/v0/followGames')
       const polygonFollow = polygonhttp.get('/v0/followGames')
-      Promise.all([bsc, polygon, bscReview, polygonReview, userinfo, bscFollow, polygonFollow])
+      Promise.all([bsc, polygon, bscReview, polygonReview, bscFollow, polygonFollow])
         .then((vals) => {
           if (gamesFilter === 'ALL') {
             setGames([...vals[0].data.data, ...vals[1].data.data].sort(compare()))
             setData([...vals[0].data.data, ...vals[1].data.data].sort(compare()))
             setReviewData([...vals[2].data.data, ...vals[3].data.data])
-            setGameFollow([...vals[5].data.data, ...vals[6].data.data])
+            setGameFollow([...vals[4].data.data, ...vals[5].data.data])
           } else if (gamesFilter === 'Polygon') {
             setGames(vals[1].data.data.sort(compare()))
             setData(vals[1].data.data.sort(compare()))
             setReviewData(vals[3].data.data)
-            setGameFollow(vals[6].data.data)
+            setGameFollow(vals[5].data.data)
           } else {
             setGames(vals[0].data.data.sort(compare()))
             setData(vals[0].data.data.sort(compare()))
             setReviewData(vals[2].data.data)
-            setGameFollow(vals[5].data.data)
+            setGameFollow(vals[4].data.data)
           }
-          setUserinfo(vals[4].data.data)
           setLending(false)
         })
         .catch(() => {

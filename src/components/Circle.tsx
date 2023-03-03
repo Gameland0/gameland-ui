@@ -6,10 +6,11 @@ import { useHistory } from 'react-router-dom'
 import { useActiveWeb3React, useStore } from '../hooks'
 import { http, bschttp, polygonhttp } from './Store'
 import { UserInfoDialog } from './SmallDialog'
-import { Article, Box, Comments, fetchData, Line, LoadFailed, UserInfoBox } from './RelationChart'
+import { Article, Box, Comments, Line, LoadFailed, UserInfoBox } from './RelationChart'
 import { MyTabs, TabPaneBox } from './MyPage'
 import { BscContract, MORALIS_KEY, PolygonContract } from '../constants'
 import { client, formatting, handleImgError, Recommended, getinfo } from '../utils'
+import { IpfsImg } from './IpfsImg'
 import defaultImg from '../assets/default.png'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
@@ -43,6 +44,7 @@ const CircleBox = styled.div`
   .filterMenu {
     margin-bottom: 32px;
     .item {
+      min-width: 90px;
       position: relative;
       height: 35px;
       color: #000;
@@ -51,9 +53,19 @@ const CircleBox = styled.div`
       div {
         position: absolute;
         bottom: 0;
-        width: 120%;
+        width: 90px;
         height: 16px;
         border-radius: 10px;
+      }
+      span {
+        position: absolute;
+        top: -6px;
+        right: 0px;
+        display: block;
+        width: 14px;
+        height: 14px;
+        border-radius: 7px;
+        background: #41acef;
       }
       .disabled {
         background: rgba(13, 12, 34, 0.05);
@@ -98,10 +110,20 @@ const InfoCard = styled.div`
     height: 200px;
   }
 `
+
+const fetchData = (data: any[]) => {
+  if (!data || !data.length) return []
+  // console.log(data)
+  return data.map((item: any) => {
+    item.metadata = JSON.parse(item.metadata)
+    return item
+  })
+}
 export const Circle = () => {
   const { account } = useActiveWeb3React()
   const { userinfo } = useStore()
   const history = useHistory()
+  const [tab, setTab] = useState('All')
   const [page, setPage] = useState(0)
   const [myFollowe, setmyFollowe] = useState(0)
   const [FolloweMy, setFolloweMy] = useState(0)
@@ -118,6 +140,7 @@ export const Circle = () => {
   const [Myreview, setMyreview] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [RecommendData, setRecommendData] = useState([] as any)
+  const [Recommend, setRecommend] = useState([] as any)
   const [UserInfoItem, setUserInfoItem] = useState({} as any)
   const [showUserInfo, setShowUserInfo] = useState(false)
   const [loadding, setLending] = useState(false)
@@ -140,7 +163,7 @@ export const Circle = () => {
     getFollowData()
   }, [account, userinfo])
   useEffect(() => {
-    if (20 * page + 20 > circleData.length) return
+    if (20 * page > circleData.length) return
     setShowData(circleData.slice(20 * page, 20 * page + 20))
   }, [page])
   const getGames = async () => {
@@ -152,11 +175,10 @@ export const Circle = () => {
     const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
     const response = await client.query({
       query: Recommended,
-      variables: { address: aa, chainId: 1 }
+      variables: { address: account, chainId: 1 }
     })
     const data = [] as any
     response.data.address.wallet.recommendation.userRecommendation.map(async (item: any) => {
-      console.log(item.userToFollow)
       const res = userinfo.filter((ele: any) => {
         return ele.useraddress?.toLowerCase() === item.userToFollow?.toLowerCase()
       })
@@ -164,37 +186,7 @@ export const Circle = () => {
         data.push(res[0])
       }
     })
-    // console.log(data)
-    setRecommendData(data)
-    setShowData([])
-  }
-  const getMyCollection = () => {
-    http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
-    const BscNft = http.get(`https://deep-index.moralis.io/api/v2/${account}/nft?chain=bsc&format=decimal`)
-    const polygonNft = http.get(`
-      https://deep-index.moralis.io/api/v2/${account}/nft?chain=polygon&format=decimal`)
-    Promise.all([BscNft, polygonNft]).then((vals) => {
-      const filterDataPolygon = vals[1].data.result.filter((item: any) => {
-        return PolygonContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
-      })
-      const filterDataBsc = vals[0].data.result.filter((item: any) => {
-        return BscContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
-      })
-      const findDataBsc = fetchData(filterDataBsc, 'bsc')
-      const findDataPolygon = fetchData(filterDataPolygon, 'polygon')
-      Promise.all([...findDataBsc, ...findDataPolygon])
-        .then((vals) => {
-          const filterGame = GameData.filter((item: any) => {
-            return (
-              vals.findIndex((ele: any) => ele.token_address.toLowerCase() === item.contractAddress.toLowerCase()) >= 0
-            )
-          })
-          setMyCollection(filterGame)
-        })
-        .catch(() => {
-          console.log('err')
-        })
-    })
+    setRecommend(data)
   }
   const getReviewData = async () => {
     const BscReview = bschttp.get('/v0/review')
@@ -206,16 +198,18 @@ export const Circle = () => {
     })
   }
   const getFollowes = async () => {
+    const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
     const data = (await bschttp.get(`v0/userinfo/${account}`)).data.data
     setUserInfo(data)
-    const myFollowe = (await bschttp.get(`v0/lens_relationships/address/0x7a387E6f725a837dF5922e3Fe71827450A76A3E5`))
-      .data.data
+    const myFollowe = (await bschttp.get(`v0/lens_relationships/address/${account}`)).data.data
     if (myFollowe.length) {
       const data = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[0].followers_address}`)).data.data
       const data1 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[1].followers_address}`)).data.data
       const data2 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[2].followers_address}`)).data.data
+      const data3 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[3].followers_address}`)).data.data
+      const data4 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[4].followers_address}`)).data.data
       const dataarr = [] as any
-      ;[...data, ...data1, ...data2].map((item: any) => {
+      ;[...data4, ...data3, ...data1, ...data].map((item: any) => {
         if (item.address !== account) {
           const Item = userinfo.filter((ele: any) => {
             return ele.useraddress?.toLowerCase() === item.address?.toLowerCase()
@@ -225,8 +219,13 @@ export const Circle = () => {
           }
         }
       })
-      setCircleData(dataarr)
-      setShowData(dataarr.slice(0, 20))
+      const obj = {} as any
+      const newarr = dataarr.reduce((pre: any, item: any) => {
+        obj[item.address] ? '' : (obj[item.address] = true && pre.push(item))
+        return pre
+      }, [])
+      setCircleData(newarr)
+      setShowData(newarr.slice(0, 20))
     }
   }
   const getFollowData = () => {
@@ -279,7 +278,6 @@ export const Circle = () => {
     const Item = userinfo.filter((item: any) => {
       return item.useraddress?.toLowerCase() === address?.toLowerCase()
     })
-    console.log(Item)
     if (Item.length && Item) {
       getNftData(Item[0].useraddress)
       getMyReview(Item[0].useraddress)
@@ -316,14 +314,14 @@ export const Circle = () => {
       https://deep-index.moralis.io/api/v2/${address}/nft?chain=polygon&format=decimal`)
     Promise.all([BscNft, polygonNft])
       .then((vals) => {
-        const filterDataPolygon = vals[1].data.result.filter((item: any) => {
-          return PolygonContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
-        })
-        const filterDataBsc = vals[0].data.result.filter((item: any) => {
-          return BscContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
-        })
-        const findDataBsc = fetchData(filterDataBsc, 'bsc')
-        const findDataPolygon = fetchData(filterDataPolygon, 'polygon')
+        // const filterDataPolygon = vals[1].data.result.filter((item: any) => {
+        //   return PolygonContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
+        // })
+        // const filterDataBsc = vals[0].data.result.filter((item: any) => {
+        //   return BscContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
+        // })
+        const findDataBsc = fetchData(vals[0].data.result)
+        const findDataPolygon = fetchData(vals[1].data.result)
         Promise.all([...findDataBsc, ...findDataPolygon])
           .then((vals) => {
             const nftarr = vals
@@ -405,8 +403,14 @@ export const Circle = () => {
       return data.length
     }
   }
+  const RecommendButton = () => {
+    setTab('Recommend')
+    setRecommendData(Recommend)
+    setShowData([])
+  }
   const buttonAll = () => {
-    setShowData(circleData.slice(20 * page, 20 * page + 20))
+    setTab('All')
+    setShowData(circleData.slice(0, 20))
   }
   const buttonGame = () => {
     if (showData.length < 1) return
@@ -569,7 +573,14 @@ export const Circle = () => {
                 {NFTData && NFTData.length ? (
                   NFTData.map((item: any, index: any) => (
                     <div key={index}>
-                      <img src={item.metadata.image} />
+                      <IpfsImg
+                        src={
+                          item.metadata?.image ||
+                          item.metadata?.animation_url ||
+                          item.metadata?.data?.image ||
+                          defaultImg
+                        }
+                      />
                     </div>
                   ))
                 ) : (
@@ -624,8 +635,13 @@ export const Circle = () => {
         </UserInfoBox>
       </UserInfoDialog>
       <div className="container filterMenu flex flex-justify-content">
+        <div className="item flex flex-justify-content cursor" onClick={buttonAll}>
+          {tab === 'All' ? <span></span> : ''}
+          <div className={tab === 'All' ? 'select' : 'disabled'}></div>
+          Recommend
+        </div>
         <div className="item flex flex-justify-content not-allowed">
-          <div className="select"></div>
+          <div className="disabled"></div>
           Game
         </div>
         <div className="item flex flex-justify-content not-allowed">
@@ -636,13 +652,14 @@ export const Circle = () => {
           <div className="disabled"></div>
           Fans
         </div>
-        <div className="item flex flex-justify-content" onClick={getRecommendedFriend}>
-          <div className="disabled"></div>
+        {/* <div className="item flex flex-justify-content cursor" onClick={RecommendButton}>
+          {tab === 'Recommend' ? <span></span> : ''}
+          <div className={tab === 'Recommend' ? 'select' : 'disabled'}></div>
           Recommend
-        </div>
+        </div> */}
       </div>
       <div className="container flex wrap flex-h-between">
-        {showData && showData.length && !RecommendData.length ? (
+        {showData && showData.length && tab === 'All' ? (
           showData.map((item: any, index: number) => (
             <InfoCard key={index} className="cursor" onClick={() => echartsDataClick(item.address)}>
               <div className="avatar flex flex-h-between flex-v-center">
@@ -652,21 +669,25 @@ export const Circle = () => {
               <div className="name Abbreviation">{filterUser(item.address)[0]?.username || `user#${index}`}</div>
             </InfoCard>
           ))
-        ) : (
+        ) : tab === 'All' ? (
           <div className="Nocontent">No friends</div>
+        ) : (
+          ''
         )}
-        {RecommendData && RecommendData.length ? (
-          showData.map((item: any, index: number) => (
+        {RecommendData && RecommendData.length && tab === 'Recommend' ? (
+          RecommendData.map((item: any, index: number) => (
             <InfoCard key={index} className="cursor" onClick={() => echartsDataClick(item.useraddress)}>
               <div className="avatar flex flex-h-between flex-v-center">
                 <img src={item?.image || defaultImg} onError={handleImgError} />
                 <div className="More flex flex-center">See More</div>
               </div>
-              <div className="name Abbreviation">{item.useraddress?.username || `user#${index}`}</div>
+              <div className="name Abbreviation">{item?.username || `user#${index + 1}`}</div>
             </InfoCard>
           ))
+        ) : tab === 'Recommend' ? (
+          <div className="Nocontent">No recommend</div>
         ) : (
-          <div className="Nocontent"></div>
+          ''
         )}
       </div>
       {showData && showData.length ? (
