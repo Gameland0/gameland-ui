@@ -1436,8 +1436,8 @@ export const CollectionDetails = () => {
     }
   }, [actionData, transactionsType])
   const getActiveData = () => {
-    const actions = newhttp.get(`v0/active_actions/${address}`)
-    const users = newhttp.get(`v0/active_users/${address}`)
+    const actions = bschttp.get(`v0/active_actions/${address}`)
+    const users = bschttp.get(`v0/active_users/${address}`)
     Promise.all([actions, users]).then((vlas) => {
       const userarr = [] as any
       const approveData = [] as any
@@ -1563,7 +1563,7 @@ export const CollectionDetails = () => {
             } else {
               prices = 0
             }
-            Tabledata.push({
+            TabledataAll.push({
               address: formatting(item.owner),
               collation: ele.metadata.collection,
               nftname: ele.metadata.name,
@@ -1576,12 +1576,13 @@ export const CollectionDetails = () => {
           if (ele.type === 'trade' && ele.metadata.contract_address?.toLowerCase() === address?.toLowerCase()) {
             const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
             let prices
+            console.log(ele)
             if (ele.metadata.cost) {
               prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
             } else {
               prices = 0
             }
-            TabledataAll.push({
+            Tabledata.push({
               address: formatting(item.owner),
               collation: ele.metadata.collection,
               nftname: ele.metadata.name,
