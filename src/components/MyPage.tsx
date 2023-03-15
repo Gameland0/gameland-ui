@@ -5,9 +5,9 @@ import styled from 'styled-components'
 import { Tabs } from 'antd'
 import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
-import { useParams } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
+import * as echarts from 'echarts'
 import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
 import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
@@ -16,7 +16,6 @@ import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
-// import { Img } from './Img'
 import { Dialog } from './Dialog'
 import { CollectionToken } from './CollectionToken'
 import { Modal } from './Modal'
@@ -47,6 +46,9 @@ import lens from '../assets/lens.jpeg'
 import rss3 from '../assets/rss3.png'
 import galxe from '../assets/galxe.png'
 import deleteIcon from '../assets/delete.png'
+import analysis from '../assets/Analysis.svg'
+import shortbutton from '../assets/short_button.jpg'
+import longbutton from '../assets/long_button.jpg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -114,25 +116,6 @@ export const Card: React.FC<CardProps> = ({
     </CardBox>
   )
 }
-// interface LabelProps {
-//   name: string
-//   nftId: string
-//   type: any
-// }
-// const Labels: React.FC<LabelProps> = ({ name, type, nftId }) => {
-//   return (
-//     <div style={{ overflow: 'hidden', height: 90 }}>
-//       <NFTname>{name}</NFTname>
-//       <NftId>{nftId}</NftId>
-//       <Standard>{type}</Standard>
-//     </div>
-//   )
-// }
-// interface FolloweProps {
-//   Followeitem: any
-//   onFollowe: () => void
-//   onUnFollowe: () => void
-// }
 const UserBox = styled.div`
   .replyWindow {
     font-size: 24px;
@@ -219,6 +202,7 @@ const InfoLeft = styled.div`
     margin-bottom: 20px;
   }
   .userName {
+    width: 260px;
     font-size: 24px;
     font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
@@ -279,6 +263,9 @@ const InfoLeft = styled.div`
       width: 180px;
       height: 180px;
     }
+    .userName {
+      width: 180px;
+    }
     .socialize {
       img {
         width: 30px;
@@ -313,6 +300,10 @@ const InfoRight = styled.div`
       text-align: right;
       padding: 13px 16px;
       cursor: pointer;
+      img {
+        width: 24px;
+        height: 24px;
+      }
       span {
         background: #a8e5fb;
         border-radius: 12px;
@@ -452,20 +443,57 @@ const PostsBox = styled.div`
     }
   }
 `
-// const NFTsBox = styled.div`
-//   position: relative;
-//   div:nth-child(3n) {
-//     margin: 0 0 40px 0;
-//   }
-// `
-// const CardDetails = styled.div`
-//   position: relative;
-//   margin-top: 1rem;
-//   padding: 0 1rem 8px;
-//   p {
-//     margin-bottom: 0.3rem;
-//   }
-// `
+export const AnalysisBox = styled.div`
+  .pie {
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+  .Activity {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    .lineChart {
+      width: 100%;
+      height: 400px;
+      position: absolute;
+    }
+    .tab {
+      div {
+        position: relative;
+        cursor: pointer;
+        margin-right: 16px;
+        img {
+          width: 100%;
+          height: 8px;
+          position: absolute;
+          bottom: 1px;
+          left: 0px;
+        }
+      }
+    }
+    .select {
+      border-bottom: 2px solid #41acef;
+    }
+  }
+  @media screen and (min-width: 1440px) {
+    .pie {
+      width: 400px;
+      height: 350px;
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    .pie {
+      width: 500px;
+      height: 400px;
+    }
+  }
+`
 const CardBox = styled.div`
   position: relative;
   min-height: 396px;
@@ -509,24 +537,6 @@ const CardBox = styled.div`
     box-shadow: 0px 4px 10px 1px rgba(0, 0, 0, 0.1);
   }
 `
-// const NFTname = styled.p`
-//   display: block;
-//   width: 120px;
-//   white-space: nowrap;
-//   overflow: hidden;
-//   text-overflow: ellipsis;
-// `
-// const NftId = styled.div`
-//   width: 120px;
-//   white-space: nowrap;
-//   overflow: hidden;
-//   text-overflow: ellipsis;
-// `
-// const Standard = styled.div`
-//   color: #d0d0d0;
-//   font-size: 14px;
-//   margin-bottom: 0.5rem;
-// `
 const FakeButtons = styled.div`
   .button {
     width: 110px;
@@ -783,6 +793,66 @@ export const TabPaneBox = styled(TabPane)`
   padding-top: 1rem;
   padding-bottom: 2rem;
 `
+export const CollationTable = styled.div`
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 20px;
+  .title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+  }
+  .tab {
+    div {
+      flex: 1;
+      text-align: center;
+      font-size: 14px;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      font-weight: bold;
+    }
+  }
+  .bag {
+    background: #f4f9fb;
+  }
+  .tableContent {
+    div {
+      flex: 1;
+      height: 24px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 10px;
+      font-size: 13px;
+    }
+  }
+  .Notrecords {
+    margin-top: 20px;
+  }
+  .notShow {
+    display: none;
+  }
+  .tablePage {
+    margin-top: 10px;
+    div {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 5px;
+      margin-right: 5px;
+      cursor: pointer;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      align-content: center;
+    }
+    .selected {
+      background: #41acef;
+    }
+  }
+`
 const getHttp = (chain: any) => {
   if (chain === 'bsc') {
     return bschttp
@@ -820,6 +890,39 @@ export const fetchAbi = async (address: string, chain: any) => {
     return []
   }
 }
+export const PieOption = (title: string, data: any) => {
+  return {
+    title: {
+      text: title,
+      left: 'center'
+    },
+    tooltip: {
+      show: true,
+      trigger: 'item' as any
+    },
+    series: [
+      {
+        name: 'Access From',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        data: data,
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  }
+}
 export const MyPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const [refreshBy, setrefreshBy] = useState(false)
@@ -831,7 +934,6 @@ export const MyPage = () => {
   const [showPostsReplayWindow, setShowPostsReplayWindow] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showDeletePosts, setShowDeletePosts] = useState(false)
-  const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
@@ -851,8 +953,22 @@ export const MyPage = () => {
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [mirrorPost, setMirrorPost] = useState([] as any)
+  const [PieChartData, setPieChartData] = useState([] as any)
+  const [tableDataAll, setTableDataAll] = useState([] as any)
+  const [tableData, setTableData] = useState([] as any)
+  const [swapData, setSwapData] = useState([] as any)
+  const [swapDataAll, setSwapDataAll] = useState([] as any)
+  const [transaction, setTransaction] = useState([] as any)
+  const [transactionAll, setTransactionAll] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
+  const [totalPage, setTotalPage] = useState(0)
+  const [tablePage, setTablePage] = useState(0)
+  const [swapPage, setSwapPage] = useState(0)
+  const [swapTotalPage, setSwapTotalPage] = useState(0)
+  const [transactionPage, setTransactionPage] = useState(0)
+  const [transactionTotalPage, setTransactionTotalPage] = useState(0)
+  const [activityTab, setActivityTab] = useState('Chains')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
   const [rewardQuantity, setrewardQuantity] = useState('')
@@ -879,7 +995,8 @@ export const MyPage = () => {
     getUserInfo()
     getNftData()
     getReviewData()
-  }, [account, username, refreshBy])
+    getPieChartData()
+  }, [account, refreshBy])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
       .filter((item: any) => {
@@ -917,6 +1034,11 @@ export const MyPage = () => {
     if (userinfo.mirror) mirrorPoints = 20
     setTotaPoints(RewardIntegral + ReplayIntegral + ReviewIntegral + PostsIntegral + P0stsRewardIntegral + mirrorPoints)
   }, [reviewAllData, rewardinfo, myReview, userPosts])
+  useEffect(() => {
+    if (showTabs === 'Analysis') {
+      componentDidMount()
+    }
+  }, [PieChartData, showTabs, activityTab])
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -952,6 +1074,15 @@ export const MyPage = () => {
       return item
     })
   }
+  const getPieChartData = () => {
+    const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
+    const cc = '0x668f92d429c47dbc07df9597b00a7f5f9302ff87'
+    http
+      .get(`https://api.rss3.io/v1/notes/${account}?limit=500&include_poap=false&count_only=false&query_status=false`)
+      .then((vals) => {
+        setPieChartData(vals.data.result)
+      })
+  }
   const getUserInfo = async () => {
     if (!account) return
     const data = await bschttp.get(`v0/userinfo/${account}`)
@@ -962,7 +1093,7 @@ export const MyPage = () => {
         pathname: `/createUser`
       })
     }
-    if (data.data.data[0].mirror === 1) {
+    if (data.data.data[0].mirror) {
       bschttp.get(`v0/mirrow_article/user/${account}`).then((vals) => setMirrorPost(vals.data.data))
       bschttp.get(`v0/posts/user/${account}`).then((vals) => setuserPosts(vals.data.data))
     } else {
@@ -1479,6 +1610,291 @@ export const MyPage = () => {
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }
+  const nextPage = (index: number, type: string) => {
+    if (type === 'NFT') {
+      setTablePage(index)
+      setTableData(tableDataAll.slice(10 * index, 10 * index + 10))
+    }
+    if (type === 'Defi') {
+      setSwapPage(index)
+      setSwapData(swapDataAll.slice(10 * index, 10 * index + 10))
+    }
+    if (type === 'Transaction') {
+      setTransactionPage(index)
+      setTransaction(transactionAll.slice(10 * index, 10 * index + 10))
+    }
+  }
+  const componentDidMount = () => {
+    if (PieChartData && PieChartData.length) {
+      const chainarr: any[] = []
+      const collationarr: any[] = []
+      const timearr: any[] = []
+      const tagarr: any[] = []
+      const Tokensarr: any[] = []
+      const Tabledata = [] as any
+      const swapdata = [] as any
+      const transactionData = [] as any
+      PieChartData?.map((item: any) => {
+        chainarr.push(item.network)
+        tagarr.push(item.tag)
+        if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
+          collationarr.push(item.actions[0].metadata.collection)
+        }
+        if (item.tag === 'exchange' && item.type === 'swap') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'swap') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              swapdata.push({
+                sent: (ele.metadata.from.value_display * 1).toFixed(2) + ' ' + ele.metadata.from.symbol,
+                received: (ele.metadata.to.value_display * 1).toFixed(2) + ' ' + ele.metadata.to.symbol,
+                type: 'Swap',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'transaction') {
+          // console.log(item)
+          item.actions.map((ele: any) => {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            if (ele.type === 'mint' && ele.address_to?.toLowerCase() === account?.toLowerCase()) {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                type: 'Mint',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+            if (ele.type === 'approval') {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: 0,
+                type: 'Approval',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+            if (ele.type === 'transfer' && ele.address_to?.toLowerCase() === account?.toLowerCase()) {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                type: 'Claim',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+            if (ele.type === 'transfer' && ele.address_from?.toLowerCase() === account?.toLowerCase()) {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                type: 'Sent',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'collectible' && item.type === 'mint') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'mint') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              let prices
+              if (ele.metadata.cost) {
+                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              } else {
+                prices = 0
+              }
+              Tabledata.push({
+                collation: ele.metadata.collection,
+                nftname: ele.metadata.name,
+                price: prices,
+                chain: chains,
+                type: 'Mint',
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'collectible' && item.type === 'trade') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'trade') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              let prices
+              if (ele.metadata.cost) {
+                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              } else {
+                prices = 0
+              }
+              Tabledata.push({
+                collation: ele.metadata.collection,
+                nftname: ele.metadata.name,
+                price: prices,
+                chain: chains,
+                type: 'Bought',
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'exchange') {
+          // console.log(item.actions)
+          item.actions.map((ele: any) => {
+            if (ele.address_from?.toLowerCase() === account?.toLowerCase()) {
+              if (ele.type === 'swap') {
+                Tokensarr.push(ele.metadata.from.symbol·······)
+                Tokensarr.push(ele.metadata.to.symbol)
+              } else {
+                Tokensarr.push(ele.metadata.symbol)
+              }
+            }
+          })
+        }
+        timearr.push(item.timestamp.substr(0, 10))
+      })
+      setTableDataAll(Tabledata)
+      setSwapDataAll(swapdata)
+      setTransactionAll(transactionData)
+      setTableData(Tabledata.slice(0, 10))
+      setSwapData(swapdata.slice(0, 10))
+      setTransaction(transactionData.slice(0, 10))
+      setTotalPage(Math.ceil(Tabledata.length / 10))
+      setSwapTotalPage(Math.ceil(swapdata.length / 10))
+      setTransactionTotalPage(Math.ceil(transactionData.length / 10))
+      const chainarrDeduplication = [...new Set(chainarr)]
+      const Chainsoptionsdata: any[] = []
+      chainarrDeduplication.map((item) => {
+        const quantity = chainarr.filter((ele) => {
+          return ele === item
+        })
+        Chainsoptionsdata.push({ value: quantity.length, name: item })
+      })
+      const collationarrDeduplication = [...new Set(collationarr)].slice(0, 10)
+      const Collationoptionsdata: any[] = []
+      collationarrDeduplication.map((item) => {
+        Collationoptionsdata.push({ value: 1, name: item })
+      })
+      const tagarrDeduplication = [...new Set(tagarr)]
+      const timearrDeduplication = [...new Set(timearr)].slice(0, 15)
+      const Activityoptionsseries: any[] = []
+      const xAxisdata: any[] = []
+      timearrDeduplication.map((item) => {
+        xAxisdata.push(item.substr(5, 5))
+      })
+      const Preferredoptionsdata: any[] = []
+      tagarrDeduplication.map((item) => {
+        const quantity = PieChartData.filter((ele: any) => {
+          return ele.tag === item
+        })
+        Preferredoptionsdata.push({ value: quantity.length, name: item })
+      })
+      chainarrDeduplication.map((item) => {
+        const seriesdata: any[] = []
+        timearrDeduplication.map((ele) => {
+          const filtertime = PieChartData.filter((data: any) => {
+            return data.timestamp.indexOf(ele) !== -1
+          })
+          const filtertag = filtertime.filter((data: any) => {
+            return data.network === item
+          })
+          seriesdata.push(filtertag.length)
+        })
+        Activityoptionsseries.push({
+          name: item,
+          type: 'line',
+          data: seriesdata
+        })
+      })
+      const collationActivity = [] as any
+      collationarrDeduplication.map((item: any) => {
+        const seriesdata = [] as any
+        timearrDeduplication.map((ele) => {
+          const filtertime = PieChartData.filter((data: any) => {
+            return data.timestamp.indexOf(ele) !== -1
+          })
+          const filtercollation = filtertime.filter((data: any) => {
+            return data.actions[0].metadata.collection === item
+          })
+          seriesdata.push(filtercollation.length)
+        })
+        collationActivity.push({
+          name: item,
+          type: 'line',
+          data: seriesdata
+        })
+      })
+      const TokensarrDeduplication = [...new Set(Tokensarr)]
+      const Tokensoptionsdata: any[] = []
+      TokensarrDeduplication.map((item) => {
+        Tokensoptionsdata.push({ value: 1, name: item })
+      })
+      const Activityoptions = {
+        title: {
+          text: 'Activity',
+          top: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: chainarrDeduplication
+        },
+        xAxis: {
+          data: xAxisdata
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: Activityoptionsseries
+      }
+      const collationActivityoption = {
+        title: {
+          text: 'Activity',
+          top: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: collationarrDeduplication
+        },
+        xAxis: {
+          data: xAxisdata
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: collationActivity
+      }
+      const Collationdom = document.getElementById('Collation') as HTMLDivElement
+      const CollationChart = echarts.init(Collationdom)
+      CollationChart.setOption(PieOption('Collections', Collationoptionsdata))
+      const Chainsdom = document.getElementById('Chains') as HTMLDivElement
+      const ChainsChart = echarts.init(Chainsdom)
+      ChainsChart.setOption(PieOption('Chains', Chainsoptionsdata))
+      const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
+      const TokensChart = echarts.init(Tokensdom)
+      TokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
+      const Preferreddom = document.getElementById('Preferred') as HTMLDivElement
+      const PreferredChart = echarts.init(Preferreddom)
+      PreferredChart.setOption(PieOption('Preferred Domains', Preferredoptionsdata))
+      const Activitydom = document.getElementById('Activity') as HTMLDivElement
+      const ActivityChart = echarts.init(Activitydom)
+      ActivityChart.setOption(Activityoptions)
+      ActivityChart.on('click', echartsDataClick)
+      const collationActivitydom = document.getElementById('collationActivity') as HTMLDivElement
+      const collationActivityChart = echarts.init(collationActivitydom)
+      collationActivityChart.setOption(collationActivityoption)
+    }
+  }
+  const echartsDataClick = (params: any) => {
+    console.log(params)
+  }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setrewardQuantity(val)
@@ -1661,7 +2077,7 @@ export const MyPage = () => {
       <UserInfo className="flex">
         <InfoLeft>
           <img src={userinfo.image || defaultImg} className="avatar" />
-          <div className="userName text-center">{userinfo.username}</div>
+          <div className="userName text-center Abbreviation">{userinfo.username}</div>
           <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
           <div className="socialize flex flex-justify-content">
             <a
@@ -1698,8 +2114,12 @@ export const MyPage = () => {
             <a href={userinfo.galxe} target="_blank" rel="noreferrer">
               <img src={galxe} className="transparency" />
             </a>
-            <a href={userinfo.lens} target="_blank" rel="noreferrer">
-              <img src={lens} className="transparency" />
+            <a
+              href={userinfo.lens_handle ? `https://lenster.xyz/u/${userinfo.lens_handle}` : userinfo.lens_handle}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img src={lens} className={userinfo?.lens_handle ? '' : 'transparency'} />
             </a>
           </div>
           <div className="settings flex flex-justify-content">
@@ -1729,6 +2149,10 @@ export const MyPage = () => {
         <div className="boxDivider"></div>
         <InfoRight>
           <div className="Tabs flex">
+            <div className={showTabs === 'Analysis' ? 'blueBg' : ''} onClick={() => cutoverTabs('Analysis')}>
+              <img src={analysis} alt="analysis" />
+              &nbsp;&nbsp;Analysis
+            </div>
             <div className={showTabs === 'Posts' ? 'blueBg' : ''} onClick={() => cutoverTabs('Posts')}>
               <img src={tabsIconPosts} />
               &nbsp;&nbsp;Posts
@@ -1974,6 +2398,157 @@ export const MyPage = () => {
                 </div>
               )}
             </PostsBox>
+          ) : (
+            ''
+          )}
+          {showTabs === 'Analysis' && PieChartData.length ? (
+            <AnalysisBox>
+              <div className="flex flex-column-between">
+                <div id="Chains" className="pie"></div>
+                <div id="Collation" className="pie"></div>
+              </div>
+              <div className="flex flex-column-between">
+                <div id="Tokens" className="pie"></div>
+                <div id="Preferred" className="pie"></div>
+              </div>
+              <CollationTable>
+                <div className="title">Transactions</div>
+                <div className="tab flex">
+                  <div>COLLATION</div>
+                  <div>NFTNAME</div>
+                  <div>PRICE</div>
+                  <div>CHAIN</div>
+                  <div>TYPE</div>
+                  <div>TIME</div>
+                </div>
+                {tableData && tableData.length ? (
+                  tableData.map((item: any, index: number) => (
+                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                      <div>{item?.collation}</div>
+                      <div>{item?.nftname}</div>
+                      <div>{item?.price}</div>
+                      <div>{item?.chain}</div>
+                      <div>{item?.type}</div>
+                      <div>{item?.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                )}
+                <div className="tablePage flex">
+                  {tableData && tableData.length
+                    ? tableData.map((item: any, index: number) => (
+                        <div
+                          className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
+                          key={index}
+                          onClick={() => nextPage(index, 'NFT')}
+                        >
+                          {index + 1}
+                        </div>
+                      ))
+                    : ''}
+                </div>
+              </CollationTable>
+              <CollationTable>
+                <div className="title">Defi Transactions</div>
+                <div className="tab flex">
+                  <div>Sent</div>
+                  <div>Received</div>
+                  <div>Chain</div>
+                  <div>Type</div>
+                  <div>Time</div>
+                </div>
+                {swapData && swapData.length ? (
+                  swapData.map((item: any, index: number) => (
+                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                      <div>{item?.sent}</div>
+                      <div>{item?.received}</div>
+                      <div>{item?.chain}</div>
+                      <div>{item?.type}</div>
+                      <div>{item?.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                )}
+                <div className="tablePage flex">
+                  {swapData && swapData.length
+                    ? swapData.map((item: any, index: number) => (
+                        <div
+                          className={
+                            index + 1 > swapTotalPage ? 'notShow' : swapPage === index ? 'flex selected' : 'flex'
+                          }
+                          key={index}
+                          onClick={() => nextPage(index, 'Defi')}
+                        >
+                          {index + 1}
+                        </div>
+                      ))
+                    : ''}
+                </div>
+              </CollationTable>
+              <CollationTable>
+                <div className="title">Token Transactions</div>
+                <div className="tab flex">
+                  <div>Sent</div>
+                  <div>Token</div>
+                  <div>Received</div>
+                  <div>Chain</div>
+                  <div>Type</div>
+                  <div>Time</div>
+                </div>
+                {transaction && transaction.length ? (
+                  transaction.map((item: any, index: number) => (
+                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                      <div>{item?.sent}</div>
+                      <div>{item?.price}</div>
+                      <div>{item?.received}</div>
+                      <div>{item?.chain}</div>
+                      <div>{item?.type}</div>
+                      <div>{item?.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                )}
+                <div className="tablePage flex">
+                  {transactionAll && transactionAll.length
+                    ? transactionAll.map((item: any, index: number) => (
+                        <div
+                          className={
+                            index + 1 > transactionTotalPage
+                              ? 'notShow'
+                              : transactionPage === index
+                              ? 'flex selected'
+                              : 'flex'
+                          }
+                          key={index}
+                          onClick={() => nextPage(index, 'Transaction')}
+                        >
+                          {index + 1}
+                        </div>
+                      ))
+                    : ''}
+                </div>
+              </CollationTable>
+              <div className="Activity">
+                <div className="tab flex">
+                  <div onClick={() => setActivityTab('Chains')}>
+                    Chains
+                    {activityTab === 'Chains' ? <img src={shortbutton} /> : ''}
+                  </div>
+                  <div onClick={() => setActivityTab('Collections')}>
+                    Collections
+                    {activityTab === 'Collections' ? <img src={longbutton} /> : ''}
+                  </div>
+                </div>
+                <div id="Activity" className={activityTab === 'Chains' ? 'lineChart' : 'lineChart none'}></div>
+                <div
+                  id="collationActivity"
+                  className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}
+                ></div>
+              </div>
+            </AnalysisBox>
           ) : (
             ''
           )}

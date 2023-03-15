@@ -114,3 +114,6 @@
 .Chinese-Regular {
   font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
 }
+.none {
+  opacity: 0;
+}
