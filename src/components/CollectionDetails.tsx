@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
 import { Row, Col, Button } from 'antd'
+import * as echarts from 'echarts'
 // import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadFailed, Loadding } from '../pages/Games'
 import { divide, isEmpty } from 'lodash'
@@ -29,6 +30,7 @@ import {
   formatAddress,
   ZeroAddress,
   ChainCurrencyName,
+  filterAddress,
   formatting,
   handleImgError
 } from '../utils'
@@ -36,6 +38,7 @@ import { ABIs } from '../constants/Abis/ABIs'
 import {
   MORALIS_KEY,
   BscContract,
+  GameTokenDetails,
   PolygonContract,
   BSCAssetContractAddress,
   POLYGONAssetContractAddress,
@@ -81,6 +84,7 @@ import BUSDIcon from '../assets/busd.svg'
 import WETHIcon from '../assets/WETH.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
+import { PieOption } from './MyPage'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -148,7 +152,7 @@ const DetailsBox = styled.div`
       }
       .tab {
         margin: auto;
-        width: 552px;
+        width: 570px;
         height: 72px;
         background: linear-gradient(90deg, #35caa9 0%, #41acef 100%);
         border-radius: 36px;
@@ -892,13 +896,14 @@ const ApproveTable = styled.div`
       font-size: 14px;
       font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
+      padding: 0 10px;
     }
     .Address {
       flex: 3;
     }
   }
   .bag {
-    background: #f5f5f5;
+    background: #f4f9fb;
   }
   .tableContent {
     div {
@@ -908,8 +913,12 @@ const ApproveTable = styled.div`
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 0 10px;
       font-size: 13px;
+      padding: 0 10px;
+      img {
+        width: 12px;
+        height: 12px;
+      }
     }
     .Address {
       flex: 3;
@@ -948,6 +957,31 @@ const ApproveTable = styled.div`
     }
     .selected {
       background: #41acef;
+    }
+  }
+`
+const AnalysisBox = styled.div`
+  margin-top: 24px;
+  .echartsPie {
+    width: 96%;
+    margin: auto;
+    .pie {
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    @media screen and (min-width: 1440px) {
+      .pie {
+        width: 380px;
+        height: 300px;
+      }
+    }
+    @media screen and (min-width: 1920px) {
+      .pie {
+        width: 480px;
+        height: 350px;
+      }
     }
   }
 `
@@ -1185,9 +1219,13 @@ export const CollectionDetails = () => {
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [ArticleAll, setArticleAll] = useState([] as any)
   const [actionDataAll, setActionDataAll] = useState([] as any)
+  const [actionAll, setActionAll] = useState([] as any)
   const [actionData, setActionData] = useState([] as any)
   const [transactionsDataAll, setTransactionsDataAll] = useState([] as any)
   const [transactionsData, setTransactionsData] = useState([] as any)
+  const [tokenActionData, setTokenActionData] = useState([] as any)
+  const [tokenBalanceData, setTokenBalanceData] = useState([] as any)
+  const [RecommendPlayerData, setRecommendPlayerData] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1357,6 +1395,7 @@ export const CollectionDetails = () => {
     }
     getCollectionInfo()
     getActiveData()
+    getTokenData()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1435,18 +1474,35 @@ export const CollectionDetails = () => {
       getTransactionsData()
     }
   }, [actionData, transactionsType])
+  useEffect(() => {
+    if (tokenActionData && tokenActionData.length) {
+      setTokenPie()
+    }
+    if (actionAll && actionAll.length) {
+      setNFTpie()
+    }
+  }, [tokenActionData, actionAll, tap])
+  useEffect(() => {
+    if (userinfoAll && userinfoAll.length) {
+      setRecommendPlayer()
+    }
+  }, [userinfoAll])
   const getActiveData = () => {
     const actions = bschttp.get(`v0/active_actions/${address}`)
     const users = bschttp.get(`v0/active_users/${address}`)
     Promise.all([actions, users]).then((vlas) => {
       const userarr = [] as any
       const approveData = [] as any
+      const otherdata = [] as any
       vlas[0].data.data.map((item: any) => {
-        if (item.tokenid === 0) {
+        if (item.tokenid * 1 === 0) {
           approveData.push(item)
           userarr.push(item.address)
+        } else {
+          otherdata.push(item)
         }
       })
+      setActionAll(otherdata)
       const userNftArr = [] as any
       vlas[1].data.data.map((item: any) => {
         if (item.nftcount > 0) {
@@ -1456,13 +1512,29 @@ export const CollectionDetails = () => {
       const tableData = [] as any
       userNftArr.map((item: any) => {
         const data = approveData.filter((ele: any) => {
-          return ele.address === item.address
+          return ele.address?.toLowerCase() === item.address?.toLowerCase()
         })
         if (data.length > 0) {
+          let level
+          if (data.length > 20) {
+            level = 'Bot'
+          } else {
+            const dataAll = vlas[0].data.data.filter((ele: any) => {
+              return ele.address?.toLowerCase() === item.address?.toLowerCase()
+            })
+            if (dataAll.length > 20) {
+              level = 'High'
+            } else if (dataAll.length < 10) {
+              level = 'Low'
+            } else {
+              level = 'Middle'
+            }
+          }
           tableData.push({
             address: item.address,
             nftTotal: item.nftcount,
-            actiontotal: data.length
+            actiontotal: data.length,
+            Level: level
           })
         }
       })
@@ -1477,28 +1549,28 @@ export const CollectionDetails = () => {
   }
   const getTransactionsData = async () => {
     const res = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[0].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[0]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const res1 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[1].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[1]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const res2 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[2].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[2]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const res3 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[3].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[3]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const res4 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[4].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[4]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const res5 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[5].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[5]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const res6 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[6].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[6]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const res7 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[7].address}?limit=500&include_poap=false&count_only=false&query_status=false`
+      `https://api.rss3.io/v1/notes/${actionData[7]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
     const data = [
       ...res.data.result,
@@ -1604,6 +1676,145 @@ export const CollectionDetails = () => {
       setTransactionsData(Tabledata.slice(0, 10))
       setTransactionsTotalPage(Math.ceil(Tabledata.length / 10))
     }
+  }
+  const getTokenData = async () => {
+    const action = await bschttp.get(`v0/erc20_active_actions/${address}`)
+    setTokenActionData(action.data.data)
+    const balance = await bschttp.get(`v0/erc20contractbalances/${address}`)
+    setTokenBalanceData(balance.data.data)
+  }
+  const getTokenBalance = (Address: string) => {
+    const data = tokenBalanceData.filter((item: any) => {
+      return item.address?.toLowerCase() === Address?.toLowerCase()
+    })
+    if (data.length) {
+      const balance = data[0]?.balance / 100000000000000000
+      if (balance * 1 > 0) {
+        return balance.toFixed(2) + ' ' + data[0]?.symbol
+      }
+      return 0
+    }
+    return 0
+  }
+  const setTokenPie = () => {
+    if (tap === 'Analysis') {
+      const tokeninfo = GameTokenDetails.filter((item: any) => {
+        return item.NFTaddress?.toLowerCase() === address?.toLowerCase()
+      })
+      tokenActionData.map((item: any) => {
+        if (filterAddress(item.from)?.toLowerCase() === item.address?.toLowerCase()) {
+          item.type = 'Sold'
+        }
+        if (tokeninfo[0].tokenAddress[0]?.toLowerCase() === filterAddress(item.from)?.toLowerCase()) {
+          item.type = 'Claim'
+        }
+        item.from = filterAddress(item.from)
+        item.to = filterAddress(item.to)
+      })
+      const ClaimData = tokenActionData.filter((item: any) => {
+        return item.type === 'Claim'
+      })
+      const ClaimValue = (ClaimData.length / tokenActionData.length).toFixed(2) as any
+      const SoldData = tokenActionData.filter((item: any) => {
+        return item.type === 'Sold'
+      })
+      const SoldValue = (SoldData.length / tokenActionData.length).toFixed(2) as any
+      const BoughtValue = 1 - ClaimValue * 1 - SoldValue * 1
+      let Tokensdata
+      if (BoughtValue * 1 + SoldValue * 1 === 1) {
+        Tokensdata = [
+          {
+            value: Math.floor(BoughtValue * 100),
+            name: 'Bought'
+          },
+          {
+            value: Math.floor(SoldValue * 100),
+            name: 'Sold'
+          }
+        ]
+      } else {
+        Tokensdata = [
+          {
+            value: ClaimValue * 100,
+            name: 'Claim'
+          },
+          {
+            value: BoughtValue * 100,
+            name: 'Bought'
+          },
+          {
+            value: SoldValue * 100,
+            name: 'Sold'
+          }
+        ]
+      }
+      const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
+      const TokensChart = echarts.init(Tokensdom)
+      TokensChart.setOption(PieOption('Tokens Transaction(%)', Tokensdata))
+    }
+  }
+  const setNFTpie = () => {
+    if (tap === 'Analysis') {
+      const adrr = '0x0000000000000000000000000000000000000000'
+      actionAll.map((item: any) => {
+        if (filterAddress(item.t1)?.toLowerCase() === item.address?.toLowerCase()) {
+          item.type = 'Sold'
+        }
+        if (filterAddress(item.t1)?.toLowerCase() === adrr?.toLowerCase()) {
+          item.type = 'Mint'
+        }
+        item.t1 = filterAddress(item.t1)
+        item.t2 = filterAddress(item.t2)
+      })
+      const SoldData = actionAll.filter((item: any) => {
+        return item.type === 'Sold'
+      })
+      const MintData = actionAll.filter((item: any) => {
+        return item.type === 'Mint'
+      })
+      const SoldValue = (SoldData.length / actionAll.length).toFixed(2) as any
+      const MintValue = (MintData.length / actionAll.length).toFixed(2) as any
+      const BoughtValue = 1 - MintValue * 1 - SoldValue * 1
+      let NFTdata
+      if (BoughtValue * 1 + SoldValue * 1 === 1) {
+        NFTdata = [
+          {
+            value: Math.floor(BoughtValue * 100),
+            name: 'Bought'
+          },
+          {
+            value: Math.floor(SoldValue * 100),
+            name: 'Sold'
+          }
+        ]
+      } else {
+        NFTdata = [
+          {
+            value: MintValue * 100,
+            name: 'Mint'
+          },
+          {
+            value: BoughtValue * 100,
+            name: 'Bought'
+          },
+          {
+            value: SoldValue * 100,
+            name: 'Sold'
+          }
+        ]
+      }
+      const NFTdom = document.getElementById('NFT') as HTMLDivElement
+      const NFTChart = echarts.init(NFTdom)
+      NFTChart.setOption(PieOption('NFT Transaction(%)', NFTdata))
+    }
+  }
+  const setRecommendPlayer = () => {
+    const data = userinfoAll
+      .sort(() => {
+        return Math.random() - 0.5
+      })
+      .slice(0, 10)
+    setRecommendPlayerData(data)
   }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
@@ -3001,14 +3212,20 @@ export const CollectionDetails = () => {
               ''
             )}
             {tap === 'Analysis' ? (
-              <div>
+              <AnalysisBox>
+                <div className="echartsPie flex flex-column-between">
+                  <div id="NFT" className="pie"></div>
+                  <div id="Tokens" className="pie"></div>
+                </div>
                 <ApproveTable>
                   <div className="title">Most Active Users</div>
                   <div className="tableTab flex">
                     <div>Ranking</div>
                     <div className="Address">Address</div>
-                    <div>NFT Total</div>
+                    <div>Token</div>
+                    <div>NFT</div>
                     <div>Active</div>
+                    <div>Level</div>
                   </div>
                   {actionData && actionData.length ? (
                     actionData.map((item: any, index: number) => (
@@ -3018,16 +3235,18 @@ export const CollectionDetails = () => {
                       >
                         <div>{item?.ranking}</div>
                         <div className="Address">{item?.address}</div>
+                        <div>{getTokenBalance(item?.address)}</div>
                         <div>{item?.nftTotal}</div>
                         <div>{item?.actiontotal}</div>
+                        <div>{item?.Level}</div>
                       </div>
                     ))
                   ) : (
                     <div className="Notrecords flex flex-justify-content">No records</div>
                   )}
                   <div className="tablePage flex">
-                    {actionData && actionData.length
-                      ? actionData.map((item: any, index: number) => (
+                    {actionAll && actionAll.length
+                      ? actionAll.map((item: any, index: number) => (
                           <div
                             className={
                               index + 1 > approveTotalPage
@@ -3057,7 +3276,7 @@ export const CollectionDetails = () => {
                   </div>
                   <div className="tableTab flex">
                     <div>Address</div>
-                    <div>Collation</div>
+                    <div>Colletion</div>
                     <div>NFT Name</div>
                     <div>Price</div>
                     <div>Chain</div>
@@ -3102,7 +3321,29 @@ export const CollectionDetails = () => {
                       : ''}
                   </div>
                 </ApproveTable>
-              </div>
+                <ApproveTable>
+                  <div className="title">Recommended Player</div>
+                  <div className="tableTab flex">
+                    <div>Ranking</div>
+                    <div className="Address">Address</div>
+                    <div>Name</div>
+                  </div>
+                  {RecommendPlayerData && RecommendPlayerData.length ? (
+                    RecommendPlayerData.map((item: any, index: number) => (
+                      <div
+                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                        key={index}
+                      >
+                        <div>{index + 1}</div>
+                        <div className="Address">{item?.useraddress}</div>
+                        <div>{item.username || `user#${index + 1}`}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                </ApproveTable>
+              </AnalysisBox>
             ) : (
               ''
             )}

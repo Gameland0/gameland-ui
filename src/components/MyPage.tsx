@@ -55,6 +55,8 @@ import rss3 from '../assets/rss3.png'
 import galxe from '../assets/galxe.png'
 import deleteIcon from '../assets/delete.png'
 import analysis from '../assets/Analysis.svg'
+import shortbutton from '../assets/short_button.jpg'
+import longbutton from '../assets/long_button.jpg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -457,6 +459,7 @@ export const AnalysisBox = styled.div`
     margin-bottom: 20px;
   }
   .Activity {
+    position: relative;
     width: 100%;
     height: 500px;
     border: 1px solid #e5e5e5;
@@ -466,11 +469,20 @@ export const AnalysisBox = styled.div`
     .lineChart {
       width: 100%;
       height: 400px;
+      position: absolute;
     }
     .tab {
       div {
+        position: relative;
         cursor: pointer;
         margin-right: 16px;
+        img {
+          width: 100%;
+          height: 8px;
+          position: absolute;
+          bottom: 1px;
+          left: 0px;
+        }
       }
     }
     .select {
@@ -810,7 +822,7 @@ export const CollationTable = styled.div`
     }
   }
   .bag {
-    background: #f5f5f5;
+    background: #f4f9fb;
   }
   .tableContent {
     div {
@@ -952,10 +964,18 @@ export const MyPage = () => {
   const [PieChartData, setPieChartData] = useState([] as any)
   const [tableDataAll, setTableDataAll] = useState([] as any)
   const [tableData, setTableData] = useState([] as any)
+  const [swapData, setSwapData] = useState([] as any)
+  const [swapDataAll, setSwapDataAll] = useState([] as any)
+  const [transaction, setTransaction] = useState([] as any)
+  const [transactionAll, setTransactionAll] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
   const [tablePage, setTablePage] = useState(0)
+  const [swapPage, setSwapPage] = useState(0)
+  const [swapTotalPage, setSwapTotalPage] = useState(0)
+  const [transactionPage, setTransactionPage] = useState(0)
+  const [transactionTotalPage, setTransactionTotalPage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
@@ -1611,9 +1631,19 @@ export const MyPage = () => {
       bschttp.put(`/v0/mirrow_article/${item.id}`, params)
     }
   }
-  const nextPage = (index: number) => {
-    setTablePage(index)
-    setTableData(tableDataAll.slice(10 * index, 10 * index + 10))
+  const nextPage = (index: number, type: string) => {
+    if (type === 'NFT') {
+      setTablePage(index)
+      setTableData(tableDataAll.slice(10 * index, 10 * index + 10))
+    }
+    if (type === 'Defi') {
+      setSwapPage(index)
+      setSwapData(swapDataAll.slice(10 * index, 10 * index + 10))
+    }
+    if (type === 'Transaction') {
+      setTransactionPage(index)
+      setTransaction(transactionAll.slice(10 * index, 10 * index + 10))
+    }
   }
   const componentDidMount = () => {
     if (PieChartData && PieChartData.length) {
@@ -1623,11 +1653,73 @@ export const MyPage = () => {
       const tagarr: any[] = []
       const Tokensarr: any[] = []
       const Tabledata = [] as any
+      const swapdata = [] as any
+      const transactionData = [] as any
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
         if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
           collationarr.push(item.actions[0].metadata.collection)
+        }
+        if (item.tag === 'exchange' && item.type === 'swap') {
+          item.actions.map((ele: any) => {
+            if (ele.type === 'swap') {
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              swapdata.push({
+                sent: (ele.metadata.from.value_display * 1).toFixed(2) + ' ' + ele.metadata.from.symbol,
+                received: (ele.metadata.to.value_display * 1).toFixed(2) + ' ' + ele.metadata.to.symbol,
+                type: 'Swap',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'transaction') {
+          // console.log(item)
+          item.actions.map((ele: any) => {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            if (ele.type === 'mint' && ele.address_to?.toLowerCase() === account?.toLowerCase()) {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                type: 'Mint',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+            if (ele.type === 'approval') {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: 0,
+                type: 'Approval',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+            if (ele.type === 'transfer' && ele.address_to?.toLowerCase() === account?.toLowerCase()) {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                type: 'Claim',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+            if (ele.type === 'transfer' && ele.address_from?.toLowerCase() === account?.toLowerCase()) {
+              transactionData.push({
+                sent: formatting(ele.address_from),
+                received: formatting(ele.address_to),
+                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                type: 'Sent',
+                chain: chains,
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
         }
         if (item.tag === 'collectible' && item.type === 'mint') {
           item.actions.map((ele: any) => {
@@ -1687,8 +1779,14 @@ export const MyPage = () => {
         timearr.push(item.timestamp.substr(0, 10))
       })
       setTableDataAll(Tabledata)
+      setSwapDataAll(swapdata)
+      setTransactionAll(transactionData)
       setTableData(Tabledata.slice(0, 10))
+      setSwapData(swapdata.slice(0, 10))
+      setTransaction(transactionData.slice(0, 10))
       setTotalPage(Math.ceil(Tabledata.length / 10))
+      setSwapTotalPage(Math.ceil(swapdata.length / 10))
+      setTransactionTotalPage(Math.ceil(transactionData.length / 10))
       const chainarrDeduplication = [...new Set(chainarr)]
       const Chainsoptionsdata: any[] = []
       chainarrDeduplication.map((item) => {
@@ -1806,17 +1904,17 @@ export const MyPage = () => {
       const Preferreddom = document.getElementById('Preferred') as HTMLDivElement
       const PreferredChart = echarts.init(Preferreddom)
       PreferredChart.setOption(PieOption('Preferred Domains', Preferredoptionsdata))
-      if (activityTab === 'Chains') {
-        const Activitydom = document.getElementById('Activity') as HTMLDivElement
-        const ActivityChart = echarts.init(Activitydom)
-        ActivityChart.setOption(Activityoptions)
-      }
-      if (activityTab === 'Collections') {
-        const collationActivitydom = document.getElementById('collationActivity') as HTMLDivElement
-        const collationActivityChart = echarts.init(collationActivitydom)
-        collationActivityChart.setOption(collationActivityoption)
-      }
+      const Activitydom = document.getElementById('Activity') as HTMLDivElement
+      const ActivityChart = echarts.init(Activitydom)
+      ActivityChart.setOption(Activityoptions)
+      ActivityChart.on('click', echartsDataClick)
+      const collationActivitydom = document.getElementById('collationActivity') as HTMLDivElement
+      const collationActivityChart = echarts.init(collationActivitydom)
+      collationActivityChart.setOption(collationActivityoption)
     }
+  }
+  const echartsDataClick = (params: any) => {
+    console.log(params)
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -2364,7 +2462,89 @@ export const MyPage = () => {
                         <div
                           className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
                           key={index}
-                          onClick={() => nextPage(index)}
+                          onClick={() => nextPage(index, 'NFT')}
+                        >
+                          {index + 1}
+                        </div>
+                      ))
+                    : ''}
+                </div>
+              </CollationTable>
+              <CollationTable>
+                <div className="title">Defi Transactions</div>
+                <div className="tab flex">
+                  <div>Sent</div>
+                  <div>Received</div>
+                  <div>Chain</div>
+                  <div>Type</div>
+                  <div>Time</div>
+                </div>
+                {swapData && swapData.length ? (
+                  swapData.map((item: any, index: number) => (
+                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                      <div>{item?.sent}</div>
+                      <div>{item?.received}</div>
+                      <div>{item?.chain}</div>
+                      <div>{item?.type}</div>
+                      <div>{item?.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                )}
+                <div className="tablePage flex">
+                  {swapData && swapData.length
+                    ? swapData.map((item: any, index: number) => (
+                        <div
+                          className={
+                            index + 1 > swapTotalPage ? 'notShow' : swapPage === index ? 'flex selected' : 'flex'
+                          }
+                          key={index}
+                          onClick={() => nextPage(index, 'Defi')}
+                        >
+                          {index + 1}
+                        </div>
+                      ))
+                    : ''}
+                </div>
+              </CollationTable>
+              <CollationTable>
+                <div className="title">Token Transactions</div>
+                <div className="tab flex">
+                  <div>Sent</div>
+                  <div>Token</div>
+                  <div>Received</div>
+                  <div>Chain</div>
+                  <div>Type</div>
+                  <div>Time</div>
+                </div>
+                {transaction && transaction.length ? (
+                  transaction.map((item: any, index: number) => (
+                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                      <div>{item?.sent}</div>
+                      <div>{item?.price}</div>
+                      <div>{item?.received}</div>
+                      <div>{item?.chain}</div>
+                      <div>{item?.type}</div>
+                      <div>{item?.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                )}
+                <div className="tablePage flex">
+                  {transactionAll && transactionAll.length
+                    ? transactionAll.map((item: any, index: number) => (
+                        <div
+                          className={
+                            index + 1 > transactionTotalPage
+                              ? 'notShow'
+                              : transactionPage === index
+                              ? 'flex selected'
+                              : 'flex'
+                          }
+                          key={index}
+                          onClick={() => nextPage(index, 'Transaction')}
                         >
                           {index + 1}
                         </div>
@@ -2374,21 +2554,20 @@ export const MyPage = () => {
               </CollationTable>
               <div className="Activity">
                 <div className="tab flex">
-                  <div className={activityTab === 'Chains' ? 'select' : ''} onClick={() => setActivityTab('Chains')}>
+                  <div onClick={() => setActivityTab('Chains')}>
                     Chains
+                    {activityTab === 'Chains' ? <img src={shortbutton} /> : ''}
                   </div>
-                  <div
-                    className={activityTab === 'Collections' ? 'select' : ''}
-                    onClick={() => setActivityTab('Collections')}
-                  >
+                  <div onClick={() => setActivityTab('Collections')}>
                     Collections
+                    {activityTab === 'Collections' ? <img src={longbutton} /> : ''}
                   </div>
                 </div>
-                {activityTab === 'Chains' ? (
-                  <div id="Activity" className="lineChart"></div>
-                ) : (
-                  <div id="collationActivity" className="lineChart"></div>
-                )}
+                <div id="Activity" className={activityTab === 'Chains' ? 'lineChart' : 'lineChart none'}></div>
+                <div
+                  id="collationActivity"
+                  className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}
+                ></div>
               </div>
             </AnalysisBox>
           ) : (
