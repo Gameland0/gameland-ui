@@ -830,6 +830,7 @@ export const UserPage = () => {
   const [showPostsReplayWindow, setShowPostsReplayWindow] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showDeletePosts, setShowDeletePosts] = useState(false)
+  const [showActivity, setShowActivity] = useState(false)
   const { state } = useLocation() as any
   const { username } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
@@ -858,6 +859,7 @@ export const UserPage = () => {
   const [swapDataAll, setSwapDataAll] = useState([] as any)
   const [transaction, setTransaction] = useState([] as any)
   const [transactionAll, setTransactionAll] = useState([] as any)
+  const [PopUpsData, setPopUpsData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -1873,10 +1875,27 @@ export const UserPage = () => {
       const Activitydom = document.getElementById('Activity') as HTMLDivElement
       const ActivityChart = echarts.init(Activitydom)
       ActivityChart.setOption(Activityoptions)
+      ActivityChart.on('click', chainActivityClick)
       const collationActivitydom = document.getElementById('collationActivity') as HTMLDivElement
       const collationActivityChart = echarts.init(collationActivitydom)
       collationActivityChart.setOption(collationActivityoption)
+      collationActivityChart.on('click', collationActivityClick)
     }
+  }
+  const chainActivityClick = (params: any) => {
+    const data = PieChartData.filter((item: any) => {
+      return item.network === params.seriesName && item.timestamp.substr(5, 5) === params.name
+    })
+    console.log(data)
+    setPopUpsData(data)
+    setShowActivity(true)
+  }
+  const collationActivityClick = (params: any) => {
+    const data = PieChartData.filter((item: any) => {
+      return item.timestamp.substr(5, 5) === params.name
+    })
+    setPopUpsData(data)
+    setShowActivity(true)
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -2025,6 +2044,43 @@ export const UserPage = () => {
               OK
             </div>
           </ButtonBox>
+        </SendBox>
+      </Dialog>
+      <Dialog footer={null} onCancel={() => setShowActivity(false)} open={showActivity} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">Activity details</div>
+          {PopUpsData && PopUpsData.length ? (
+            PopUpsData.map((item: any, index: number) => (
+              <div key={index} className="text-center">
+                {item.timestamp.substr(0, 10)}&nbsp;
+                {formatting(item.address_from)}&nbsp;
+                <b>{item.type}</b>&nbsp;
+                <b>
+                  {item.type === 'revise'
+                    ? ''
+                    : item.tag === 'collectible'
+                    ? formatting(item.actions[0].metadata.id)
+                    : item.type === 'comment'
+                    ? ''
+                    : item.type === 'swap'
+                    ? (item.actions[0].metadata.from.value_display * 1).toFixed(2) +
+                      ' ' +
+                      item.actions[0].metadata.from.symbol
+                    : (item.actions[0].metadata.value_display * 1).toFixed(2) + ' ' + item.actions[0].metadata.symbol}
+                </b>
+                {' To '}
+                &nbsp;
+                {item.type === 'swap'
+                  ? (item.actions[0].metadata.to.value_display * 1).toFixed(2) +
+                    ' ' +
+                    item.actions[0].metadata.to.symbol
+                  : formatting(item.address_to)}
+                &nbsp;in {item.network}
+              </div>
+            ))
+          ) : (
+            <div className="text-center">No records</div>
+          )}
         </SendBox>
       </Dialog>
       <div className="topBackground"></div>

@@ -225,7 +225,7 @@ export const GameTokenDetails = [
   },
   {
     NFTaddress: '0x69d60ad11feb699fe5feeeb16ac691df090bfd50',
-    tokenAddress: ['7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx', '0x4a2c860cec6471b9f5f5a336eb4f38bb21683c98'],
+    tokenAddress: ['0x3019BF2a2eF8040C242C9a4c5c4BD4C81678b2A1', '0x4a2c860cec6471b9f5f5a336eb4f38bb21683c98'],
     symbol: [GMT, GST],
     chain: 'bsc'
   },
