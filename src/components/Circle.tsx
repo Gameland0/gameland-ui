@@ -220,12 +220,12 @@ export const Circle = () => {
         }
       })
       const obj = {} as any
-      const newarr = dataarr.reduce((pre: any, item: any) => {
-        obj[item.address] ? '' : (obj[item.address] = true && pre.push(item))
-        return pre
-      }, [])
-      setCircleData(newarr)
-      setShowData(newarr.slice(0, 20))
+      // const newarr = dataarr.reduce((pre: any, item: any) => {
+      //   obj[item.address] ? '' : (obj[item.address] = true && pre.push(item))
+      //   return pre
+      // }, [])
+      setCircleData(dataarr)
+      setShowData(dataarr.slice(0, 20))
     }
   }
   const getFollowData = () => {

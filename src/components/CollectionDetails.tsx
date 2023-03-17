@@ -900,6 +900,7 @@ const ApproveTable = styled.div`
     }
     .Address {
       flex: 3;
+      padding: 0;
     }
   }
   .bag {
@@ -909,11 +910,12 @@ const ApproveTable = styled.div`
     div {
       flex: 1;
       height: 24px;
+      line-height: 24px;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-size: 13px;
+      font-size: 12px;
       padding: 0 10px;
       img {
         width: 12px;
@@ -922,6 +924,7 @@ const ApproveTable = styled.div`
     }
     .Address {
       flex: 3;
+      padding: 0;
     }
   }
   .Notrecords {
@@ -1516,7 +1519,7 @@ export const CollectionDetails = () => {
         })
         if (data.length > 0) {
           let level
-          if (data.length > 20) {
+          if (data.length > 25) {
             level = 'Bot'
           } else {
             const dataAll = vlas[0].data.data.filter((ele: any) => {
