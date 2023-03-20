@@ -243,6 +243,9 @@ export const Header = () => {
               <Link to="/expose">
                 <span>Expose</span>
               </Link>
+              <Link to="/circle">
+                <span>Circle</span>
+              </Link>
               <Link to="/dashboard">
                 <span>Dashboard</span>
               </Link>

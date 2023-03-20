@@ -2,6 +2,7 @@ import { getAddress } from '@ethersproject/address'
 import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { TransactionReceipt } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client'
 import { bschttp, polygonhttp } from '../components/Store'
 import defaultImg from '../assets/default.png'
 
@@ -290,3 +291,42 @@ export const fetchReceipt = async (transactionHash: string, provider: any): Prom
 export const handleImgError = (e: any) => {
   e.target.src = defaultImg
 }
+export const client = new ApolloClient({
+  uri: 'https://api.cyberconnect.dev',
+  cache: new InMemoryCache()
+  // headers: {
+  //   'X-API-KEY': 'QRs7cgbG5msDF7i1sXIy854x8EufDtHS'
+  // }
+})
+
+export const Recommended = gql`
+  query getUserRecommendation($address: AddressEVM!, $chainId: ChainID!) {
+    address(address: $address) {
+      wallet {
+        recommendation(chainID: $chainId) {
+          userRecommendation {
+            userToFollow
+            userToFollowRank
+            userToFollowDistanceScore
+            userToFollowReason
+          }
+        }
+      }
+    }
+  }
+`
+export const getinfo = gql`
+  query ExampleQuery($address: AddressEVM!) {
+    address(address: $address) {
+      wallet {
+        profiles {
+          edges {
+            node {
+              handle
+            }
+          }
+        }
+      }
+    }
+  }
+`
