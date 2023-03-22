@@ -300,10 +300,7 @@ export const Circle = () => {
       })
     } else {
       history.push({
-        pathname: `/user/${UserInfoItem?.username.replace(/ /g, '')}`,
-        state: {
-          useraddress: UserInfoItem?.useraddress
-        }
+        pathname: `/user/${UserInfoItem?.useraddress}`
       })
     }
   }

@@ -93,7 +93,7 @@ function App() {
             <Route exact path="/circle" component={Circle} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
-            <Route exact path="/user/:username" component={UserPage} />
+            <Route exact path="/user/:useraddress" component={UserPage} />
             <Route exact path="/MyPage" component={MyPage} />
             <Route exact path="/createUser" component={Register} />
             <Route exact path="/WritePosts" component={WritePosts} />

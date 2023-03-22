@@ -13,6 +13,7 @@ import ControlContractAbi from '../constants/Abis/controlContract.json'
 import BUSD from '../constants/Abis/busd.json'
 import WETH from '../constants/Abis/WETH.json'
 import rewardAbi from '../constants/Abis/reward.json'
+import payment from '../constants/Abis/payment.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import {
@@ -23,7 +24,9 @@ import {
   POLYGONAssetContractAddress,
   BSCRewardAddress,
   POLYGONRewardAddress,
-  WETHaddress
+  WETHaddress,
+  BSCPayMentAddress,
+  BSCUSDT
 } from '../constants'
 
 interface OpenseaData {
@@ -170,6 +173,22 @@ export function useERC20Contract() {
     return new Contract(BUSDAddress, BUSD, library.getSigner())
   } else if (chainId === 137) {
     return new Contract(WETHaddress, WETH, library.getSigner())
+  }
+}
+
+export function useUSDTContract() {
+  const { library, chainId } = useActiveWeb3React()
+  if (!library) return null
+  if (chainId === 56) {
+    return new Contract(BSCUSDT, BUSD, library.getSigner())
+  }
+}
+
+export function usePayMentContract() {
+  const { library, chainId } = useActiveWeb3React()
+  if (!library) return null
+  if (chainId === 56) {
+    return new Contract(BSCPayMentAddress, payment, library.getSigner())
   }
 }
 

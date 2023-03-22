@@ -5,12 +5,11 @@ import styled from 'styled-components'
 import { Tabs } from 'antd'
 import { Web3Provider } from '@ethersproject/providers'
 import { Contract } from '@ethersproject/contracts'
-import { useLocation, useParams } from 'react-router-dom'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
 import * as echarts from 'echarts'
-import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
-import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
+import { useActiveWeb3React, useStore, useRewardContract, usePayMentContract, useUSDTContract } from '../hooks'
+import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY, BSCPayMentAddress } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
 import { getTime } from './CollectionDetails'
@@ -53,6 +52,7 @@ import galxe from '../assets/galxe.png'
 import analysis from '../assets/Analysis.svg'
 import shortbutton from '../assets/short_button.jpg'
 import longbutton from '../assets/long_button.jpg'
+import coffee from '../assets/icon_coffee.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -831,8 +831,8 @@ export const UserPage = () => {
   const [showSettings, setShowSettings] = useState(false)
   const [showDeletePosts, setShowDeletePosts] = useState(false)
   const [showActivity, setShowActivity] = useState(false)
-  const { state } = useLocation() as any
-  const { username } = useParams() as any
+  const [payMentState, setPayMentState] = useState(false)
+  const { useraddress } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
@@ -860,6 +860,7 @@ export const UserPage = () => {
   const [transaction, setTransaction] = useState([] as any)
   const [transactionAll, setTransactionAll] = useState([] as any)
   const [PopUpsData, setPopUpsData] = useState([] as any)
+  const [payMentInfo, setPayMentInfo] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -882,6 +883,8 @@ export const UserPage = () => {
   const [Avatar, setAvatar] = useState('')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const RewardContract = useRewardContract()
+  const PayMentContract = usePayMentContract()
+  const USDTContract = useUSDTContract()
   const history = useHistory()
   const arweave = Arweave.init({
     host: 'arweave.net',
@@ -890,22 +893,13 @@ export const UserPage = () => {
     timeout: 20000,
     logging: false
   })
-  let useraddress: any
-  if (state) {
-    useraddress = state.useraddress
-  } else {
-    useraddress = localStorage.getItem('useraddress')
-  }
-  // alert(JSON.stringify(key))
   useEffect(() => {
-    if (state) {
-      localStorage.setItem('useraddress', state.useraddress)
-    }
     getUserInfo()
     getNftData()
     getReviewData()
     getPieChartData()
-  }, [username, refreshBy])
+    getPayAmount()
+  }, [useraddress, refreshBy])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
       .filter((item: any) => {
@@ -1043,6 +1037,50 @@ export const UserPage = () => {
         setMyNFT(vals)
       })
     })
+  }
+  const getPayAmount = async () => {
+    if (!library) return
+    const rented = await PayMentContract?.connect(library.getSigner()).get_address_amount(useraddress)
+    setPayMentInfo(rented)
+    // console.log(rented.price.toString())
+    const data = rented.sz_address.filter((item: any) => {
+      return item?.toLowerCase() === useraddress?.toLowerCase()
+    })
+    if (data.length) {
+      setPayMentState(true)
+      console.log(true)
+    } else {
+      console.log(false)
+      console.log(rented)
+      setPayMentState(false)
+    }
+  }
+  const Payment = async () => {
+    if (!library) return
+    let amount
+    if (payMentInfo.price.toString() * 1) {
+      amount = payMentInfo.price.toString()
+    } else {
+      amount = '2'
+    }
+    const allowance = await USDTContract?.allowance(account, BSCPayMentAddress)
+    const blance = allowance.toString()
+    if (Number(blance) <= 0) {
+      const approvetx = await USDTContract?.approve(BSCPayMentAddress, parseEther(amount))
+      const approvereceipt = await fetchReceipt(approvetx.hash, library)
+      if (!approvereceipt.status) {
+        throw new Error('failed')
+      }
+    }
+    console.log(useraddress)
+    const rented = await PayMentContract?.connect(library.getSigner()).verify_address_amount(useraddress)
+    const receipt = await fetchReceipt(rented.hash, library)
+    const { status } = receipt
+    if (!status) {
+      throw Error('Failed to rent.')
+    } else {
+      setrefreshBy(!refreshBy)
+    }
   }
   const getReviewData = async () => {
     const BscReview = bschttp.get('/v0/review')
@@ -2093,7 +2131,7 @@ export const UserPage = () => {
             <FolloweButton Followeitem={getFolloweData()} onFollowe={Followe} onUnFollowe={UnFollowe} />
           )}
           <div className="userName text-center Abbreviation">{userinfo.username}</div>
-          <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
+          <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000')}</div>
           <div className="socialize flex flex-justify-content">
             <a
               href={userinfo.Twitter ? `https://twitter.com/${userinfo.Twitter}` : userinfo.Twitter}
@@ -2183,7 +2221,7 @@ export const UserPage = () => {
             </div>
             <div className={showTabs === 'NFTs' ? 'blueBg' : ''} onClick={() => cutoverTabs('NFTs')}>
               <img src={tabsIconNFT} />
-              &nbsp;&nbsp;NFTs
+              &nbsp;&nbsp;Game
             </div>
           </div>
           <div className="horizontalDividing"></div>
@@ -2436,7 +2474,18 @@ export const UserPage = () => {
               </div>
               <div className="flex flex-column-between">
                 <div id="Tokens" className="pie"></div>
-                <div id="Preferred" className="pie"></div>
+                <div className="relative">
+                  {!payMentState ? (
+                    <div className="mask flex flex-center wrap cursor" onClick={Payment}>
+                      <div>Explore More  Detail Data</div>
+                      <div>
+                        Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
+                        <img src={coffee} alt="" />
+                      </div>
+                    </div>
+                  ) : ''}
+                  <div id="Preferred" className="pie"></div>
+                </div>
               </div>
               <CollationTable>
                 <div className="title">NFT Transactions</div>
@@ -2463,8 +2512,8 @@ export const UserPage = () => {
                   <div className="Notrecords flex flex-justify-content">No records</div>
                 )}
                 <div className="tablePage flex">
-                  {tableData && tableData.length
-                    ? tableData.map((item: any, index: number) => (
+                  {tableDataAll && tableDataAll.length
+                    ? tableDataAll.slice(0, 35).map((item: any, index: number) => (
                         <div
                           className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
                           key={index}
@@ -2499,8 +2548,8 @@ export const UserPage = () => {
                   <div className="Notrecords flex flex-justify-content">No records</div>
                 )}
                 <div className="tablePage flex">
-                  {swapData && swapData.length
-                    ? swapData.map((item: any, index: number) => (
+                  {swapDataAll && swapDataAll.length
+                    ? swapDataAll.slice(0, 35).map((item: any, index: number) => (
                         <div
                           className={
                             index + 1 > swapTotalPage ? 'notShow' : swapPage === index ? 'flex selected' : 'flex'
@@ -2515,6 +2564,15 @@ export const UserPage = () => {
                 </div>
               </CollationTable>
               <CollationTable>
+                {!payMentState ? (
+                  <div className="mask flex flex-center wrap cursor" onClick={Payment}>
+                    <div>Explore More  Detail Data</div>
+                    <div>
+                      Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
+                      <img src={coffee} alt="" />
+                    </div>
+                  </div>
+                ) : ''}
                 <div className="title">Token Transactions</div>
                 <div className="tab flex">
                   <div>Sent</div>
@@ -2540,7 +2598,7 @@ export const UserPage = () => {
                 )}
                 <div className="tablePage flex">
                   {transactionAll && transactionAll.length
-                    ? transactionAll.map((item: any, index: number) => (
+                    ? transactionAll.slice(0, 35).map((item: any, index: number) => (
                         <div
                           className={
                             index + 1 > transactionTotalPage
@@ -2574,6 +2632,14 @@ export const UserPage = () => {
                   id="collationActivity"
                   className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}
                 ></div>
+                {!payMentState ? (
+                <div className="mask flex flex-center wrap cursor" onClick={Payment}>
+                  <div>Explore More  Detail Data</div>
+                  <div>
+                    Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
+                    <img src={coffee} alt="" />
+                  </div>
+                </div>) : ''}
               </div>
             </AnalysisBox>
           ) : (

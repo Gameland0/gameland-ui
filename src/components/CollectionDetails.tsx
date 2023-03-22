@@ -1082,7 +1082,7 @@ export const CollectionDetails = () => {
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [userinfoAll, setuserinfoAll] = useState(useStore().userinfo)
   const [myNFTdata, setMyNFTdata] = useState([] as any)
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
@@ -1282,8 +1282,8 @@ export const CollectionDetails = () => {
         const collectionreviewe = http2.get(`/v0/review/collection/${address}`)
         const userlike = http2.get(`/v0/review_like/${account}`)
         const Rewardinfo = http2.get(`/v0/review_reward`)
-        const userAll = bschttp.get(`v0/userinfo`)
-        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo, userAll])
+        // const userAll = bschttp.get(`v0/userinfo`)
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo])
           .then((vals) => {
             setUserScoreinfo(vals[0].data.data)
             setCollectionScoreinfo(vals[1].data.data)
@@ -1299,7 +1299,7 @@ export const CollectionDetails = () => {
             setrevieweinfo(reviewData.sort(compareTime()))
             setuserLikeInfo(vals[3].data.data)
             setrewardinfo(vals[4].data.data)
-            setuserinfoAll(vals[5].data.data)
+            // setuserinfoAll(vals[5].data.data)
             setLending(false)
           })
           .catch(() => {
@@ -2130,17 +2130,8 @@ export const CollectionDetails = () => {
     })
   }
   const UserPage = (item: any) => {
-    let username
-    if (item.username) {
-      username = item.username
-    } else {
-      username = `user #${item.useraddress}`
-    }
     history.push({
-      pathname: `/user/${username.replace(/ /g, '')}`,
-      state: {
-        useraddress: item.useraddress
-      }
+      pathname: `/user/${item.useraddress}`
     })
   }
   const SeeMore = async () => {

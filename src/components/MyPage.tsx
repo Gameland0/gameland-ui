@@ -49,6 +49,7 @@ import deleteIcon from '../assets/delete.png'
 import analysis from '../assets/Analysis.svg'
 import shortbutton from '../assets/short_button.jpg'
 import longbutton from '../assets/long_button.jpg'
+import coffee from '../assets/icon_coffee.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -481,6 +482,27 @@ export const AnalysisBox = styled.div`
       border-bottom: 2px solid #41acef;
     }
   }
+  .mask {
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(15px);
+    border-radius: 10px;
+    font-size: 24px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 30;
+    div {
+      width: 100%;
+      text-align: center;
+    }
+    span {
+      font-size: 24px;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      font-weight: bold;
+      color: #999999;
+    }
+  }
   @media screen and (min-width: 1440px) {
     .pie {
       width: 400px;
@@ -760,6 +782,30 @@ const SettingsBox = styled.div`
     font-size: 24px;
   }
 `
+const SetCoffeBox = styled.div`
+  width: 465px;
+  height: 128px;
+  background: rgba(53,202,169,0.1);
+  border-radius: 10px;
+  border: 1px solid #35caa9;
+  margin: auto;
+  margin-top: 20px;
+  div {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    border: 1px solid #35caa9;
+    margin-left: 24px;
+  }
+  input {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    border: 1px solid #35caa9;
+    margin-left: 24px;
+    padding-left: 20px
+  }
+`
 const { TabPane } = Tabs
 export const MyTabs = styled(Tabs)``
 export const ButtonBox = styled.div`
@@ -798,6 +844,7 @@ export const CollationTable = styled.div`
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 20px;
+  position: relative;
   .title {
     font-size: 16px;
     font-weight: bold;
@@ -935,6 +982,7 @@ export const MyPage = () => {
   const [showSettings, setShowSettings] = useState(false)
   const [showDeletePosts, setShowDeletePosts] = useState(false)
   const [showActivity, setShowActivity] = useState(false)
+  const [showSetPayMent, setShowSetPayMent] = useState(false)
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
@@ -2124,12 +2172,27 @@ export const MyPage = () => {
           )}
         </SendBox>
       </Dialog>
+      <Dialog footer={null} onCancel={() => setShowSetPayMent(false)} open={showSetPayMent} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="title">Set payment amount</div>
+          <div className="text-center">Customize the coffee for personal data on your page, each coffee cost for $1.</div>
+          <div className="text-center">PS: Gameland will charge 20% of the technical support fee.</div>
+          <div className="text-center">The minimum price is $2</div>
+          <SetCoffeBox className="flex flex-center">
+            <img src={coffee} alt="" /> X
+            <div className="flex flex-center">3</div>
+            <div className="flex flex-center">4</div>
+            <div className="flex flex-center">5</div>
+            <input type="text" />
+          </SetCoffeBox>
+        </SendBox>
+      </Dialog>
       <div className="topBackground"></div>
       <UserInfo className="flex">
         <InfoLeft>
           <img src={userinfo.image || defaultImg} className="avatar" />
           <div className="userName text-center Abbreviation">{userinfo.username}</div>
-          <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000', 4)}</div>
+          <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000')}</div>
           <div className="socialize flex flex-justify-content">
             <a
               href={userinfo.Twitter ? `https://twitter.com/${userinfo.Twitter}` : userinfo.Twitter}
