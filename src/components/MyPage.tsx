@@ -8,7 +8,7 @@ import { Contract } from '@ethersproject/contracts'
 import { useHistory } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
 import * as echarts from 'echarts'
-import { useActiveWeb3React, useStore, useRewardContract } from '../hooks'
+import { useActiveWeb3React, useStore, useRewardContract, usePayMentContract, useUSDTContract } from '../hooks'
 import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt, handleImgError } from '../utils'
@@ -50,6 +50,7 @@ import analysis from '../assets/Analysis.svg'
 import shortbutton from '../assets/short_button.jpg'
 import longbutton from '../assets/long_button.jpg'
 import coffee from '../assets/icon_coffee.svg'
+import icon_payment from '../assets/icon_payment.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -195,6 +196,7 @@ const UserInfo = styled.div`
   }
 `
 const InfoLeft = styled.div`
+  width: 240px;
   position: relative;
   .avatar {
     width: 240px;
@@ -203,7 +205,7 @@ const InfoLeft = styled.div`
     margin-bottom: 20px;
   }
   .userName {
-    width: 260px;
+    width: 240px;
     font-size: 24px;
     font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
@@ -215,6 +217,18 @@ const InfoLeft = styled.div`
     font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #35caa9;
     margin-bottom: 20px;
+    .PaymentButton {
+      width: 120px;
+      height: 36px;
+      background: linear-gradient(90deg, #41acef 0%, #35caa9 100%);
+      border-radius: 20px;
+      font-size: 14px;
+      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
+      color: #fff;
+      img {
+        margin-left: 8px;
+      }
+    }
   }
   .socialize {
     margin-bottom: 20px;
@@ -445,11 +459,15 @@ const PostsBox = styled.div`
   }
 `
 export const AnalysisBox = styled.div`
+  .pieitem {
+    margin-bottom: 20px;
+  }
   .pie {
+    position: relative;
     border: 1px solid #e5e5e5;
     border-radius: 10px;
     padding: 10px;
-    margin-bottom: 20px;
+    box-sizing: border-box;
   }
   .Activity {
     position: relative;
@@ -459,27 +477,27 @@ export const AnalysisBox = styled.div`
     border-radius: 10px;
     padding: 10px;
     margin-bottom: 20px;
-    .lineChart {
-      width: 100%;
-      height: 400px;
-      position: absolute;
-    }
-    .tab {
-      div {
-        position: relative;
-        cursor: pointer;
-        margin-right: 16px;
-        img {
-          width: 100%;
-          height: 8px;
-          position: absolute;
-          bottom: 1px;
-          left: 0px;
-        }
-      }
-    }
     .select {
       border-bottom: 2px solid #41acef;
+    }
+  }
+  .lineChart {
+    width: 100%;
+    height: 400px;
+    position: absolute;
+  }
+  .tab {
+    div {
+      position: relative;
+      cursor: pointer;
+      margin-right: 16px;
+      img {
+        width: 100%;
+        height: 8px;
+        position: absolute;
+        bottom: 1px;
+        left: 0px;
+      }
     }
   }
   .mask {
@@ -803,7 +821,10 @@ const SetCoffeBox = styled.div`
     border-radius: 24px;
     border: 1px solid #35caa9;
     margin-left: 24px;
-    padding-left: 20px
+    text-align: center;
+  }
+  .bg {
+    background-color: #1fbb65;
   }
 `
 const { TabPane } = Tabs
@@ -840,6 +861,7 @@ export const TabPaneBox = styled(TabPane)`
   padding-bottom: 2rem;
 `
 export const CollationTable = styled.div`
+  height: 357px;
   border: 1px solid #e5e5e5;
   border-radius: 10px;
   padding: 10px;
@@ -1010,6 +1032,7 @@ export const MyPage = () => {
   const [transaction, setTransaction] = useState([] as any)
   const [transactionAll, setTransactionAll] = useState([] as any)
   const [PopUpsData, setPopUpsData] = useState([] as any)
+  const [userPayInfo, setUserPayInfo] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -1031,8 +1054,10 @@ export const MyPage = () => {
   const [mirrorValue, setMirrorValue] = useState('')
   const [UserNameValue, setUserNameValue] = useState('')
   const [Avatar, setAvatar] = useState('')
+  const [payMentAmount, setPayMentAmount] = useState('')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const RewardContract = useRewardContract()
+  const PayMentContract = usePayMentContract()
   const history = useHistory()
   const arweave = Arweave.init({
     host: 'arweave.net',
@@ -1046,6 +1071,7 @@ export const MyPage = () => {
     getNftData()
     getReviewData()
     getPieChartData()
+    // getTokensData()
   }, [account, refreshBy])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
@@ -1136,6 +1162,7 @@ export const MyPage = () => {
   const getUserInfo = async () => {
     if (!account) return
     const data = await bschttp.get(`v0/userinfo/${account}`)
+    bschttp.get(`v0/payment_usersettings/${account}`).then((vals) => setUserPayInfo(vals.data.data))
     if (data.data.data.length) {
       setUserinfo(data.data.data[0])
     } else {
@@ -1143,7 +1170,7 @@ export const MyPage = () => {
         pathname: `/createUser`
       })
     }
-    if (data.data.data[0].mirror) {
+    if (data.data.data[0]?.mirror) {
       bschttp.get(`v0/mirrow_article/user/${account}`).then((vals) => setMirrorPost(vals.data.data))
       bschttp.get(`v0/posts/user/${account}`).then((vals) => setuserPosts(vals.data.data))
     } else {
@@ -1183,6 +1210,52 @@ export const MyPage = () => {
         setMyNFT(vals)
       })
     })
+  }
+  const getTokensData = async () => {
+    console.log(1)
+  }
+  const setPayAmount = async () => {
+    if (!library) return
+    let amount
+    if (chainId === 56) {
+      amount = parseEther(payMentAmount)
+    }
+    if (chainId === 137) {
+      amount = payMentAmount + '000000'
+    }
+    const rented = await PayMentContract?.connect(library.getSigner()).set_address_amount(amount)
+    const receipt = await fetchReceipt(rented.hash, library)
+    const { status } = receipt
+    if (!status) {
+      throw Error('Failed to rent.')
+    } else {
+      if (userPayInfo.length) {
+        const parm = {
+          chain: chainId === 56 ? 'BNB' : 'Polygon'
+        }
+        const res = await bschttp.put(`/v0/payment_usersettings/${account}`, parm)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          setShowSetPayMent(false)
+          setrefreshBy(!refreshBy)
+        } else {
+          throw res.data.message
+        }
+      } else {
+        const parm = {
+          userAddress: account,
+          chain: chainId === 56 ? 'BNB' : 'Polygon'
+        }
+        const res = await bschttp.post(`/v0/payment_usersettings`, parm)
+        if (res.data.code === 1) {
+          toastify.success('succeed')
+          setShowSetPayMent(false)
+          setrefreshBy(!refreshBy)
+        } else {
+          throw res.data.message
+        }
+      }
+    }
   }
   const getReviewData = async () => {
     const BscReview = bschttp.get('/v0/review')
@@ -1927,9 +2000,9 @@ export const MyPage = () => {
       const Chainsdom = document.getElementById('Chains') as HTMLDivElement
       const ChainsChart = echarts.init(Chainsdom)
       ChainsChart.setOption(PieOption('Chains', Chainsoptionsdata))
-      const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
-      const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
+      const PolygonTokensdom = document.getElementById('PolygonTokens') as HTMLDivElement
+      const PolygonTokensChart = echarts.init(PolygonTokensdom)
+      PolygonTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
       const Preferreddom = document.getElementById('Preferred') as HTMLDivElement
       const PreferredChart = echarts.init(Preferreddom)
       PreferredChart.setOption(PieOption('Preferred Domains', Preferredoptionsdata))
@@ -1984,6 +2057,10 @@ export const MyPage = () => {
   const MirrorChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setMirrorValue(val)
+  }, [])
+  const PayMentAmountChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setPayMentAmount(val)
   }, [])
 
   return (
@@ -2180,11 +2257,19 @@ export const MyPage = () => {
           <div className="text-center">The minimum price is $2</div>
           <SetCoffeBox className="flex flex-center">
             <img src={coffee} alt="" /> X
-            <div className="flex flex-center">3</div>
-            <div className="flex flex-center">4</div>
-            <div className="flex flex-center">5</div>
-            <input type="text" />
+            <div className={payMentAmount === '3' ? 'flex flex-center cursor bg' : 'flex flex-center cursor'} onClick={() => setPayMentAmount('3')}>3</div>
+            <div className={payMentAmount === '4' ? 'flex flex-center cursor bg' : 'flex flex-center cursor'} onClick={() => setPayMentAmount('4')}>4</div>
+            <div className={payMentAmount === '5' ? 'flex flex-center cursor bg' : 'flex flex-center cursor'} onClick={() => setPayMentAmount('5')}>5</div>
+            <input type="text" onChange={PayMentAmountChange} />
           </SetCoffeBox>
+          <ButtonBox className="flex flex-justify-content">
+            <div className="cancel text-center cursor" onClick={() => setShowSetPayMent(false)}>
+              Cancel
+            </div>
+            <div className="ok text-center cursor" onClick={setPayAmount}>
+              OK
+            </div>
+          </ButtonBox>
         </SendBox>
       </Dialog>
       <div className="topBackground"></div>
@@ -2192,7 +2277,10 @@ export const MyPage = () => {
         <InfoLeft>
           <img src={userinfo.image || defaultImg} className="avatar" />
           <div className="userName text-center Abbreviation">{userinfo.username}</div>
-          <div className="useraddress text-center">{formatting(userinfo.useraddress || '0x000')}</div>
+          <div className="useraddress flex flex-column-between">
+            <div className="flex flex-v-center">{formatting(userinfo.useraddress || '0x000')}</div>
+            <div className="PaymentButton flex flex-center cursor" onClick={() => setShowSetPayMent(true)}>Payment <img src={icon_payment} alt="" /></div>
+          </div>
           <div className="socialize flex flex-justify-content">
             <a
               href={userinfo.Twitter ? `https://twitter.com/${userinfo.Twitter}` : userinfo.Twitter}
@@ -2517,12 +2605,28 @@ export const MyPage = () => {
           )}
           {showTabs === 'Analysis' && PieChartData.length ? (
             <AnalysisBox>
-              <div className="flex flex-column-between">
+              <div className="pieitem flex flex-column-between">
                 <div id="Chains" className="pie"></div>
                 <div id="Collation" className="pie"></div>
               </div>
-              <div className="flex flex-column-between">
-                <div id="Tokens" className="pie"></div>
+              <div className="pieitem flex flex-column-between">
+                <div className="pie">
+                  <div className="tab flex">
+                    <div onClick={() => setActivityTab('Polygon')}>
+                      Polygon
+                      {activityTab === 'Chains' ? <img src={shortbutton} /> : ''}
+                    </div>
+                    <div onClick={() => setActivityTab('BNB')}>
+                      BNB
+                      {activityTab === 'Collections' ? <img src={longbutton} /> : ''}
+                    </div>
+                    <div onClick={() => setActivityTab('Ethereum')}>
+                      Ethereum
+                      {activityTab === 'Collections' ? <img src={longbutton} /> : ''}
+                    </div>
+                  </div>
+                  <div id="PolygonTokens" className="lineChart"></div>
+                </div>
                 <div id="Preferred" className="pie"></div>
               </div>
               <CollationTable>
@@ -2550,23 +2654,23 @@ export const MyPage = () => {
                   <div className="Notrecords flex flex-justify-content">No records</div>
                 )}
                 <div className="tablePage flex">
-                  {tableData && tableData.length
-                    ? tableData.map((item: any, index: number) => (
-                        <div
-                          className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
-                          key={index}
-                          onClick={() => nextPage(index, 'NFT')}
-                        >
-                          {index + 1}
-                        </div>
-                      ))
-                    : ''}
+                  {tableDataAll && tableDataAll.length
+                      ? tableDataAll.slice(0, 35).map((item: any, index: number) => (
+                          <div
+                            className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
+                            key={index}
+                            onClick={() => nextPage(index, 'NFT')}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
                 </div>
               </CollationTable>
               <CollationTable>
                 <div className="title">Defi Transactions</div>
                 <div className="tab flex">
-                  <div>Sent</div>
+                  <div>sold</div>
                   <div>Received</div>
                   <div>Chain</div>
                   <div>Type</div>
@@ -2586,19 +2690,19 @@ export const MyPage = () => {
                   <div className="Notrecords flex flex-justify-content">No records</div>
                 )}
                 <div className="tablePage flex">
-                  {swapData && swapData.length
-                    ? swapData.map((item: any, index: number) => (
-                        <div
-                          className={
-                            index + 1 > swapTotalPage ? 'notShow' : swapPage === index ? 'flex selected' : 'flex'
-                          }
-                          key={index}
-                          onClick={() => nextPage(index, 'Defi')}
-                        >
-                          {index + 1}
-                        </div>
-                      ))
-                    : ''}
+                  {swapDataAll && swapDataAll.length
+                      ? swapDataAll.slice(0, 35).map((item: any, index: number) => (
+                          <div
+                            className={
+                              index + 1 > swapTotalPage ? 'notShow' : swapPage === index ? 'flex selected' : 'flex'
+                            }
+                            key={index}
+                            onClick={() => nextPage(index, 'Defi')}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
                 </div>
               </CollationTable>
               <CollationTable>
@@ -2627,7 +2731,7 @@ export const MyPage = () => {
                 )}
                 <div className="tablePage flex">
                   {transactionAll && transactionAll.length
-                    ? transactionAll.map((item: any, index: number) => (
+                    ? transactionAll.slice(0, 35).map((item: any, index: number) => (
                         <div
                           className={
                             index + 1 > transactionTotalPage

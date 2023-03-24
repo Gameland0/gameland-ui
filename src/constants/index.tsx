@@ -93,8 +93,10 @@ export const OPENSEA_API_KEY = 'f5b8f957f34a40548ed97bd5b41bf761'
 
 export const MORALIS_KEY = 'xXnq9dJMxd0VrXQ08mHhJpOIaKSHVq37LJ8OWdhxlSoObQeCeDwWGOH2iOD99Ayu'
 export const MORALIS_API = 'https://deep-index.moralis.io/api/v2'
-export const BSCPayMentAddress = '0x79D34b21Dd4259017eFFEF49A9859caE5Eda51B7'
+export const BSCPayMentAddress = '0xB92Daa7e07C211F0B450F416EF444CE10a555196'
+export const PolygonPayMentAddress = '0x881cF83a01278180E0696FC9DDa5a2360d82B879'
 export const BSCUSDT = '0x55d398326f99059fF775485246999027B3197955'
+export const PolygonUSDT = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 
 export const POLYGONSCAN_KEY = 'D2X13TWY3D9KYC7TQ7C6X2RYD3ZN3379Q6'
 export const POLYGON_CHAIN_ID = 137 // 137

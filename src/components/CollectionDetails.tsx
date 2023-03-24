@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
 import { Row, Col, Button } from 'antd'
+import * as echarts from 'echarts'
 // import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadFailed, Loadding } from '../pages/Games'
 import { divide, isEmpty } from 'lodash'
@@ -29,6 +30,7 @@ import {
   formatAddress,
   ZeroAddress,
   ChainCurrencyName,
+  filterAddress,
   formatting,
   handleImgError
 } from '../utils'
@@ -36,6 +38,7 @@ import { ABIs } from '../constants/Abis/ABIs'
 import {
   MORALIS_KEY,
   BscContract,
+  GameTokenDetails,
   PolygonContract,
   BSCAssetContractAddress,
   POLYGONAssetContractAddress,
@@ -81,6 +84,7 @@ import BUSDIcon from '../assets/busd.svg'
 import WETHIcon from '../assets/WETH.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
+import { PieOption } from './MyPage'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -148,7 +152,7 @@ const DetailsBox = styled.div`
       }
       .tab {
         margin: auto;
-        width: 384px;
+        width: 570px;
         height: 72px;
         background: linear-gradient(90deg, #35caa9 0%, #41acef 100%);
         border-radius: 36px;
@@ -871,6 +875,119 @@ export const CommentNFTButton = styled.div`
     }
   }
 `
+const ApproveTable = styled.div`
+  width: 96%;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  padding: 10px;
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  .title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+  }
+  .tableTab {
+    div {
+      flex: 1;
+      text-align: center;
+      font-size: 14px;
+      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+      font-weight: bold;
+      padding: 0 10px;
+    }
+    .Address {
+      flex: 3;
+      padding: 0;
+    }
+  }
+  .bag {
+    background: #f4f9fb;
+  }
+  .tableContent {
+    div {
+      flex: 1;
+      height: 24px;
+      line-height: 24px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+      padding: 0 10px;
+      img {
+        width: 12px;
+        height: 12px;
+      }
+    }
+    .Address {
+      flex: 3;
+      padding: 0;
+    }
+  }
+  .Notrecords {
+    margin-top: 20px;
+  }
+  .notShow {
+    display: none;
+  }
+  .switchMenu {
+    margin: 10px 0;
+    border-bottom: 1px solid #e5e5e5;
+    div {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .borderbg {
+      border-bottom: 1px solid #41acef;
+    }
+  }
+  .tablePage {
+    margin-top: 10px;
+    div {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 5px;
+      margin-right: 5px;
+      cursor: pointer;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      align-content: center;
+    }
+    .selected {
+      background: #41acef;
+    }
+  }
+`
+const AnalysisBox = styled.div`
+  margin-top: 24px;
+  .echartsPie {
+    width: 96%;
+    margin: auto;
+    .pie {
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    @media screen and (min-width: 1440px) {
+      .pie {
+        width: 380px;
+        height: 300px;
+      }
+    }
+    @media screen and (min-width: 1920px) {
+      .pie {
+        width: 480px;
+        height: 350px;
+      }
+    }
+  }
+`
 export interface CardProps {
   onClick?: () => void
   onLend: () => void
@@ -1065,6 +1182,19 @@ export const dateConvert = (time: any) => {
   const arr = date.toUTCString().split(' ')
   return `${arr[2]} ${arr[1]}, ${arr[3]}`
 }
+const compare = (property: any, property2: any) => {
+  return (a: any, b: any) => {
+    const value1 = a[property]
+    const value2 = b[property]
+    if (value2 === value1) {
+      const value3 = a[property2]
+      const value4 = b[property2]
+      return value4 - value3
+    }
+    return value2 - value1
+  }
+}
+
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
   const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
@@ -1073,6 +1203,10 @@ export const CollectionDetails = () => {
   const AssetContract = useAssetContract()
   const RewardContract = useRewardContract()
   const [starScore, setstarScore] = useState(0)
+  const [approveTotalPage, setApproveTotalPage] = useState(0)
+  const [approveTablePage, setApproveTablePage] = useState(0)
+  const [transactionsTotalPage, setTransactionsTotalPage] = useState(0)
+  const [transactionsTablePage, setTransactionsTablePage] = useState(0)
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
@@ -1082,11 +1216,19 @@ export const CollectionDetails = () => {
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState(useStore().userinfo)
+  const [userinfoAll, setuserinfoAll] = useState([] as any)
   const [myNFTdata, setMyNFTdata] = useState([] as any)
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
   const [ArticleAll, setArticleAll] = useState([] as any)
+  const [actionDataAll, setActionDataAll] = useState([] as any)
+  const [actionAll, setActionAll] = useState([] as any)
+  const [actionData, setActionData] = useState([] as any)
+  const [transactionsDataAll, setTransactionsDataAll] = useState([] as any)
+  const [transactionsData, setTransactionsData] = useState([] as any)
+  const [tokenActionData, setTokenActionData] = useState([] as any)
+  const [tokenBalanceData, setTokenBalanceData] = useState([] as any)
+  const [RecommendPlayerData, setRecommendPlayerData] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1132,6 +1274,7 @@ export const CollectionDetails = () => {
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [tap, setTab] = useState('NFT')
+  const [transactionsType, setTransactionsType] = useState('All')
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -1254,6 +1397,8 @@ export const CollectionDetails = () => {
       localStorage.setItem('chain', state.chain)
     }
     getCollectionInfo()
+    getActiveData()
+    getTokenData()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1261,7 +1406,6 @@ export const CollectionDetails = () => {
       setDataAll(vals)
     })
   }, [nftData])
-
   useEffect(() => {
     const getUserinfo = async () => {
       if (!account) return
@@ -1282,8 +1426,8 @@ export const CollectionDetails = () => {
         const collectionreviewe = http2.get(`/v0/review/collection/${address}`)
         const userlike = http2.get(`/v0/review_like/${account}`)
         const Rewardinfo = http2.get(`/v0/review_reward`)
-        // const userAll = bschttp.get(`v0/userinfo`)
-        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo])
+        const userAll = bschttp.get(`v0/userinfo`)
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo, userAll])
           .then((vals) => {
             setUserScoreinfo(vals[0].data.data)
             setCollectionScoreinfo(vals[1].data.data)
@@ -1299,7 +1443,7 @@ export const CollectionDetails = () => {
             setrevieweinfo(reviewData.sort(compareTime()))
             setuserLikeInfo(vals[3].data.data)
             setrewardinfo(vals[4].data.data)
-            // setuserinfoAll(vals[5].data.data)
+            setuserinfoAll(vals[5].data.data)
             setLending(false)
           })
           .catch(() => {
@@ -1328,6 +1472,358 @@ export const CollectionDetails = () => {
     }
     return _cost.plus(collateral).plus(Penalty).toString()
   }, [LeaseDays])
+  useEffect(() => {
+    if (actionData && actionData.length) {
+      getTransactionsData()
+    }
+  }, [actionData, transactionsType])
+  useEffect(() => {
+    if (tokenActionData && tokenActionData.length) {
+      setTokenPie()
+    }
+    if (actionAll && actionAll.length) {
+      setNFTpie()
+    }
+  }, [tokenActionData, actionAll, tap])
+  useEffect(() => {
+    if (userinfoAll && userinfoAll.length) {
+      setRecommendPlayer()
+    }
+  }, [userinfoAll])
+  const getActiveData = () => {
+    const actions = bschttp.get(`v0/active_actions/${address}`)
+    const users = bschttp.get(`v0/active_users/${address}`)
+    Promise.all([actions, users]).then((vlas) => {
+      const userarr = [] as any
+      const approveData = [] as any
+      const otherdata = [] as any
+      vlas[0].data.data.map((item: any) => {
+        if (item.tokenid * 1 === 0) {
+          approveData.push(item)
+          userarr.push(item.address)
+        } else {
+          otherdata.push(item)
+        }
+      })
+      setActionAll(otherdata)
+      const userNftArr = [] as any
+      vlas[1].data.data.map((item: any) => {
+        if (item.nftcount > 0) {
+          const data = userNftArr.filter((ele: any) => {
+            return ele.address === item.address
+          })
+          if (data.length === 0) {
+            userNftArr.push(item)
+          }
+        }
+      })
+      const tableData = [] as any
+      userNftArr.map((item: any) => {
+        const data = approveData.filter((ele: any) => {
+          return ele.address?.toLowerCase() === item.address?.toLowerCase()
+        })
+        if (data.length > 0) {
+          let level
+          if (data.length > 25) {
+            level = 'Bot'
+          } else {
+            const dataAll = vlas[0].data.data.filter((ele: any) => {
+              return ele.address?.toLowerCase() === item.address?.toLowerCase()
+            })
+            if (dataAll.length > 20) {
+              // console.log(dataAll.length)
+              level = 'High'
+            } else if (dataAll.length < 10) {
+              level = 'Low'
+            } else {
+              level = 'Middle'
+            }
+          }
+          tableData.push({
+            address: item.address,
+            nftTotal: item.nftcount,
+            actiontotal: data.length,
+            Level: level
+          })
+        }
+      })
+      const sortdata = tableData.sort(compare('actiontotal', 'nftTotal'))
+      sortdata.map((item: any, index: number) => {
+        item.ranking = index + 1
+      })
+      setApproveTotalPage(Math.ceil(sortdata.length / 10))
+      setActionDataAll(sortdata)
+      setActionData(sortdata.slice(0, 10))
+    })
+  }
+  const getTransactionsData = async () => {
+    const res = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[0]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res1 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[1]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res2 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[2]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res3 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[3]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res4 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[4]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res5 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[5]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res6 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[6]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const res7 = await http.get(
+      `https://api.rss3.io/v1/notes/${actionData[7]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
+    )
+    const data = [
+      ...res.data.result,
+      ...res1.data.result,
+      ...res2.data.result,
+      ...res3.data.result,
+      ...res4.data.result,
+      ...res5.data.result,
+      ...res6.data.result,
+      ...res7.data.result
+    ]
+    const Tabledata = [] as any
+    const TabledataAll = [] as any
+    data.map((item: any) => {
+      if (item.tag === 'collectible' && item.type === 'mint') {
+        item.actions.map((ele: any) => {
+          if (ele.type === 'mint') {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            TabledataAll.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Mint',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+          if (ele.type === 'mint' && ele.metadata.contract_address?.toLowerCase() === address?.toLowerCase()) {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            Tabledata.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Mint',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+        })
+      }
+      if (item.tag === 'collectible' && item.type === 'trade') {
+        item.actions.map((ele: any) => {
+          if (ele.type === 'trade') {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            TabledataAll.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Bought',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+          if (ele.type === 'trade' && ele.metadata.contract_address?.toLowerCase() === address?.toLowerCase()) {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            Tabledata.push({
+              address: formatting(item.owner),
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              type: 'Bought',
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+        })
+      }
+    })
+    if (transactionsType === 'All') {
+      setTransactionsDataAll(TabledataAll)
+      setTransactionsData(TabledataAll.slice(0, 10))
+      setTransactionsTotalPage(Math.ceil(TabledataAll.length / 10))
+    } else {
+      setTransactionsDataAll(Tabledata)
+      setTransactionsData(Tabledata.slice(0, 10))
+      setTransactionsTotalPage(Math.ceil(Tabledata.length / 10))
+    }
+  }
+  const getTokenData = async () => {
+    const action = await bschttp.get(`v0/erc20_active_actions/${address}`)
+    setTokenActionData(action.data.data)
+    const balance = await bschttp.get(`v0/erc20contractbalances/${address}`)
+    setTokenBalanceData(balance.data.data)
+  }
+  const getTokenBalance = (Address: string) => {
+    const data = tokenBalanceData.filter((item: any) => {
+      return item.address?.toLowerCase() === Address?.toLowerCase()
+    })
+    if (data.length) {
+      const balance = data[0]?.balance / 100000000000000000
+      if (balance * 1 > 0) {
+        return balance.toFixed(2) + ' ' + data[0]?.symbol
+      }
+      return 0
+    }
+    return 0
+  }
+  const setTokenPie = () => {
+    if (tap === 'Analysis') {
+      const tokeninfo = GameTokenDetails.filter((item: any) => {
+        return item.NFTaddress?.toLowerCase() === address?.toLowerCase()
+      })
+      tokenActionData.map((item: any) => {
+        if (filterAddress(item.from)?.toLowerCase() === item.address?.toLowerCase()) {
+          item.type = 'Sold'
+        }
+        if (tokeninfo[0].tokenAddress[0]?.toLowerCase() === filterAddress(item.from)?.toLowerCase()) {
+          item.type = 'Claim'
+        }
+        item.from = filterAddress(item.from)
+        item.to = filterAddress(item.to)
+      })
+      const ClaimData = tokenActionData.filter((item: any) => {
+        return item.type === 'Claim'
+      })
+      const ClaimValue = (ClaimData.length / tokenActionData.length).toFixed(2) as any
+      const SoldData = tokenActionData.filter((item: any) => {
+        return item.type === 'Sold'
+      })
+      const SoldValue = (SoldData.length / tokenActionData.length).toFixed(2) as any
+      const BoughtValue = 1 - ClaimValue * 1 - SoldValue * 1
+      let Tokensdata
+      if (BoughtValue * 1 + SoldValue * 1 === 1) {
+        Tokensdata = [
+          {
+            value: Math.floor(BoughtValue * 100),
+            name: 'Bought'
+          },
+          {
+            value: Math.floor(SoldValue * 100),
+            name: 'Sold'
+          }
+        ]
+      } else {
+        Tokensdata = [
+          {
+            value: ClaimValue * 100,
+            name: 'Claim'
+          },
+          {
+            value: BoughtValue * 100,
+            name: 'Bought'
+          },
+          {
+            value: SoldValue * 100,
+            name: 'Sold'
+          }
+        ]
+      }
+      const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
+      const TokensChart = echarts.init(Tokensdom)
+      TokensChart.setOption(PieOption('Tokens Transaction(%)', Tokensdata))
+    }
+  }
+  const setNFTpie = () => {
+    if (tap === 'Analysis') {
+      const adrr = '0x0000000000000000000000000000000000000000'
+      actionAll.map((item: any) => {
+        if (filterAddress(item.t1)?.toLowerCase() === item.address?.toLowerCase()) {
+          item.type = 'Sold'
+        }
+        if (filterAddress(item.t1)?.toLowerCase() === adrr?.toLowerCase()) {
+          item.type = 'Mint'
+        }
+        item.t1 = filterAddress(item.t1)
+        item.t2 = filterAddress(item.t2)
+      })
+      const SoldData = actionAll.filter((item: any) => {
+        return item.type === 'Sold'
+      })
+      const MintData = actionAll.filter((item: any) => {
+        return item.type === 'Mint'
+      })
+      const SoldValue = (SoldData.length / actionAll.length).toFixed(2) as any
+      const MintValue = (MintData.length / actionAll.length).toFixed(2) as any
+      const BoughtValue = 1 - MintValue * 1 - SoldValue * 1
+      let NFTdata
+      if (BoughtValue * 1 + SoldValue * 1 === 1) {
+        NFTdata = [
+          {
+            value: Math.floor(BoughtValue * 100),
+            name: 'Bought'
+          },
+          {
+            value: Math.floor(SoldValue * 100),
+            name: 'Sold'
+          }
+        ]
+      } else {
+        NFTdata = [
+          {
+            value: MintValue * 100,
+            name: 'Mint'
+          },
+          {
+            value: BoughtValue * 100,
+            name: 'Bought'
+          },
+          {
+            value: SoldValue * 100,
+            name: 'Sold'
+          }
+        ]
+      }
+      const NFTdom = document.getElementById('NFT') as HTMLDivElement
+      const NFTChart = echarts.init(NFTdom)
+      NFTChart.setOption(PieOption('NFT Transaction(%)', NFTdata))
+    }
+  }
+  const setRecommendPlayer = () => {
+    const data = userinfoAll
+      .sort(() => {
+        return Math.random() - 0.5
+      })
+      .slice(0, 10)
+    setRecommendPlayerData(data)
+  }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
       return item.reviewid === id
@@ -2179,6 +2675,22 @@ export const CollectionDetails = () => {
   const closeforward = () => {
     setForward({})
   }
+  const approvenext = (index: number) => {
+    setApproveTablePage(index)
+    setActionData(actionDataAll.slice(10 * index, 10 * index + 10))
+  }
+  const transactionsnext = (index: number) => {
+    setTransactionsTablePage(index)
+    setTransactionsData(transactionsDataAll.slice(10 * index, 10 * index + 10))
+  }
+  const TransactionsButtonAll = () => {
+    setTransactionsData([])
+    setTransactionsType('All')
+  }
+  const TransactionsAll = () => {
+    setTransactionsData([])
+    setTransactionsType('colletion')
+  }
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} open={lendvisible} closable={false}>
@@ -2629,8 +3141,11 @@ export const CollectionDetails = () => {
               <div className={tap === 'Articles' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Articles')}>
                 Articles
               </div>
+              <div className={tap === 'Analysis' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Analysis')}>
+                Analysis
+              </div>
             </div>
-            <Loadding className="flex flex-center">{lending ? <img src={loadding} /> : ''}</Loadding>
+            {/* <Loadding className="flex flex-center">{lending ? <img src={loadding} /> : ''}</Loadding> */}
             {tap === 'NFT' ? (
               <div className="nftBox">
                 {DataAll.length ? (
@@ -2692,6 +3207,142 @@ export const CollectionDetails = () => {
                   <div className="noArticle text-center">No related articles</div>
                 )}
               </ExposeBox>
+            ) : (
+              ''
+            )}
+            {tap === 'Analysis' ? (
+              <AnalysisBox>
+                <div className="echartsPie flex flex-column-between">
+                  <div id="NFT" className="pie"></div>
+                  <div id="Tokens" className="pie"></div>
+                </div>
+                <ApproveTable>
+                  <div className="title">Most Active Users</div>
+                  <div className="tableTab flex">
+                    <div>Ranking</div>
+                    <div className="Address">Address</div>
+                    <div>Token</div>
+                    <div>NFT</div>
+                    <div>Active</div>
+                    <div>Level</div>
+                  </div>
+                  {actionData && actionData.length ? (
+                    actionData.map((item: any, index: number) => (
+                      <div
+                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                        key={index}
+                      >
+                        <div>{item?.ranking}</div>
+                        <div className="Address">{item?.address}</div>
+                        <div>{getTokenBalance(item?.address)}</div>
+                        <div>{item?.nftTotal}</div>
+                        <div>{item?.actiontotal}</div>
+                        <div>{item?.Level}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {actionAll && actionAll.length
+                      ? actionAll.slice(0, 40).map((item: any, index: number) => (
+                          <div
+                            className={
+                              index + 1 > approveTotalPage
+                                ? 'notShow'
+                                : approveTablePage === index
+                                ? 'flex selected'
+                                : 'flex'
+                            }
+                            key={index}
+                            onClick={() => approvenext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                  </div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div className="title">Transactions</div>
+                  <div className="switchMenu flex">
+                    <div className={transactionsType === 'All' ? 'borderbg' : ''} onClick={TransactionsButtonAll}>
+                      All
+                    </div>
+                    <div className={transactionsType === 'All' ? '' : 'borderbg'} onClick={TransactionsAll}>
+                      {collectionDetails.contractName}
+                    </div>
+                  </div>
+                  <div className="tableTab flex">
+                    <div>Address</div>
+                    <div>Colletion</div>
+                    <div>NFT Name</div>
+                    <div>Price</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                    <div>Time</div>
+                  </div>
+                  {transactionsData && transactionsData.length ? (
+                    transactionsData.map((item: any, index: number) => (
+                      <div
+                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                        key={index}
+                      >
+                        <div>{item?.address}</div>
+                        <div>{item?.collation}</div>
+                        <div>{item?.nftname}</div>
+                        <div>{item?.price}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                        <div>{item?.time}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {transactionsDataAll && transactionsDataAll.length
+                      ? transactionsDataAll.slice(0, 40).map((item: any, index: number) => (
+                          <div
+                            className={
+                              index + 1 > transactionsTotalPage
+                                ? 'notShow'
+                                : transactionsTablePage === index
+                                ? 'flex selected'
+                                : 'flex'
+                            }
+                            key={index}
+                            onClick={() => transactionsnext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                  </div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div className="title">Recommended Player</div>
+                  <div className="tableTab flex">
+                    <div>Ranking</div>
+                    <div className="Address">Address</div>
+                    <div>Name</div>
+                  </div>
+                  {RecommendPlayerData && RecommendPlayerData.length ? (
+                    RecommendPlayerData.map((item: any, index: number) => (
+                      <div
+                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                        key={index}
+                      >
+                        <div>{index + 1}</div>
+                        <div className="Address">{item?.useraddress}</div>
+                        <div>{item.username || `user#${index + 1}`}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                </ApproveTable>
+              </AnalysisBox>
             ) : (
               ''
             )}

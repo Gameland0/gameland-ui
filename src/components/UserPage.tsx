@@ -9,7 +9,15 @@ import { useHistory, useParams } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
 import * as echarts from 'echarts'
 import { useActiveWeb3React, useStore, useRewardContract, usePayMentContract, useUSDTContract } from '../hooks'
-import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY, BSCPayMentAddress } from '../constants'
+import {
+  MORALIS_KEY,
+  BscContract,
+  PolygonContract,
+  BSCSCAN_KEY,
+  POLYGONSCAN_KEY,
+  BSCPayMentAddress,
+  PolygonPayMentAddress
+} from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
 import { getTime } from './CollectionDetails'
@@ -832,18 +840,20 @@ export const UserPage = () => {
   const [showDeletePosts, setShowDeletePosts] = useState(false)
   const [showActivity, setShowActivity] = useState(false)
   const [payMentState, setPayMentState] = useState(false)
+  const [showCutChain, setShowCutChain] = useState(false)
   const { useraddress } = useParams() as any
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
   const [deletePostsItem, setDeletePostsItem] = useState({} as any)
   const [userinfo, setUserinfo] = useState({} as any)
+  const [userPayInfo, setUserPayInfo] = useState([] as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
   const [postsReplayData, setPostsReplayData] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState(useStore().userinfo)
+  const [userinfoAll] = useState(useStore().userinfo)
   const [userPosts, setuserPosts] = useState([] as any)
   const [mirrorPost, setMirrorPost] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
@@ -899,7 +909,7 @@ export const UserPage = () => {
     getReviewData()
     getPieChartData()
     getPayAmount()
-  }, [useraddress, refreshBy])
+  }, [useraddress, refreshBy, account])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
       .filter((item: any) => {
@@ -997,7 +1007,7 @@ export const UserPage = () => {
         pathname: `/createUser`
       })
     }
-    if (userdata.data.data[0].mirror) {
+    if (userdata.data.data[0]?.mirror) {
       bschttp.get(`v0/mirrow_article/user/${useraddress}`).then((vals) => setMirrorPost(vals.data.data))
       bschttp.get(`v0/posts/user/${useraddress}`).then((vals) => setuserPosts(vals.data.data))
     } else {
@@ -1008,11 +1018,11 @@ export const UserPage = () => {
         setuserPosts(data)
       })
     }
-    // bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
     bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
     bschttp.get(`v0/posts_reply`).then((vals) => setPostsReplayData(vals.data.data))
+    bschttp.get(`v0/payment_usersettings/${useraddress}`).then((vals) => setUserPayInfo(vals.data.data))
     const BscLike = bschttp.get(`/v0/review_like/${account}`)
     const polygonLike = polygonhttp.get(`/v0/review_like/${account}`)
     Promise.all([BscLike, polygonLike]).then((vals) => {
@@ -1040,46 +1050,75 @@ export const UserPage = () => {
   }
   const getPayAmount = async () => {
     if (!library) return
-    const rented = await PayMentContract?.connect(library.getSigner()).get_address_amount(useraddress)
-    setPayMentInfo(rented)
-    // console.log(rented.price.toString())
-    const data = rented.sz_address.filter((item: any) => {
-      return item?.toLowerCase() === useraddress?.toLowerCase()
-    })
-    if (data.length) {
-      setPayMentState(true)
-      console.log(true)
+    // const rented = await PayMentContract?.connect(library.getSigner()).get_whethertobuy(useraddress)
+    const whitelists = await bschttp.get(`/v0/payment_whitelists/${account}`)
+    const findkey = await PayMentContract?.connect(library.getSigner()).find_address(useraddress)
+    if (account?.toLowerCase() !== useraddress?.toLowerCase()) {
+      const data = whitelists.data.data.filter((item: any) => {
+        return item.buyAddress?.toLowerCase() === useraddress?.toLowerCase()
+      })
+      if (data.length) {
+        setPayMentState(true)
+      } else {
+        setPayMentState(false)
+      }
     } else {
-      console.log(false)
-      console.log(rented)
-      setPayMentState(false)
+      setPayMentState(true)
+    }
+    if (findkey.toString() * 1 !== 999999999 ) {
+      const info = await PayMentContract?.connect(library.getSigner()).get_address_info(findkey)
+      setPayMentInfo(info)
     }
   }
   const Payment = async () => {
+    const chain = chainId === 56 ? 'BNB' : 'Polygon'
+    if (userPayInfo.length && userPayInfo[0]?.chain !== chain) {
+      setShowCutChain(true)
+      return
+    }
     if (!library) return
     let amount
-    if (payMentInfo.price.toString() * 1) {
+    if (payMentInfo.length) {
       amount = payMentInfo.price.toString()
     } else {
-      amount = '2'
-    }
-    const allowance = await USDTContract?.allowance(account, BSCPayMentAddress)
-    const blance = allowance.toString()
-    if (Number(blance) <= 0) {
-      const approvetx = await USDTContract?.approve(BSCPayMentAddress, parseEther(amount))
-      const approvereceipt = await fetchReceipt(approvetx.hash, library)
-      if (!approvereceipt.status) {
-        throw new Error('failed')
+      if (chainId === 56) {
+        amount = parseEther('2')
+      }
+      if (chainId === 137) {
+        amount = '2000000'
       }
     }
-    console.log(useraddress)
+    let ContractAddress
+    if (chainId === 56) {
+      ContractAddress = BSCPayMentAddress
+    }
+    if (chainId === 137) {
+      ContractAddress = PolygonPayMentAddress
+    }
+    const approvetx = await USDTContract?.approve(ContractAddress, amount)
+    const approvereceipt = await fetchReceipt(approvetx.hash, library)
+    if (!approvereceipt.status) {
+        throw new Error('failed')
+    }
     const rented = await PayMentContract?.connect(library.getSigner()).verify_address_amount(useraddress)
     const receipt = await fetchReceipt(rented.hash, library)
     const { status } = receipt
     if (!status) {
       throw Error('Failed to rent.')
     } else {
-      setrefreshBy(!refreshBy)
+      const value = chainId === 137 ? amount / 1000000 : amount / (1000000000000000000)
+      const parm = {
+        userAddress: account,
+        buyAddress: useraddress,
+        amount: value,
+      }
+      const res = await bschttp.post(`/v0/payment_whitelists`, parm)
+      if (res.data.code === 1) {
+        toastify.success('succeed')
+        setrefreshBy(!refreshBy)
+      } else {
+        throw res.data.message
+      }
     }
   }
   const getReviewData = async () => {
@@ -2121,6 +2160,11 @@ export const UserPage = () => {
           )}
         </SendBox>
       </Dialog>
+      <Dialog footer={null} onCancel={() => setShowCutChain(false)} open={showCutChain} destroyOnClose closable={false}>
+        <SendBox>
+          <div className="text-center">Please swith to {userPayInfo[0]?.chain} Chain</div>
+        </SendBox>
+      </Dialog>
       <div className="topBackground"></div>
       <UserInfo className="flex">
         <InfoLeft>
@@ -2468,11 +2512,11 @@ export const UserPage = () => {
           )}
           {showTabs === 'Analysis' && PieChartData.length ? (
             <AnalysisBox>
-              <div className="flex flex-column-between">
+              <div className="pieitem flex flex-column-between">
                 <div id="Chains" className="pie"></div>
                 <div id="Collation" className="pie"></div>
               </div>
-              <div className="flex flex-column-between">
+              <div className="pieitem flex flex-column-between">
                 <div id="Tokens" className="pie"></div>
                 <div className="relative">
                   {!payMentState ? (
@@ -2528,7 +2572,7 @@ export const UserPage = () => {
               <CollationTable>
                 <div className="title">Defi Transactions</div>
                 <div className="tab flex">
-                  <div>Sent</div>
+                  <div>sold</div>
                   <div>Received</div>
                   <div>Chain</div>
                   <div>Type</div>

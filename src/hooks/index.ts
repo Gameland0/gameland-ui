@@ -11,6 +11,7 @@ import AssetContractAbi from '../constants/Abis/assetContract.json'
 import ControlContractAbi from '../constants/Abis/controlContract.json'
 // import erc721Abi from '../constants/Abis/erc721.json'
 import BUSD from '../constants/Abis/busd.json'
+import ERC20 from '../constants/Abis/ERC20.json'
 import WETH from '../constants/Abis/WETH.json'
 import rewardAbi from '../constants/Abis/reward.json'
 import payment from '../constants/Abis/payment.json'
@@ -26,7 +27,9 @@ import {
   POLYGONRewardAddress,
   WETHaddress,
   BSCPayMentAddress,
-  BSCUSDT
+  BSCUSDT,
+  PolygonPayMentAddress,
+  PolygonUSDT
 } from '../constants'
 
 interface OpenseaData {
@@ -180,7 +183,9 @@ export function useUSDTContract() {
   const { library, chainId } = useActiveWeb3React()
   if (!library) return null
   if (chainId === 56) {
-    return new Contract(BSCUSDT, BUSD, library.getSigner())
+    return new Contract(BSCUSDT, ERC20, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract(PolygonUSDT, ERC20, library.getSigner())
   }
 }
 
@@ -189,6 +194,8 @@ export function usePayMentContract() {
   if (!library) return null
   if (chainId === 56) {
     return new Contract(BSCPayMentAddress, payment, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract(PolygonPayMentAddress, payment, library.getSigner())
   }
 }
 

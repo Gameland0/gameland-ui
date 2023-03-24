@@ -2,50 +2,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256[]",
-				"name": "amounts",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "address[]",
-				"name": "adds",
-				"type": "address[]"
-			}
-		],
-		"name": "batch_set_address_amount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "set_address_amount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "newbaseprice",
-				"type": "uint256"
-			}
-		],
-		"name": "set_baseprice",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "_u",
 				"type": "address"
@@ -66,45 +22,20 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "_gove",
-				"type": "address"
-			}
-		],
-		"name": "updategove",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+				"internalType": "uint256[]",
+				"name": "amounts",
+				"type": "uint256[]"
+			},
 			{
-				"internalType": "address",
-				"name": "_Owner",
-				"type": "address"
+				"internalType": "address[]",
+				"name": "adds",
+				"type": "address[]"
 			}
 		],
-		"name": "updateOwner",
+		"name": "batch_set_address_amount",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "mdd_address",
-				"type": "address"
-			}
-		],
-		"name": "verify_address_amount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
 	},
 	{
 		"inputs": [],
@@ -170,7 +101,26 @@
 				"type": "address"
 			}
 		],
-		"name": "get_address_amount",
+		"name": "find_address",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "key",
+				"type": "uint256"
+			}
+		],
+		"name": "get_address_info",
 		"outputs": [
 			{
 				"components": [
@@ -180,9 +130,26 @@
 						"type": "address"
 					},
 					{
-						"internalType": "address[]",
-						"name": "sz_address",
-						"type": "address[]"
+						"components": [
+							{
+								"internalType": "address",
+								"name": "gm_address",
+								"type": "address"
+							},
+							{
+								"internalType": "uint256",
+								"name": "dt",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "price",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct GameLand_verify.verify_info[]",
+						"name": "vi",
+						"type": "tuple[]"
 					},
 					{
 						"internalType": "uint256",
@@ -205,34 +172,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "get_address_amount_this",
+		"name": "get_address_sz",
 		"outputs": [
 			{
-				"components": [
-					{
-						"internalType": "address",
-						"name": "add",
-						"type": "address"
-					},
-					{
-						"internalType": "address[]",
-						"name": "sz_address",
-						"type": "address[]"
-					},
-					{
-						"internalType": "uint256",
-						"name": "sl",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "price",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct GameLand_verify.address_amount_info",
+				"internalType": "address[]",
 				"name": "",
-				"type": "tuple"
+				"type": "address[]"
 			}
 		],
 		"stateMutability": "view",
@@ -255,41 +200,88 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "add",
+				"name": "mdadd",
 				"type": "address"
 			}
 		],
-		"name": "get_verify_info",
+		"name": "get_whethertobuy",
 		"outputs": [
 			{
-				"components": [
-					{
-						"internalType": "address",
-						"name": "ss_address",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "gm_address",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "dt",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "price",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct GameLand_verify.verify_info",
+				"internalType": "uint256",
 				"name": "",
-				"type": "tuple"
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "set_address_amount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "newbaseprice",
+				"type": "uint256"
+			}
+		],
+		"name": "set_baseprice",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_Owner",
+				"type": "address"
+			}
+		],
+		"name": "updateOwner",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_gove",
+				"type": "address"
+			}
+		],
+		"name": "updategove",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "mdd_address",
+				"type": "address"
+			}
+		],
+		"name": "verify_address_amount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
 	}
 ]
