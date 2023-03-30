@@ -51,6 +51,7 @@ import shortbutton from '../assets/short_button.jpg'
 import longbutton from '../assets/long_button.jpg'
 import coffee from '../assets/icon_coffee.svg'
 import icon_payment from '../assets/icon_payment.svg'
+import USDT from '../assets/USDT.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 
@@ -269,6 +270,21 @@ const InfoLeft = styled.div`
       .Icon {
         width: 30px;
         height: 30px;
+      }
+    }
+  }
+  .buyUser {
+    font-size: 12px;
+    .item {
+      border-bottom: 1px solid #e5e5e5;
+      margin-bottom: 20px;
+      span {
+        color: #41acef;
+      }
+      img {
+        width: 20px;
+        height: 12px;
+        margin-bottom: 2px;
       }
     }
   }
@@ -1033,6 +1049,7 @@ export const MyPage = () => {
   const [transactionAll, setTransactionAll] = useState([] as any)
   const [PopUpsData, setPopUpsData] = useState([] as any)
   const [userPayInfo, setUserPayInfo] = useState([] as any)
+  const [buyUserData, setBuyUserData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -1071,7 +1088,7 @@ export const MyPage = () => {
     getNftData()
     getReviewData()
     getPieChartData()
-    // getTokensData()
+    getTokensData()
   }, [account, refreshBy])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
@@ -1163,6 +1180,7 @@ export const MyPage = () => {
     if (!account) return
     const data = await bschttp.get(`v0/userinfo/${account}`)
     bschttp.get(`v0/payment_usersettings/${account}`).then((vals) => setUserPayInfo(vals.data.data))
+    bschttp.get(`/v0/payment_whitelists/buyuser/${account}`).then((vals) => setBuyUserData(vals.data.data))
     if (data.data.data.length) {
       setUserinfo(data.data.data[0])
     } else {
@@ -1212,7 +1230,16 @@ export const MyPage = () => {
     })
   }
   const getTokensData = async () => {
-    console.log(1)
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        'Ok-Access-Key': '5792fa7e-6299-4037-a2d7-32d16aaa10af'
+      }
+    })
+    const { data } = await getdata.get(
+      `https://www.oklink.com/api/v5/explorer/address/address-balance-fills?chainShortName=bsc&address=${account}&protocolType=token_20`
+    )
+    console.log(data)
   }
   const setPayAmount = async () => {
     if (!library) return
@@ -2025,7 +2052,7 @@ export const MyPage = () => {
   }
   const collationActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
-      return item.timestamp.substr(5, 5) === params.name
+      return item.timestamp.substr(5, 5) === params.name && item.tag === 'collectible' && item.actions[0].metadata.collection === params.seriesName
     })
     setPopUpsData(data)
     setShowActivity(true)
@@ -2217,21 +2244,24 @@ export const MyPage = () => {
           <div className="title">Activity details</div>
           {PopUpsData && PopUpsData.length ? (
             PopUpsData.map((item: any, index: number) => (
-              <div key={index} className="text-center">
-                {item.timestamp.substr(0, 10)}&nbsp;
-                {formatting(item.address_from)}&nbsp;
+              <div key={index} className="spacing-5">
+                <span>{index + 1}.</span>&nbsp;&nbsp;&nbsp;
+                {item.timestamp.substr(0, 10)}&nbsp;&nbsp;
+                <span className="blue">{formatting(item.address_from)}</span>&nbsp;&nbsp;
                 <b>{item.type}</b>&nbsp;
                 <b>
                   {item.type === 'revise'
                     ? ''
                     : item.tag === 'collectible'
-                    ? formatting(item.actions[0].metadata.id)
+                    ? formatting(item.actions[0].metadata.id || '')
                     : item.type === 'comment'
                     ? ''
                     : item.type === 'swap'
                     ? (item.actions[0].metadata.from.value_display * 1).toFixed(2) +
                       ' ' +
                       item.actions[0].metadata.from.symbol
+                    : item.type === 'post'
+                    ? ''
                     : (item.actions[0].metadata.value_display * 1).toFixed(2) + ' ' + item.actions[0].metadata.symbol}
                 </b>
                 {' To '}
@@ -2240,7 +2270,7 @@ export const MyPage = () => {
                   ? (item.actions[0].metadata.to.value_display * 1).toFixed(2) +
                     ' ' +
                     item.actions[0].metadata.to.symbol
-                  : formatting(item.address_to)}
+                  : <span className="blue">{formatting(item.address_to)}</span>}
                 &nbsp;in {item.network}
               </div>
             ))
@@ -2346,6 +2376,20 @@ export const MyPage = () => {
               <img className="Icon" src={integralIcon} />
             </div>
             <div className="delimiter"></div>
+          </div>
+          <div className="buyUser">
+            {buyUserData && buyUserData.length ? (
+              buyUserData.map((item: any, index: number) => (
+                <div className="item" key={index}>
+                  <div>
+                    {item?.createdAt.substr(0, 10)}&nbsp; received &nbsp;
+                    <span>{formatting(item.userAddress || '0x00')}</span>&nbsp;&nbsp;
+                    <b>{item?.amount}</b>&nbsp;
+                    <img src={USDT} alt="" />
+                  </div>
+                </div>
+              ))
+            ) : ''}
           </div>
         </InfoLeft>
         <div className="boxDivider"></div>
