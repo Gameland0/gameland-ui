@@ -66,6 +66,15 @@
 .blue{ 
   color: #41ACEF;
 }
+.red {
+  color: #F95B46;
+}
+.cyan {
+  color: #5ad6bb;
+}
+.green {
+  color: #1fbb65;
+}
 .bigSize{
   font-weight: bold;
 }

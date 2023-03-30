@@ -1207,6 +1207,8 @@ export const CollectionDetails = () => {
   const [approveTablePage, setApproveTablePage] = useState(0)
   const [transactionsTotalPage, setTransactionsTotalPage] = useState(0)
   const [transactionsTablePage, setTransactionsTablePage] = useState(0)
+  const [NFTHoldPage, setNFTHoldPage] = useState(0)
+  const [NFTHoldTotalPage,] = useState(5)
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
@@ -1229,6 +1231,8 @@ export const CollectionDetails = () => {
   const [tokenActionData, setTokenActionData] = useState([] as any)
   const [tokenBalanceData, setTokenBalanceData] = useState([] as any)
   const [RecommendPlayerData, setRecommendPlayerData] = useState([] as any)
+  const [NFTHoldDataAll, setNFTHoldDataAll] = useState([] as any)
+  const [NFTHoldData, setNFTHoldData] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1399,6 +1403,7 @@ export const CollectionDetails = () => {
     getCollectionInfo()
     getActiveData()
     getTokenData()
+    getHoldRankingData()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1531,7 +1536,7 @@ export const CollectionDetails = () => {
               return ele.address?.toLowerCase() === item.address?.toLowerCase()
             })
             if (dataAll.length > 20) {
-              // console.log(dataAll.length)
+              // console.log(dataAll.length, item.address)
               level = 'High'
             } else if (dataAll.length < 10) {
               level = 'Low'
@@ -1703,6 +1708,12 @@ export const CollectionDetails = () => {
       return 0
     }
     return 0
+  }
+  const getHoldRankingData = async () => {
+    const data = await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${address}`)
+    // console.log(data.data.data[0].positionList)
+    setNFTHoldDataAll(data.data.data[0].positionList)
+    setNFTHoldData(data.data.data[0].positionList.slice(0, 10))
   }
   const setTokenPie = () => {
     if (tap === 'Analysis') {
@@ -2683,6 +2694,10 @@ export const CollectionDetails = () => {
     setTransactionsTablePage(index)
     setTransactionsData(transactionsDataAll.slice(10 * index, 10 * index + 10))
   }
+  const NFTHoldnext = (index: number) => {
+    setNFTHoldPage(index)
+    setNFTHoldData(NFTHoldDataAll.slice(10 * index, 10 * index + 10))
+  }
   const TransactionsButtonAll = () => {
     setTransactionsData([])
     setTransactionsType('All')
@@ -3237,7 +3252,7 @@ export const CollectionDetails = () => {
                         <div>{getTokenBalance(item?.address)}</div>
                         <div>{item?.nftTotal}</div>
                         <div>{item?.actiontotal}</div>
-                        <div>{item?.Level}</div>
+                        <div className={item?.Level === 'Bot' ? 'red' : item?.Level === 'High' ? 'green' : item?.Level === 'Middle' ? 'blue' : 'cyan'}>{item?.Level}</div>
                       </div>
                     ))
                   ) : (
@@ -3341,6 +3356,47 @@ export const CollectionDetails = () => {
                   ) : (
                     <div className="Notrecords flex flex-justify-content">No records</div>
                   )}
+                </ApproveTable>
+                <ApproveTable>
+                  <div className="title">Top NFT holders</div>
+                  <div className="tableTab flex">
+                    <div>Ranking</div>
+                    <div className="Address">Address</div>
+                    <div>amount</div>
+                  </div>
+                  {NFTHoldData && NFTHoldData.length ? (
+                    NFTHoldData.map((item: any, index: number) => (
+                      <div
+                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                        key={index}
+                      >
+                        <div>{item?.rank}</div>
+                        <div className="Address">{item?.holderAddress}</div>
+                        <div>{item?.amount}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {NFTHoldDataAll && NFTHoldDataAll.length
+                      ? NFTHoldDataAll.slice(0, 40).map((item: any, index: number) => (
+                          <div
+                            className={
+                              index + 1 > NFTHoldTotalPage
+                                ? 'notShow'
+                                : NFTHoldPage === index
+                                ? 'flex selected'
+                                : 'flex'
+                            }
+                            key={index}
+                            onClick={() => NFTHoldnext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                  </div>
                 </ApproveTable>
               </AnalysisBox>
             ) : (
