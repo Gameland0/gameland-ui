@@ -22,7 +22,7 @@ import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
-import { ButtonBox, CollationTable } from './MyPage'
+import { ButtonBox, CollationTable, AnalysisBox, PieOption, TableBox } from './MyPage'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
 import { Img } from './Img'
@@ -30,7 +30,6 @@ import { Dialog } from './Dialog'
 import { CollectionToken } from './CollectionToken'
 import { Modal } from './Modal'
 import { NFTStatsMadal } from './NFTStatsMadal'
-import { AnalysisBox, PieOption } from './MyPage'
 import defaultImg from '../assets/default.png'
 import tabsIconNFT from '../assets/icon_NFT.svg'
 import tabsIconComment from '../assets/icon_comment.svg'
@@ -246,8 +245,8 @@ const UserInfo = styled.div`
 const InfoLeft = styled.div`
   position: relative;
   .avatar {
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
     border-radius: 10px;
     margin-bottom: 20px;
   }
@@ -897,6 +896,8 @@ export const UserPage = () => {
   const [transactionPage, setTransactionPage] = useState(0)
   const [transactionTotalPage, setTransactionTotalPage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
+  const [tokenTab, setTokenTab] = useState('Polygon')
+  const [transactionTab, setTransactionTab] = useState('NFT')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
   const [rewardQuantity, setrewardQuantity] = useState('')
@@ -967,6 +968,7 @@ export const UserPage = () => {
   useEffect(() => {
     if (showTabs === 'Analysis') {
       componentDidMount()
+      getTokensData()
     }
   }, [PieChartData, showTabs])
   const fetchData = (data: any[], contract: any, chain: string) => {
@@ -1087,6 +1089,41 @@ export const UserPage = () => {
       const info = await PayMentContract?.connect(library.getSigner()).get_address_info(findkey)
       setPayMentInfo(info)
     }
+  }
+  const getTokensData = async () => {
+    polygonhttp.get(`v0/oklink/addressBalance?chainShortName=bsc&address=${useraddress}&protocolType=token_20`).then((vals) => {
+      const Tokensoptionsdata = [] as any
+      vals.data.data[0].tokenList.map((item: any) => {
+        if (item.priceUsd * 1 > 0) {
+          Tokensoptionsdata.push({ value: item.holdingAmount, name: item.token })
+        }
+      })
+      const BSCTokensdom = document.getElementById('BSCTokens') as HTMLDivElement
+      const BSCTokensChart = echarts.init(BSCTokensdom)
+      BSCTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
+    })
+    polygonhttp.get(`v0/oklink/addressBalance?chainShortName=polygon&address=${useraddress}&protocolType=token_20`).then((vals) => {
+      const Tokensoptionsdata = [] as any
+      vals.data.data[0].tokenList.map((item: any) => {
+        if (item.priceUsd * 1 > 0) {
+          Tokensoptionsdata.push({ value: item.holdingAmount, name: item.token })
+        }
+      })
+      const PolygonTokensdom = document.getElementById('PolygonTokens') as HTMLDivElement
+      const PolygonTokensChart = echarts.init(PolygonTokensdom)
+      PolygonTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
+    })
+    polygonhttp.get(`v0/oklink/addressBalance?chainShortName=ETH&address=${useraddress}&protocolType=token_20`).then((vals) => {
+      const Tokensoptionsdata = [] as any
+      vals.data.data[0].tokenList.map((item: any) => {
+        if (item.priceUsd * 1 > 0) {
+          Tokensoptionsdata.push({ value: item.holdingAmount, name: item.token })
+        }
+      })
+      const ETHTokensdom = document.getElementById('ETHTokens') as HTMLDivElement
+      const ETHTokensChart = echarts.init(ETHTokensdom)
+      ETHTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
+    })
   }
   const Payment = async () => {
     const chain = chainId === 56 ? 'BNB' : 'Polygon'
@@ -1912,11 +1949,6 @@ export const UserPage = () => {
           data: seriesdata
         })
       })
-      const TokensarrDeduplication = [...new Set(Tokensarr)]
-      const Tokensoptionsdata: any[] = []
-      TokensarrDeduplication.map((item) => {
-        Tokensoptionsdata.push({ value: 1, name: item })
-      })
       const Activityoptions = {
         title: {
           text: 'Activity',
@@ -1961,9 +1993,6 @@ export const UserPage = () => {
       const Chainsdom = document.getElementById('Chains') as HTMLDivElement
       const ChainsChart = echarts.init(Chainsdom)
       ChainsChart.setOption(PieOption('Chains', Chainsoptionsdata))
-      const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
-      const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
       const Preferreddom = document.getElementById('Preferred') as HTMLDivElement
       const PreferredChart = echarts.init(Preferreddom)
       PreferredChart.setOption(PieOption('Preferred Domains', Preferredoptionsdata))
@@ -2551,7 +2580,25 @@ export const UserPage = () => {
                 <div id="Collation" className="pie"></div>
               </div>
               <div className="pieitem flex flex-column-between">
-                <div id="Tokens" className="pie"></div>
+                <div className="pie">
+                  <div className="tabs flex">
+                    <div onClick={() => setTokenTab('Polygon')}>
+                      Polygon
+                      {tokenTab === 'Polygon' ? <img src={shortbutton} /> : ''}
+                    </div>
+                    <div onClick={() => setTokenTab('BNB')}>
+                      BNB
+                      {tokenTab === 'BNB' ? <img src={longbutton} /> : ''}
+                    </div>
+                    <div onClick={() => setTokenTab('Ethereum')}>
+                      Ethereum
+                      {tokenTab === 'Ethereum' ? <img src={longbutton} /> : ''}
+                    </div>
+                  </div>
+                  <div id="PolygonTokens" className={tokenTab === 'Polygon' ? 'lineChart' : 'lineChart none'}></div>
+                  <div id="BSCTokens" className={tokenTab === 'BNB' ? 'lineChart' : 'lineChart none'}></div>
+                  <div id="ETHTokens" className={tokenTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
+                </div>
                 <div className="relative">
                   {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
@@ -2565,137 +2612,144 @@ export const UserPage = () => {
                   <div id="Preferred" className="pie"></div>
                 </div>
               </div>
-              <CollationTable>
-                <div className="title">NFT Transactions</div>
-                <div className="tab flex">
-                  <div>Colletion</div>
-                  <div>NFT Name</div>
-                  <div>Price</div>
-                  <div>Chain</div>
-                  <div>Type</div>
-                  <div>Time</div>
-                </div>
-                {tableData && tableData.length ? (
-                  tableData.map((item: any, index: number) => (
-                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
-                      <div>{item?.collation}</div>
-                      <div>{item?.nftname}</div>
-                      <div>{item?.price}</div>
-                      <div>{item?.chain}</div>
-                      <div>{item?.type}</div>
-                      <div>{item?.time}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="Notrecords flex flex-justify-content">No records</div>
-                )}
-                <div className="tablePage flex">
-                  {tableDataAll && tableDataAll.length
-                    ? tableDataAll.slice(0, 35).map((item: any, index: number) => (
-                        <div
-                          className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
-                          key={index}
-                          onClick={() => nextPage(index, 'NFT')}
-                        >
-                          {index + 1}
-                        </div>
-                      ))
-                    : ''}
-                </div>
-              </CollationTable>
-              <CollationTable>
-                <div className="title">Defi Transactions</div>
-                <div className="tab flex">
-                  <div>sold</div>
-                  <div>Received</div>
-                  <div>Chain</div>
-                  <div>Type</div>
-                  <div>Time</div>
-                </div>
-                {swapData && swapData.length ? (
-                  swapData.map((item: any, index: number) => (
-                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
-                      <div>{item?.sent}</div>
-                      <div>{item?.received}</div>
-                      <div>{item?.chain}</div>
-                      <div>{item?.type}</div>
-                      <div>{item?.time}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="Notrecords flex flex-justify-content">No records</div>
-                )}
-                <div className="tablePage flex">
-                  {swapDataAll && swapDataAll.length
-                    ? swapDataAll.slice(0, 35).map((item: any, index: number) => (
-                        <div
-                          className={
-                            index + 1 > swapTotalPage ? 'notShow' : swapPage === index ? 'flex selected' : 'flex'
-                          }
-                          key={index}
-                          onClick={() => nextPage(index, 'Defi')}
-                        >
-                          {index + 1}
-                        </div>
-                      ))
-                    : ''}
-                </div>
-              </CollationTable>
-              <CollationTable>
-                {!payMentState ? (
-                  <div className="mask flex flex-center wrap cursor" onClick={Payment}>
-                    <div>Explore More  Detail Data</div>
-                    <div>
-                      Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
-                      <img src={coffee} alt="" />
-                    </div>
+              <TableBox>
+                <div className="tabs flex">
+                  <div onClick={() => setTransactionTab('NFT')}>
+                    NFT
+                    {transactionTab === 'NFT' ? <img src={shortbutton} /> : ''}
                   </div>
-                ) : ''}
-                <div className="title">Token Transactions</div>
-                <div className="tab flex">
-                  <div>Sent</div>
-                  <div>Token</div>
-                  <div>Received</div>
-                  <div>Chain</div>
-                  <div>Type</div>
-                  <div>Time</div>
+                  <div onClick={() => setTransactionTab('DeFi')}>
+                    DeFi
+                    {transactionTab === 'DeFi' ? <img src={shortbutton} /> : ''}
+                  </div>
+                  <div onClick={() => setTransactionTab('Token')}>
+                    Token
+                    {transactionTab === 'Token' ? <img src={shortbutton} /> : ''}
+                  </div>
                 </div>
-                {transaction && transaction.length ? (
-                  transaction.map((item: any, index: number) => (
-                    <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
-                      <div>{item?.sent}</div>
-                      <div>{item?.price}</div>
-                      <div>{item?.received}</div>
-                      <div>{item?.chain}</div>
-                      <div>{item?.type}</div>
-                      <div>{item?.time}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="Notrecords flex flex-justify-content">No records</div>
-                )}
-                <div className="tablePage flex">
-                  {transactionAll && transactionAll.length
-                    ? transactionAll.slice(0, 35).map((item: any, index: number) => (
-                        <div
-                          className={
-                            index + 1 > transactionTotalPage
-                              ? 'notShow'
-                              : transactionPage === index
-                              ? 'flex selected'
-                              : 'flex'
-                          }
-                          key={index}
-                          onClick={() => nextPage(index, 'Transaction')}
-                        >
-                          {index + 1}
-                        </div>
-                      ))
-                    : ''}
-                </div>
-              </CollationTable>
+                <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>
+                  <div className="title">NFT Transactions</div>
+                  <div className="tab flex">
+                    <div>COLLATION</div>
+                    <div>NFTNAME</div>
+                    <div>PRICE</div>
+                    <div>CHAIN</div>
+                    <div>TYPE</div>
+                    <div>TIME</div>
+                  </div>
+                  {tableData && tableData.length ? (
+                    tableData.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.collation}</div>
+                        <div>{item?.nftname}</div>
+                        <div>{item?.price}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                        <div>{item?.time}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {tableDataAll && tableDataAll.length
+                        ? tableDataAll.slice(0, 35).map((item: any, index: number) => (
+                            <div
+                              className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
+                              key={index}
+                              onClick={() => nextPage(index, 'NFT')}
+                            >
+                              {index + 1}
+                            </div>
+                          ))
+                        : ''}
+                  </div>
+                </CollationTable>
+                <CollationTable className={transactionTab === 'DeFi' ? '' : 'none'}>
+                  <div className="title">Defi Transactions</div>
+                  <div className="tab flex">
+                    <div>sold</div>
+                    <div>Received</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                    <div>Time</div>
+                  </div>
+                  {swapData && swapData.length ? (
+                    swapData.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.sent}</div>
+                        <div>{item?.received}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                        <div>{item?.time}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {swapDataAll && swapDataAll.length
+                        ? swapDataAll.slice(0, 35).map((item: any, index: number) => (
+                            <div
+                              className={
+                                index + 1 > swapTotalPage ? 'notShow' : swapPage === index ? 'flex selected' : 'flex'
+                              }
+                              key={index}
+                              onClick={() => nextPage(index, 'Defi')}
+                            >
+                              {index + 1}
+                            </div>
+                          ))
+                        : ''}
+                  </div>
+                </CollationTable>
+                <CollationTable className={transactionTab === 'Token' ? '' : 'none'}>
+                  <div className="title">Token Transactions</div>
+                  <div className="tab flex">
+                    <div>Sent</div>
+                    <div>Token</div>
+                    <div>Received</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                    <div>Time</div>
+                  </div>
+                  {transaction && transaction.length ? (
+                    transaction.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.sent}</div>
+                        <div>{item?.price}</div>
+                        <div>{item?.received}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                        <div>{item?.time}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {transactionAll && transactionAll.length
+                      ? transactionAll.slice(0, 35).map((item: any, index: number) => (
+                          <div
+                            className={
+                              index + 1 > transactionTotalPage
+                                ? 'notShow'
+                                : transactionPage === index
+                                ? 'flex selected'
+                                : 'flex'
+                            }
+                            key={index}
+                            onClick={() => nextPage(index, 'Transaction')}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                  </div>
+                </CollationTable>
+              </TableBox>
               <div className="Activity">
-                <div className="tab flex">
+                <div className="tabs flex">
                   <div onClick={() => setActivityTab('Chains')}>
                     Chains
                     {activityTab === 'Chains' ? <img src={shortbutton} /> : ''}
