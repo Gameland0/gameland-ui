@@ -82,6 +82,7 @@ import polygonIcon from '../assets/polygon_icon.svg'
 import BNBIcon from '../assets/bnb.svg'
 import BUSDIcon from '../assets/busd.svg'
 import WETHIcon from '../assets/WETH.svg'
+import shortbutton from '../assets/short_button.jpg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 import { PieOption } from './MyPage'
@@ -933,17 +934,6 @@ const ApproveTable = styled.div`
   .notShow {
     display: none;
   }
-  .switchMenu {
-    margin: 10px 0;
-    border-bottom: 1px solid #e5e5e5;
-    div {
-      margin-right: 10px;
-      cursor: pointer;
-    }
-    .borderbg {
-      border-bottom: 1px solid #41acef;
-    }
-  }
   .tablePage {
     margin-top: 10px;
     div {
@@ -985,6 +975,117 @@ const AnalysisBox = styled.div`
         width: 480px;
         height: 350px;
       }
+    }
+  }
+`
+const TabBox = styled.div`
+  position: relative;
+  width: 96%;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  position: relative;
+  height: 410px;
+  margin-bottom: 20px;
+  margin: auto;
+  .switchMenu {
+    padding: 10px;
+    div {
+      position: relative;
+      cursor: pointer;
+      margin-right: 16px;
+      img {
+        width: 100%;
+        height: 8px;
+        position: absolute;
+        bottom: 1px;
+        left: 0px;
+      }
+    }
+  }
+  .table {
+    width: 100%;
+    position: absolute;
+    padding: 10px;
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      margin: 10px 0;
+    }
+    .tableTab {
+      div {
+        flex: 2;
+        text-align: center;
+        font-size: 14px;
+        font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
+        font-weight: bold;
+        padding: 0 10px;
+      }
+      .Address {
+        flex: 7;
+      }
+      .amount {
+        flex: 1;
+      }
+    }
+    .bag {
+      background: #f4f9fb;
+    }
+    .tableContent {
+      div {
+        flex: 2;
+        height: 24px;
+        line-height: 24px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 12px;
+        padding: 0 10px;
+        img {
+          width: 12px;
+          height: 12px;
+        }
+      }
+      .Address {
+        flex: 7;
+      }
+      .amount {
+        flex: 1;
+      }
+    }
+    .Notrecords {
+      margin-top: 20px;
+    }
+    .notShow {
+      display: none;
+    }
+    .tablePage {
+      margin-top: 10px;
+      div {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #e5e5e5;
+        border-radius: 5px;
+        margin-right: 5px;
+        cursor: pointer;
+        justify-content: center;
+        justify-items: center;
+        align-items: center;
+        align-content: center;
+      }
+      .selected {
+        background: #41acef;
+      }
+    }
+    .nextPage {
+      width: 90px;
+      height: 30px;
+      background: #35caa9;
+      margin: auto;
+      margin-top: 10px;
+      border-radius: 15px;
+      color: #fff;
     }
   }
 `
@@ -1233,6 +1334,7 @@ export const CollectionDetails = () => {
   const [RecommendPlayerData, setRecommendPlayerData] = useState([] as any)
   const [NFTHoldDataAll, setNFTHoldDataAll] = useState([] as any)
   const [NFTHoldData, setNFTHoldData] = useState([] as any)
+  const [NFTTransfersData, setNFTTransfersData] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1279,6 +1381,7 @@ export const CollectionDetails = () => {
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [tap, setTab] = useState('NFT')
   const [transactionsType, setTransactionsType] = useState('All')
+  const [cursor, setCursor] = useState('')
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -1404,6 +1507,7 @@ export const CollectionDetails = () => {
     getActiveData()
     getTokenData()
     getHoldRankingData()
+    getNFTTransfersData()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1688,6 +1792,21 @@ export const CollectionDetails = () => {
       setTransactionsDataAll(Tabledata)
       setTransactionsData(Tabledata.slice(0, 10))
       setTransactionsTotalPage(Math.ceil(Tabledata.length / 10))
+    }
+  }
+  const getNFTTransfersData = async () => {
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        'X-API-Key': MORALIS_KEY
+      }
+    })
+    try {
+      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain}&format=decimal&limit=10`)
+      setNFTTransfersData(data.result)
+      setCursor(data.cursor)
+    } catch (error) {
+      console.log(error)
     }
   }
   const getTokenData = async () => {
@@ -2706,6 +2825,21 @@ export const CollectionDetails = () => {
     setTransactionsData([])
     setTransactionsType('colletion')
   }
+  const nextPage = async () => {
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        'X-API-Key': MORALIS_KEY
+      }
+    })
+    try {
+      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain}&format=decimal&limit=10&cursor=${cursor}`)
+      setNFTTransfersData(data.result)
+      setCursor(data.cursor)
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} open={lendvisible} closable={false}>
@@ -3278,63 +3412,94 @@ export const CollectionDetails = () => {
                       : ''}
                   </div>
                 </ApproveTable>
-                <ApproveTable>
-                  <div className="title">Transactions</div>
+                <TabBox>
                   <div className="switchMenu flex">
                     <div className={transactionsType === 'All' ? 'borderbg' : ''} onClick={TransactionsButtonAll}>
                       All
+                      {transactionsType === 'All' ? <img src={shortbutton} /> : ''}
                     </div>
                     <div className={transactionsType === 'All' ? '' : 'borderbg'} onClick={TransactionsAll}>
                       {collectionDetails.contractName}
+                      {transactionsType === 'All' ? '' : <img src={shortbutton} />}
                     </div>
                   </div>
-                  <div className="tableTab flex">
-                    <div>Address</div>
-                    <div>Colletion</div>
-                    <div>NFT Name</div>
-                    <div>Price</div>
-                    <div>Chain</div>
-                    <div>Type</div>
-                    <div>Time</div>
+                  <div className={transactionsType === 'All' ? 'table' : 'table none'}>
+                    <div className="title">Transactions</div>
+                    <div className="tableTab flex">
+                      <div>Time</div>
+                      <div>Address</div>
+                      <div>Colletion</div>
+                      <div>NFT Name</div>
+                      <div>Price</div>
+                      <div>Chain</div>
+                      <div>Type</div>
+                    </div>
+                    {transactionsData && transactionsData.length ? (
+                      transactionsData.map((item: any, index: number) => (
+                        <div
+                          className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                          key={index}
+                        >
+                          <div>{item?.time}</div>
+                          <div>{item?.address}</div>
+                          <div>{item?.collation}</div>
+                          <div>{item?.nftname}</div>
+                          <div>{item?.price}</div>
+                          <div>{item?.chain}</div>
+                          <div>{item?.type}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="Notrecords flex flex-justify-content">No records</div>
+                    )}
+                    <div className="tablePage flex">
+                      {transactionsDataAll && transactionsDataAll.length
+                        ? transactionsDataAll.slice(0, 40).map((item: any, index: number) => (
+                            <div
+                              className={
+                                index + 1 > transactionsTotalPage
+                                  ? 'notShow'
+                                  : transactionsTablePage === index
+                                  ? 'flex selected'
+                                  : 'flex'
+                              }
+                              key={index}
+                              onClick={() => transactionsnext(index)}
+                            >
+                              {index + 1}
+                            </div>
+                          ))
+                        : ''}
+                    </div>
                   </div>
-                  {transactionsData && transactionsData.length ? (
-                    transactionsData.map((item: any, index: number) => (
-                      <div
-                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
-                        key={index}
-                      >
-                        <div>{item?.address}</div>
-                        <div>{item?.collation}</div>
-                        <div>{item?.nftname}</div>
-                        <div>{item?.price}</div>
-                        <div>{item?.chain}</div>
-                        <div>{item?.type}</div>
-                        <div>{item?.time}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="Notrecords flex flex-justify-content">No records</div>
-                  )}
-                  <div className="tablePage flex">
-                    {transactionsDataAll && transactionsDataAll.length
-                      ? transactionsDataAll.slice(0, 40).map((item: any, index: number) => (
-                          <div
-                            className={
-                              index + 1 > transactionsTotalPage
-                                ? 'notShow'
-                                : transactionsTablePage === index
-                                ? 'flex selected'
-                                : 'flex'
-                            }
-                            key={index}
-                            onClick={() => transactionsnext(index)}
-                          >
-                            {index + 1}
-                          </div>
-                        ))
-                      : ''}
+                  <div className={transactionsType === 'All' ? 'table none' : 'table'}>
+                    <div className="title">NFT Transfers</div>
+                    <div className="tableTab flex">
+                      <div>Time</div>
+                      <div className='Address'>From</div>
+                      <div className='Address'>to</div>
+                      <div className="amount">amount</div>
+                      <div>Token ID</div>
+                    </div>
+                    {NFTTransfersData && NFTTransfersData.length ? (
+                      NFTTransfersData.map((item: any, index: number) => (
+                        <div
+                          className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                          key={index}
+                        >
+                          <div>{item?.block_timestamp.substr(0, 10)}</div>
+                          <div className='Address'>{item?.from_address}</div>
+                          <div className='Address'>{item?.to_address}</div>
+                          <div className="amount">{item?.amount}</div>
+                          <div>{formatting(item?.token_id || '')}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="Notrecords flex flex-justify-content">No records</div>
+                    )}
+                    <div className="nextPage flex flex-center cursor" onClick={nextPage}>Next</div>
                   </div>
-                </ApproveTable>
+                </TabBox>
                 <ApproveTable>
                   <div className="title">Recommended Player</div>
                   <div className="tableTab flex">
