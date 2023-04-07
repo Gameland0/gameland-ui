@@ -726,7 +726,7 @@ export const GameTokenDetails = [
   },
   {
     NFTaddress: '0xb19dd661f076998e3b0456935092a233e12c2280',
-    tokenAddress: ['0xb19dd661f076998e3b0456935092a233e12c2280'],
+    tokenAddress: ['0x3B1A0c9252ee7403093fF55b4a5886d49a3d837a'],
     symbol: [UM],
     chain: 'polygon'
   },

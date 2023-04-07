@@ -237,9 +237,6 @@ export const Header = () => {
               <Link exact to="/">
                 <span>Games</span>
               </Link>
-              <Link to="/lend">
-                <span>Lend</span>
-              </Link>
               <Link to="/expose">
                 <span>Expose</span>
               </Link>

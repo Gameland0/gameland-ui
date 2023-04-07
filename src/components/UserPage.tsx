@@ -25,6 +25,7 @@ import { SendBox } from '../pages/Dashboard'
 import { ButtonBox, CollationTable, AnalysisBox, PieOption, TableBox } from './MyPage'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
+import { Lend } from '../pages/Lend'
 import { Img } from './Img'
 import { Dialog } from './Dialog'
 import { CollectionToken } from './CollectionToken'
@@ -1952,7 +1953,8 @@ export const UserPage = () => {
       const Activityoptions = {
         title: {
           text: 'Activity',
-          top: 'center'
+          top : '90%',
+          left: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -1971,7 +1973,8 @@ export const UserPage = () => {
       const collationActivityoption = {
         title: {
           text: 'Activity',
-          top: 'center'
+          top : '90%',
+          left: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -2445,9 +2448,16 @@ export const UserPage = () => {
               <TabPaneBox tab={<span className="clearGap">Profiles</span>} key="1">
                 <CollectionToken NFT={myNFT} user={useraddress}></CollectionToken>
               </TabPaneBox>
-              <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
-                <MyRenting />
-              </TabPaneBox>
+              {account === useraddress ? (
+                <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
+                  <MyRenting />
+                </TabPaneBox>
+              ) : ''}
+              {account === useraddress ? (
+                <TabPaneBox tab={<span className="clearGap">Lend</span>} key="3">
+                  <Lend />
+                </TabPaneBox>
+              ) : ''}
             </MyTabs>
           ) : (
             ''
@@ -2576,8 +2586,12 @@ export const UserPage = () => {
           {showTabs === 'Analysis' && PieChartData.length ? (
             <AnalysisBox>
               <div className="pieitem flex flex-column-between">
-                <div id="Chains" className="pie"></div>
-                <div id="Collation" className="pie"></div>
+                <div className="pie">
+                  <div id="Chains" className="lineChart"></div>
+                </div>
+                <div className="pie">
+                  <div id="Collation" className="lineChart"></div>
+                </div>
               </div>
               <div className="pieitem flex flex-column-between">
                 <div className="pie">
@@ -2600,7 +2614,7 @@ export const UserPage = () => {
                   <div id="ETHTokens" className={tokenTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
                 <div className="relative">
-                  {!payMentState ? (
+                  {/* {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                       <div>Explore More  Detail Data</div>
                       <div>
@@ -2608,8 +2622,10 @@ export const UserPage = () => {
                         <img src={coffee} alt="" />
                       </div>
                     </div>
-                  ) : ''}
-                  <div id="Preferred" className="pie"></div>
+                  ) : ''} */}
+                  <div className="pie">
+                    <div id="Preferred" className="lineChart"></div>
+                  </div>
                 </div>
               </div>
               <TableBox>
@@ -2704,6 +2720,15 @@ export const UserPage = () => {
                   </div>
                 </CollationTable>
                 <CollationTable className={transactionTab === 'Token' ? '' : 'none'}>
+                  {/* {!payMentState ? (
+                    <div className="mask flex flex-center wrap cursor" onClick={Payment}>
+                      <div>Explore More  Detail Data</div>
+                      <div>
+                        Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
+                        <img src={coffee} alt="" />
+                      </div>
+                    </div>
+                  ) : ''} */}
                   <div className="title">Token Transactions</div>
                   <div className="tab flex">
                     <div>Sent</div>

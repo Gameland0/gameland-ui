@@ -141,6 +141,7 @@ export const CollectionToken = (NFT: any) => {
   const [days, setdays] = useState('')
   const [collateral, setCollateral] = useState('')
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
+
   const getGames = async () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')

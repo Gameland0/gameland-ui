@@ -16,6 +16,7 @@ import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
+import { Lend } from '../pages/Lend'
 import { Dialog } from './Dialog'
 import { CollectionToken } from './CollectionToken'
 import { Modal } from './Modal'
@@ -289,13 +290,20 @@ const InfoLeft = styled.div`
     }
   }
   @media screen and (max-width: 1440px) {
-    width: 180px;
+    width: 200px;
     .avatar {
-      width: 180px;
-      height: 180px;
+      width: 200px;
+      height: 200px;
     }
     .userName {
-      width: 180px;
+      width: 200px;
+    }
+    .useraddress {
+      .PaymentButton {
+        width: 90px;
+        height: 27px;
+        font-size: 13px;
+      }
     }
     .socialize {
       img {
@@ -498,7 +506,7 @@ export const AnalysisBox = styled.div`
     }
   }
   .lineChart {
-    width: 100%;
+    width: 95%;
     height: 400px;
     position: absolute;
   }
@@ -541,6 +549,9 @@ export const AnalysisBox = styled.div`
     .pie {
       width: 400px;
       height: 350px;
+    }
+    .lineChart {
+      height: 300px;
     }
   }
   @media screen and (min-width: 1920px) {
@@ -2026,7 +2037,8 @@ export const MyPage = () => {
       const Activityoptions = {
         title: {
           text: 'Activity',
-          top: 'center'
+          top : '90%',
+          left: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -2045,7 +2057,8 @@ export const MyPage = () => {
       const collationActivityoption = {
         title: {
           text: 'Activity',
-          top: 'center'
+          top : '90%',
+          left: 'center'
         },
         tooltip: {
           trigger: 'axis' as any
@@ -2447,7 +2460,7 @@ export const MyPage = () => {
             </div>
             <div className={showTabs === 'NFTs' ? 'blueBg' : ''} onClick={() => cutoverTabs('NFTs')}>
               <img src={tabsIconNFT} />
-              &nbsp;&nbsp;NFTs
+              &nbsp;&nbsp;Game
             </div>
           </div>
           <div className="horizontalDividing"></div>
@@ -2566,6 +2579,9 @@ export const MyPage = () => {
               </TabPaneBox>
               <TabPaneBox tab={<span className="clearGap">My Renting</span>} key="2">
                 <MyRenting />
+              </TabPaneBox>
+              <TabPaneBox tab={<span className="clearGap">Lend</span>} key="3">
+                <Lend />
               </TabPaneBox>
             </MyTabs>
           ) : (
@@ -2687,8 +2703,12 @@ export const MyPage = () => {
           {showTabs === 'Analysis' && PieChartData.length ? (
             <AnalysisBox>
               <div className="pieitem flex flex-column-between">
-                <div id="Chains" className="pie"></div>
-                <div id="Collation" className="pie"></div>
+                <div className="pie">
+                  <div id="Chains" className="lineChart"></div>
+                </div>
+                <div className="pie">
+                  <div id="Collation" className="lineChart"></div>
+                </div>
               </div>
               <div className="pieitem flex flex-column-between">
                 <div className="pie">
@@ -2710,7 +2730,9 @@ export const MyPage = () => {
                   <div id="BSCTokens" className={tokenTab === 'BNB' ? 'lineChart' : 'lineChart none'}></div>
                   <div id="ETHTokens" className={tokenTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
-                <div id="Preferred" className="pie"></div>
+                <div className="pie">
+                  <div id="Preferred" className="lineChart"></div>
+                </div>
               </div>
               <TableBox>
                 <div className="tabs flex">

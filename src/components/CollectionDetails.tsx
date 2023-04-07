@@ -53,6 +53,7 @@ import { Dialog } from '../components/Dialog'
 import { Modal } from '../components/Modal'
 import { Dlist } from '../pages/Lend'
 import { ContentBox } from '../pages/Rent'
+import { CollectionRisk } from './CollectionRisk'
 import { Nft as NftCard } from '../components/Nft'
 import { Loading } from '../components/Loading'
 import { NumInput } from '../components/NumInput'
@@ -85,7 +86,7 @@ import WETHIcon from '../assets/WETH.svg'
 import shortbutton from '../assets/short_button.jpg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
-import { PieOption } from './MyPage'
+import { MyTabs, PieOption, TabPaneBox } from './MyPage'
 
 const DetailsBox = styled.div`
   display: flex;
@@ -955,25 +956,73 @@ const ApproveTable = styled.div`
 `
 const AnalysisBox = styled.div`
   margin-top: 24px;
+  .contractInfo {
+    width: 96%;
+    border: 1px solid #e5e5e5;
+    border-radius: 20px;
+    height: 150px;
+    margin: auto;
+    font-size: 20px;
+    margin-bottom: 16px;
+    .item {
+      padding: 40px 20px;
+      flex: 1
+    }
+    .border-right {
+      border-right: 1px solid #e5e5e5;
+    }
+    .bold {
+      font-weight: 700;
+    }
+    .grey {
+      color: #ccc;
+    }
+  }
   .echartsPie {
     width: 96%;
     margin: auto;
-    .pie {
+    .pieItem {
+      position: relative;
       border: 1px solid #e5e5e5;
       border-radius: 10px;
-      padding: 10px;
       margin-bottom: 20px;
+      .Tab {
+        padding-left: 10px;
+        div {
+          position: relative;
+          cursor: pointer;
+          margin-right: 16px;
+          img {
+            width: 100%;
+            height: 8px;
+            position: absolute;
+            bottom: 1px;
+            left: 0px;
+          }
+        }
+      }
+      .pie {
+        position: absolute;
+      }
     }
     @media screen and (min-width: 1440px) {
-      .pie {
-        width: 380px;
-        height: 300px;
+      .pieItem {
+        width: 400px;
+        height: 280px;
+        .pie {
+          width: 390px;
+          height: 270px;
+        }
       }
     }
     @media screen and (min-width: 1920px) {
-      .pie {
+      .pieItem {
         width: 480px;
-        height: 350px;
+        height: 300px;
+        .pie {
+          width: 470px;
+          height: 280px;
+        }
       }
     }
   }
@@ -1088,6 +1137,9 @@ const TabBox = styled.div`
       color: #fff;
     }
   }
+`
+const RiskBox = styled.div`
+  padding: 0 20px;
 `
 export interface CardProps {
   onClick?: () => void
@@ -1334,7 +1386,10 @@ export const CollectionDetails = () => {
   const [RecommendPlayerData, setRecommendPlayerData] = useState([] as any)
   const [NFTHoldDataAll, setNFTHoldDataAll] = useState([] as any)
   const [NFTHoldData, setNFTHoldData] = useState([] as any)
+  const [tokenHoldData, setTokenHoldData] = useState([] as any)
   const [NFTTransfersData, setNFTTransfersData] = useState([] as any)
+  const [collectionRiskData, setCollectionRiskData] = useState([] as any)
+  const [tokenRiskData, setTokenRiskData] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1381,6 +1436,9 @@ export const CollectionDetails = () => {
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [tap, setTab] = useState('NFT')
   const [transactionsType, setTransactionsType] = useState('All')
+  const [holdersType, setHoldersType] = useState('NFT')
+  const [transactionsTypeRatio, setTransactionsTypeRatio] = useState('NFT')
+  const [holdersRatio ,setHoldersRatio] = useState('NFT')
   const [cursor, setCursor] = useState('')
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
@@ -1506,7 +1564,7 @@ export const CollectionDetails = () => {
     getCollectionInfo()
     getActiveData()
     getTokenData()
-    getHoldRankingData()
+    // getHoldRankingData()
     getNFTTransfersData()
   }, [contractName])
   useEffect(() => {
@@ -1593,6 +1651,9 @@ export const CollectionDetails = () => {
     if (actionAll && actionAll.length) {
       setNFTpie()
     }
+    if (tap === 'Analysis') {
+      contractDetection()
+    }
   }, [tokenActionData, actionAll, tap])
   useEffect(() => {
     if (userinfoAll && userinfoAll.length) {
@@ -1600,8 +1661,8 @@ export const CollectionDetails = () => {
     }
   }, [userinfoAll])
   const getActiveData = () => {
-    const actions = bschttp.get(`v0/active_actions/${address}`)
-    const users = bschttp.get(`v0/active_users/${address}`)
+    const actions = http2.get(`v0/active_actions/${address}`)
+    const users = http2.get(`v0/active_users/${address}`)
     Promise.all([actions, users]).then((vlas) => {
       const userarr = [] as any
       const approveData = [] as any
@@ -1617,7 +1678,7 @@ export const CollectionDetails = () => {
       setActionAll(otherdata)
       const userNftArr = [] as any
       vlas[1].data.data.map((item: any) => {
-        if (item.nftcount > 0) {
+        if ((item.nftcount * 1) >= 0) {
           const data = userNftArr.filter((ele: any) => {
             return ele.address === item.address
           })
@@ -1810,9 +1871,9 @@ export const CollectionDetails = () => {
     }
   }
   const getTokenData = async () => {
-    const action = await bschttp.get(`v0/erc20_active_actions/${address}`)
+    const action = await http2.get(`v0/erc20_active_actions/${address}`)
     setTokenActionData(action.data.data)
-    const balance = await bschttp.get(`v0/erc20contractbalances/${address}`)
+    const balance = await http2.get(`v0/erc20contractbalances/${address}`)
     setTokenBalanceData(balance.data.data)
   }
   const getTokenBalance = (Address: string) => {
@@ -1830,9 +1891,50 @@ export const CollectionDetails = () => {
   }
   const getHoldRankingData = async () => {
     const data = await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${address}`)
-    // console.log(data.data.data[0].positionList)
     setNFTHoldDataAll(data.data.data[0].positionList)
     setNFTHoldData(data.data.data[0].positionList.slice(0, 10))
+  }
+  const contractDetection = async () => {
+    const id = chain === 'bsc' ? 56 : 137
+    const collectionData = await http(`https://api.gopluslabs.io/api/v1/token_security/${id}?contract_addresses=${address}`)
+    const collectionholders = Object.values(collectionData.data.result)[0] as any
+    setNFTHoldData(collectionholders?.holders || [])
+    setCollectionRiskData(collectionholders)
+    const NFTHoldRatioData = [] as any
+    let NFTother = 100
+    collectionholders?.holders.map((item: any) => {
+      const ratio = new BigNumber(item.balance).div(collectionholders.total_supply).toNumber().toFixed(2)
+      NFTHoldRatioData.push({
+        value: new BigNumber(ratio).multipliedBy(100).toNumber(),
+        name: formatting(item.address)
+      })
+      NFTother = NFTother - new BigNumber(ratio).multipliedBy(100).toNumber()
+    })
+    NFTHoldRatioData.push({ value: NFTother, name: 'Other'})
+    const NFTdom = document.getElementById('NFTHoldRatio') as HTMLDivElement
+    const NFTChart = echarts.init(NFTdom)
+    NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData))
+    const token = GameTokenDetails.filter((item: any) => {
+      return item.NFTaddress === address
+    })
+    const tokenData = await http(`https://api.gopluslabs.io/api/v1/token_security/${id}?contract_addresses=${token[0]?.tokenAddress[0]}`)
+    const tokenHold = Object.values(tokenData.data.result)[0] as any
+    setTokenHoldData(tokenHold?.holders || [])
+    setTokenRiskData(tokenHold)
+    const tokenHoldRatioData = [] as any
+    let tokenOther = 100
+    tokenHold?.holders.map((item: any) => {
+      const ratio = new BigNumber(item.balance).div(tokenHold.total_supply).toNumber().toFixed(2)
+      tokenHoldRatioData.push({
+        value: new BigNumber(ratio).multipliedBy(100).toNumber(),
+        name: formatting(item.address)
+      })
+      tokenOther = tokenOther - new BigNumber(ratio).multipliedBy(100).toNumber()
+    })
+    tokenHoldRatioData.push({ value: tokenOther, name: 'Other'})
+    const Tokensdom = document.getElementById('TokenHoldRatio') as HTMLDivElement
+    const TokensChart = echarts.init(Tokensdom)
+    TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData))
   }
   const setTokenPie = () => {
     if (tap === 'Analysis') {
@@ -1852,36 +1954,36 @@ export const CollectionDetails = () => {
       const ClaimData = tokenActionData.filter((item: any) => {
         return item.type === 'Claim'
       })
-      const ClaimValue = (ClaimData.length / tokenActionData.length).toFixed(2) as any
+      const ClaimValue = new BigNumber((ClaimData.length / tokenActionData.length).toFixed(2)).multipliedBy(100).toNumber()
       const SoldData = tokenActionData.filter((item: any) => {
         return item.type === 'Sold'
       })
-      const SoldValue = (SoldData.length / tokenActionData.length).toFixed(2) as any
-      const BoughtValue = 1 - ClaimValue * 1 - SoldValue * 1
+      const SoldValue = new BigNumber((SoldData.length / tokenActionData.length).toFixed(2)).multipliedBy(100).toNumber()
+      const BoughtValue = 100 - ClaimValue - SoldValue
       let Tokensdata
-      if (BoughtValue * 1 + SoldValue * 1 === 1) {
+      if (BoughtValue + SoldValue === 100) {
         Tokensdata = [
           {
-            value: Math.floor(BoughtValue * 100),
+            value: BoughtValue,
             name: 'Bought'
           },
           {
-            value: Math.floor(SoldValue * 100),
+            value: SoldValue,
             name: 'Sold'
           }
         ]
       } else {
         Tokensdata = [
           {
-            value: ClaimValue * 100,
+            value: ClaimValue,
             name: 'Claim'
           },
           {
-            value: BoughtValue * 100,
+            value: BoughtValue,
             name: 'Bought'
           },
           {
-            value: SoldValue * 100,
+            value: SoldValue,
             name: 'Sold'
           }
         ]
@@ -1910,33 +2012,33 @@ export const CollectionDetails = () => {
       const MintData = actionAll.filter((item: any) => {
         return item.type === 'Mint'
       })
-      const SoldValue = (SoldData.length / actionAll.length).toFixed(2) as any
-      const MintValue = (MintData.length / actionAll.length).toFixed(2) as any
-      const BoughtValue = 1 - MintValue * 1 - SoldValue * 1
+      const SoldValue = new BigNumber((SoldData.length / actionAll.length).toFixed(2)).multipliedBy(100).toNumber()
+      const MintValue = new BigNumber((MintData.length / actionAll.length).toFixed(2)).multipliedBy(100).toNumber()
+      const BoughtValue = 100 - MintValue - SoldValue
       let NFTdata
-      if (BoughtValue * 1 + SoldValue * 1 === 1) {
+      if (BoughtValue + SoldValue === 100) {
         NFTdata = [
           {
-            value: Math.floor(BoughtValue * 100),
+            value: BoughtValue,
             name: 'Bought'
           },
           {
-            value: Math.floor(SoldValue * 100),
+            value: SoldValue,
             name: 'Sold'
           }
         ]
       } else {
         NFTdata = [
           {
-            value: MintValue * 100,
+            value: MintValue,
             name: 'Mint'
           },
           {
-            value: BoughtValue * 100,
+            value: BoughtValue,
             name: 'Bought'
           },
           {
-            value: SoldValue * 100,
+            value: SoldValue,
             name: 'Sold'
           }
         ]
@@ -3293,6 +3395,9 @@ export const CollectionDetails = () => {
               <div className={tap === 'Analysis' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Analysis')}>
                 Analysis
               </div>
+              {/* <div className={tap === 'Risk' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Risk')}>
+                Contract Risk
+              </div> */}
             </div>
             {/* <Loadding className="flex flex-center">{lending ? <img src={loadding} /> : ''}</Loadding> */}
             {tap === 'NFT' ? (
@@ -3361,9 +3466,63 @@ export const CollectionDetails = () => {
             )}
             {tap === 'Analysis' ? (
               <AnalysisBox>
-                <div className="echartsPie flex flex-column-between">
-                  <div id="NFT" className="pie"></div>
-                  <div id="Tokens" className="pie"></div>
+                {/* <div className="contractInfo flex">
+                  <div className="item border-right">
+                    <div className="text-center grey">NFT holder count</div>
+                    <div className="text-center bold">
+                      {collectionRiskData.holder_count ? collectionRiskData.holder_count : '--'}
+                    </div>
+                  </div>
+                  <div className="item border-right">
+                    <div className="text-center grey">NFT total supply</div>
+                    <div className="text-center bold">
+                      {collectionRiskData.total_supply ? collectionRiskData.total_supply : '--'}
+                    </div>
+                  </div>
+                  <div className="item border-right">
+                    <div className="text-center grey">Token holder count</div>
+                    <div className="text-center bold">
+                      {tokenRiskData.holder_count ? tokenRiskData.holder_count : '--'}
+                    </div>
+                  </div>
+                  <div className="item">
+                    <div className="text-center grey">Token total supply</div>
+                    <div className="text-center bold">
+                      {tokenRiskData.total_supply ? tokenRiskData.total_supply : '--'}
+                    </div>
+                  </div>
+                </div> */}
+                <div className="echartsPie">
+                  <div className="flex flex-column-between">
+                    <div className="pieItem">
+                      <div className='Tab flex'>
+                        <div onClick={() => setTransactionsTypeRatio('NFT')}>
+                          NFT
+                          {transactionsTypeRatio === 'NFT' ? <img src={shortbutton} /> : ''}
+                        </div>
+                        <div onClick={() => setTransactionsTypeRatio('Token')}>
+                          Token
+                          {transactionsTypeRatio === 'Token' ? <img src={shortbutton} /> : ''}
+                        </div>
+                      </div>
+                      <div id="NFT" className={transactionsTypeRatio === 'NFT' ? 'pie' : 'pie none'}></div>
+                      <div id="Tokens" className={transactionsTypeRatio === 'Token' ? 'pie' : 'pie none'}></div>
+                    </div>
+                    <div className="pieItem">
+                      <div className='Tab flex'>
+                        <div onClick={() => setHoldersRatio('NFT')}>
+                          NFT
+                          {holdersRatio === 'NFT' ? <img src={shortbutton} /> : ''}
+                        </div>
+                        <div onClick={() => setHoldersRatio('Token')}>
+                          Token
+                          {holdersRatio === 'Token' ? <img src={shortbutton} /> : ''}
+                        </div>
+                      </div>
+                      <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}></div>
+                      <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}></div>
+                    </div>
+                  </div>
                 </div>
                 <ApproveTable>
                   <div className="title">Most Active Users</div>
@@ -3394,7 +3553,7 @@ export const CollectionDetails = () => {
                   )}
                   <div className="tablePage flex">
                     {actionAll && actionAll.length
-                      ? actionAll.slice(0, 40).map((item: any, index: number) => (
+                      ? actionAll.slice(0, 36).map((item: any, index: number) => (
                           <div
                             className={
                               index + 1 > approveTotalPage
@@ -3414,11 +3573,11 @@ export const CollectionDetails = () => {
                 </ApproveTable>
                 <TabBox>
                   <div className="switchMenu flex">
-                    <div className={transactionsType === 'All' ? 'borderbg' : ''} onClick={TransactionsButtonAll}>
-                      All
+                    <div onClick={TransactionsButtonAll}>
+                      Most Activity
                       {transactionsType === 'All' ? <img src={shortbutton} /> : ''}
                     </div>
-                    <div className={transactionsType === 'All' ? '' : 'borderbg'} onClick={TransactionsAll}>
+                    <div onClick={TransactionsAll}>
                       {collectionDetails.contractName}
                       {transactionsType === 'All' ? '' : <img src={shortbutton} />}
                     </div>
@@ -3454,7 +3613,7 @@ export const CollectionDetails = () => {
                     )}
                     <div className="tablePage flex">
                       {transactionsDataAll && transactionsDataAll.length
-                        ? transactionsDataAll.slice(0, 40).map((item: any, index: number) => (
+                        ? transactionsDataAll.slice(0, 36).map((item: any, index: number) => (
                             <div
                               className={
                                 index + 1 > transactionsTotalPage
@@ -3522,51 +3681,22 @@ export const CollectionDetails = () => {
                     <div className="Notrecords flex flex-justify-content">No records</div>
                   )}
                 </ApproveTable>
-                <ApproveTable>
-                  <div className="title">Top NFT holders</div>
-                  <div className="tableTab flex">
-                    <div>Ranking</div>
-                    <div className="Address">Address</div>
-                    <div>amount</div>
-                  </div>
-                  {NFTHoldData && NFTHoldData.length ? (
-                    NFTHoldData.map((item: any, index: number) => (
-                      <div
-                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
-                        key={index}
-                      >
-                        <div>{item?.rank}</div>
-                        <div className="Address">{item?.holderAddress}</div>
-                        <div>{item?.amount}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="Notrecords flex flex-justify-content">No records</div>
-                  )}
-                  <div className="tablePage flex">
-                    {NFTHoldDataAll && NFTHoldDataAll.length
-                      ? NFTHoldDataAll.slice(0, 40).map((item: any, index: number) => (
-                          <div
-                            className={
-                              index + 1 > NFTHoldTotalPage
-                                ? 'notShow'
-                                : NFTHoldPage === index
-                                ? 'flex selected'
-                                : 'flex'
-                            }
-                            key={index}
-                            onClick={() => NFTHoldnext(index)}
-                          >
-                            {index + 1}
-                          </div>
-                        ))
-                      : ''}
-                  </div>
-                </ApproveTable>
               </AnalysisBox>
             ) : (
               ''
             )}
+            {/* {tap === 'Risk' ? (
+              <RiskBox>
+                <MyTabs defaultActiveKey="1">
+                  <TabPaneBox tab={<span className="clearGap">Collection</span>} key="1">
+                    <CollectionRisk data={collectionRiskData}></CollectionRisk>
+                  </TabPaneBox>
+                  <TabPaneBox tab={<span className="clearGap">Token</span>} key="2">
+                    <div></div>
+                  </TabPaneBox>
+                </MyTabs>
+              </RiskBox>
+            ) : ''} */}
           </div>
         </div>
         <div className="comment">
