@@ -2614,7 +2614,7 @@ export const UserPage = () => {
                   <div id="ETHTokens" className={tokenTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
                 <div className="relative">
-                  {/* {!payMentState ? (
+                  {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                       <div>Explore More  Detail Data</div>
                       <div>
@@ -2622,7 +2622,7 @@ export const UserPage = () => {
                         <img src={coffee} alt="" />
                       </div>
                     </div>
-                  ) : ''} */}
+                  ) : ''}
                   <div className="pie">
                     <div id="Preferred" className="lineChart"></div>
                   </div>
@@ -2720,7 +2720,7 @@ export const UserPage = () => {
                   </div>
                 </CollationTable>
                 <CollationTable className={transactionTab === 'Token' ? '' : 'none'}>
-                  {/* {!payMentState ? (
+                  {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                       <div>Explore More  Detail Data</div>
                       <div>
@@ -2728,7 +2728,7 @@ export const UserPage = () => {
                         <img src={coffee} alt="" />
                       </div>
                     </div>
-                  ) : ''} */}
+                  ) : ''}
                   <div className="title">Token Transactions</div>
                   <div className="tab flex">
                     <div>Sent</div>
@@ -2789,14 +2789,14 @@ export const UserPage = () => {
                   id="collationActivity"
                   className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}
                 ></div>
-                {/* {!payMentState ? (
+                {!payMentState ? (
                 <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                   <div>Explore More  Detail Data</div>
                   <div>
                     Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
                     <img src={coffee} alt="" />
                   </div>
-                </div>) : ''} */}
+                </div>) : ''}
               </div>
             </AnalysisBox>
           ) : (

@@ -154,16 +154,16 @@ const DetailsBox = styled.div`
       }
       .tab {
         margin: auto;
-        width: 570px;
+        width: 620px;
         height: 72px;
         background: linear-gradient(90deg, #35caa9 0%, #41acef 100%);
         border-radius: 36px;
         margin-bottom: 10px;
         div {
-          width: 184px;
+          width: 150px;
           height: 56px;
           border-radius: 36px;
-          font-size: 24px;
+          font-size: 20px;
           cursor: pointer;
           display: flex;
           justify-content: center;
@@ -986,6 +986,10 @@ const AnalysisBox = styled.div`
       border: 1px solid #e5e5e5;
       border-radius: 10px;
       margin-bottom: 20px;
+      .Nodata {
+        text-align: center;
+        margin-top: 30px;
+      }
       .Tab {
         padding-left: 10px;
         div {
@@ -1565,6 +1569,7 @@ export const CollectionDetails = () => {
     getActiveData()
     getTokenData()
     // getHoldRankingData()
+    contractDetection()
     getNFTTransfersData()
   }, [contractName])
   useEffect(() => {
@@ -1651,9 +1656,9 @@ export const CollectionDetails = () => {
     if (actionAll && actionAll.length) {
       setNFTpie()
     }
-    if (tap === 'Analysis') {
-      contractDetection()
-    }
+    // if (tap === 'Analysis') {
+    //   contractDetection()
+    // }
   }, [tokenActionData, actionAll, tap])
   useEffect(() => {
     if (userinfoAll && userinfoAll.length) {
@@ -1900,20 +1905,20 @@ export const CollectionDetails = () => {
     const collectionholders = Object.values(collectionData.data.result)[0] as any
     setNFTHoldData(collectionholders?.holders || [])
     setCollectionRiskData(collectionholders)
-    const NFTHoldRatioData = [] as any
-    let NFTother = 100
-    collectionholders?.holders.map((item: any) => {
-      const ratio = new BigNumber(item.balance).div(collectionholders.total_supply).toNumber().toFixed(2)
-      NFTHoldRatioData.push({
-        value: new BigNumber(ratio).multipliedBy(100).toNumber(),
-        name: formatting(item.address)
-      })
-      NFTother = NFTother - new BigNumber(ratio).multipliedBy(100).toNumber()
-    })
-    NFTHoldRatioData.push({ value: NFTother, name: 'Other'})
-    const NFTdom = document.getElementById('NFTHoldRatio') as HTMLDivElement
-    const NFTChart = echarts.init(NFTdom)
-    NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData))
+    // const NFTHoldRatioData = [] as any
+    // let NFTother = 100
+    // collectionholders?.holders?.map((item: any) => {
+    //   const ratio = new BigNumber(item.balance).div(collectionholders.total_supply).toNumber().toFixed(2)
+    //   NFTHoldRatioData.push({
+    //     value: new BigNumber(ratio).multipliedBy(100).toNumber(),
+    //     name: formatting(item.address)
+    //   })
+    //   NFTother = NFTother - new BigNumber(ratio).multipliedBy(100).toNumber()
+    // })
+    // NFTHoldRatioData.push({ value: NFTother, name: 'Other'})
+    // const NFTdom = document.getElementById('NFTHoldRatio') as HTMLDivElement
+    // const NFTChart = echarts.init(NFTdom)
+    // NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData))
     const token = GameTokenDetails.filter((item: any) => {
       return item.NFTaddress === address
     })
@@ -1921,20 +1926,20 @@ export const CollectionDetails = () => {
     const tokenHold = Object.values(tokenData.data.result)[0] as any
     setTokenHoldData(tokenHold?.holders || [])
     setTokenRiskData(tokenHold)
-    const tokenHoldRatioData = [] as any
-    let tokenOther = 100
-    tokenHold?.holders.map((item: any) => {
-      const ratio = new BigNumber(item.balance).div(tokenHold.total_supply).toNumber().toFixed(2)
-      tokenHoldRatioData.push({
-        value: new BigNumber(ratio).multipliedBy(100).toNumber(),
-        name: formatting(item.address)
-      })
-      tokenOther = tokenOther - new BigNumber(ratio).multipliedBy(100).toNumber()
-    })
-    tokenHoldRatioData.push({ value: tokenOther, name: 'Other'})
-    const Tokensdom = document.getElementById('TokenHoldRatio') as HTMLDivElement
-    const TokensChart = echarts.init(Tokensdom)
-    TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData))
+    // const tokenHoldRatioData = [] as any
+    // let tokenOther = 100
+    // tokenHold?.holders?.map((item: any) => {
+    //   const ratio = new BigNumber(item.balance).div(tokenHold.total_supply).toNumber().toFixed(2)
+    //   tokenHoldRatioData.push({
+    //     value: new BigNumber(ratio).multipliedBy(100).toNumber(),
+    //     name: formatting(item.address)
+    //   })
+    //   tokenOther = tokenOther - new BigNumber(ratio).multipliedBy(100).toNumber()
+    // })
+    // tokenHoldRatioData.push({ value: tokenOther, name: 'Other'})
+    // const Tokensdom = document.getElementById('TokenHoldRatio') as HTMLDivElement
+    // const TokensChart = echarts.init(Tokensdom)
+    // TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData))
   }
   const setTokenPie = () => {
     if (tap === 'Analysis') {
@@ -3395,9 +3400,9 @@ export const CollectionDetails = () => {
               <div className={tap === 'Analysis' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Analysis')}>
                 Analysis
               </div>
-              {/* <div className={tap === 'Risk' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Risk')}>
+              <div className={tap === 'Risk' ? 'selected' : 'unselect'} onClick={() => switchOverTab('Risk')}>
                 Contract Risk
-              </div> */}
+              </div>
             </div>
             {/* <Loadding className="flex flex-center">{lending ? <img src={loadding} /> : ''}</Loadding> */}
             {tap === 'NFT' ? (
@@ -3519,8 +3524,12 @@ export const CollectionDetails = () => {
                           {holdersRatio === 'Token' ? <img src={shortbutton} /> : ''}
                         </div>
                       </div>
-                      <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}></div>
-                      <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}></div>
+                      <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}>
+                        <div className="Nodata">No data</div>
+                      </div>
+                      <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}>
+                        <div className="Nodata">No data</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3685,18 +3694,19 @@ export const CollectionDetails = () => {
             ) : (
               ''
             )}
-            {/* {tap === 'Risk' ? (
+            {tap === 'Risk' ? (
               <RiskBox>
                 <MyTabs defaultActiveKey="1">
                   <TabPaneBox tab={<span className="clearGap">Collection</span>} key="1">
                     <CollectionRisk data={collectionRiskData}></CollectionRisk>
                   </TabPaneBox>
                   <TabPaneBox tab={<span className="clearGap">Token</span>} key="2">
-                    <div></div>
+                    <CollectionRisk data={tokenRiskData}></CollectionRisk>
                   </TabPaneBox>
                 </MyTabs>
+                <div className="filling"></div>
               </RiskBox>
-            ) : ''} */}
+            ) : ''}
           </div>
         </div>
         <div className="comment">
