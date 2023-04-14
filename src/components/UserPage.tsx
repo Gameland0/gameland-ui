@@ -843,6 +843,20 @@ export const fetchAbi = async (address: string, chain: any) => {
     return []
   }
 }
+export const compare = (prop: any) => {
+  return function (obj1: any, obj2: any) {
+    const val1 = obj1[prop]
+    const val2 = obj2[prop]
+    if (Number(val1) < Number(val2)) {
+      return 1
+    } else if (Number(val1) > Number(val2)) {
+      return -1
+    } else {
+      return 0
+    }
+  }
+}
+
 export const UserPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const [refreshBy, setrefreshBy] = useState(false)
@@ -888,6 +902,8 @@ export const UserPage = () => {
   const [PopUpsData, setPopUpsData] = useState([] as any)
   const [payMentInfo, setPayMentInfo] = useState([] as any)
   const [buyUserData, setBuyUserData] = useState([] as any)
+  const [interact, setInteract] = useState([] as any)
+  const [interactAll, setInteractAll] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -896,6 +912,8 @@ export const UserPage = () => {
   const [swapTotalPage, setSwapTotalPage] = useState(0)
   const [transactionPage, setTransactionPage] = useState(0)
   const [transactionTotalPage, setTransactionTotalPage] = useState(0)
+  const [interactPage, setInteractPage] = useState(0)
+  const [interactTotalPage, setInteractTotalPage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
   const [tokenTab, setTokenTab] = useState('Polygon')
   const [transactionTab, setTransactionTab] = useState('NFT')
@@ -1745,6 +1763,10 @@ export const UserPage = () => {
       setTransactionPage(index)
       setTransaction(transactionAll.slice(10 * index, 10 * index + 10))
     }
+    if (type === 'interact') {
+      setInteractPage(index)
+      setInteract(interactAll.slice(10 * index, 10 * index + 10))
+    }
   }
   const componentDidMount = () => {
     if (PieChartData && PieChartData.length) {
@@ -1756,9 +1778,14 @@ export const UserPage = () => {
       const Tabledata = [] as any
       const swapdata = [] as any
       const transactionData = [] as any
+      const interactArr = [] as any
+      const currentTime = new Date().getTime()
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
+        if (new Date(item.timestamp).getTime() > currentTime - 604800000) {
+          interactArr.push(item)
+        }
         if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
           collationarr.push(item.actions[0].metadata.collection)
         }
@@ -1888,6 +1915,9 @@ export const UserPage = () => {
       setTotalPage(Math.ceil(Tabledata.length / 10))
       setSwapTotalPage(Math.ceil(swapdata.length / 10))
       setTransactionTotalPage(Math.ceil(transactionData.length / 10))
+      setInteractAll(interactArr)
+      setInteract(interactArr.slice(0, 10))
+      setInteractTotalPage(Math.ceil(interactArr.length / 10))
       const chainarrDeduplication = [...new Set(chainarr)]
       const Chainsoptionsdata: any[] = []
       chainarrDeduplication.map((item) => {
@@ -2614,7 +2644,7 @@ export const UserPage = () => {
                   <div id="ETHTokens" className={tokenTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
                 <div className="relative">
-                  {!payMentState ? (
+                  {/* {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                       <div>Explore More  Detail Data</div>
                       <div>
@@ -2622,7 +2652,7 @@ export const UserPage = () => {
                         <img src={coffee} alt="" />
                       </div>
                     </div>
-                  ) : ''}
+                  ) : ''} */}
                   <div className="pie">
                     <div id="Preferred" className="lineChart"></div>
                   </div>
@@ -2646,12 +2676,12 @@ export const UserPage = () => {
                 <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>
                   <div className="title">NFT Transactions</div>
                   <div className="tab flex">
-                    <div>COLLATION</div>
-                    <div>NFTNAME</div>
-                    <div>PRICE</div>
-                    <div>CHAIN</div>
-                    <div>TYPE</div>
-                    <div>TIME</div>
+                    <div>Collation</div>
+                    <div>NFT Name</div>
+                    <div>Price</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                    <div>Time</div>
                   </div>
                   {tableData && tableData.length ? (
                     tableData.map((item: any, index: number) => (
@@ -2720,7 +2750,7 @@ export const UserPage = () => {
                   </div>
                 </CollationTable>
                 <CollationTable className={transactionTab === 'Token' ? '' : 'none'}>
-                  {!payMentState ? (
+                  {/* {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                       <div>Explore More  Detail Data</div>
                       <div>
@@ -2728,7 +2758,7 @@ export const UserPage = () => {
                         <img src={coffee} alt="" />
                       </div>
                     </div>
-                  ) : ''}
+                  ) : ''} */}
                   <div className="title">Token Transactions</div>
                   <div className="tab flex">
                     <div>Sent</div>
@@ -2773,6 +2803,46 @@ export const UserPage = () => {
                   </div>
                 </CollationTable>
               </TableBox>
+              {/* <TableBox>
+                <CollationTable>
+                  <div className="title">Player Transaction Trend</div>
+                  <div className="tab flex">
+                    <div>Time</div>
+                    <div>From</div>
+                    <div>To</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                  </div>
+                  {interact && interact.length ? (
+                    interact.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item.timestamp.substr(0, 10)}</div>
+                        <div>{formatting(item?.address_from)}</div>
+                        <div>{formatting(item?.address_to)}</div>
+                        <div>{item?.network}</div>
+                        <div>{item?.type}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {interactAll && interactAll.length
+                        ? interactAll.slice(0, 35).map((item: any, index: number) => (
+                            <div
+                              className={
+                                index + 1 > interactTotalPage ? 'notShow' : interactPage === index ? 'flex selected' : 'flex'
+                              }
+                              key={index}
+                              onClick={() => nextPage(index, 'interact')}
+                            >
+                              {index + 1}
+                            </div>
+                          ))
+                        : ''}
+                  </div>
+                </CollationTable>
+              </TableBox> */}
               <div className="Activity">
                 <div className="tabs flex">
                   <div onClick={() => setActivityTab('Chains')}>
@@ -2789,14 +2859,14 @@ export const UserPage = () => {
                   id="collationActivity"
                   className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}
                 ></div>
-                {!payMentState ? (
+                {/* {!payMentState ? (
                 <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                   <div>Explore More  Detail Data</div>
                   <div>
                     Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
                     <img src={coffee} alt="" />
                   </div>
-                </div>) : ''}
+                </div>) : ''} */}
               </div>
             </AnalysisBox>
           ) : (

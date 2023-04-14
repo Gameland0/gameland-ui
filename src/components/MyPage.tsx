@@ -928,6 +928,9 @@ export const CollationTable = styled.div`
       font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
     }
+    .Address {
+      flex: 2;
+    }
   }
   .bag {
     background: #f4f9fb;
@@ -942,6 +945,9 @@ export const CollationTable = styled.div`
       text-overflow: ellipsis;
       padding: 0 10px;
       font-size: 13px;
+    }
+    .Address {
+      flex: 2;
     }
   }
   .Notrecords {
@@ -1006,11 +1012,12 @@ export const fetchAbi = async (address: string, chain: any) => {
     return []
   }
 }
-export const PieOption = (title: string, data: any) => {
+export const PieOption = (title: string, data: any,  subtext?: any) => {
   return {
     title: {
       text: title,
-      left: 'center'
+      left: 'center',
+      subtext: subtext
     },
     tooltip: {
       show: true,
@@ -1081,6 +1088,8 @@ export const MyPage = () => {
   const [PopUpsData, setPopUpsData] = useState([] as any)
   const [userPayInfo, setUserPayInfo] = useState([] as any)
   const [buyUserData, setBuyUserData] = useState([] as any)
+  const [interact, setInteract] = useState([] as any)
+  const [interactAll, setInteractAll] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -1089,6 +1098,8 @@ export const MyPage = () => {
   const [swapTotalPage, setSwapTotalPage] = useState(0)
   const [transactionPage, setTransactionPage] = useState(0)
   const [transactionTotalPage, setTransactionTotalPage] = useState(0)
+  const [interactPage, setInteractPage] = useState(0)
+  const [interactTotalPage, setInteractTotalPage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
   const [tokenTab, setTokenTab] = useState('Polygon')
   const [showTabs, setShowTabs] = useState('Posts')
@@ -1829,6 +1840,10 @@ export const MyPage = () => {
       setTransactionPage(index)
       setTransaction(transactionAll.slice(10 * index, 10 * index + 10))
     }
+    if (type === 'interact') {
+      setInteractPage(index)
+      setInteract(interactAll.slice(10 * index, 10 * index + 10))
+    }
   }
   const componentDidMount = () => {
     if (PieChartData && PieChartData.length) {
@@ -1840,9 +1855,14 @@ export const MyPage = () => {
       const Tabledata = [] as any
       const swapdata = [] as any
       const transactionData = [] as any
+      const interactArr = [] as any
+      const currentTime = new Date().getTime()
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
+        if (new Date(item.timestamp).getTime() > currentTime - 604800000) {
+          interactArr.push(item)
+        }
         if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
           collationarr.push(item.actions[0].metadata.collection)
         }
@@ -1972,6 +1992,9 @@ export const MyPage = () => {
       setTotalPage(Math.ceil(Tabledata.length / 10))
       setSwapTotalPage(Math.ceil(swapdata.length / 10))
       setTransactionTotalPage(Math.ceil(transactionData.length / 10))
+      setInteractAll(interactArr)
+      setInteract(interactArr.slice(0, 10))
+      setInteractTotalPage(Math.ceil(interactArr.length / 10))
       const chainarrDeduplication = [...new Set(chainarr)]
       const Chainsoptionsdata: any[] = []
       chainarrDeduplication.map((item) => {
@@ -2870,6 +2893,46 @@ export const MyPage = () => {
                   </div>
                 </CollationTable>
               </TableBox>
+              {/* <TableBox>
+                <CollationTable>
+                  <div className="title">Player Transaction Trend</div>
+                  <div className="tab flex">
+                    <div>Time</div>
+                    <div>From</div>
+                    <div>To</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                  </div>
+                  {interact && interact.length ? (
+                    interact.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item.timestamp.substr(0, 10)}</div>
+                        <div>{formatting(item?.address_from)}</div>
+                        <div>{formatting(item?.address_to)}</div>
+                        <div>{item?.network}</div>
+                        <div>{item?.type}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {interactAll && interactAll.length
+                        ? interactAll.slice(0, 35).map((item: any, index: number) => (
+                            <div
+                              className={
+                                index + 1 > interactTotalPage ? 'notShow' : interactPage === index ? 'flex selected' : 'flex'
+                              }
+                              key={index}
+                              onClick={() => nextPage(index, 'interact')}
+                            >
+                              {index + 1}
+                            </div>
+                          ))
+                        : ''}
+                  </div>
+                </CollationTable>
+              </TableBox> */}
               <div className="Activity">
                 <div className="tabs flex">
                   <div onClick={() => setActivityTab('Chains')}>

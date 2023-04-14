@@ -1388,9 +1388,7 @@ export const CollectionDetails = () => {
   const [tokenActionData, setTokenActionData] = useState([] as any)
   const [tokenBalanceData, setTokenBalanceData] = useState([] as any)
   const [RecommendPlayerData, setRecommendPlayerData] = useState([] as any)
-  const [NFTHoldDataAll, setNFTHoldDataAll] = useState([] as any)
-  const [NFTHoldData, setNFTHoldData] = useState([] as any)
-  const [tokenHoldData, setTokenHoldData] = useState([] as any)
+  const [userActionData, setUserActionData] = useState([] as any)
   const [NFTTransfersData, setNFTTransfersData] = useState([] as any)
   const [collectionRiskData, setCollectionRiskData] = useState([] as any)
   const [tokenRiskData, setTokenRiskData] = useState([] as any)
@@ -1444,6 +1442,8 @@ export const CollectionDetails = () => {
   const [transactionsTypeRatio, setTransactionsTypeRatio] = useState('NFT')
   const [holdersRatio ,setHoldersRatio] = useState('NFT')
   const [cursor, setCursor] = useState('')
+  const [holdNFTtotal, setHoldNFTtotal] = useState('')
+  const [holdTokentotal, setHoldTokentotal] = useState('')
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -1568,7 +1568,6 @@ export const CollectionDetails = () => {
     getCollectionInfo()
     getActiveData()
     getTokenData()
-    // getHoldRankingData()
     contractDetection()
     getNFTTransfersData()
   }, [contractName])
@@ -1656,10 +1655,20 @@ export const CollectionDetails = () => {
     if (actionAll && actionAll.length) {
       setNFTpie()
     }
-    // if (tap === 'Analysis') {
-    //   contractDetection()
-    // }
+    if (tap === 'Analysis') {
+      getHoldRankingData()
+    }
   }, [tokenActionData, actionAll, tap])
+  useEffect(() => {
+    if (tap === 'Analysis' && actionDataAll && actionDataAll.length) {
+      setBotratioPie()
+    }
+  },[actionDataAll,tap])
+  useEffect(() => {
+    if (tap === 'Analysis' && userActionData && userActionData.length&&actionDataAll&&actionDataAll.length) {
+      setBotTransactionRatioPie()
+    }
+  },[userActionData, actionDataAll, tap])
   useEffect(() => {
     if (userinfoAll && userinfoAll.length) {
       setRecommendPlayer()
@@ -1672,6 +1681,7 @@ export const CollectionDetails = () => {
       const userarr = [] as any
       const approveData = [] as any
       const otherdata = [] as any
+      setUserActionData(vlas[0].data.data)
       vlas[0].data.data.map((item: any) => {
         if (item.tokenid * 1 === 0) {
           approveData.push(item)
@@ -1769,9 +1779,8 @@ export const CollectionDetails = () => {
     const Tabledata = [] as any
     const TabledataAll = [] as any
     data.map((item: any) => {
-      if (item.tag === 'collectible' && item.type === 'mint') {
+      if (item.tag === 'collectible') {
         item.actions.map((ele: any) => {
-          if (ele.type === 'mint') {
             const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
             let prices
             if (ele.metadata.cost) {
@@ -1788,30 +1797,11 @@ export const CollectionDetails = () => {
               type: 'Mint',
               time: item.timestamp.substr(0, 10)
             })
-          }
-          if (ele.type === 'mint' && ele.metadata.contract_address?.toLowerCase() === address?.toLowerCase()) {
-            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
-            let prices
-            if (ele.metadata.cost) {
-              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
-            } else {
-              prices = 0
-            }
-            Tabledata.push({
-              address: formatting(item.owner),
-              collation: ele.metadata.collection,
-              nftname: ele.metadata.name,
-              price: prices,
-              chain: chains,
-              type: 'Mint',
-              time: item.timestamp.substr(0, 10)
-            })
-          }
+          
         })
       }
-      if (item.tag === 'collectible' && item.type === 'trade') {
+      if (item.tag === 'collectible') {
         item.actions.map((ele: any) => {
-          if (ele.type === 'trade') {
             const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
             let prices
             if (ele.metadata.cost) {
@@ -1825,28 +1815,9 @@ export const CollectionDetails = () => {
               nftname: ele.metadata.name,
               price: prices,
               chain: chains,
-              type: 'Bought',
+              type: item.type,
               time: item.timestamp.substr(0, 10)
             })
-          }
-          if (ele.type === 'trade' && ele.metadata.contract_address?.toLowerCase() === address?.toLowerCase()) {
-            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
-            let prices
-            if (ele.metadata.cost) {
-              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
-            } else {
-              prices = 0
-            }
-            Tabledata.push({
-              address: formatting(item.owner),
-              collation: ele.metadata.collection,
-              nftname: ele.metadata.name,
-              price: prices,
-              chain: chains,
-              type: 'Bought',
-              time: item.timestamp.substr(0, 10)
-            })
-          }
         })
       }
     })
@@ -1895,51 +1866,56 @@ export const CollectionDetails = () => {
     return 0
   }
   const getHoldRankingData = async () => {
-    const data = await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${address}`)
-    setNFTHoldDataAll(data.data.data[0].positionList)
-    setNFTHoldData(data.data.data[0].positionList.slice(0, 10))
+    const NFThold= await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${address}`)
+    const list = NFThold.data.data[0].positionList.slice(0, 15)
+    const NFTHoldRatioData = [] as any
+    //amount  holderAddress
+    let NFTother = 100
+    list.map((item: any) => {
+      const ratio = new BigNumber(item.amount).div(holdNFTtotal).toNumber().toFixed(2)
+      NFTHoldRatioData.push({
+        value: new BigNumber(ratio).multipliedBy(100).toNumber(),
+        name: formatting(item.holderAddress)
+      })
+      NFTother = NFTother - new BigNumber(ratio).multipliedBy(100).toNumber()
+    })
+    NFTHoldRatioData.push({ value: NFTother, name: 'Other'})
+    const NFTdom = document.getElementById('NFTHoldRatio') as HTMLDivElement
+    const NFTChart = echarts.init(NFTdom)
+    NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData))
+    const token = GameTokenDetails.filter((item: any) => {
+      return item.NFTaddress === address
+    })
+    const tokenhold= await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${token[0]?.tokenAddress[0]}`)
+    const toeknList = tokenhold.data.data[0].positionList.slice(0, 15)
+    const tokenHoldRatioData = [] as any
+    let tokenOther = 100
+    toeknList.map((item: any) => {
+      const ratio = new BigNumber(item.amount).div(holdTokentotal).toNumber().toFixed(2)
+      tokenHoldRatioData.push({
+        value: new BigNumber(ratio).multipliedBy(100).toNumber(),
+        name: formatting(item.holderAddress)
+      })
+      tokenOther = tokenOther - new BigNumber(ratio).multipliedBy(100).toNumber()
+    })
+    tokenHoldRatioData.push({ value: tokenOther, name: 'Other'})
+    const Tokensdom = document.getElementById('TokenHoldRatio') as HTMLDivElement
+    const TokensChart = echarts.init(Tokensdom)
+    TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData))
   }
   const contractDetection = async () => {
     const id = chain === 'bsc' ? 56 : 137
     const collectionData = await http(`https://api.gopluslabs.io/api/v1/token_security/${id}?contract_addresses=${address}`)
     const collectionholders = Object.values(collectionData.data.result)[0] as any
-    setNFTHoldData(collectionholders?.holders || [])
     setCollectionRiskData(collectionholders)
-    // const NFTHoldRatioData = [] as any
-    // let NFTother = 100
-    // collectionholders?.holders?.map((item: any) => {
-    //   const ratio = new BigNumber(item.balance).div(collectionholders.total_supply).toNumber().toFixed(2)
-    //   NFTHoldRatioData.push({
-    //     value: new BigNumber(ratio).multipliedBy(100).toNumber(),
-    //     name: formatting(item.address)
-    //   })
-    //   NFTother = NFTother - new BigNumber(ratio).multipliedBy(100).toNumber()
-    // })
-    // NFTHoldRatioData.push({ value: NFTother, name: 'Other'})
-    // const NFTdom = document.getElementById('NFTHoldRatio') as HTMLDivElement
-    // const NFTChart = echarts.init(NFTdom)
-    // NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData))
+    setHoldNFTtotal(collectionholders?.total_supply)
     const token = GameTokenDetails.filter((item: any) => {
       return item.NFTaddress === address
     })
     const tokenData = await http(`https://api.gopluslabs.io/api/v1/token_security/${id}?contract_addresses=${token[0]?.tokenAddress[0]}`)
     const tokenHold = Object.values(tokenData.data.result)[0] as any
-    setTokenHoldData(tokenHold?.holders || [])
     setTokenRiskData(tokenHold)
-    // const tokenHoldRatioData = [] as any
-    // let tokenOther = 100
-    // tokenHold?.holders?.map((item: any) => {
-    //   const ratio = new BigNumber(item.balance).div(tokenHold.total_supply).toNumber().toFixed(2)
-    //   tokenHoldRatioData.push({
-    //     value: new BigNumber(ratio).multipliedBy(100).toNumber(),
-    //     name: formatting(item.address)
-    //   })
-    //   tokenOther = tokenOther - new BigNumber(ratio).multipliedBy(100).toNumber()
-    // })
-    // tokenHoldRatioData.push({ value: tokenOther, name: 'Other'})
-    // const Tokensdom = document.getElementById('TokenHoldRatio') as HTMLDivElement
-    // const TokensChart = echarts.init(Tokensdom)
-    // TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData))
+    setHoldTokentotal(tokenHold?.total_supply)
   }
   const setTokenPie = () => {
     if (tap === 'Analysis') {
@@ -2052,6 +2028,55 @@ export const CollectionDetails = () => {
       const NFTChart = echarts.init(NFTdom)
       NFTChart.setOption(PieOption('NFT Transaction(%)', NFTdata))
     }
+  }
+  const setBotratioPie = () => {
+    let bot = 0
+    actionDataAll.map((item: any) => {
+      if (item.Level === 'Bot') {
+        bot = bot + 1
+      }
+    })
+    const botratio = new BigNumber((bot / actionDataAll.length).toFixed(2)).multipliedBy(100).toNumber()
+    const userratio = 100 - botratio
+    const data = [
+      {
+        value: botratio,
+        name: 'Bot'
+      },
+      {
+        value: userratio,
+        name: 'Real'
+      }
+    ]
+    const Botratiodom = document.getElementById('Botratio') as HTMLDivElement
+    const BotratioChart = echarts.init(Botratiodom)
+    BotratioChart.setOption(PieOption('Player Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}`))
+  }
+  const setBotTransactionRatioPie = () => {
+    let bot = 0
+    actionDataAll.map((item: any) => {
+      if (item.Level === 'Bot') {
+        const data = userActionData.filter((ele: any) => {
+          return item.address === ele.address
+        })
+        bot = bot + data.length
+      }
+    })
+    const botratio = new BigNumber((bot / userActionData.length).toFixed(2)).multipliedBy(100).toNumber()
+    const userratio = 100 - botratio
+    const data = [
+      {
+        value: botratio,
+        name: 'Bot'
+      },
+      {
+        value: userratio,
+        name: 'Real'
+      }
+    ]
+    const Botratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
+    const BotratioChart = echarts.init(Botratiodom)
+    BotratioChart.setOption(PieOption('Player Transaction Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}`))
   }
   const setRecommendPlayer = () => {
     const data = userinfoAll
@@ -2920,10 +2945,6 @@ export const CollectionDetails = () => {
     setTransactionsTablePage(index)
     setTransactionsData(transactionsDataAll.slice(10 * index, 10 * index + 10))
   }
-  const NFTHoldnext = (index: number) => {
-    setNFTHoldPage(index)
-    setNFTHoldData(NFTHoldDataAll.slice(10 * index, 10 * index + 10))
-  }
   const TransactionsButtonAll = () => {
     setTransactionsData([])
     setTransactionsType('All')
@@ -3524,12 +3545,16 @@ export const CollectionDetails = () => {
                           {holdersRatio === 'Token' ? <img src={shortbutton} /> : ''}
                         </div>
                       </div>
-                      <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}>
-                        <div className="Nodata">No data</div>
-                      </div>
-                      <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}>
-                        <div className="Nodata">No data</div>
-                      </div>
+                      <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}></div>
+                      <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-column-between">
+                    <div className="pieItem">
+                      <div id="Botratio" className="pie"></div>
+                    </div>
+                    <div className="pieItem">
+                      <div id="BotTransactionRatio" className="pie"></div>
                     </div>
                   </div>
                 </div>
