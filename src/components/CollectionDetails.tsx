@@ -885,6 +885,14 @@ const ApproveTable = styled.div`
   margin: auto;
   margin-top: 20px;
   margin-bottom: 20px;
+  #retentionRate {
+    width: 96%;
+    height: 350px;
+  }
+  #interactionsPerDay {
+    width: 96%;
+    height: 350px;
+  }
   .title {
     font-size: 16px;
     font-weight: bold;
@@ -956,28 +964,6 @@ const ApproveTable = styled.div`
 `
 const AnalysisBox = styled.div`
   margin-top: 24px;
-  .contractInfo {
-    width: 96%;
-    border: 1px solid #e5e5e5;
-    border-radius: 20px;
-    height: 150px;
-    margin: auto;
-    font-size: 20px;
-    margin-bottom: 16px;
-    .item {
-      padding: 40px 20px;
-      flex: 1
-    }
-    .border-right {
-      border-right: 1px solid #e5e5e5;
-    }
-    .bold {
-      font-weight: 700;
-    }
-    .grey {
-      color: #ccc;
-    }
-  }
   .echartsPie {
     width: 96%;
     margin: auto;
@@ -1351,6 +1337,13 @@ const compare = (property: any, property2: any) => {
     return value2 - value1
   }
 }
+const calculateRetentionRate = (thisWeek: any, lastWeek: any) => {
+  const data = thisWeek.filter((item: any) => {
+    return lastWeek.findIndex((ele: any) => ele === item) >= 0
+  })
+  const retentionRate = new BigNumber((data.length / lastWeek.length).toFixed(3)).multipliedBy(100).toNumber()
+  return retentionRate
+}
 
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
@@ -1364,8 +1357,6 @@ export const CollectionDetails = () => {
   const [approveTablePage, setApproveTablePage] = useState(0)
   const [transactionsTotalPage, setTransactionsTotalPage] = useState(0)
   const [transactionsTablePage, setTransactionsTablePage] = useState(0)
-  const [NFTHoldPage, setNFTHoldPage] = useState(0)
-  const [NFTHoldTotalPage,] = useState(5)
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
@@ -1383,6 +1374,7 @@ export const CollectionDetails = () => {
   const [actionDataAll, setActionDataAll] = useState([] as any)
   const [actionAll, setActionAll] = useState([] as any)
   const [actionData, setActionData] = useState([] as any)
+  const [thisWeekActive, setThisWeekActive] = useState([] as any)
   const [transactionsDataAll, setTransactionsDataAll] = useState([] as any)
   const [transactionsData, setTransactionsData] = useState([] as any)
   const [tokenActionData, setTokenActionData] = useState([] as any)
@@ -1438,7 +1430,6 @@ export const CollectionDetails = () => {
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const [tap, setTab] = useState('NFT')
   const [transactionsType, setTransactionsType] = useState('All')
-  const [holdersType, setHoldersType] = useState('NFT')
   const [transactionsTypeRatio, setTransactionsTypeRatio] = useState('NFT')
   const [holdersRatio ,setHoldersRatio] = useState('NFT')
   const [cursor, setCursor] = useState('')
@@ -1482,12 +1473,6 @@ export const CollectionDetails = () => {
     if (!data || !data.length) {
       return []
     }
-    const getdata = axios.create({
-      timeout: 10000,
-      headers: {
-        'X-Api-Key': '60aee01eae2f89f6fb4b81177df15c8c'
-      }
-    })
     return data.map(async (item) => {
       if (item.token_uri) {
         try {
@@ -1657,6 +1642,7 @@ export const CollectionDetails = () => {
     }
     if (tap === 'Analysis') {
       getHoldRankingData()
+      getCollectionTransaction()
     }
   }, [tokenActionData, actionAll, tap])
   useEffect(() => {
@@ -1674,6 +1660,11 @@ export const CollectionDetails = () => {
       setRecommendPlayer()
     }
   }, [userinfoAll])
+  useEffect(() => {
+    if (tap==='Analysis'&&thisWeekActive&&thisWeekActive.length) {
+      setRetentionRateColumnChart()
+    }
+  }, [thisWeekActive, tap])
   const getActiveData = () => {
     const actions = http2.get(`v0/active_actions/${address}`)
     const users = http2.get(`v0/active_users/${address}`)
@@ -1830,6 +1821,61 @@ export const CollectionDetails = () => {
       setTransactionsData(Tabledata.slice(0, 10))
       setTransactionsTotalPage(Math.ceil(Tabledata.length / 10))
     }
+  }
+  const getCollectionTransaction = async () => {
+    const res = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}`)
+    const res2 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${2}`)
+    Promise.all([res, res2]).then((vals) => {
+      const dataAll = [...vals[0].data.data[0].transactionLists, ...vals[1].data.data[0].transactionLists]
+      setThisWeekActive(dataAll)
+      const timearr = [] as any
+      dataAll.map((item: any) => {
+        const time = new Date(item.transactionTime *1).toJSON().substring(5, 10)
+        const data = timearr.filter((ele: any) => {
+          return ele === time
+        })
+        if (data.length === 0) {
+          timearr.push(time)
+        }
+      })
+      const seriesData = [] as any
+      timearr.map((item: any) => {
+        const addressArr = [] as any
+        const filterdata = dataAll.filter((ele: any) => {
+          return new Date(ele.transactionTime *1).toJSON().substring(5, 10) === item
+        })
+        filterdata.map((val: any) => {
+          addressArr.push(val.from)
+        })
+        const addressDeduplicationData = [...new Set(addressArr)]
+        seriesData.push(addressDeduplicationData.length)
+      })
+      const options = {
+        title: {
+          text: 'DAU',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        xAxis: {
+          data: timearr
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: [
+          {
+            data: seriesData,
+            type: 'line',
+            smooth: true
+          }
+        ]
+      }
+      const Activitydom = document.getElementById('interactionsPerDay') as HTMLDivElement
+      const ActivityChart = echarts.init(Activitydom)
+      ActivityChart.setOption(options)
+    })
   }
   const getNFTTransfersData = async () => {
     const getdata = axios.create({
@@ -2077,6 +2123,143 @@ export const CollectionDetails = () => {
     const Botratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
     BotratioChart.setOption(PieOption('Player Transaction Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}`))
+  }
+  const setRetentionRateColumnChart = () => {
+    const res3 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${3}`)
+    const res4 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${4}`)
+    const res5 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${5}`)
+    const res6 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${6}`)
+    const res7 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${7}`)
+    const res8 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${8}`)
+    const res9 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${9}`)
+    Promise.all([res3,res4,res5,res6,res7,res8,res9]).then((vals) => {
+      const dataAll = [
+        ...thisWeekActive,
+        ...vals[0].data.data[0].transactionLists,
+        ...vals[1].data.data[0].transactionLists,
+        ...vals[2].data.data[0].transactionLists,
+        ...vals[3].data.data[0].transactionLists,
+        ...vals[4].data.data[0].transactionLists,
+        ...vals[5].data.data[0].transactionLists,
+        ...vals[6].data.data[0].transactionLists
+      ]
+      const week = new Date().getUTCDay()
+      const day = new Date().getDate()
+      const month = new Date().getMonth()+1
+      let time
+      if (week > 0) {
+        time = day - week
+      } else if (week === 0) {
+        time = day
+      }
+        const firstWeek = `${month>10?month:'0'+month}-${time}`
+      const thisWeekTime = new Date(`2023-${firstWeek} 23:59:59`).getTime()
+      const thisWeekActiveUser = [] as any
+      const week2ActiveUser = [] as any
+      const week3ActiveUser = [] as any
+      const week4ActiveUser = [] as any
+      const week5ActiveUser = [] as any
+      const week6ActiveUser = [] as any
+      dataAll.map((item: any) => {
+        const time = item.transactionTime
+        if (time > thisWeekTime && time < thisWeekTime + 604800000) {
+          const data = thisWeekActiveUser.filter((ele: any) => {
+            return ele === item.from
+          })
+          if (data.length === 0) {
+            thisWeekActiveUser.push(item.from)
+          }
+        }
+        if (time < thisWeekTime && time > thisWeekTime - 604800000) {
+          const data = week2ActiveUser.filter((ele: any) => {
+            return ele === item.from
+          })
+          if (data.length === 0) {
+            week2ActiveUser.push(item.from)
+          }
+        }
+        if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
+          const data = week3ActiveUser.filter((ele: any) => {
+            return ele === item.from
+          })
+          if (data.length === 0) {
+            week3ActiveUser.push(item.from)
+          }
+        }
+        if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
+          const data = week4ActiveUser.filter((ele: any) => {
+            return ele === item.from
+          })
+          if (data.length === 0) {
+            week4ActiveUser.push(item.from)
+          }
+        }
+        if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
+          const data = week5ActiveUser.filter((ele: any) => {
+            return ele === item.from
+          })
+          if (data.length === 0) {
+            week5ActiveUser.push(item.from)
+          }
+        }
+        if (time < thisWeekTime - 604800000*4 && time > thisWeekTime - 604800000 * 5) {
+          const data = week6ActiveUser.filter((ele: any) => {
+            return ele === item.from
+          })
+          if (data.length === 0) {
+            week6ActiveUser.push(item.from)
+          }
+        }
+      })
+      const RetentionRate = calculateRetentionRate(thisWeekActiveUser,week2ActiveUser)
+      const RetentionRate2 = calculateRetentionRate(week2ActiveUser,week3ActiveUser)
+      const RetentionRate3 = calculateRetentionRate(week3ActiveUser,week4ActiveUser)
+      const RetentionRate4 = calculateRetentionRate(week4ActiveUser,week5ActiveUser)
+      const RetentionRate5 = calculateRetentionRate(week5ActiveUser,week6ActiveUser)
+      const option = {
+        title: {
+          text: 'Retention Rate(%)',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any,
+          axisPointer: {
+            type: 'shadow' as any
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: [
+          {
+            type: 'category' as any,
+            data: [firstWeek, 'Week2', 'Week3', 'Week4', 'Week5'],
+            axisTick: {
+              alignWithLabel: true
+            }
+          }
+        ],
+        yAxis: [
+          {
+            type: 'value' as any
+          }
+        ],
+        series: [
+          {
+            name: 'Retention Rate(%)',
+            type: 'bar',
+            barWidth: '60%',
+            data: [RetentionRate, RetentionRate2, RetentionRate3, RetentionRate4, RetentionRate5]
+          }
+        ]
+      }
+      const RetentionDom = document.getElementById('retentionRate') as HTMLDivElement
+      const RetentionChart = echarts.init(RetentionDom)
+      RetentionChart.setOption(option)
+    })
   }
   const setRecommendPlayer = () => {
     const data = userinfoAll
@@ -3492,32 +3675,6 @@ export const CollectionDetails = () => {
             )}
             {tap === 'Analysis' ? (
               <AnalysisBox>
-                {/* <div className="contractInfo flex">
-                  <div className="item border-right">
-                    <div className="text-center grey">NFT holder count</div>
-                    <div className="text-center bold">
-                      {collectionRiskData.holder_count ? collectionRiskData.holder_count : '--'}
-                    </div>
-                  </div>
-                  <div className="item border-right">
-                    <div className="text-center grey">NFT total supply</div>
-                    <div className="text-center bold">
-                      {collectionRiskData.total_supply ? collectionRiskData.total_supply : '--'}
-                    </div>
-                  </div>
-                  <div className="item border-right">
-                    <div className="text-center grey">Token holder count</div>
-                    <div className="text-center bold">
-                      {tokenRiskData.holder_count ? tokenRiskData.holder_count : '--'}
-                    </div>
-                  </div>
-                  <div className="item">
-                    <div className="text-center grey">Token total supply</div>
-                    <div className="text-center bold">
-                      {tokenRiskData.total_supply ? tokenRiskData.total_supply : '--'}
-                    </div>
-                  </div>
-                </div> */}
                 <div className="echartsPie">
                   <div className="flex flex-column-between">
                     <div className="pieItem">
@@ -3558,6 +3715,12 @@ export const CollectionDetails = () => {
                     </div>
                   </div>
                 </div>
+                <ApproveTable>
+                  <div id="retentionRate"></div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div id="interactionsPerDay"></div>
+                </ApproveTable>
                 <ApproveTable>
                   <div className="title">Most Active Users</div>
                   <div className="tableTab flex">

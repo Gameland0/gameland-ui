@@ -233,7 +233,7 @@ export const Line = styled.div`
 `
 export const LoadFailed = styled.div``
 
-const findAddressIndex = (arr: any, address: string) => {
+export const findAddressIndex = (arr: any, address: string) => {
   return arr.findIndex((item: any) => {
     return item?.toLowerCase() === address?.toLowerCase()
   })

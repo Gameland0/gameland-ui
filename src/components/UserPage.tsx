@@ -20,9 +20,10 @@ import {
 } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
+import { colorTable } from '../constants/colorTable'
 import { getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
-import { ButtonBox, CollationTable, AnalysisBox, PieOption, TableBox } from './MyPage'
+import { ButtonBox, CollationTable, AnalysisBox, PieOption, TableBox, RelationChartOption } from './MyPage'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
 import { Lend } from '../pages/Lend'
@@ -64,6 +65,7 @@ import coffee from '../assets/icon_coffee.svg'
 import USDT from '../assets/USDT.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
+import { findAddressIndex } from './RelationChart'
 
 interface CardProps {
   onClick?: () => void
@@ -916,6 +918,7 @@ export const UserPage = () => {
   const [interactTotalPage, setInteractTotalPage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
   const [tokenTab, setTokenTab] = useState('Polygon')
+  const [collectionTab, setCollectionTab] = useState('Polygon')
   const [transactionTab, setTransactionTab] = useState('NFT')
   const [showTabs, setShowTabs] = useState('Posts')
   const [RewarType, setRewarType] = useState('CommentsRewar')
@@ -988,8 +991,14 @@ export const UserPage = () => {
     if (showTabs === 'Analysis') {
       componentDidMount()
       getTokensData()
+      setCollectionPie()
     }
   }, [PieChartData, showTabs])
+  useEffect(() => {
+    if (showTabs === 'Analysis'&&interactAll&&interactAll.length) {
+      setRelationChart()
+    }
+  }, [interactAll, showTabs])
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -1086,6 +1095,99 @@ export const UserPage = () => {
         setMyNFT(vals)
       })
     })
+  }
+  const setCollectionPie = () => {
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        'X-API-Key': MORALIS_KEY
+      }
+    })
+    getdata.get(`https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=bsc&format=decimal`).then((vals) => {
+      const addressArr = [] as any
+      vals.data.result.map((item: any) => {
+        addressArr.push(item.name)
+      })
+      const addressArrDeduplication = [...new Set(addressArr)]
+      const optionData = [] as any
+      addressArrDeduplication.slice(0, 15).map((item: any) => {
+        const data = vals.data.result.filter((ele: any) => {
+          return ele.name === item
+        })
+        optionData.push({ value: data.length, name: item })
+      })
+      const Collationdom = document.getElementById('bscCollation') as HTMLDivElement
+      const CollationChart = echarts.init(Collationdom)
+      CollationChart.setOption(PieOption('Collation', optionData))
+    })
+    getdata.get(`https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=polygon&format=decimal`).then((vals) => {
+      const addressArr = [] as any
+      vals.data.result.map((item: any) => {
+        addressArr.push(item.name)
+      })
+      const addressArrDeduplication = [...new Set(addressArr)]
+      const optionData = [] as any
+      addressArrDeduplication.slice(0, 15).map((item: any) => {
+        const data = vals.data.result.filter((ele: any) => {
+          return ele.name === item
+        })
+        optionData.push({ value: data.length, name: item })
+      })
+      const Collationdom = document.getElementById('polygonCollation') as HTMLDivElement
+      const CollationChart = echarts.init(Collationdom)
+      CollationChart.setOption(PieOption('Collation', optionData))
+    })
+    getdata.get(`https://deep-index.moralis.io/api/v2/${useraddress}/nft?chain=eth&format=decimal`).then((vals) => {
+      const addressArr = [] as any
+      vals.data.result.map((item: any) => {
+        addressArr.push(item.name)
+      })
+      const addressArrDeduplication = [...new Set(addressArr)]
+      const optionData = [] as any
+      addressArrDeduplication.slice(0, 15).map((item: any) => {
+        const data = vals.data.result.filter((ele: any) => {
+          return ele.name === item
+        })
+        optionData.push({ value: data.length, name: item })
+      })
+      const Collationdom = document.getElementById('ethCollation') as HTMLDivElement
+      const CollationChart = echarts.init(Collationdom)
+      CollationChart.setOption(PieOption('Collation', optionData))
+    })
+  }
+  const setRelationChart = () => {
+    const addressArr = [] as any
+    interactAll.map((item: any) => {
+      addressArr.push(item.address_from)
+      addressArr.push(item.address_to)
+    })
+    const addressArrDeduplication = [...new Set(addressArr)]
+    const optionData = [] as any
+    const linkData = [] as any
+    addressArrDeduplication.map((item: any, index: number) => {
+      const object = {
+        symbolSize: item?.toLowerCase() === useraddress?.toLowerCase() ? 60 : 40,
+        name: formatting(item as string),
+        itemStyle: {
+          color: colorTable[index]
+        }
+      }
+      optionData.push(object)
+    })
+    interactAll.map((item: any) => {
+      const object = {
+        source: findAddressIndex(Array.from(new Set(addressArr)), item.address_from),
+        target: findAddressIndex(Array.from(new Set(addressArr)), item.address_to),
+        value: `${item.type}`,
+        lineStyle: {
+          color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), item.address_to)]
+        }
+      }
+      linkData.push(object)
+    })
+    const relationDom = document.getElementById('relation') as HTMLDivElement
+    const relationChart = echarts.init(relationDom)
+    relationChart.setOption(RelationChartOption('Player Relationship',optionData,linkData))
   }
   const getPayAmount = async () => {
     if (!library) return
@@ -1927,10 +2029,6 @@ export const UserPage = () => {
         Chainsoptionsdata.push({ value: quantity.length, name: item })
       })
       const collationarrDeduplication = [...new Set(collationarr)].slice(0, 10)
-      const Collationoptionsdata: any[] = []
-      collationarrDeduplication.map((item) => {
-        Collationoptionsdata.push({ value: 1, name: item })
-      })
       const tagarrDeduplication = [...new Set(tagarr)]
       const timearrDeduplication = [...new Set(timearr)].slice(0, 15)
       const Activityoptionsseries: any[] = []
@@ -2020,9 +2118,6 @@ export const UserPage = () => {
         },
         series: collationActivity
       }
-      const Collationdom = document.getElementById('Collation') as HTMLDivElement
-      const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(PieOption('Collections', Collationoptionsdata))
       const Chainsdom = document.getElementById('Chains') as HTMLDivElement
       const ChainsChart = echarts.init(Chainsdom)
       ChainsChart.setOption(PieOption('Chains', Chainsoptionsdata))
@@ -2620,7 +2715,23 @@ export const UserPage = () => {
                   <div id="Chains" className="lineChart"></div>
                 </div>
                 <div className="pie">
-                  <div id="Collation" className="lineChart"></div>
+                  <div className="tabs flex">
+                    <div onClick={() => setCollectionTab('Polygon')}>
+                      Polygon
+                      {collectionTab === 'Polygon' ? <img src={shortbutton} /> : ''}
+                    </div>
+                    <div onClick={() => setCollectionTab('BNB')}>
+                      BNB
+                      {collectionTab === 'BNB' ? <img src={longbutton} /> : ''}
+                    </div>
+                    <div onClick={() => setCollectionTab('Ethereum')}>
+                      Ethereum
+                      {collectionTab === 'Ethereum' ? <img src={longbutton} /> : ''}
+                    </div>
+                  </div>
+                  <div id="polygonCollation" className={collectionTab === 'Polygon' ? 'lineChart' : 'lineChart none'}></div>
+                  <div id="bscCollation" className={collectionTab === 'BNB' ? 'lineChart' : 'lineChart none'}></div>
+                  <div id="ethCollation" className={collectionTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
               </div>
               <div className="pieitem flex flex-column-between">
@@ -2803,46 +2914,6 @@ export const UserPage = () => {
                   </div>
                 </CollationTable>
               </TableBox>
-              {/* <TableBox>
-                <CollationTable>
-                  <div className="title">Player Transaction Trend</div>
-                  <div className="tab flex">
-                    <div>Time</div>
-                    <div>From</div>
-                    <div>To</div>
-                    <div>Chain</div>
-                    <div>Type</div>
-                  </div>
-                  {interact && interact.length ? (
-                    interact.map((item: any, index: number) => (
-                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
-                        <div>{item.timestamp.substr(0, 10)}</div>
-                        <div>{formatting(item?.address_from)}</div>
-                        <div>{formatting(item?.address_to)}</div>
-                        <div>{item?.network}</div>
-                        <div>{item?.type}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="Notrecords flex flex-justify-content">No records</div>
-                  )}
-                  <div className="tablePage flex">
-                    {interactAll && interactAll.length
-                        ? interactAll.slice(0, 35).map((item: any, index: number) => (
-                            <div
-                              className={
-                                index + 1 > interactTotalPage ? 'notShow' : interactPage === index ? 'flex selected' : 'flex'
-                              }
-                              key={index}
-                              onClick={() => nextPage(index, 'interact')}
-                            >
-                              {index + 1}
-                            </div>
-                          ))
-                        : ''}
-                  </div>
-                </CollationTable>
-              </TableBox> */}
               <div className="Activity">
                 <div className="tabs flex">
                   <div onClick={() => setActivityTab('Chains')}>
@@ -2868,6 +2939,13 @@ export const UserPage = () => {
                   </div>
                 </div>) : ''} */}
               </div>
+              <TableBox>
+                {interactAll&&interactAll.length ? (
+                  <CollationTable id="relation"></CollationTable>
+                ) : (
+                  <CollationTable className="flex flex-center">No records</CollationTable>
+                )}
+              </TableBox>
             </AnalysisBox>
           ) : (
             ''

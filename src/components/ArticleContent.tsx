@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { parseEther } from '@ethersproject/units'
 import { useLocation, useParams, useHistory } from 'react-router-dom'
 import { bschttp, http, polygonhttp } from './Store'
-import { useActiveWeb3React, useRewardContract } from '../hooks'
+import { useActiveWeb3React, useRewardContract, useStore } from '../hooks'
 import { fetchReceipt } from '../utils'
 import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
@@ -168,7 +168,7 @@ export const ArticleContentPage = () => {
   const { search } = useLocation() as any
   const [userinfo, setUserinfo] = useState([] as any)
   const [postsItem, setPostsItem] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [userinfoAll] = useState(useStore().userinfo)
   const [PostsLike, setPostsLike] = useState([] as any)
   const [postsRewardData, setPostsRewardData] = useState([] as any)
   const [postsReplayData, setPostsReplayData] = useState([] as any)
@@ -194,7 +194,7 @@ export const ArticleContentPage = () => {
     if (!account || !useraddress) return
     const data = await bschttp.get(`v0/userinfo/${useraddress}`)
     setUserinfo(data.data.data[0])
-    bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
+    // bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
     bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
     bschttp.get(`v0/posts_reply`).then((vals) => setPostsReplayData(vals.data.data))
@@ -400,10 +400,7 @@ export const ArticleContentPage = () => {
   }
   const link = () => {
     history.push({
-      pathname: `/user/${userinfo?.username.replace(/ /g, '')}`,
-      state: {
-        useraddress: userinfo?.useraddress
-      }
+      pathname: `/user/${userinfo?.useraddress}`
     })
   }
   const postsCollect = async () => {
