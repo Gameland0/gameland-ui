@@ -136,7 +136,6 @@ export const PolygonContract = [
   '0xa5511e9941e303101b50675926fd4d9c1a8a8805',
   '0x577682bde6873022525948e91487abdf80f71c99',
   '0xad59ecb77033391e847cc96829b08beb83151088',
-  '0x5492ef6aeeba1a3896357359ef039a8b11621b45',
   '0xcf501ead3ebfa60f40725fca1d82fc05bff63bf2',
   '0x62340bf727c536400a15bd41f62b4c684232c57a',
   '0xcbc964dd716f07b4965b4526e30541a66f414ccf',
@@ -786,7 +785,7 @@ export const GameTokenDetails = [
   },
   {
     NFTaddress: '0xcf501ead3ebfa60f40725fca1d82fc05bff63bf2',
-    tokenAddress: ['0x1c9922314ed1415c95b9fd453c3818fd41867d0b'],
+    tokenAddress: ['0x2bC07124D8dAc638E290f401046Ad584546BC47b'],
     symbol: [TOWER],
     chain: 'polygon'
   },
@@ -794,12 +793,6 @@ export const GameTokenDetails = [
     NFTaddress: '0x2953399124f0cbb46d2cbacd8a89cf0599974963',
     tokenAddress: [],
     symbol: [],
-    chain: 'polygon'
-  },
-  {
-    NFTaddress: '0x5492ef6aeeba1a3896357359ef039a8b11621b45',
-    tokenAddress: ['0x5492Ef6aEebA1A3896357359eF039a8B11621b45'],
-    symbol: [CHMB],
     chain: 'polygon'
   },
   {
@@ -1056,7 +1049,7 @@ export const GameTokenDetails = [
   },
   {
     NFTaddress: '0x90c45bb702384812825da4971054fdb6836582a0',
-    tokenAddress: ['0x60Eb57d085C59932d5fAa6c6026268A4386927d0'],
+    tokenAddress: [],
     symbol: [moj],
     chain: 'polygon'
   }

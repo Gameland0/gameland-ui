@@ -1178,7 +1178,9 @@ export const UserPage = () => {
       const object = {
         source: findAddressIndex(Array.from(new Set(addressArr)), item.address_from),
         target: findAddressIndex(Array.from(new Set(addressArr)), item.address_to),
-        value: `${item.type}`,
+        value: `${item.type === 'transfer' || item.type === 'burn'
+          ? (item.type +' '+(item.actions[0].metadata.value_display * 1).toFixed(2)+' '+item.actions[0].metadata.symbol) || formatting(item.actions[0].metadata.id)
+          : item.type}`,
         lineStyle: {
           color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), item.address_to)]
         }
@@ -1885,7 +1887,7 @@ export const UserPage = () => {
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
-        if (new Date(item.timestamp).getTime() > currentTime - 604800000) {
+        if (new Date(item.timestamp).getTime() > currentTime - (604800000 * 4)) {
           interactArr.push(item)
         }
         if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
@@ -1899,6 +1901,7 @@ export const UserPage = () => {
                 sent: (ele.metadata.from.value_display * 1).toFixed(2) + ' ' + ele.metadata.from.symbol,
                 received: (ele.metadata.to.value_display * 1).toFixed(2) + ' ' + ele.metadata.to.symbol,
                 type: 'Swap',
+                platform: item.platform,
                 chain: chains,
                 time: item.timestamp.substr(0, 10)
               })
@@ -1987,7 +1990,8 @@ export const UserPage = () => {
                 nftname: ele.metadata.name,
                 price: prices,
                 chain: chains,
-                type: 'Bought',
+                platform: item.platform,
+                type: ele.address_from?.toLowerCase() === useraddress?.toLowerCase() ? 'Sold' : 'Bought',
                 time: item.timestamp.substr(0, 10)
               })
             }
@@ -2755,7 +2759,7 @@ export const UserPage = () => {
                   <div id="ETHTokens" className={tokenTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
                 <div className="relative">
-                  {/* {!payMentState ? (
+                  {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                       <div>Explore More  Detail Data</div>
                       <div>
@@ -2763,7 +2767,7 @@ export const UserPage = () => {
                         <img src={coffee} alt="" />
                       </div>
                     </div>
-                  ) : ''} */}
+                  ) : ''}
                   <div className="pie">
                     <div id="Preferred" className="lineChart"></div>
                   </div>
@@ -2787,22 +2791,24 @@ export const UserPage = () => {
                 <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>
                   <div className="title">NFT Transactions</div>
                   <div className="tab flex">
+                    <div>Time</div>
                     <div>Collation</div>
                     <div>NFT Name</div>
                     <div>Price</div>
                     <div>Chain</div>
                     <div>Type</div>
-                    <div>Time</div>
+                    <div>Platform</div>
                   </div>
                   {tableData && tableData.length ? (
                     tableData.map((item: any, index: number) => (
                       <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.time}</div>
                         <div>{item?.collation}</div>
                         <div>{item?.nftname}</div>
                         <div>{item?.price}</div>
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
-                        <div>{item?.time}</div>
+                        <div>{item.platform || '--'}</div>
                       </div>
                     ))
                   ) : (
@@ -2825,20 +2831,22 @@ export const UserPage = () => {
                 <CollationTable className={transactionTab === 'DeFi' ? '' : 'none'}>
                   <div className="title">Defi Transactions</div>
                   <div className="tab flex">
-                    <div>sold</div>
+                    <div>Time</div>
+                    <div>Sold</div>
                     <div>Received</div>
                     <div>Chain</div>
                     <div>Type</div>
-                    <div>Time</div>
+                    <div>Platform</div>
                   </div>
                   {swapData && swapData.length ? (
                     swapData.map((item: any, index: number) => (
                       <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.time}</div>
                         <div>{item?.sent}</div>
                         <div>{item?.received}</div>
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
-                        <div>{item?.time}</div>
+                        <div>{item.platform || '--'}</div>
                       </div>
                     ))
                   ) : (
@@ -2861,7 +2869,7 @@ export const UserPage = () => {
                   </div>
                 </CollationTable>
                 <CollationTable className={transactionTab === 'Token' ? '' : 'none'}>
-                  {/* {!payMentState ? (
+                  {!payMentState ? (
                     <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                       <div>Explore More  Detail Data</div>
                       <div>
@@ -2869,7 +2877,7 @@ export const UserPage = () => {
                         <img src={coffee} alt="" />
                       </div>
                     </div>
-                  ) : ''} */}
+                  ) : ''}
                   <div className="title">Token Transactions</div>
                   <div className="tab flex">
                     <div>Sent</div>
@@ -2930,21 +2938,32 @@ export const UserPage = () => {
                   id="collationActivity"
                   className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}
                 ></div>
-                {/* {!payMentState ? (
+                {!payMentState ? (
                 <div className="mask flex flex-center wrap cursor" onClick={Payment}>
                   <div>Explore More  Detail Data</div>
                   <div>
                     Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
                     <img src={coffee} alt="" />
                   </div>
-                </div>) : ''} */}
+                </div>) : ''}
               </div>
               <TableBox>
                 {interactAll&&interactAll.length ? (
                   <CollationTable id="relation"></CollationTable>
                 ) : (
-                  <CollationTable className="flex flex-center">No records</CollationTable>
+                  <CollationTable>
+                    <div className="title">Player Relationship</div>
+                    <div className="text-center">No records</div>
+                  </CollationTable>
                 )}
+                {!payMentState ? (
+                <div className="mask flex flex-center wrap cursor" onClick={Payment}>
+                  <div>Explore More  Detail Data</div>
+                  <div>
+                    Buy &nbsp;&nbsp;<span>{userinfo.username}</span>&nbsp;&nbsp; coffee&nbsp;
+                    <img src={coffee} alt="" />
+                  </div>
+                </div>) : ''}
               </TableBox>
             </AnalysisBox>
           ) : (

@@ -1555,6 +1555,7 @@ export const CollectionDetails = () => {
     getTokenData()
     contractDetection()
     getNFTTransfersData()
+    setRecommendPlayer()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1655,11 +1656,6 @@ export const CollectionDetails = () => {
       setBotTransactionRatioPie()
     }
   },[userActionData, actionDataAll, tap])
-  useEffect(() => {
-    if (userinfoAll && userinfoAll.length) {
-      setRecommendPlayer()
-    }
-  }, [userinfoAll])
   useEffect(() => {
     if (tap==='Analysis'&&thisWeekActive&&thisWeekActive.length) {
       setRetentionRateColumnChart()
@@ -1823,8 +1819,8 @@ export const CollectionDetails = () => {
     }
   }
   const getCollectionTransaction = async () => {
-    const res = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}`)
-    const res2 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${2}`)
+    const res = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}`)
+    const res2 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${2}`)
     Promise.all([res, res2]).then((vals) => {
       const dataAll = [...vals[0].data.data[0].transactionLists, ...vals[1].data.data[0].transactionLists]
       setThisWeekActive(dataAll)
@@ -2125,14 +2121,13 @@ export const CollectionDetails = () => {
     BotratioChart.setOption(PieOption('Player Transaction Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}`))
   }
   const setRetentionRateColumnChart = () => {
-    const res3 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${3}`)
-    const res4 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${4}`)
-    const res5 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${5}`)
-    const res6 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${6}`)
-    const res7 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${7}`)
-    const res8 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${8}`)
-    const res9 = polygonhttp.get(`http://localhost:8089/v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${9}`)
-    Promise.all([res3,res4,res5,res6,res7,res8,res9]).then((vals) => {
+    const res3 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${3}`)
+    const res4 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${4}`)
+    const res5 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${5}`)
+    const res6 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${6}`)
+    const res7 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${7}`)
+    const res8 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${8}`)
+    Promise.all([res3,res4,res5,res6,res7,res8]).then((vals) => {
       const dataAll = [
         ...thisWeekActive,
         ...vals[0].data.data[0].transactionLists,
@@ -2140,8 +2135,7 @@ export const CollectionDetails = () => {
         ...vals[2].data.data[0].transactionLists,
         ...vals[3].data.data[0].transactionLists,
         ...vals[4].data.data[0].transactionLists,
-        ...vals[5].data.data[0].transactionLists,
-        ...vals[6].data.data[0].transactionLists
+        ...vals[5].data.data[0].transactionLists
       ]
       const week = new Date().getUTCDay()
       const day = new Date().getDate()
@@ -2261,13 +2255,28 @@ export const CollectionDetails = () => {
       RetentionChart.setOption(option)
     })
   }
-  const setRecommendPlayer = () => {
-    const data = userinfoAll
-      .sort(() => {
-        return Math.random() - 0.5
-      })
-      .slice(0, 10)
-    setRecommendPlayerData(data)
+  const setRecommendPlayer = async () => {
+    // const data = userinfoAll
+    //   .sort(() => {
+    //     return Math.random() - 0.5
+    //   })
+    //   .slice(0, 10)
+    // setRecommendPlayerData(data)
+    const oldOwnersData = await http2.get(`v0/old_owners/${address}`)
+    const addressArr: any[] = []
+    oldOwnersData.data.data.map((item: any) => {
+      if (
+        item.owner_now?.toLowerCase() === account?.toLowerCase()&&
+        filterAddress(item.fromadd)!=='0x0000000000000000000000000000000000000000'&&
+        filterAddress(item.toadd)!=='0x0000000000000000000000000000000000000000'&&
+        filterAddress(item.fromadd)!==account?.toLowerCase()&&
+        filterAddress(item.toadd)!==account?.toLowerCase()
+      ) {
+        addressArr.push(filterAddress(item.fromadd))
+        addressArr.push(filterAddress(item.toadd))
+      }
+    })
+    setRecommendPlayerData([...new Set(addressArr)])
   }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
@@ -3861,7 +3870,6 @@ export const CollectionDetails = () => {
                   <div className="tableTab flex">
                     <div>Ranking</div>
                     <div className="Address">Address</div>
-                    <div>Name</div>
                   </div>
                   {RecommendPlayerData && RecommendPlayerData.length ? (
                     RecommendPlayerData.map((item: any, index: number) => (
@@ -3870,8 +3878,7 @@ export const CollectionDetails = () => {
                         key={index}
                       >
                         <div>{index + 1}</div>
-                        <div className="Address">{item?.useraddress}</div>
-                        <div>{item.username || `user#${index + 1}`}</div>
+                        <div className="Address">{item}</div>
                       </div>
                     ))
                   ) : (

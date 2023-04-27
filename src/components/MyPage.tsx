@@ -1512,7 +1512,9 @@ export const MyPage = () => {
       const object = {
         source: findAddressIndex(Array.from(new Set(addressArr)), item.address_from),
         target: findAddressIndex(Array.from(new Set(addressArr)), item.address_to),
-        value: `${item.type}`,
+        value: `${item.type === 'transfer'
+          ? (item.type +' '+(item.actions[0].metadata.value_display * 1).toFixed(2)+' '+item.actions[0].metadata.symbol) || formatting(item.actions[0].metadata.id)
+          : item.type}`,
         lineStyle: {
           color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), item.address_to)]
         }
@@ -2032,7 +2034,7 @@ export const MyPage = () => {
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
-        if (new Date(item.timestamp).getTime() > currentTime - 604800000) {
+        if (new Date(item.timestamp).getTime() > currentTime - (604800000 * 4)) {
           interactArr.push(item)
         }
         if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
@@ -3095,7 +3097,10 @@ export const MyPage = () => {
                 {interactAll&&interactAll.length ? (
                   <CollationTable id="relation"></CollationTable>
                 ) : (
-                  <CollationTable className="flex flex-center">No records</CollationTable>
+                  <CollationTable>
+                    <div className="title">Player Relationship</div>
+                    <div className="text-center">No records</div>
+                  </CollationTable>
                 )}
               </TableBox>
             </AnalysisBox>
