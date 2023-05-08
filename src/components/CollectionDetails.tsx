@@ -67,9 +67,10 @@ import { ExposeBox, ArticleBox } from './Expose'
 import { getContract, fetchAbi, SendBox } from '../pages/Dashboard'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
+import Telegram from '../assets/Telegram.png'
 import loadding from '../assets/loading.svg'
 import website from '../assets/icon_globe.svg'
-import add from '../assets/icon_add.png'
+// import add from '../assets/icon_add.png'
 import defaultImg from '../assets/default.png'
 import defaultStar from '../assets/icon_review_star_default.svg'
 import scoreStar from '../assets/icon_score_star.svg'
@@ -889,6 +890,10 @@ const ApproveTable = styled.div`
     width: 96%;
     height: 350px;
   }
+  #AverageReward {
+    width: 96%;
+    height: 350px;
+  }
   #interactionsPerDay {
     width: 96%;
     height: 350px;
@@ -998,7 +1003,7 @@ const AnalysisBox = styled.div`
     @media screen and (min-width: 1440px) {
       .pieItem {
         width: 400px;
-        height: 280px;
+        height: 290px;
         .pie {
           width: 390px;
           height: 270px;
@@ -1344,6 +1349,14 @@ const calculateRetentionRate = (thisWeek: any, lastWeek: any) => {
   const retentionRate = new BigNumber((data.length / lastWeek.length).toFixed(3)).multipliedBy(100).toNumber()
   return retentionRate
 }
+const calculateOutflowRate = (thisWeek: any, lastWeek: any) => {
+  const data = thisWeek.filter((item: any) => {
+    return lastWeek.findIndex((ele: any) => ele === item) >= 0
+  })
+  const length = lastWeek.length - data.length
+  const outflowRate = new BigNumber((length / lastWeek.length).toFixed(3)).multipliedBy(100).toNumber()
+  return outflowRate
+}
 
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
@@ -1384,6 +1397,7 @@ export const CollectionDetails = () => {
   const [NFTTransfersData, setNFTTransfersData] = useState([] as any)
   const [collectionRiskData, setCollectionRiskData] = useState([] as any)
   const [tokenRiskData, setTokenRiskData] = useState([] as any)
+  const [tokenHoldData, setTokenHoldData] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1555,7 +1569,6 @@ export const CollectionDetails = () => {
     getTokenData()
     contractDetection()
     getNFTTransfersData()
-    setRecommendPlayer()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1644,6 +1657,7 @@ export const CollectionDetails = () => {
     if (tap === 'Analysis') {
       getHoldRankingData()
       getCollectionTransaction()
+      setAverageRewardChart()
     }
   }, [tokenActionData, actionAll, tap])
   useEffect(() => {
@@ -1661,6 +1675,11 @@ export const CollectionDetails = () => {
       setRetentionRateColumnChart()
     }
   }, [thisWeekActive, tap])
+  useEffect(() => {
+    if (tap==='Analysis'&&tokenHoldData&&tokenHoldData.length) {
+      setRecommendPlayer()
+    }
+  }, [tokenHoldData, tap])
   const getActiveData = () => {
     const actions = http2.get(`v0/active_actions/${address}`)
     const users = http2.get(`v0/active_users/${address}`)
@@ -1924,12 +1943,13 @@ export const CollectionDetails = () => {
     NFTHoldRatioData.push({ value: NFTother, name: 'Other'})
     const NFTdom = document.getElementById('NFTHoldRatio') as HTMLDivElement
     const NFTChart = echarts.init(NFTdom)
-    NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData))
+    NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().toISOString().substr(0, 10)}`))
     const token = GameTokenDetails.filter((item: any) => {
       return item.NFTaddress === address
     })
     const tokenhold= await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${token[0]?.tokenAddress[0]}`)
     const toeknList = tokenhold.data.data[0].positionList.slice(0, 15)
+    setTokenHoldData(toeknList)
     const tokenHoldRatioData = [] as any
     let tokenOther = 100
     toeknList.map((item: any) => {
@@ -1943,7 +1963,7 @@ export const CollectionDetails = () => {
     tokenHoldRatioData.push({ value: tokenOther, name: 'Other'})
     const Tokensdom = document.getElementById('TokenHoldRatio') as HTMLDivElement
     const TokensChart = echarts.init(Tokensdom)
-    TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData))
+    TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().toISOString().substr(0, 10)}`))
   }
   const contractDetection = async () => {
     const id = chain === 'bsc' ? 56 : 137
@@ -2013,7 +2033,7 @@ export const CollectionDetails = () => {
       }
       const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
       const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(PieOption('Tokens Transaction(%)', Tokensdata))
+      TokensChart.setOption(PieOption('Tokens Transaction(%)', Tokensdata, '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-05-04'))
     }
   }
   const setNFTpie = () => {
@@ -2068,7 +2088,7 @@ export const CollectionDetails = () => {
       }
       const NFTdom = document.getElementById('NFT') as HTMLDivElement
       const NFTChart = echarts.init(NFTdom)
-      NFTChart.setOption(PieOption('NFT Transaction(%)', NFTdata))
+      NFTChart.setOption(PieOption('NFT Transaction(%)', NFTdata, '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-05-04'))
     }
   }
   const setBotratioPie = () => {
@@ -2092,7 +2112,7 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('Botratio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('Player Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}`))
+    BotratioChart.setOption(PieOption('Player Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}\n\n\n\n\n\n\n\n\n\n2023-05-04`))
   }
   const setBotTransactionRatioPie = () => {
     let bot = 0
@@ -2118,7 +2138,7 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('Player Transaction Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}`))
+    BotratioChart.setOption(PieOption('Player Transaction Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}\n\n\n\n\n\n\n\n\n\n2023-05-04`))
   }
   const setRetentionRateColumnChart = () => {
     const res3 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${3}`)
@@ -2139,14 +2159,19 @@ export const CollectionDetails = () => {
       ]
       const week = new Date().getUTCDay()
       const day = new Date().getDate()
-      const month = new Date().getMonth()+1
+      let month = new Date().getMonth()+1
       let time
       if (week > 0) {
-        time = day - week
+        if ((day - week) === 0) {
+          month = month - 1
+          time = 30
+        } else {
+          time = day - week
+        }
       } else if (week === 0) {
         time = day
       }
-        const firstWeek = `${month>10?month:'0'+month}-${time}`
+      const firstWeek = `${month>10?month:'0'+month}-${time}`
       const thisWeekTime = new Date(`2023-${firstWeek} 23:59:59`).getTime()
       const thisWeekActiveUser = [] as any
       const week2ActiveUser = [] as any
@@ -2210,17 +2235,19 @@ export const CollectionDetails = () => {
       const RetentionRate3 = calculateRetentionRate(week3ActiveUser,week4ActiveUser)
       const RetentionRate4 = calculateRetentionRate(week4ActiveUser,week5ActiveUser)
       const RetentionRate5 = calculateRetentionRate(week5ActiveUser,week6ActiveUser)
+      const OutflowRate = calculateOutflowRate(thisWeekActiveUser,week2ActiveUser)
+      const OutflowRate2 = calculateOutflowRate(week2ActiveUser,week3ActiveUser)
+      const OutflowRate3 = calculateOutflowRate(week3ActiveUser,week4ActiveUser)
+      const OutflowRate4 = calculateOutflowRate(week4ActiveUser,week5ActiveUser)
+      const OutflowRate5 = calculateOutflowRate(week5ActiveUser,week6ActiveUser)
       const option = {
-        title: {
-          text: 'Retention Rate(%)',
-          left: 'center'
-        },
         tooltip: {
           trigger: 'axis' as any,
           axisPointer: {
             type: 'shadow' as any
           }
         },
+        legend: {},
         grid: {
           left: '3%',
           right: '4%',
@@ -2232,7 +2259,7 @@ export const CollectionDetails = () => {
             type: 'category' as any,
             data: [firstWeek, 'Week2', 'Week3', 'Week4', 'Week5'],
             axisTick: {
-              alignWithLabel: true
+              show: false
             }
           }
         ],
@@ -2245,8 +2272,19 @@ export const CollectionDetails = () => {
           {
             name: 'Retention Rate(%)',
             type: 'bar',
-            barWidth: '60%',
+            barGap: 0,
+            emphasis: {
+              focus: 'series'
+            },
             data: [RetentionRate, RetentionRate2, RetentionRate3, RetentionRate4, RetentionRate5]
+          },
+          {
+            name: 'Churn Rate(%)',
+            type: 'bar',
+            emphasis: {
+              focus: 'series'
+            },
+            data: [OutflowRate, OutflowRate2, OutflowRate3, OutflowRate4, OutflowRate5]
           }
         ]
       }
@@ -2255,28 +2293,86 @@ export const CollectionDetails = () => {
       RetentionChart.setOption(option)
     })
   }
-  const setRecommendPlayer = async () => {
-    // const data = userinfoAll
-    //   .sort(() => {
-    //     return Math.random() - 0.5
-    //   })
-    //   .slice(0, 10)
-    // setRecommendPlayerData(data)
-    const oldOwnersData = await http2.get(`v0/old_owners/${address}`)
-    const addressArr: any[] = []
-    oldOwnersData.data.data.map((item: any) => {
-      if (
-        item.owner_now?.toLowerCase() === account?.toLowerCase()&&
-        filterAddress(item.fromadd)!=='0x0000000000000000000000000000000000000000'&&
-        filterAddress(item.toadd)!=='0x0000000000000000000000000000000000000000'&&
-        filterAddress(item.fromadd)!==account?.toLowerCase()&&
-        filterAddress(item.toadd)!==account?.toLowerCase()
-      ) {
-        addressArr.push(filterAddress(item.fromadd))
-        addressArr.push(filterAddress(item.toadd))
+  const setAverageRewardChart = () => {
+    const week = new Date().getUTCDay()
+      const day = new Date().getDate()
+      let month = new Date().getMonth()+1
+      let time
+      if (week > 0) {
+        if ((day - week) === 0) {
+          month = month - 1
+          time = 30
+        } else {
+          time = day - week
+        }
+      } else if (week === 0) {
+        time = day
       }
+      const firstWeek = `${month>10?month:'0'+month}-${time}`
+      const option = {
+        title: {
+          text: 'Average Reward',
+          left: 20
+        },
+        tooltip: {
+          trigger: 'axis' as any,
+          axisPointer: {
+            type: 'shadow' as any
+          }
+        },
+        legend: {},
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: [
+          {
+            type: 'category' as any,
+            data: [firstWeek, 'Week2', 'Week3', 'Week4'],
+            axisTick: {
+              show: false
+            }
+          }
+        ],
+        yAxis: [
+          {
+            type: 'value' as any
+          }
+        ],
+        series: [
+          {
+            name: 'Bot',
+            type: 'bar',
+            barGap: 0,
+            emphasis: {
+              focus: 'series'
+            },
+            data: [0,0,0,0]
+          },
+          {
+            name: 'Real',
+            type: 'bar',
+            emphasis: {
+              focus: 'series'
+            },
+            data: [0,0,0,0]
+          }
+        ]
+      }
+      const AverageRewardDom = document.getElementById('AverageReward') as HTMLDivElement
+      const AverageRewardChart = echarts.init(AverageRewardDom)
+      AverageRewardChart.setOption(option)
+  }
+  const setRecommendPlayer = async () => {
+    tokenHoldData.map(async (item: any) => {
+      item.amount = (item.amount*1).toFixed(2)
+      // const data = await polygonhttp.get(`/v0/oklink/addressBalance?chainShortName=${chain}&address=${item.holderAddress}&protocolType=token_721`)
+      // item.NFT = data.data.data[0].tokenList.length
+      item.NFT = '--'
     })
-    setRecommendPlayerData([...new Set(addressArr)])
+    setRecommendPlayerData(tokenHoldData)
   }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
@@ -3713,6 +3809,7 @@ export const CollectionDetails = () => {
                       </div>
                       <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}></div>
                       <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}></div>
+                      {/* <div className="chartTime">{new Date().toISOString().substr(0, 10)}</div> */}
                     </div>
                   </div>
                   <div className="flex flex-column-between">
@@ -3729,6 +3826,9 @@ export const CollectionDetails = () => {
                 </ApproveTable>
                 <ApproveTable>
                   <div id="interactionsPerDay"></div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div id="AverageReward">Average Reward</div>
                 </ApproveTable>
                 <ApproveTable>
                   <div className="title">Most Active Users</div>
@@ -3868,8 +3968,10 @@ export const CollectionDetails = () => {
                 <ApproveTable>
                   <div className="title">Recommended Player</div>
                   <div className="tableTab flex">
-                    <div>Ranking</div>
                     <div className="Address">Address</div>
+                    <div>Social</div>
+                    <div>Token Balance</div>
+                    <div>NFT</div>
                   </div>
                   {RecommendPlayerData && RecommendPlayerData.length ? (
                     RecommendPlayerData.map((item: any, index: number) => (
@@ -3877,8 +3979,14 @@ export const CollectionDetails = () => {
                         className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
                         key={index}
                       >
-                        <div>{index + 1}</div>
-                        <div className="Address">{item}</div>
+                        <div className="Address">{item.holderAddress}</div>
+                        <div>
+                          <img className="translucent" src={twitter} alt="" />&nbsp;
+                          <img className="translucent" src={discord} alt="" />&nbsp;
+                          <img className="translucent" src={Telegram} alt="" />
+                        </div>
+                        <div>{item.amount}</div>
+                        <div>{item.NFT}</div>
                       </div>
                     ))
                   ) : (
