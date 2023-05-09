@@ -904,7 +904,6 @@ export const UserPage = () => {
   const [PopUpsData, setPopUpsData] = useState([] as any)
   const [payMentInfo, setPayMentInfo] = useState([] as any)
   const [buyUserData, setBuyUserData] = useState([] as any)
-  const [interact, setInteract] = useState([] as any)
   const [interactAll, setInteractAll] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
@@ -914,8 +913,6 @@ export const UserPage = () => {
   const [swapTotalPage, setSwapTotalPage] = useState(0)
   const [transactionPage, setTransactionPage] = useState(0)
   const [transactionTotalPage, setTransactionTotalPage] = useState(0)
-  const [interactPage, setInteractPage] = useState(0)
-  const [interactTotalPage, setInteractTotalPage] = useState(0)
   const [activityTab, setActivityTab] = useState('Chains')
   const [tokenTab, setTokenTab] = useState('Polygon')
   const [collectionTab, setCollectionTab] = useState('Polygon')
@@ -950,6 +947,9 @@ export const UserPage = () => {
     getPieChartData()
     getPayAmount()
   }, [useraddress, refreshBy, account])
+  useEffect(() => {
+    userAccesses()
+  }, [useraddress, account])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
       .filter((item: any) => {
@@ -1033,6 +1033,30 @@ export const UserPage = () => {
       }
       return item
     })
+  }
+  const userAccesses = async () => {
+    const time = new Date().toISOString().substr(0, 10)
+    const data = await polygonhttp.get(`v0/userAccesses/${time}`)
+    if (!data.data.data.length) {
+      const parm = {
+        useraddress: account,
+        accessUser: useraddress,
+        accessTime: time
+      }
+      polygonhttp.post(`v0/userAccesses`, parm)
+    } else {
+      const filterdata = data.data.data.filter((item: any) => {
+        return item.accessUser === useraddress && item.userAccesses === account
+      })
+      if (!filterdata.length) {
+        const parm = {
+          useraddress: account,
+          accessUser: useraddress,
+          accessTime: time
+        }
+        polygonhttp.post(`v0/userAccesses`, parm)
+      }
+    }
   }
   const getPieChartData = () => {
     // const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
@@ -1867,10 +1891,6 @@ export const UserPage = () => {
       setTransactionPage(index)
       setTransaction(transactionAll.slice(10 * index, 10 * index + 10))
     }
-    if (type === 'interact') {
-      setInteractPage(index)
-      setInteract(interactAll.slice(10 * index, 10 * index + 10))
-    }
   }
   const componentDidMount = () => {
     if (PieChartData && PieChartData.length) {
@@ -2022,8 +2042,6 @@ export const UserPage = () => {
       setSwapTotalPage(Math.ceil(swapdata.length / 10))
       setTransactionTotalPage(Math.ceil(transactionData.length / 10))
       setInteractAll(interactArr)
-      setInteract(interactArr.slice(0, 10))
-      setInteractTotalPage(Math.ceil(interactArr.length / 10))
       const chainarrDeduplication = [...new Set(chainarr)]
       const Chainsoptionsdata: any[] = []
       chainarrDeduplication.map((item) => {
