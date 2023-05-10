@@ -894,6 +894,10 @@ const ApproveTable = styled.div`
     width: 96%;
     height: 350px;
   }
+  #AverageAction {
+    width: 96%;
+    height: 350px;
+  }
   #interactionsPerDay {
     width: 96%;
     height: 350px;
@@ -1357,6 +1361,71 @@ const calculateOutflowRate = (thisWeek: any, lastWeek: any) => {
   const outflowRate = new BigNumber((length / lastWeek.length).toFixed(3)).multipliedBy(100).toNumber()
   return outflowRate
 }
+const firstWeek = () => {
+  const week = new Date().getUTCDay()
+  const day = new Date().getDate()
+  let month = new Date().getMonth()+1
+  let time
+  if (week > 0) {
+    if ((day - week) === 0) {
+      month = month - 1
+      time = 30
+    } else {
+      time = day - week
+    }
+  } else if (week === 0) {
+    time = day
+  }
+  const firstWeek = `${month>10?month:'0'+month}-${time}`
+  return firstWeek
+}
+const calculateAverage = (data: any, activeUser: any) => {
+  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
+  const thisWeekActiveUser = [] as any
+  const week2ActiveUser = [] as any
+  const week3ActiveUser = [] as any
+  const week4ActiveUser = [] as any
+  activeUser.map((item: any) => {
+    const time = new Date(item.datetime).getTime()
+    if (time < thisWeekTime && time > thisWeekTime - 604800000) {
+      thisWeekActiveUser.push(item)
+    }
+    if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
+      week2ActiveUser.push(item)
+    }
+    if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
+      week3ActiveUser.push(item)
+    }
+    if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
+      week4ActiveUser.push(item)
+    }
+  })
+  const thisWeekData = [] as any
+  const week2Data = [] as any
+  const week3Data = [] as any
+  const week4Data = [] as any
+  data.map((item: any) => {
+    const time = new Date(item.datetime).getTime()
+    if (time < thisWeekTime && time > thisWeekTime - 604800000) {
+      thisWeekData.push(item)
+    }
+    if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
+      week2Data.push(item)
+    }
+    if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
+      week3Data.push(item)
+    }
+    if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
+      week4Data.push(item)
+    }
+  })
+  return [
+    Math.ceil(thisWeekData.length/thisWeekActiveUser.length),
+    Math.ceil(week2Data.length/week2ActiveUser.length),
+    Math.ceil(week3Data.length/week3ActiveUser.length),
+    Math.ceil(week4Data.length/week4ActiveUser.length)
+  ]
+}
 
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
@@ -1398,6 +1467,7 @@ export const CollectionDetails = () => {
   const [collectionRiskData, setCollectionRiskData] = useState([] as any)
   const [tokenRiskData, setTokenRiskData] = useState([] as any)
   const [tokenHoldData, setTokenHoldData] = useState([] as any)
+  const [activeUser, setActiveUser] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1671,6 +1741,11 @@ export const CollectionDetails = () => {
     }
   },[userActionData, actionDataAll, tap])
   useEffect(() => {
+    if (tap === 'Analysis' && userActionData && userActionData.length&&activeUser&&activeUser.length) {
+      setAverageActionChart()
+    }
+  },[userActionData, activeUser, tap])
+  useEffect(() => {
     if (tap==='Analysis'&&thisWeekActive&&thisWeekActive.length) {
       setRetentionRateColumnChart()
     }
@@ -1684,14 +1759,13 @@ export const CollectionDetails = () => {
     const actions = http2.get(`v0/active_actions/${address}`)
     const users = http2.get(`v0/active_users/${address}`)
     Promise.all([actions, users]).then((vlas) => {
-      const userarr = [] as any
       const approveData = [] as any
       const otherdata = [] as any
       setUserActionData(vlas[0].data.data)
+      setActiveUser(vlas[1].data.data)
       vlas[0].data.data.map((item: any) => {
         if (item.tokenid * 1 === 0) {
           approveData.push(item)
-          userarr.push(item.address)
         } else {
           otherdata.push(item)
         }
@@ -2364,6 +2438,85 @@ export const CollectionDetails = () => {
       const AverageRewardDom = document.getElementById('AverageReward') as HTMLDivElement
       const AverageRewardChart = echarts.init(AverageRewardDom)
       AverageRewardChart.setOption(option)
+  }
+  const setAverageActionChart = () => {
+    const tokeninfo = GameTokenDetails.filter((item: any) => {
+      return item.NFTaddress?.toLowerCase() === address?.toLowerCase()
+    })
+    const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
+    const approveData = [] as any
+    const claimData = [] as any
+    userActionData.map((item: any) => {
+      if (item.tokenid * 1 === 0) {
+        approveData.push(item)
+      }
+      if (tokeninfo[0].tokenAddress[0]?.toLowerCase() === filterAddress(item.t1)?.toLowerCase()) {
+        claimData.push(item)
+      }
+    })
+    const option = {
+      title: {
+        text: '',
+        left: 20
+      },
+      tooltip: {
+        trigger: 'axis' as any,
+        axisPointer: {
+          type: 'shadow' as any
+        }
+      },
+      legend: {},
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: [
+        {
+          type: 'category' as any,
+          data: [firstWeek(), 'Week2', 'Week3', 'Week4'],
+          axisTick: {
+            show: false
+          }
+        }
+      ],
+      yAxis: [
+        {
+          type: 'value' as any
+        }
+      ],
+      series: [
+        {
+          name: 'Average Approve',
+          type: 'bar',
+          barGap: 0,
+          emphasis: {
+            focus: 'series'
+          },
+          data: calculateAverage(approveData, activeUser)
+        },
+        {
+          name: 'Average Transction',
+          type: 'bar',
+          emphasis: {
+            focus: 'series'
+          },
+          data: calculateAverage(userActionData, activeUser)
+        },
+        {
+          name: 'Average Claim',
+          type: 'bar',
+          emphasis: {
+            focus: 'series'
+          },
+          data: [0,0,0,0]
+        }
+      ]
+    }
+    const AverageActionDom = document.getElementById('AverageAction') as HTMLDivElement
+    const AverageActionChart = echarts.init(AverageActionDom)
+    AverageActionChart.setOption(option)
   }
   const setRecommendPlayer = async () => {
     tokenHoldData.map(async (item: any) => {
@@ -3829,6 +3982,9 @@ export const CollectionDetails = () => {
                 </ApproveTable>
                 <ApproveTable>
                   <div id="AverageReward">Average Reward</div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div id="AverageAction"></div>
                 </ApproveTable>
                 <ApproveTable>
                   <div className="title">Most Active Users</div>

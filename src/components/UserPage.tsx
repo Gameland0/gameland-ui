@@ -2850,8 +2850,8 @@ export const UserPage = () => {
                   <div className="title">Defi Transactions</div>
                   <div className="tab flex">
                     <div>Time</div>
-                    <div>Sold</div>
-                    <div>Received</div>
+                    <div className="Address">Sold</div>
+                    <div className="Address">Received</div>
                     <div>Chain</div>
                     <div>Type</div>
                     <div>Platform</div>
@@ -2860,8 +2860,8 @@ export const UserPage = () => {
                     swapData.map((item: any, index: number) => (
                       <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
                         <div>{item?.time}</div>
-                        <div>{item?.sent}</div>
-                        <div>{item?.received}</div>
+                        <div className="Address">{item?.sent}</div>
+                        <div className="Address">{item?.received}</div>
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
                         <div>{item.platform || '--'}</div>
@@ -2899,7 +2899,7 @@ export const UserPage = () => {
                   <div className="title">Token Transactions</div>
                   <div className="tab flex">
                     <div>Sent</div>
-                    <div>Token</div>
+                    <div className="Address">Token</div>
                     <div>Received</div>
                     <div>Chain</div>
                     <div>Type</div>
@@ -2909,7 +2909,7 @@ export const UserPage = () => {
                     transaction.map((item: any, index: number) => (
                       <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
                         <div>{item?.sent}</div>
-                        <div>{item?.price}</div>
+                        <div className="Address">{item?.price}</div>
                         <div>{item?.received}</div>
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
