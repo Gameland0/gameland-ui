@@ -110,7 +110,6 @@ export const PolygonContract = [
   '0x94e42811db93ef7831595b6ff9360491b987dfbd',
   '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
   '0xc65fd3945e26c15e03176810d35506956b036f39',
-  '0xc1f39f52bcbb4b32af4a587da015316205005987',
   '0x584666e270341cee2c2d41c23821a568a9068ac8',
   '0xb19dd661f076998e3b0456935092a233e12c2280',
   '0xfde7aca6aca283a5578471ca1000745a6ce8ce81',
@@ -122,7 +121,6 @@ export const PolygonContract = [
   '0x5dd90959c25b62dffa67021c4bbde928a0bd6863',
   '0x631998e91476da5b870d741192fc5cbc55f5a52e',
   '0xc7a096b4c6610ba3a836070333ff7922b9866a36',
-  '0xb862aec93f0169249935f82fd98e6a494f53c287',
   '0x9c09596d3d3691ea971f0b40b8cad44186868267',
   '0xd9c5449efb3f99952f73e824688724aafb81de6e',
   '0x8eb9be04b1df6596afa72c796f7f410aa1adba8b',
@@ -139,7 +137,6 @@ export const PolygonContract = [
   '0xcf501ead3ebfa60f40725fca1d82fc05bff63bf2',
   '0x62340bf727c536400a15bd41f62b4c684232c57a',
   '0xcbc964dd716f07b4965b4526e30541a66f414ccf',
-  '0xe97bf54cc139b88c533759dfb16b2bd73dca8264',
   '0x049f8204bde39355b7892bac2a028a9d2f693792',
   '0x00992b610a1d20d0169fd604c8eb2f40fee2c391',
   '0xba6e421833f6c190a830ce6e142685b3916c9bd0',
@@ -171,7 +168,6 @@ export const BscContract = [
   '0x69d60ad11feb699fe5feeeb16ac691df090bfd50',
   '0xeea8bd31da9a2169c38968958b6df216381b0f08',
   '0x8db638762965663963fdb20a88b498c7c16ec710',
-  '0x7e00338097ad4397a39af5e2b36012348fd87d8b',
   '0x198D33FB8f75aC6a7CB968962c743F09C486cCA6',
   '0x13b5816396c5095a145af6994688e6e53fda6095',
   '0x4cd0ce1d5e10afbcaa565a0fe2a810ef0eb9b7e2',
@@ -210,10 +206,31 @@ export const BscContract = [
   '0x4b5c4b2be2fe1656f8efedd27393c61a7357b6e7',
   '0x89c68098af9fd68e0b95e75e96164cd268b70c00',
   '0xc1ffddb43097f91fb75569f216a8d1db0a9434b7',
-  '0x5f8e4797b681a20f330a914f946293b726dc7b4f'
+  '0x5f8e4797b681a20f330a914f946293b726dc7b4f',
+  '0xd7c79abeb8d8b21e7638a8aadfdcc1438d24b483',
+  '0xf3857306a37264f15a19ad37da8a9485e5f7cfb3',
+  '0xdb30af2eb9fe7dc842988e5895d44e4070109ac8'
 ]
 
 export const GameTokenDetails = [
+  {
+    NFTaddress: '0xdb30af2eb9fe7dc842988e5895d44e4070109ac8',
+    tokenAddress: ['0xd4c73fd18f732bc6ee9fb193d109b2eed815df80', '0x2290c6bd9560e6498dfdf10f9ecb17997ca131f2'],
+    symbol: [],
+    chain: 'bsc'
+  },
+  {
+    NFTaddress: '0xf3857306a37264f15a19ad37da8a9485e5f7cfb3',
+    tokenAddress: ['0x888888848b652b3e3a0f34c96e00eec0f3a23f72'],
+    symbol: [],
+    chain: 'bsc'
+  },
+  {
+    NFTaddress: '0xd7c79abeb8d8b21e7638a8aadfdcc1438d24b483',
+    tokenAddress: ['0x35bedbf9291b22218a0da863170dcc9329ef2563'],
+    symbol: [],
+    chain: 'bsc'
+  },
   {
     NFTaddress: '0x24fADCEfd2117719C4078C08b352b22C74542418',
     tokenAddress: ['0x3203c9e46ca618c8c1ce5dc67e7e9d75f5da2377', '0x85c128ee1feeb39a59490c720a9c563554b51d33'],
@@ -368,12 +385,6 @@ export const GameTokenDetails = [
     NFTaddress: '0xa9e9a78ff1027dc0dd1ee54d7f134f191541fe07',
     tokenAddress: [],
     symbol: [],
-    chain: 'bsc'
-  },
-  {
-    NFTaddress: '0x7e00338097ad4397a39af5e2b36012348fd87d8b',
-    tokenAddress: ['0xf787E1B31e12c4BE0cBFA46844c5ec851eBA098d'],
-    symbol: [PLAY4],
     chain: 'bsc'
   },
   {
@@ -712,12 +723,6 @@ export const GameTokenDetails = [
     chain: 'polygon'
   },
   {
-    NFTaddress: '0xc1f39f52bcbb4b32af4a587da015316205005987',
-    tokenAddress: [],
-    symbol: [],
-    chain: 'polygon'
-  },
-  {
     NFTaddress: '0x584666e270341cee2c2d41c23821a568a9068ac8',
     tokenAddress: ['0x383b2a85cefe5c1b97c6de043abad5ed59ee4307'],
     symbol: [MRST],
@@ -778,12 +783,6 @@ export const GameTokenDetails = [
     chain: 'polygon'
   },
   {
-    NFTaddress: '0xb862aec93f0169249935f82fd98e6a494f53c287',
-    tokenAddress: [],
-    symbol: [],
-    chain: 'polygon'
-  },
-  {
     NFTaddress: '0xcf501ead3ebfa60f40725fca1d82fc05bff63bf2',
     tokenAddress: ['0x2bC07124D8dAc638E290f401046Ad584546BC47b'],
     symbol: [TOWER],
@@ -817,12 +816,6 @@ export const GameTokenDetails = [
     NFTaddress: '0x62340bf727c536400a15bd41f62b4c684232c57a',
     tokenAddress: ['0xef938b6da8576a896f6e0321ef80996f4890f9c4', '0xc6480da81151b2277761024599e8db2ad4c388c8'],
     symbol: [DG, DG],
-    chain: 'polygon'
-  },
-  {
-    NFTaddress: '0xe97bf54cc139b88c533759dfb16b2bd73dca8264',
-    tokenAddress: ['0xcaF5191fc480F43e4DF80106c7695ECA56E48B18'],
-    symbol: [DNXC],
     chain: 'polygon'
   },
   {

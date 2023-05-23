@@ -1361,7 +1361,7 @@ const calculateOutflowRate = (thisWeek: any, lastWeek: any) => {
   const outflowRate = new BigNumber((length / lastWeek.length).toFixed(3)).multipliedBy(100).toNumber()
   return outflowRate
 }
-const firstWeek = () => {
+export const firstWeek = () => {
   const week = new Date().getUTCDay()
   const day = new Date().getDate()
   let month = new Date().getMonth()+1

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import axios from 'axios'
 import { parseEther } from '@ethersproject/units'
 import styled from 'styled-components'
@@ -13,7 +13,7 @@ import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt, handleImgError } from '../utils'
 import { colorTable } from '../constants/colorTable'
-import { getTime } from './CollectionDetails'
+import { firstWeek, getTime } from './CollectionDetails'
 import { SendBox } from '../pages/Dashboard'
 import { toastify } from './Toastify'
 import { MyRenting } from '../pages/Dashboard/MyRenting'
@@ -1162,6 +1162,7 @@ export const MyPage = () => {
   const [buyUserData, setBuyUserData] = useState([] as any)
   const [interact, setInteract] = useState([] as any)
   const [interactAll, setInteractAll] = useState([] as any)
+  const [QuickPreviewData, setQuickPreviewsData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -1172,6 +1173,15 @@ export const MyPage = () => {
   const [transactionTotalPage, setTransactionTotalPage] = useState(0)
   const [interactPage, setInteractPage] = useState(0)
   const [interactTotalPage, setInteractTotalPage] = useState(0)
+  const [bscTokenTotal, setBscTokenTotal] = useState(-1)
+  const [ethTokenTotal, setEthTokenTotal] = useState(-1)
+  const [polygonTokenTotal, setPolygonTokenTotal] = useState(-1)
+  const [bscNFTTotal, setBscNFTTotal] = useState(-1)
+  const [ethNFTTotal, setEthNFTTotal] = useState(-1)
+  const [polygonNFTTotal, setPolygonNFTTotal] = useState(-1)
+  const [bscColletionTotal, setBscColletionTotal] = useState(-1)
+  const [ethColletionTotal, setEthColletionTotal] = useState(-1)
+  const [polygonColletionTotal, setPolygonColletionTotal] = useState(-1)
   const [activityTab, setActivityTab] = useState('Chains')
   const [tokenTab, setTokenTab] = useState('Polygon')
   const [collectionTab, setCollectionTab] = useState('Polygon')
@@ -1200,6 +1210,27 @@ export const MyPage = () => {
     timeout: 20000,
     logging: false
   })
+  const tokenTotal = useMemo(() => {
+    if (bscTokenTotal>=0 && ethTokenTotal>=0 && polygonTokenTotal>=0) {
+      const total = bscTokenTotal + ethTokenTotal + polygonTokenTotal
+      return total.toFixed(2)
+    }
+    return -1
+  }, [bscTokenTotal, ethTokenTotal, polygonTokenTotal])
+  const NFTTotal = useMemo(() => {
+    if (bscNFTTotal>=0 && ethNFTTotal>=0 && polygonNFTTotal>=0) {
+      const total = bscNFTTotal + ethNFTTotal + polygonNFTTotal
+    return total
+    }
+    return -1
+  }, [bscNFTTotal, ethNFTTotal, polygonNFTTotal])
+  const colletionTotal = useMemo(() => {
+    if (bscColletionTotal>=0 && ethColletionTotal>=0 && polygonColletionTotal>=0) {
+      const total = bscColletionTotal + ethColletionTotal + polygonColletionTotal
+      return total
+    }
+    return -1
+  }, [bscColletionTotal, ethColletionTotal, polygonColletionTotal])
   useEffect(() => {
     getUserInfo()
     getNftData()
@@ -1255,6 +1286,17 @@ export const MyPage = () => {
       setRelationChart()
     }
   }, [interactAll, showTabs])
+  useEffect(() => {
+    if (tokenTotal>=0&&NFTTotal>=0&&colletionTotal>=0) {
+      QuickPreviews()
+    }
+  }, [account, tokenTotal, NFTTotal,colletionTotal])
+  useEffect(() => {
+    if (showTabs === 'Analysis' && PieChartData.length) {
+      setQuickPreviewChart()
+    }
+  }, [PieChartData, showTabs, QuickPreviewData])
+
   const fetchData = (data: any[], contract: any, chain: string) => {
     if (!data || !data.length) return []
     return data.map(async (item: any) => {
@@ -1289,6 +1331,166 @@ export const MyPage = () => {
       }
       return item
     })
+  }
+  const QuickPreviews = async () => {
+    const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
+    const time = new Date().toISOString()
+    const data = await polygonhttp.get(`v0/QuickPreviewDatas/${account}`)
+    setQuickPreviewsData(data.data.data)
+    if (!data.data.data.length) {
+      const parm = {
+        useraddress: account,
+        token: tokenTotal,
+        NFT: NFTTotal,
+        collection: colletionTotal,
+        datetime: time
+      }
+      polygonhttp.post(`v0/QuickPreviewDatas`, parm)
+    } else {
+      const filterdata = data.data.data.filter((item: any) => {
+        const times = new Date(item.datetime).getTime()
+        return times > thisWeekTime && times < thisWeekTime + 604800000
+      })
+      if (!filterdata.length) {
+        const parm = {
+          useraddress: account,
+          token: tokenTotal,
+          NFT: NFTTotal,
+          collection: colletionTotal,
+          datetime: time
+        }
+        polygonhttp.post(`v0/QuickPreviewDatas`, parm)
+      }
+    }
+  }
+  const setQuickPreviewChart = () => {
+    const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
+    let seriesTokenData
+    let seriesNFTData
+    let seriesCollectionData
+    if (QuickPreviewData.length < 1) {
+      seriesTokenData = [0,0,0,0]
+      seriesNFTData = [0,0,0,0]
+      seriesCollectionData = [0,0,0,0]
+    } else {
+      const lastWeekData = QuickPreviewData.filter((item: any) => {
+        const times = new Date(item.datetime).getTime()
+        return times > thisWeekTime - 604800000 && times < thisWeekTime
+      })
+      const Week2Data = QuickPreviewData.filter((item: any) => {
+        const times = new Date(item.datetime).getTime()
+        return times > thisWeekTime - (604800000*2) && times < thisWeekTime - 604800000
+      })
+      const Week3Data = QuickPreviewData.filter((item: any) => {
+        const times = new Date(item.datetime).getTime()
+        return times > thisWeekTime - (604800000*3) && times < thisWeekTime - (604800000*2)
+      })
+      const Week4Data = QuickPreviewData.filter((item: any) => {
+        const times = new Date(item.datetime).getTime()
+        return times > thisWeekTime - (604800000*4) && times < thisWeekTime - (604800000*3)
+      })
+      seriesTokenData = [
+        tokenTotal,
+        lastWeekData.length ===0? 0 : lastWeekData[0].token,
+        Week2Data.length ===0? 0 : Week2Data[0]?.token,
+        Week3Data.length ===0? 0 : Week3Data[0]?.token,
+        Week4Data.length ===0? 0 : Week4Data[0]?.token,
+      ]
+      seriesNFTData = [
+        NFTTotal,
+        lastWeekData.length ===0? 0 : lastWeekData[0].NFT,
+        Week2Data.length ===0? 0 : Week2Data[0]?.NFT,
+        Week3Data.length ===0? 0 : Week3Data[0]?.NFT,
+        Week4Data.length ===0? 0 : Week4Data[0]?.NFT,
+      ]
+      seriesCollectionData = [
+        colletionTotal,
+        lastWeekData.length ===0? 0 : lastWeekData[0].collection,
+        Week2Data.length ===0? 0 : Week2Data[0]?.collection,
+        Week3Data.length ===0? 0 : Week3Data[0]?.collection,
+        Week4Data.length ===0? 0 : Week4Data[0]?.collection,
+      ]
+    }
+    const thisWeekCount = PieChartData.filter((item: any) => {
+      const times = new Date(item.timestamp).getTime()
+      return times > thisWeekTime && times < thisWeekTime + 604800000
+    })
+    const lastWeekCount = PieChartData.filter((item: any) => {
+      const times = new Date(item.timestamp).getTime()
+      return times > thisWeekTime - 604800000 && times < thisWeekTime
+    })
+    const Week2Count = PieChartData.filter((item: any) => {
+      const times = new Date(item.timestamp).getTime()
+      return times > thisWeekTime - (604800000*2) && times < thisWeekTime - 604800000
+    })
+    const Week3Count = PieChartData.filter((item: any) => {
+      const times = new Date(item.timestamp).getTime()
+      return times > thisWeekTime - (604800000*3) && times < thisWeekTime - (604800000*2)
+    })
+    const Week4Count = PieChartData.filter((item: any) => {
+      const times = new Date(item.timestamp).getTime()
+      return times > thisWeekTime - (604800000*4) && times < thisWeekTime - (604800000*3)
+    })
+    const seriesTransactionData = [
+      thisWeekCount.length,
+      lastWeekCount.length,
+      Week2Count.length,
+      Week3Count.length,
+      Week4Count.length
+    ]
+    const option = {
+      title: {
+        text: 'Quick Preview',
+        top: '10',
+        left: '10'
+      },
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        top: '10',
+        data: ['Token', 'NFT', 'Collection', 'Transaction']
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category' as any,
+        boundaryGap: false,
+        data: ['this week', 'last week', 'week2', 'week3', 'week4']
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [
+        {
+          name: 'Token',
+          type: 'line',
+          data: seriesTokenData
+        },
+        {
+          name: 'NFT',
+          type: 'line',
+          data: seriesNFTData
+        },
+        {
+          name: 'Collection',
+          type: 'line',
+          data: seriesCollectionData
+        },
+        {
+          name: 'Transaction',
+          type: 'line',
+          data: seriesTransactionData
+        }
+      ]
+    }
+    const QuickPreviewdom = document.getElementById('QuickPreview') as HTMLDivElement
+    const QuickPreviewChart = echarts.init(QuickPreviewdom)
+    QuickPreviewChart.setOption(option)
   }
   const getPieChartData = () => {
     const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
@@ -1355,33 +1557,42 @@ export const MyPage = () => {
   const getTokensData = async () => {
     polygonhttp.get(`v0/oklink/addressBalance?chainShortName=bsc&address=${account}&protocolType=token_20`).then((vals) => {
       const Tokensoptionsdata = [] as any
+      let tokenTotal = 0
       vals.data.data[0].tokenList.map((item: any) => {
         if (item.priceUsd * 1 > 0) {
-          Tokensoptionsdata.push({ value: item.holdingAmount, name: item.token })
+          Tokensoptionsdata.push({ value: (item.valueUsd*1).toFixed(2), name: item.token+'($)' })
         }
+        tokenTotal = tokenTotal + (item.valueUsd*1)
       })
+      setBscTokenTotal(tokenTotal)
       const BSCTokensdom = document.getElementById('BSCTokens') as HTMLDivElement
       const BSCTokensChart = echarts.init(BSCTokensdom)
       BSCTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
     })
     polygonhttp.get(`v0/oklink/addressBalance?chainShortName=polygon&address=${account}&protocolType=token_20`).then((vals) => {
       const Tokensoptionsdata = [] as any
+      let tokenTotal = 0
       vals.data.data[0].tokenList.map((item: any) => {
         if (item.priceUsd * 1 > 0) {
-          Tokensoptionsdata.push({ value: item.holdingAmount, name: item.token })
+          Tokensoptionsdata.push({ value: (item.valueUsd*1).toFixed(2), name: item.token+'($)' })
         }
+        tokenTotal = tokenTotal + (item.valueUsd*1)
       })
+      setPolygonTokenTotal(tokenTotal)
       const PolygonTokensdom = document.getElementById('PolygonTokens') as HTMLDivElement
       const PolygonTokensChart = echarts.init(PolygonTokensdom)
       PolygonTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
     })
     polygonhttp.get(`v0/oklink/addressBalance?chainShortName=ETH&address=${account}&protocolType=token_20`).then((vals) => {
       const Tokensoptionsdata = [] as any
+      let tokenTotal = 0
       vals.data.data[0].tokenList.map((item: any) => {
         if (item.priceUsd * 1 > 0) {
-          Tokensoptionsdata.push({ value: item.holdingAmount, name: item.token })
+          Tokensoptionsdata.push({ value: (item.valueUsd*1).toFixed(2), name: item.token+'($)' })
         }
+        tokenTotal = tokenTotal + (item.valueUsd*1)
       })
+      setEthTokenTotal(tokenTotal)
       const ETHTokensdom = document.getElementById('ETHTokens') as HTMLDivElement
       const ETHTokensChart = echarts.init(ETHTokensdom)
       ETHTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
@@ -1400,6 +1611,7 @@ export const MyPage = () => {
         addressArr.push(item.name)
       })
       const addressArrDeduplication = [...new Set(addressArr)]
+      setBscColletionTotal(addressArrDeduplication.length)
       const optionData = [] as any
       addressArrDeduplication.slice(0, 15).map((item: any) => {
         const data = vals.data.result.filter((ele: any) => {
@@ -1407,6 +1619,14 @@ export const MyPage = () => {
         })
         optionData.push({ value: data.length, name: item })
       })
+      let NFTTotal = 0
+      addressArrDeduplication.map((item: any) => {
+        const data = vals.data.result.filter((ele: any) => {
+          return ele.name === item
+        })
+        NFTTotal = NFTTotal +data.length
+      })
+      setBscNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('bscCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
       CollationChart.setOption(PieOption('Collation', optionData))
@@ -1417,6 +1637,7 @@ export const MyPage = () => {
         addressArr.push(item.name)
       })
       const addressArrDeduplication = [...new Set(addressArr)]
+      setPolygonColletionTotal(addressArrDeduplication.length)
       const optionData = [] as any
       addressArrDeduplication.slice(0, 15).map((item: any) => {
         const data = vals.data.result.filter((ele: any) => {
@@ -1424,6 +1645,14 @@ export const MyPage = () => {
         })
         optionData.push({ value: data.length, name: item })
       })
+      let NFTTotal = 0
+      addressArrDeduplication.map((item: any) => {
+        const data = vals.data.result.filter((ele: any) => {
+          return ele.name === item
+        })
+        NFTTotal = NFTTotal +data.length
+      })
+      setPolygonNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('polygonCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
       CollationChart.setOption(PieOption('Collation', optionData))
@@ -1434,6 +1663,7 @@ export const MyPage = () => {
         addressArr.push(item.name)
       })
       const addressArrDeduplication = [...new Set(addressArr)]
+      setEthColletionTotal(addressArrDeduplication.length)
       const optionData = [] as any
       addressArrDeduplication.slice(0, 15).map((item: any) => {
         const data = vals.data.result.filter((ele: any) => {
@@ -1441,6 +1671,14 @@ export const MyPage = () => {
         })
         optionData.push({ value: data.length, name: item })
       })
+      let NFTTotal = 0
+      addressArrDeduplication.map((item: any) => {
+        const data = vals.data.result.filter((ele: any) => {
+          return ele.name === item
+        })
+        NFTTotal = NFTTotal +data.length
+      })
+      setEthNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('ethCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
       CollationChart.setOption(PieOption('Collation', optionData))
@@ -2892,6 +3130,9 @@ export const MyPage = () => {
           )}
           {showTabs === 'Analysis' && PieChartData.length ? (
             <AnalysisBox>
+              <TableBox>
+                <div id="QuickPreview" className="lineChart"></div>
+              </TableBox>
               <div className="pieitem flex flex-column-between">
                 <div className="pie">
                   <div id="Chains" className="lineChart"></div>
