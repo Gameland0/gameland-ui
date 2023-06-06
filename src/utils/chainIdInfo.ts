@@ -16,6 +16,8 @@ const ChainId: Record<string, number> = {
   aurora: 1313161554,
   'Aurora Testnet': 1313161555,
   localnode: 1337,
+  ArbitrumNova: 42170,
+  ArbitrumOne: 42161,
   polygon: 137
 }
 

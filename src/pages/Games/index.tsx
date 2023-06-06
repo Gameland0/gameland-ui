@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
-import { bschttp, polygonhttp } from '../../components/Store'
-import { useActiveWeb3React, useStore } from '../../hooks'
+import { bschttp, polygonhttp, arbitrumhttp } from '../../components/Store'
+import { useActiveWeb3React, useStore, useAssetContract } from '../../hooks'
 import { useHistory } from 'react-router-dom'
 import { toastify } from '../../components/Toastify'
 import loadd from '../../assets/loading.svg'
@@ -12,9 +12,10 @@ import defaultImg from '../../assets/default.png'
 import imgBg from '../../assets/img_bg.svg'
 import followed from '../../assets/icon_followed.svg'
 import avatar1 from '../../assets/icon_avatar_1.svg'
-import avatar2 from '../../assets/icon_avatar_2.png'
 import PolygonImg from '../../assets/polygon.svg'
 import BSCImg from '../../assets/binance.svg'
+import NovaImg from '../../assets/arbitrumNova.svg'
+import OneImg from '../../assets/ArbitrumOne.png'
 
 const BgImg = styled.div`
   position: absolute;
@@ -42,10 +43,14 @@ const Sort = styled.div`
     line-height: 3.75rem;
     padding-left: 2rem;
     position: relative;
+    img {
+      max-width: 24px;
+      max-height: 24px;
+      margin-right: 10px;
+    }
   }
   .sortSelect {
     width: 18.75%;
-    height: 182px;
     background: #fff;
     box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
     border-radius: 10px;
@@ -65,6 +70,8 @@ const Sort = styled.div`
       cursor: pointer;
       z-index: 60;
       img {
+        width: 24px;
+        height: 24px;
         margin-right: 10px;
       }
     }
@@ -236,7 +243,8 @@ export const compare = () => {
   }
 }
 export const Games = () => {
-  const { account } = useActiveWeb3React()
+  const { account, library } = useActiveWeb3React()
+  const AssetContract = useAssetContract()
   const { userinfo } = useStore()
   const [gamesFilter, setGamesFilter] = useState('ALL')
   const [collection, setCollection] = useState('')
@@ -244,7 +252,6 @@ export const Games = () => {
   const [games, setGames] = useState([] as any)
   const [gameList, setGameList] = useState([] as any)
   const [review, setReviewData] = useState([] as any)
-  // const [userinfo, setUserinfo] = useState([] as any)
   const [gameFollow, setGameFollow] = useState([] as any)
   const [collectionFilterResult, setCollectionFilterResult] = useState([] as any)
   const [filterMenu, setFilterMenu] = useState(false)
@@ -257,24 +264,29 @@ export const Games = () => {
   useEffect(() => {
     const getGames = async () => {
       const bsc = bschttp.get('/v0/games')
+      const one = arbitrumhttp.get('/v0/games/find/one')
       const polygon = polygonhttp.get('/v0/games')
       const bscReview = bschttp.get('/v0/review')
       const polygonReview = polygonhttp.get('/v0/review')
-      // const userinfo = bschttp.get(`v0/userinfo`)
       const bscFollow = bschttp.get('/v0/followGames')
       const polygonFollow = polygonhttp.get('/v0/followGames')
-      Promise.all([bsc, polygon, bscReview, polygonReview, bscFollow, polygonFollow])
+      const OneFollow = arbitrumhttp.get('/v0/followGames')
+      Promise.all([bsc, polygon, bscReview, polygonReview, bscFollow, polygonFollow, one,OneFollow])
         .then((vals) => {
           if (gamesFilter === 'ALL') {
-            setGames([...vals[0].data.data, ...vals[1].data.data].sort(compare()))
-            setData([...vals[0].data.data, ...vals[1].data.data].sort(compare()))
+            setGames([...vals[0].data.data, ...vals[1].data.data,...vals[6].data.data].sort(compare()))
+            setData([...vals[0].data.data, ...vals[1].data.data,...vals[6].data.data].sort(compare()))
             setReviewData([...vals[2].data.data, ...vals[3].data.data])
-            setGameFollow([...vals[4].data.data, ...vals[5].data.data])
+            setGameFollow([...vals[4].data.data, ...vals[5].data.data,...vals[7].data.data])
           } else if (gamesFilter === 'Polygon') {
             setGames(vals[1].data.data.sort(compare()))
             setData(vals[1].data.data.sort(compare()))
             setReviewData(vals[3].data.data)
             setGameFollow(vals[5].data.data)
+          } else if (gamesFilter === 'One') {
+            setGames(vals[6].data.data.sort(compare()))
+            setData(vals[6].data.data.sort(compare()))
+            setGameFollow(vals[7].data.data)
           } else {
             setGames(vals[0].data.data.sort(compare()))
             setData(vals[0].data.data.sort(compare()))
@@ -354,8 +366,10 @@ export const Games = () => {
     let res: any
     if (item.chain === 'bsc') {
       res = await bschttp.post(`/v0/followGames`, params)
-    } else {
+    } else if (item.chain === 'polygon') {
       res = await polygonhttp.post(`/v0/followGames`, params)
+    } else {
+      res = await arbitrumhttp.post(`/v0/followGames`, params)
     }
     if (res.data.code === 1) {
       toastify.success('succeed')
@@ -435,12 +449,22 @@ export const Games = () => {
       </div>
       <Sort className="flex flex-j-end">
         <div className="filter cursor" onClick={() => setFilterMenu(!filterMenu)}>
-          <img src={gamesFilter === 'Polygon' ? PolygonImg : gamesFilter === 'ALL' ? '' : BSCImg} />
+          <img src={gamesFilter==='Polygon'? PolygonImg : gamesFilter==='One'? OneImg : gamesFilter==='ALL'? ' ' : BSCImg} />
           &nbsp;{gamesFilter}
           <img src={arrow} className="arrowIcon" />
         </div>
         {filterMenu ? (
           <div className="sortSelect">
+            <div
+              className="border-bottom"
+              onClick={() => {
+                setGamesFilter('One')
+                setFilterMenu(false)
+              }}
+            >
+              <img src={OneImg} />
+              Arbitrum One
+            </div>
             <div
               className="border-bottom"
               onClick={() => {

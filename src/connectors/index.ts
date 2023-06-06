@@ -12,6 +12,8 @@ export const supportedNetwork = [
   // ChainId.aurora,
   // ChainId['Aurora Testnet'],
   // ChainId.localnode,
+  ChainId.ArbitrumOne,
+  // ChainId.ArbitrumNova,
   ChainId.bsc
 ]
 

@@ -12,6 +12,7 @@ import ControlContractAbi from '../constants/Abis/controlContract.json'
 // import erc721Abi from '../constants/Abis/erc721.json'
 import BUSD from '../constants/Abis/busd.json'
 import ERC20 from '../constants/Abis/ERC20.json'
+import ERC721 from '../constants/Abis/erc721.json'
 import WETH from '../constants/Abis/WETH.json'
 import rewardAbi from '../constants/Abis/reward.json'
 import payment from '../constants/Abis/payment.json'
@@ -29,7 +30,12 @@ import {
   BSCPayMentAddress,
   BSCUSDT,
   PolygonPayMentAddress,
-  PolygonUSDT
+  PolygonUSDT,
+  OneControlContractAddress,
+  OneAssetContractAddress,
+  OnePayMentAddress,
+  OneRewardAddress,
+  OneUSDT
 } from '../constants'
 
 interface OpenseaData {
@@ -84,7 +90,9 @@ export function useStore() {
 export declare enum ChainId {
   ETHEREUM = 1,
   POLYGON = 137,
-  BSC = 56
+  BSC = 56,
+  ONE = 42161,
+  NOVA = 42170
 }
 
 export function useActiveWeb3React(): Web3ReactContextInterface<Web3Provider> & { chainId?: ChainId } {
@@ -186,6 +194,8 @@ export function useUSDTContract() {
     return new Contract(BSCUSDT, ERC20, library.getSigner())
   } else if (chainId === 137) {
     return new Contract(PolygonUSDT, ERC20, library.getSigner())
+  } else if (chainId === 42161) {
+    return new Contract(OneUSDT, ERC20, library.getSigner())
   }
 }
 
@@ -196,6 +206,8 @@ export function usePayMentContract() {
     return new Contract(BSCPayMentAddress, payment, library.getSigner())
   } else if (chainId === 137) {
     return new Contract(PolygonPayMentAddress, payment, library.getSigner())
+  } else if (chainId === 42161) {
+    return new Contract(OnePayMentAddress, payment, library.getSigner())
   }
 }
 
@@ -206,6 +218,8 @@ export function useAssetContract() {
     return new Contract(BSCAssetContractAddress, AssetContractAbi, library.getSigner())
   } else if (chainId === 137) {
     return new Contract(POLYGONAssetContractAddress, AssetContractAbi, library.getSigner())
+  } else if (chainId === 42161) {
+    return new Contract(OneAssetContractAddress, AssetContractAbi, library.getSigner())
   }
 }
 
@@ -216,6 +230,8 @@ export function useControlContract() {
     return new Contract(BSCControlContractAddress, ControlContractAbi, library.getSigner())
   } else if (chainId === 137) {
     return new Contract(POLYGONControlContractAddress, ControlContractAbi, library.getSigner())
+  } else if (chainId === 42161) {
+    return new Contract(OneControlContractAddress, ControlContractAbi, library.getSigner())
   }
 }
 
@@ -226,8 +242,11 @@ export function useRewardContract() {
     return new Contract(BSCRewardAddress, rewardAbi, library.getSigner())
   } else if (chainId === 137) {
     return new Contract(POLYGONRewardAddress, rewardAbi, library.getSigner())
+  } else if (chainId === 42161) {
+    return new Contract(OneRewardAddress, rewardAbi, library.getSigner())
   }
 }
+
 
 export interface ListenerOptions {
   // how often this data should be fetched, by default 1

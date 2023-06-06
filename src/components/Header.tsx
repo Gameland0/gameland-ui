@@ -3,12 +3,21 @@ import styled from 'styled-components'
 import { NavLink } from 'react-router-dom'
 import { AccountBar } from './AccountBar'
 import { ReactComponent as Logo } from '../assets/logo_BSC.svg'
+import NovaImg from '../assets/arbitrumNova.svg'
+import OneImg from '../assets/ArbitrumOne.png'
 import PolygonImg from '../assets/polygon.svg'
 import BSCImg from '../assets/binance.svg'
 import { Grid, Drawer } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
 import { useActiveWeb3React } from '../hooks'
-import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
+import {
+  POLYGON_CHAIN_ID_HEX,
+  POLYGON_RPC_URL,
+  BSC_CHAIN_ID_HEX,
+  BSC_RPC_URL,
+  ONE_CHAIN_ID,
+  ONE_RPC_URL
+} from '../constants'
 const { useBreakpoint } = Grid
 
 const HeaderBox = styled.div`
@@ -29,7 +38,6 @@ const HeaderBox = styled.div`
     .jumpButton {
       position: relative;
       display: flex;
-      padding: 8px 16px 0 8px;
       width: 142px;
       height: 40px;
       border: none;
@@ -46,7 +54,7 @@ const HeaderBox = styled.div`
         font-size: 16px;
         font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         font-weight: 700;
-        margin: -2px 0 0 6px;
+        margin: 0px 0 0 6px;
       }
       .menu {
         width: 180px;
@@ -219,6 +227,9 @@ export const Header = () => {
     } else if (chainId === 137) {
       setChainName('Polygon')
       setChainImg(PolygonImg)
+    } else if (chainId === 42161) {
+      setChainName('Arbitrum')
+      setChainImg(OneImg)
     }
   }, [chainId])
   return (
@@ -248,7 +259,7 @@ export const Header = () => {
               </Link>
             </div>
             <div className="chain">
-              <div className="jumpButton">
+              <div className="jumpButton flex-center">
                 <img src={chainImg} alt="" />
                 <div className="chainName">{chainName}</div>
                 <div className="menu">
@@ -259,6 +270,10 @@ export const Header = () => {
                   <div onClick={() => handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)}>
                     <img src={BSCImg} alt="" />
                     BNB chain
+                  </div>
+                  <div onClick={() => handleClick(ONE_CHAIN_ID, ONE_RPC_URL)}>
+                    <img src={OneImg} alt="" />
+                    Arbitrum One
                   </div>
                 </div>
               </div>

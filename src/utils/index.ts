@@ -3,7 +3,7 @@ import { JsonRpcSigner, Web3Provider } from '@ethersproject/providers'
 import { TransactionReceipt } from '@ethersproject/abstract-provider'
 import { Contract } from '@ethersproject/contracts'
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client'
-import { bschttp, polygonhttp } from '../components/Store'
+import { bschttp, polygonhttp, arbitrumhttp } from '../components/Store'
 import defaultImg from '../assets/default.png'
 
 export const NetworkContextName = 'GAMELAND'
@@ -124,6 +124,8 @@ export const ChainHttp = (chain: any) => {
     return bschttp
   } else if (chain === 137) {
     return polygonhttp
+  } else if (chain === 42161) {
+    return arbitrumhttp
   }
 }
 export const ChainCurrencyName = (chain: any, type: any) => {

@@ -1,10 +1,8 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
 import { Row, Col, Button } from 'antd'
 import * as echarts from 'echarts'
-// import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface'
 import { LoadFailed, Loadding } from '../pages/Games'
 import { divide, isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
@@ -13,7 +11,14 @@ import axios from 'axios'
 import { useLocation, useParams } from 'react-router-dom'
 import { hashMessage } from 'ethers/lib/utils'
 import styled from 'styled-components'
-import { POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL, BSC_CHAIN_ID_HEX, BSC_RPC_URL } from '../constants'
+import {
+  POLYGON_CHAIN_ID_HEX,
+  POLYGON_RPC_URL,
+  BSC_CHAIN_ID_HEX,
+  BSC_RPC_URL,
+  ONE_CHAIN_ID,
+  ONE_RPC_URL
+} from '../constants'
 import {
   useActiveWeb3React,
   useStore,
@@ -44,10 +49,11 @@ import {
   POLYGONAssetContractAddress,
   BSCControlContractAddress,
   POLYGONControlContractAddress,
-  OPENSEA_URL
+  OPENSEA_URL,
+  OneControlContractAddress,
+  OneAssetContractAddress
 } from '../constants'
 import { toastify } from './Toastify'
-// import { Operate } from './RentCard'
 import { Img } from './Img'
 import { Dialog } from '../components/Dialog'
 import { Modal } from '../components/Modal'
@@ -60,7 +66,7 @@ import { NumInput } from '../components/NumInput'
 import { NFTStatsMadal } from './NFTStatsMadal'
 import { ScoreStatistics } from './ScoreStatistics'
 import { Icon } from '../components/Icon'
-import { bschttp, polygonhttp, http } from './Store'
+import { bschttp, polygonhttp, http, arbitrumhttp } from './Store'
 import { Close } from './UserPage'
 import { ImgBox, Title, SpanLabel, Tips, Properties, StatsBox, Description, FakeButton, Details } from '../pages/Rent'
 import { ExposeBox, ArticleBox } from './Expose'
@@ -70,7 +76,6 @@ import discord from '../assets/icon_discord.svg'
 import Telegram from '../assets/Telegram.png'
 import loadding from '../assets/loading.svg'
 import website from '../assets/icon_globe.svg'
-// import add from '../assets/icon_add.png'
 import defaultImg from '../assets/default.png'
 import defaultStar from '../assets/icon_review_star_default.svg'
 import scoreStar from '../assets/icon_score_star.svg'
@@ -87,6 +92,7 @@ import WETHIcon from '../assets/WETH.svg'
 import shortbutton from '../assets/short_button.jpg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
+import ERC1155 from '../constants/Abis/1155abi.json'
 import { MyTabs, PieOption, TabPaneBox } from './MyPage'
 
 const DetailsBox = styled.div`
@@ -973,6 +979,10 @@ const ApproveTable = styled.div`
 `
 const AnalysisBox = styled.div`
   margin-top: 24px;
+  .pieTitle {
+    font-size: 16px;
+    font-weight: bold;
+  }
   .echartsPie {
     width: 96%;
     margin: auto;
@@ -1007,7 +1017,7 @@ const AnalysisBox = styled.div`
     @media screen and (min-width: 1440px) {
       .pieItem {
         width: 400px;
-        height: 290px;
+        height: 320px;
         .pie {
           width: 390px;
           height: 270px;
@@ -1017,7 +1027,7 @@ const AnalysisBox = styled.div`
     @media screen and (min-width: 1920px) {
       .pieItem {
         width: 480px;
-        height: 300px;
+        height: 330px;
         .pie {
           width: 470px;
           height: 280px;
@@ -1218,13 +1228,19 @@ export const Card: React.FC<CardProps> = ({
     onSend && onSend()
   }
   const src = img?.slice(-4)
+  const _img = useMemo(() => {
+    if (img?.startsWith('ipfs')) {
+      return 'https://nftstorage.link/ipfs/' + img.substring(7)
+    }
+    return img
+  }, [img])
   return (
     <CardBox className="flex flex-column" have={have} isLending={isLending} onClick={isLending ? handleClick : Click}>
       <div className="contractType flex flex-center Chinese-Regular">#{contract_type}</div>
       {src === '.mp4' || src === 'webm' ? (
         <video width="238" height="238" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
-        <img className="contractImg" src={img} alt={name} onError={handleImgError} />
+        <img className="contractImg" src={_img} alt={name} onError={handleImgError} />
       )}
       <div className="name Abbreviation Chinese-Bold">{name}</div>
       {isLending ? (
@@ -1429,7 +1445,7 @@ const calculateAverage = (data: any, activeUser: any) => {
 
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
-  const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
+  // const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
   const ERC20Contract = useERC20Contract()
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
@@ -1448,7 +1464,7 @@ export const CollectionDetails = () => {
   const [userLikeInfo, setuserLikeInfo] = useState([] as any)
   const [collectionDetails, setcollectionDetails] = useState([] as any)
   const [rewardinfo, setrewardinfo] = useState([] as any)
-  const [userinfoAll, setuserinfoAll] = useState([] as any)
+  const [userinfoAll] = useState(useStore().userinfo)
   const [myNFTdata, setMyNFTdata] = useState([] as any)
   const [RareAttribute, setRareAttribute] = useState([] as any)
   const [SpecificAttribute, setSpecificAttribute] = useState([] as any)
@@ -1510,8 +1526,8 @@ export const CollectionDetails = () => {
   const [NFTStatsMadalType, setNFTStatsMadalType] = useState('')
   const [collateral, setCollateral] = useState('')
   const [newUserName, setNewUserName] = useState('')
-  const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
-  const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
+  const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' :chainId === 42161 ? 'ONE' : 'MATIC')
+  const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' :chainId === 42161 ? 'ONE' : 'MATIC')
   const [tap, setTab] = useState('NFT')
   const [transactionsType, setTransactionsType] = useState('All')
   const [transactionsTypeRatio, setTransactionsTypeRatio] = useState('NFT')
@@ -1552,6 +1568,11 @@ export const CollectionDetails = () => {
     AssetContractAddress = POLYGONAssetContractAddress
     ControlContractAddress = POLYGONControlContractAddress
     contracts = PolygonContract
+  } else if (chain === 'one') {
+    http2 = arbitrumhttp
+    AssetContractAddress = OneAssetContractAddress
+    ControlContractAddress = OneControlContractAddress
+    contracts = ['0x990eb28e378659b93a29d46ff41f08dc6316dd98']
   }
   const fetchMetadata = (data: any[]) => {
     if (!data || !data.length) {
@@ -1584,10 +1605,10 @@ export const CollectionDetails = () => {
     if (!account) return
     http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
     const myNft = http.get(`
-      https://deep-index.moralis.io/api/v2/${account}/nft?chain=${chain}&format=decimal&token_addresses=${address}
+      https://deep-index.moralis.io/api/v2/${account}/nft?chain=${chain==='one'?'arbitrum':chain}&format=decimal&token_addresses=${address}
     `)
     const nftCollection = http.get(`
-      https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain}&format=decimal&limit=30
+      https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain==='one'?'arbitrum':chain}&format=decimal&limit=30
     `)
     const rantData = http2.get(`v0/opensea/${address}`)
     const Details = await http2.get(`v0/games/${address}`)
@@ -1666,8 +1687,8 @@ export const CollectionDetails = () => {
         const collectionreviewe = http2.get(`/v0/review/collection/${address}`)
         const userlike = http2.get(`/v0/review_like/${account}`)
         const Rewardinfo = http2.get(`/v0/review_reward`)
-        const userAll = bschttp.get(`v0/userinfo`)
-        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo, userAll])
+        // const userAll = bschttp.get(`v0/userinfo`)
+        Promise.all([userscore, collectionScore, collectionreviewe, userlike, Rewardinfo])
           .then((vals) => {
             setUserScoreinfo(vals[0].data.data)
             setCollectionScoreinfo(vals[1].data.data)
@@ -1683,7 +1704,6 @@ export const CollectionDetails = () => {
             setrevieweinfo(reviewData.sort(compareTime()))
             setuserLikeInfo(vals[3].data.data)
             setrewardinfo(vals[4].data.data)
-            setuserinfoAll(vals[5].data.data)
             setLending(false)
           })
           .catch(() => {
@@ -1698,6 +1718,8 @@ export const CollectionDetails = () => {
       handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
     } else if (rewardSelection === 'MATIC') {
       handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
+    } else if (rewardSelection === 'ONE') {
+      handleClick(ONE_CHAIN_ID,ONE_RPC_URL)
     }
   }, [rewardSelection])
   const total = useMemo(() => {
@@ -1912,8 +1934,8 @@ export const CollectionDetails = () => {
     }
   }
   const getCollectionTransaction = async () => {
-    const res = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}`)
-    const res2 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${2}`)
+    const res = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain==='one'? 'arbitrum' :chain}&tokenContractAddress=${address}`)
+    const res2 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain==='one'? 'arbitrum' :chain}&tokenContractAddress=${address}&page=${2}`)
     Promise.all([res, res2]).then((vals) => {
       const dataAll = [...vals[0].data.data[0].transactionLists, ...vals[1].data.data[0].transactionLists]
       setThisWeekActive(dataAll)
@@ -1940,10 +1962,6 @@ export const CollectionDetails = () => {
         seriesData.push(addressDeduplicationData.length)
       })
       const options = {
-        title: {
-          text: 'DAU',
-          left: 'center'
-        },
         tooltip: {
           trigger: 'axis' as any
         },
@@ -1974,7 +1992,7 @@ export const CollectionDetails = () => {
       }
     })
     try {
-      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain}&format=decimal&limit=10`)
+      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain==='one'?'arbitrum':chain}&format=decimal&limit=10`)
       setNFTTransfersData(data.result)
       setCursor(data.cursor)
     } catch (error) {
@@ -2001,27 +2019,31 @@ export const CollectionDetails = () => {
     return 0
   }
   const getHoldRankingData = async () => {
-    const NFThold= await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${address}`)
+    const NFThold= await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain==='one'? 'arbitrum' :chain}&tokenContractAddress=${address}`)
     const list = NFThold.data.data[0].positionList.slice(0, 15)
     const NFTHoldRatioData = [] as any
     //amount  holderAddress
     let NFTother = 100
+    let NFTtotal = 0
+    NFThold.data.data[0].positionList.map((item: any) => {
+      NFTtotal = NFTtotal+item.amount*1
+    })
     list.map((item: any) => {
-      const ratio = new BigNumber(item.amount).div(holdNFTtotal).toNumber().toFixed(2)
+      const ratio = new BigNumber(item.amount).div(NFTtotal).toNumber().toFixed(2)
       NFTHoldRatioData.push({
         value: new BigNumber(ratio).multipliedBy(100).toNumber(),
         name: formatting(item.holderAddress)
       })
       NFTother = NFTother - new BigNumber(ratio).multipliedBy(100).toNumber()
     })
-    NFTHoldRatioData.push({ value: NFTother, name: 'Other'})
+    NFTHoldRatioData.push({ value: NFTother*1, name: 'Other'})
     const NFTdom = document.getElementById('NFTHoldRatio') as HTMLDivElement
     const NFTChart = echarts.init(NFTdom)
-    NFTChart.setOption(PieOption('NFT Hold(%)', NFTHoldRatioData, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().toISOString().substr(0, 10)}`))
+    NFTChart.setOption(PieOption('', NFTHoldRatioData, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().toISOString().substr(0, 10)}`))
     const token = GameTokenDetails.filter((item: any) => {
       return item.NFTaddress === address
     })
-    const tokenhold= await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain}&tokenContractAddress=${token[0]?.tokenAddress[0]}`)
+    const tokenhold= await polygonhttp.get(`v0/oklink/tokenPositionList?chainShortName=${chain==='one'? 'arbitrum' :chain}&tokenContractAddress=${token[0]?.tokenAddress[0]}`)
     const toeknList = tokenhold.data.data[0].positionList.slice(0, 15)
     setTokenHoldData(toeknList)
     const tokenHoldRatioData = [] as any
@@ -2037,10 +2059,10 @@ export const CollectionDetails = () => {
     tokenHoldRatioData.push({ value: tokenOther, name: 'Other'})
     const Tokensdom = document.getElementById('TokenHoldRatio') as HTMLDivElement
     const TokensChart = echarts.init(Tokensdom)
-    TokensChart.setOption(PieOption('Tokens Hold(%)', tokenHoldRatioData, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().toISOString().substr(0, 10)}`))
+    TokensChart.setOption(PieOption('', tokenHoldRatioData, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().toISOString().substr(0, 10)}`))
   }
   const contractDetection = async () => {
-    const id = chain === 'bsc' ? 56 : 137
+    const id = chain === 'bsc' ? 56 :chain === 'polygon' ? 137 : 42161
     const collectionData = await http(`https://api.gopluslabs.io/api/v1/token_security/${id}?contract_addresses=${address}`)
     const collectionholders = Object.values(collectionData.data.result)[0] as any
     setCollectionRiskData(collectionholders)
@@ -2107,7 +2129,7 @@ export const CollectionDetails = () => {
       }
       const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
       const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(PieOption('Tokens Transaction(%)', Tokensdata, '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-05-04'))
+      TokensChart.setOption(PieOption('', Tokensdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
     }
   }
   const setNFTpie = () => {
@@ -2162,7 +2184,7 @@ export const CollectionDetails = () => {
       }
       const NFTdom = document.getElementById('NFT') as HTMLDivElement
       const NFTChart = echarts.init(NFTdom)
-      NFTChart.setOption(PieOption('NFT Transaction(%)', NFTdata, '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-05-04'))
+      NFTChart.setOption(PieOption('', NFTdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
     }
   }
   const setBotratioPie = () => {
@@ -2186,7 +2208,7 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('Botratio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('Player Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}\n\n\n\n\n\n\n\n\n\n2023-05-04`))
+    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
   }
   const setBotTransactionRatioPie = () => {
     let bot = 0
@@ -2212,24 +2234,26 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('Player Transaction Proportion(%)', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}\n\n\n\n\n\n\n\n\n\n2023-05-04`))
+    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
   }
-  const setRetentionRateColumnChart = () => {
-    const res3 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${3}`)
-    const res4 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${4}`)
-    const res5 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${5}`)
-    const res6 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${6}`)
-    const res7 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${7}`)
-    const res8 = polygonhttp.get(`v0/oklink/transactionList?chainShortName=${chain}&tokenContractAddress=${address}&page=${8}`)
-    Promise.all([res3,res4,res5,res6,res7,res8]).then((vals) => {
+  const setRetentionRateColumnChart = async () => {
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        'X-API-Key': MORALIS_KEY
+      }
+    })
+    const res3 = await getdata.get(`https://deep-index.moralis.io/api/v2/${address}?chain=${chain==='one'?'arbitrum':chain}`)
+    const res4 = await getdata.get(`https://deep-index.moralis.io/api/v2/${address}?chain=${chain==='one'?'arbitrum':chain}&cursor=${res3.data.cursor}`)
+    const res5 = await getdata.get(`https://deep-index.moralis.io/api/v2/${address}?chain=${chain==='one'?'arbitrum':chain}&cursor=${res4.data.cursor}`)
+    const res6 = await getdata.get(`https://deep-index.moralis.io/api/v2/${address}?chain=${chain==='one'?'arbitrum':chain}&cursor=${res5.data.cursor}`)
+    const res7 = await getdata.get(`https://deep-index.moralis.io/api/v2/${address}?chain=${chain==='one'?'arbitrum':chain}&cursor=${res6.data.cursor}`)
       const dataAll = [
-        ...thisWeekActive,
-        ...vals[0].data.data[0].transactionLists,
-        ...vals[1].data.data[0].transactionLists,
-        ...vals[2].data.data[0].transactionLists,
-        ...vals[3].data.data[0].transactionLists,
-        ...vals[4].data.data[0].transactionLists,
-        ...vals[5].data.data[0].transactionLists
+        ...res3.data.result,
+        ...res4.data.result,
+        ...res5.data.result,
+        ...res6.data.result,
+        ...res7.data.result
       ]
       const week = new Date().getUTCDay()
       const day = new Date().getDate()
@@ -2254,53 +2278,53 @@ export const CollectionDetails = () => {
       const week5ActiveUser = [] as any
       const week6ActiveUser = [] as any
       dataAll.map((item: any) => {
-        const time = item.transactionTime
+        const time = new Date(item.block_timestamp).getTime()
         if (time > thisWeekTime && time < thisWeekTime + 604800000) {
           const data = thisWeekActiveUser.filter((ele: any) => {
-            return ele === item.from
+            return ele === item.from_address
           })
           if (data.length === 0) {
-            thisWeekActiveUser.push(item.from)
+            thisWeekActiveUser.push(item.from_address)
           }
         }
         if (time < thisWeekTime && time > thisWeekTime - 604800000) {
           const data = week2ActiveUser.filter((ele: any) => {
-            return ele === item.from
+            return ele === item.from_address
           })
           if (data.length === 0) {
-            week2ActiveUser.push(item.from)
+            week2ActiveUser.push(item.from_address)
           }
         }
         if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
           const data = week3ActiveUser.filter((ele: any) => {
-            return ele === item.from
+            return ele === item.from_address
           })
           if (data.length === 0) {
-            week3ActiveUser.push(item.from)
+            week3ActiveUser.push(item.from_address)
           }
         }
         if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
           const data = week4ActiveUser.filter((ele: any) => {
-            return ele === item.from
+            return ele === item.from_address
           })
           if (data.length === 0) {
-            week4ActiveUser.push(item.from)
+            week4ActiveUser.push(item.from_address)
           }
         }
         if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
           const data = week5ActiveUser.filter((ele: any) => {
-            return ele === item.from
+            return ele === item.from_address
           })
           if (data.length === 0) {
-            week5ActiveUser.push(item.from)
+            week5ActiveUser.push(item.from_address)
           }
         }
         if (time < thisWeekTime - 604800000*4 && time > thisWeekTime - 604800000 * 5) {
           const data = week6ActiveUser.filter((ele: any) => {
-            return ele === item.from
+            return ele === item.from_address
           })
           if (data.length === 0) {
-            week6ActiveUser.push(item.from)
+            week6ActiveUser.push(item.from_address)
           }
         }
       })
@@ -2365,7 +2389,6 @@ export const CollectionDetails = () => {
       const RetentionDom = document.getElementById('retentionRate') as HTMLDivElement
       const RetentionChart = echarts.init(RetentionDom)
       RetentionChart.setOption(option)
-    })
   }
   const setAverageRewardChart = () => {
     const week = new Date().getUTCDay()
@@ -2443,7 +2466,6 @@ export const CollectionDetails = () => {
     const tokeninfo = GameTokenDetails.filter((item: any) => {
       return item.NFTaddress?.toLowerCase() === address?.toLowerCase()
     })
-    const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
     const approveData = [] as any
     const claimData = [] as any
     userActionData.map((item: any) => {
@@ -2629,6 +2651,12 @@ export const CollectionDetails = () => {
       } else {
         handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
       }
+    } else if (chain === 'one') {
+      if (chainId === 42161) {
+        setlendVisible(true)
+      } else {
+        handleClick(ONE_CHAIN_ID, ONE_RPC_URL)
+      }
     }
     setExpired(false)
     setAwaiting(true)
@@ -2643,7 +2671,7 @@ export const CollectionDetails = () => {
       }
     }
     const ABI =
-      storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain + 'scan')
+      chain === 'one'? ERC1155 : storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi: await fetchAbi(contractAddress, chain==='one'?'arbiscan' : chain+'scan')
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
@@ -2700,7 +2728,7 @@ export const CollectionDetails = () => {
       chainscan = 'polygonscan'
     }
     const ABI =
-      storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chainscan)
+      chain === 'one'? ERC1155 :storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chainscan)
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
@@ -2755,7 +2783,7 @@ export const CollectionDetails = () => {
       const PenaltyProportion = new BigNumber(penalty as unknown as string).times(new BigNumber('0.01'))
       const amount = Collateral.plus(cost)
       let type
-      if (currentSelection === 'BNB' || currentSelection === 'MATIC') {
+      if (currentSelection === 'BNB' || currentSelection === 'MATIC' || currentSelection === 'ONE') {
         type = 'eth'
       } else {
         type = 'usdt'
@@ -2808,7 +2836,6 @@ export const CollectionDetails = () => {
         setCollateral('')
         setdays('')
         setVisible(false)
-        mutateMyNfts(undefined, true)
         location.reload()
       } else {
         throw res.message || res.data.message
@@ -3062,6 +3089,12 @@ export const CollectionDetails = () => {
       } else {
         handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
       }
+    } else if (chain === 'one') {
+      if (chainId === 42161) {
+        setVisible(true)
+      } else {
+        handleClick(ONE_CHAIN_ID, ONE_RPC_URL)
+      }
     }
     if (!AssetContract) {
       toastify.error('Contract not found, please connect wallet.')
@@ -3190,6 +3223,7 @@ export const CollectionDetails = () => {
         setRenting(false)
         toastify.success('succeed')
         setVisible(false)
+        setrentPrompt(false)
       } else {
         throw res.message || res.data.message
       }
@@ -3337,7 +3371,7 @@ export const CollectionDetails = () => {
     setLoading(true)
     setclickStatus(true)
     const nftCollection = await http.get(`
-      https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain}&format=decimal&limit=30&cursor=${nextCursor}
+      https://deep-index.moralis.io/api/v2/nft/${address}?chain=${chain==='one'?'arbitrum':chain}&format=decimal&limit=30&cursor=${nextCursor}
     `)
     const data = fetchMetadata(nftCollection.data.result)
     Promise.all(data).then((vals) => {
@@ -3402,7 +3436,7 @@ export const CollectionDetails = () => {
       }
     })
     try {
-      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain}&format=decimal&limit=10&cursor=${cursor}`)
+      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain==='one'?'arbitrum':chain}&format=decimal&limit=10&cursor=${cursor}`)
       setNFTTransfersData(data.result)
       setCursor(data.cursor)
     } catch (error) {
@@ -3792,6 +3826,16 @@ export const CollectionDetails = () => {
                 <img src={polygonIcon} className="icon" />
                 MATIC
               </div>
+              <div
+                onClick={() => {
+                  setrewardSelection('ONE')
+                  setrewardoptions(false)
+                }}
+                className="flex flex-v-center"
+              >
+                <img src={polygonIcon} className="icon" />
+                arbitrum One
+              </div>
             </div>
           ) : (
             ''
@@ -3946,8 +3990,13 @@ export const CollectionDetails = () => {
                           {transactionsTypeRatio === 'Token' ? <img src={shortbutton} /> : ''}
                         </div>
                       </div>
-                      <div id="NFT" className={transactionsTypeRatio === 'NFT' ? 'pie' : 'pie none'}></div>
-                      <div id="Tokens" className={transactionsTypeRatio === 'Token' ? 'pie' : 'pie none'}></div>
+                      <div className="pieTitle text-center">{transactionsTypeRatio === 'NFT' ?'NFT Transaction(%)':'Tokens Transaction(%)'}</div>
+                      <div id="NFT" className={transactionsTypeRatio === 'NFT' ? 'pie' : 'pie none'}>
+                        <div className="text-center">No Data</div>
+                      </div>
+                      <div id="Tokens" className={transactionsTypeRatio === 'Token' ? 'pie' : 'pie none'}>
+                        <div className="text-center">No Data</div>
+                      </div>
                     </div>
                     <div className="pieItem">
                       <div className='Tab flex'>
@@ -3960,31 +4009,53 @@ export const CollectionDetails = () => {
                           {holdersRatio === 'Token' ? <img src={shortbutton} /> : ''}
                         </div>
                       </div>
-                      <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}></div>
-                      <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}></div>
+                      <div className="pieTitle text-center">{holdersRatio === 'NFT' ?'NFT Hold(%)':'Tokens Hold(%)'}</div>
+                      <div id="NFTHoldRatio" className={holdersRatio === 'NFT' ? 'pie' : 'pie none'}>
+                        <div className="text-center">No Data</div>
+                      </div>
+                      <div id="TokenHoldRatio" className={holdersRatio === 'Token' ? 'pie' : 'pie none'}>
+                        <div className="text-center">No Data</div>
+                      </div>
                       {/* <div className="chartTime">{new Date().toISOString().substr(0, 10)}</div> */}
                     </div>
                   </div>
                   <div className="flex flex-column-between">
                     <div className="pieItem">
-                      <div id="Botratio" className="pie"></div>
+                      <div className="pieTitle text-center">Player Proportion(%)</div>
+                      <div id="Botratio" className="pie">
+                        <div className="text-center">No Data</div>
+                      </div>
                     </div>
                     <div className="pieItem">
-                      <div id="BotTransactionRatio" className="pie"></div>
+                    <div className="pieTitle text-center">Player Transaction Proportion(%)</div>
+                      <div id="BotTransactionRatio" className="pie">
+                        <div className="text-center">No Data</div>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <ApproveTable>
-                  <div id="retentionRate"></div>
+                  <div id="retentionRate">
+                    <div className="text-center pieTitle">Retention Rate</div>
+                    <div className="text-center">No Data</div>
+                  </div>
                 </ApproveTable>
                 <ApproveTable>
-                  <div id="interactionsPerDay"></div>
+                  <div className="pieTitle text-center">DAU</div>
+                  <div id="interactionsPerDay">
+                    <div className="text-center">No Data</div>
+                  </div>
                 </ApproveTable>
                 <ApproveTable>
-                  <div id="AverageReward">Average Reward</div>
+                  <div id="AverageReward">
+                    <div className="text-center">No Data</div>
+                  </div>
                 </ApproveTable>
                 <ApproveTable>
-                  <div id="AverageAction"></div>
+                  <div id="AverageAction">
+                    <div className="text-center pieTitle">Average Action</div>
+                    <div className="text-center">No Data</div>
+                  </div>
                 </ApproveTable>
                 <ApproveTable>
                   <div className="title">Most Active Users</div>

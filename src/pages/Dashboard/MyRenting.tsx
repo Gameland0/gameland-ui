@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useControlContract, useActiveWeb3React, useAssetContract, useMyRenting, useStore } from '../../hooks'
 import { Row, Col, Button } from 'antd'
+import { lowerCase } from 'lower-case'
 import { RentingCard } from '../../components/RentingCard'
 import { Nft as NftCard } from '../../components/Nft'
 import { Modal } from '../../components/Modal'
@@ -15,8 +16,9 @@ import { Empty } from '../../components/Empty'
 // import { lowerCase } from 'lower-case'
 import { fetchAbi, getContract } from '.'
 import { ABIs } from '../../constants/Abis/ABIs'
+import ERC1155 from '../../constants/Abis/1155abi.json'
 import { Icon } from '../../components/Icon'
-import { BSCAssetContractAddress, POLYGONAssetContractAddress } from '../../constants'
+import { BSCAssetContractAddress, POLYGONAssetContractAddress, OneAssetContractAddress } from '../../constants'
 // import { hashMessage } from 'ethers/lib/utils'
 
 export const MyRenting = () => {
@@ -36,6 +38,8 @@ export const MyRenting = () => {
     AssetContractAddress = BSCAssetContractAddress
   } else if (chainId === 137) {
     AssetContractAddress = POLYGONAssetContractAddress
+  } else if (chainId === 42161) {
+    AssetContractAddress = OneAssetContractAddress
   }
   const total = useMemo(() => {
     if (isEmpty(currentItem)) {
@@ -63,7 +67,7 @@ export const MyRenting = () => {
     } else if (chainId === 137) {
       chain = 'polygonscan'
     }
-    const ABI = storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain)
+    const ABI = chainId === 42161? ERC1155 : storedAbi && storedAbi.length ? storedAbi : localAbi ? localAbi : await fetchAbi(contractAddress, chain)
     const nftContract = getContract(library, contractAddress, ABI)
     item.contract = nftContract
     setCurrentItem(item)
@@ -78,12 +82,24 @@ export const MyRenting = () => {
 
     if (nftContract) {
       try {
-        const approveAddress = await nftContract.getApproved(item.nftId)
-        // console.log(approveAddress, BSCAssetContractAddress)
-        if (approveAddress === AssetContractAddress) {
-          setIsApproved(true)
-        } else {
-          setIsApproved(false)
+        // const approveAddress = await nftContract?.getApproved(item.nftId)
+        // if (approveAddress === AssetContractAddress) {
+        //   setIsApproved(true)
+        // } else {
+        //   setIsApproved(false)
+        // }
+        if (item.contract_type === 'ERC721' && nftContract?.getApproved) {
+          const approveAddress = await nftContract?.getApproved(item.token_id)
+          if (lowerCase(approveAddress) === lowerCase(AssetContractAddress as string)) {
+            setIsApproved(true)
+          } else {
+            setIsApproved(false)
+          }
+        } else if (!!nftContract?.isApprovedForAll) {
+          // check ERC1155 approve
+          const isApproved = await nftContract?.isApprovedForAll(AssetContractAddress, account)
+
+          isApproved ? setIsApproved(true) : setIsApproved(false)
         }
       } catch (err: any) {
         console.log(err.message)
@@ -248,7 +264,7 @@ export const MyRenting = () => {
       <Row gutter={[20, 20]}>
         {myRenting.length ? (
           myRenting.map((item: any) => (
-            <Col span="6" xl={6} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
+            <Col span="4" xl={8} md={8} sm={12} xs={24} key={item.id} onClick={() => handleNftClick(item)}>
               <RentingCard
                 name={item.metadata.name}
                 price={item.price}

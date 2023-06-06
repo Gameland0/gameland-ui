@@ -82,6 +82,7 @@ import WAL from '../assets/wal.png'
 import CAC from '../assets/cac.png'
 import MIT from '../assets/mit.png'
 import moj from '../assets/moj.jpg'
+import MAGIC from '../assets/MAGIC.jpg'
 
 export const SECOND = 1000
 export const MINUTE = 60 * SECOND
@@ -93,8 +94,7 @@ export const OPENSEA_API_KEY = 'f5b8f957f34a40548ed97bd5b41bf761'
 
 export const MORALIS_KEY = 'xXnq9dJMxd0VrXQ08mHhJpOIaKSHVq37LJ8OWdhxlSoObQeCeDwWGOH2iOD99Ayu'
 export const MORALIS_API = 'https://deep-index.moralis.io/api/v2'
-export const BSCPayMentAddress = '0xB92Daa7e07C211F0B450F416EF444CE10a555196'
-export const PolygonPayMentAddress = '0x881cF83a01278180E0696FC9DDa5a2360d82B879'
+
 export const BSCUSDT = '0x55d398326f99059fF775485246999027B3197955'
 export const PolygonUSDT = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
 
@@ -106,6 +106,7 @@ export const POLYGONControlContractAddress = '0x81486D24FC4755534bABF19601475342
 export const POLYGONAssetContractAddress = '0x4d57cBfFacc67F04605e13a1Eb9A1E69F9EDDBE8'
 export const POLYGONRewardAddress = '0xC96EB0B6eFA40c369bC15e46b77eAcb01e1E8818'
 export const WETHaddress = '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619'
+export const PolygonPayMentAddress = '0x881cF83a01278180E0696FC9DDa5a2360d82B879'
 export const PolygonContract = [
   '0x94e42811db93ef7831595b6ff9360491b987dfbd',
   '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
@@ -159,6 +160,7 @@ export const BSCControlContractAddress = '0xf0Bccbd3516e655d2EBA7836EAF78108a306
 export const BSCAssetContractAddress = '0x0B7b14E00017a6f46E180086Ffce54b1a5FC7dDc'
 export const BSCRewardAddress = '0xed5efe8ae7C2C59edBfeE3775835fADF7A76d83b'
 export const BUSDAddress = '0xe9e7cea3dedca5984780bafc599bd69add087d56'
+export const BSCPayMentAddress = '0xB92Daa7e07C211F0B450F416EF444CE10a555196'
 export const BscContract = [
   '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
   '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
@@ -212,7 +214,27 @@ export const BscContract = [
   '0xdb30af2eb9fe7dc842988e5895d44e4070109ac8'
 ]
 
+export const NovaControlContractAddress = '0xFbDc9a18AFA91Eb03B03FCfDA3269DD394f60bd8'
+export const NovaAssetContractAddress = '0xA9b9c7578354272e5677D94AEa425c36b647B427'
+export const NOVA_CHAIN_ID = '0xa4ba'
+export const NOVA_RPC_URL = 'https://nova.arbitrum.io/rpc'
+
+export const OneControlContractAddress = '0xFbDc9a18AFA91Eb03B03FCfDA3269DD394f60bd8'
+export const OneAssetContractAddress = '0xA9b9c7578354272e5677D94AEa425c36b647B427'
+export const OneRewardAddress = '0xc3f30DFFaeFDF540c2e66477c875824ab8bA584C'
+export const OnePayMentAddress = '0xDc0cca7521129cC85629be12a191a74Cbd59d340'
+export const OneUSDT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'
+export const ONE_API_KEY = 'PIXPBZ6T75MXJJ4QAR48MK4ZNP1YQYGYHM'
+export const ONE_CHAIN_ID = '0xa4b1'
+export const ONE_RPC_URL = 'https://arb1.arbitrum.io/rpc'
+
 export const GameTokenDetails = [
+  {
+    NFTaddress: '0x990eb28e378659b93a29d46ff41f08dc6316dd98',
+    tokenAddress: ['0x539bdE0d7Dbd336b79148AA742883198BBF60342'],
+    symbol: [MAGIC],
+    chain: 'bsc'
+  },
   {
     NFTaddress: '0xdb30af2eb9fe7dc842988e5895d44e4070109ac8',
     tokenAddress: ['0xd4c73fd18f732bc6ee9fb193d109b2eed815df80', '0x2290c6bd9560e6498dfdf10f9ecb17997ca131f2'],

@@ -16,7 +16,8 @@ import {
   BSCSCAN_KEY,
   POLYGONSCAN_KEY,
   BSCPayMentAddress,
-  PolygonPayMentAddress
+  PolygonPayMentAddress,
+  OnePayMentAddress
 } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
@@ -950,7 +951,7 @@ export const UserPage = () => {
     timeout: 20000,
     logging: false
   })
-  const tokenTotal = useMemo(() => {
+  const tokenTotal= useMemo(() => {
     if (bscTokenTotal>=0 && ethTokenTotal>=0 && polygonTokenTotal>=0) {
       const total = bscTokenTotal + ethTokenTotal + polygonTokenTotal
       return total.toFixed(2)
@@ -982,7 +983,7 @@ export const UserPage = () => {
     userAccesses()
   }, [useraddress, account])
   useEffect(() => {
-    if (tokenTotal>=0&&NFTTotal>=0&&colletionTotal>=0) {
+    if ((tokenTotal as number)>=0&&NFTTotal>=0&&colletionTotal>=0) {
       QuickPreviews()
     }
   }, [useraddress, account, tokenTotal, NFTTotal,colletionTotal])
@@ -1431,6 +1432,10 @@ export const UserPage = () => {
         target: findAddressIndex(Array.from(new Set(addressArr)), item.address_to),
         value: `${item.type === 'transfer' || item.type === 'burn'
           ? (item.type +' '+(item.actions[0].metadata.value_display * 1).toFixed(2)+' '+item.actions[0].metadata.symbol) || formatting(item.actions[0].metadata.id)
+          : item.type === 'mint'
+          ? item.type+'  '+ item.actions[0].metadata.name
+          : item.type === 'swap'
+          ? (item.actions[0].metadata.from.value_display * 1).toFixed(2)+item.actions[0].metadata.from.symbol+' '+item.type+' '+(item.actions[0].metadata.to.value_display * 1).toFixed(2)+item.actions[0].metadata.to.symbol
           : item.type}`,
         lineStyle: {
           color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), item.address_to)]
@@ -1509,7 +1514,7 @@ export const UserPage = () => {
     })
   }
   const Payment = async () => {
-    const chain = chainId === 56 ? 'BNB' : 'Polygon'
+    const chain = chainId === 56 ? 'BNB' : chainId === 137 ? 'Polygon' : 'ONE'
     if (userPayInfo.length && userPayInfo[0]?.chain !== chain) {
       setShowCutChain(true)
       return
@@ -1525,6 +1530,9 @@ export const UserPage = () => {
       if (chainId === 137) {
         amount = '2000000'
       }
+      if (chainId === 42161) {
+        amount = '2000000'
+      }
     }
     let ContractAddress
     if (chainId === 56) {
@@ -1532,6 +1540,9 @@ export const UserPage = () => {
     }
     if (chainId === 137) {
       ContractAddress = PolygonPayMentAddress
+    }
+    if (chainId === 42161) {
+      ContractAddress = OnePayMentAddress
     }
     const approvetx = await USDTContract?.approve(ContractAddress, amount)
     const approvereceipt = await fetchReceipt(approvetx.hash, library)
@@ -1544,7 +1555,7 @@ export const UserPage = () => {
     if (!status) {
       throw Error('Failed to rent.')
     } else {
-      const value = chainId === 137 ? amount / 1000000 : amount / (1000000000000000000)
+      const value = chainId === 137 || chainId === 42161 ? amount / 1000000 : amount / (1000000000000000000)
       const parm = {
         userAddress: account,
         buyAddress: useraddress,

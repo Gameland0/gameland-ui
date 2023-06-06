@@ -1075,7 +1075,7 @@ export const RelationChartOption = (title: string,optionData: any, linkData: any
       {
         name: 'Les Miserables',
         type: 'graph',
-        layout: 'circular',
+        layout: 'force',
         symbolSize: 45,
         focusNodeAdjacency: true,
         roam: true,
@@ -1287,7 +1287,7 @@ export const MyPage = () => {
     }
   }, [interactAll, showTabs])
   useEffect(() => {
-    if (tokenTotal>=0&&NFTTotal>=0&&colletionTotal>=0) {
+    if ((tokenTotal as number)>=0&&NFTTotal>=0&&colletionTotal>=0) {
       QuickPreviews()
     }
   }, [account, tokenTotal, NFTTotal,colletionTotal])
@@ -1693,6 +1693,9 @@ export const MyPage = () => {
     if (chainId === 137) {
       amount = payMentAmount + '000000'
     }
+    if (chainId === 42161) {
+      amount = parseEther(payMentAmount)
+    }
     const rented = await PayMentContract?.connect(library.getSigner()).set_address_amount(amount)
     const receipt = await fetchReceipt(rented.hash, library)
     const { status } = receipt
@@ -1701,7 +1704,7 @@ export const MyPage = () => {
     } else {
       if (userPayInfo.length) {
         const parm = {
-          chain: chainId === 56 ? 'BNB' : 'Polygon'
+          chain: chainId === 56 ? 'BNB' : chainId === 137 ? 'Polygon' : 'ONE'
         }
         const res = await bschttp.put(`/v0/payment_usersettings/${account}`, parm)
         if (res.data.code === 1) {
@@ -1714,7 +1717,7 @@ export const MyPage = () => {
       } else {
         const parm = {
           userAddress: account,
-          chain: chainId === 56 ? 'BNB' : 'Polygon'
+          chain: chainId === 56 ? 'BNB' : chainId === 137 ? 'Polygon' : 'ONE'
         }
         const res = await bschttp.post(`/v0/payment_usersettings`, parm)
         if (res.data.code === 1) {

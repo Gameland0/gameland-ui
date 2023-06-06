@@ -31,6 +31,7 @@ import {
   OPENSEA_URL,
   BSCSCAN_KEY,
   POLYGONSCAN_KEY,
+  ONE_API_KEY,
   BscContract,
   PolygonContract,
   POLYGONAssetContractAddress
@@ -140,9 +141,11 @@ export const fetchAbi = async (address: string, chain: any) => {
       apiKey = BSCSCAN_KEY
     } else if (chain === 'polygonscan') {
       apiKey = POLYGONSCAN_KEY
+    } else if (chain === 'arbiscan') {
+      apiKey = ONE_API_KEY
     }
     const data = await fetch(
-      `https://api.${chain}.com/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
+      `https://api.${chain}.${chain ==='arbiscan'? 'io':'com'}/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
       {
         method: 'GET',
         mode: 'cors'

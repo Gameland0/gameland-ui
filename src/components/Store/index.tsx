@@ -41,6 +41,11 @@ export const polygonhttp = axios.create({
   timeout: 30000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089'
 })
+export const arbitrumhttp = axios.create({
+  timeout: 30000,
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://arbone-api.gameland.network' : 'http://localhost:8093'
+})
+
 
 export const fetcher = (url: string) => {
   const _url = url.startsWith('/moralis') ? 'https://deep-index.moralis.io/api/v2' + url.substring(8) : ''
@@ -77,8 +82,9 @@ export const Store = ({ children }: { children: JSX.Element }) => {
     } else if (chainId === 137) {
       const polygondata = await polygonhttp.get(`/v0/opensea`)
       setNfts(polygondata.data.data)
-    } else {
-      setNfts([])
+    } else if (chainId === 42161) {
+      const arbitrumdata = await arbitrumhttp.get(`/v0/opensea`)
+      setNfts(arbitrumdata.data.data)
     }
     const userdata = await bschttp.get(`v0/userinfo`)
     setUserinfo(userdata.data.data)
