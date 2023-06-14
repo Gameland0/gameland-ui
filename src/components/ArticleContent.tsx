@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { parseEther } from '@ethersproject/units'
 import { useLocation, useParams, useHistory } from 'react-router-dom'
 import { bschttp, http, polygonhttp } from './Store'
-import { useActiveWeb3React, useRewardContract, useStore } from '../hooks'
+import { useActiveWeb3React, useRewardContract, useStore, useUSDTContract } from '../hooks'
 import { fetchReceipt } from '../utils'
 import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
@@ -20,7 +20,10 @@ import Reply from '../assets/icon_reply.svg'
 import reward from '../assets/icon_reward.svg'
 import arrow from '../assets/icon_select.svg'
 import polygonIcon from '../assets/polygon_icon.svg'
+import USDTIcon from '../assets/USDT.svg'
 import BNBIcon from '../assets/bnb.svg'
+import BigNumber from 'bignumber.js'
+import { BSCRewardAddress, OneRewardAddress, POLYGONRewardAddress } from '../constants'
 
 const PostsContent = styled.div`
   position: relative;
@@ -165,8 +168,10 @@ const PostsContent = styled.div`
 export const ArticleContentPage = () => {
   const { account, chainId, library } = useActiveWeb3React()
   const RewardContract = useRewardContract()
+  const USDTContract = useUSDTContract()
   const { search } = useLocation() as any
   const [userinfo, setUserinfo] = useState([] as any)
+  const [accountInfo, setAccountInfo] = useState([] as any)
   const [postsItem, setPostsItem] = useState([] as any)
   const [userinfoAll] = useState(useStore().userinfo)
   const [PostsLike, setPostsLike] = useState([] as any)
@@ -194,6 +199,7 @@ export const ArticleContentPage = () => {
     if (!account || !useraddress) return
     const data = await bschttp.get(`v0/userinfo/${useraddress}`)
     setUserinfo(data.data.data[0])
+    bschttp.get(`v0/userinfo/${account}`).then((vals) => setAccountInfo(vals.data.data))
     // bschttp.get(`v0/userinfo`).then((vals) => setuserinfoAll(vals.data.data))
     bschttp.get(`v0/posts_like`).then((vals) => setPostsLike(vals.data.data))
     bschttp.get(`v0/posts_reward`).then((vals) => setPostsRewardData(vals.data.data))
@@ -299,6 +305,16 @@ export const ArticleContentPage = () => {
       })
       return Total
     }
+    if (handletype === 'USDTTotal') {
+      const data = postsRewardData.filter((item: any) => {
+        return item.reviewid === postsItem.id && item.paytype === 'USDT' && item.articleType === type
+      })
+      let Total = 0
+      data.map((item: any) => {
+        Total = Total + item.amount
+      })
+      return Total
+    }
     if (handletype === 'replayQuantity') {
       const quantity = postsReplayData.filter((item: any) => {
         return item.reviewid === postsItem.id
@@ -321,7 +337,7 @@ export const ArticleContentPage = () => {
     const params = {
       useraddress: account,
       reviewid: postsItem.id,
-      username: userinfo.username,
+      username: accountInfo[0].username || account,
       context: text
     }
     const res: any = await bschttp.post(`/v0/posts_reply`, params)
@@ -341,9 +357,39 @@ export const ArticleContentPage = () => {
       } else {
         address = rewardItem.owner
       }
-      const rented = await RewardContract?.connect(library.getSigner()).reward(address, {
-        value: parseEther(rewardQuantity)
-      })
+      let amount
+      if (chainId === 56) {
+        amount = parseEther(rewardQuantity)
+      }
+      if (chainId === 137) {
+        amount = new BigNumber(rewardQuantity).times(new BigNumber(1000000))
+      }
+      if (chainId === 42161) {
+        amount = new BigNumber(rewardQuantity).times(new BigNumber(1000000))
+      }
+      let ContractAddress
+      if (chainId === 56) {
+        ContractAddress = BSCRewardAddress
+      }
+      if (chainId === 137) {
+        ContractAddress = POLYGONRewardAddress
+      }
+      if (chainId === 42161) {
+        ContractAddress = OneRewardAddress
+      }
+      let rented
+      if (rewardSelection === 'USDT') {
+        const approvetx = await USDTContract?.approve(ContractAddress, amount)
+        const approvereceipt = await fetchReceipt(approvetx.hash, library)
+        if (!approvereceipt.status) {
+            throw new Error('failed')
+        }
+        rented = await RewardContract?.connect(library.getSigner()).paytoaddress_usdt(address,amount)
+      } else {
+        rented = await RewardContract?.connect(library.getSigner()).paytoaddress(address, {
+          value: parseEther(rewardQuantity)
+        })
+      }
       const receipt = await fetchReceipt(rented.hash, library)
       const { status } = receipt
       if (!status) {
@@ -499,6 +545,16 @@ export const ArticleContentPage = () => {
                 <img src={polygonIcon} className="icon" />
                 MATIC
               </div>
+              <div
+                onClick={() => {
+                  setrewardSelection('USDT')
+                  setrewardoptions(false)
+                }}
+                className="flex flex-v-center"
+              >
+                <img src={USDTIcon} className="icon" />
+                USDT
+              </div>
             </div>
           ) : (
             ''
@@ -540,6 +596,7 @@ export const ArticleContentPage = () => {
           <div className="rewardTotal">
             <p>{handlePostsOtherDetails('BNBTotal')} BNB</p>
             <p>{handlePostsOtherDetails('MATICTotal')} MATIC</p>
+            <p>{handlePostsOtherDetails('USDTTotal')} USDT</p>
           </div>
         </div>
       </div>

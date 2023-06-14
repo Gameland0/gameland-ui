@@ -244,7 +244,6 @@ export const compare = () => {
 }
 export const Games = () => {
   const { account, library } = useActiveWeb3React()
-  const AssetContract = useAssetContract()
   const { userinfo } = useStore()
   const [gamesFilter, setGamesFilter] = useState('ALL')
   const [collection, setCollection] = useState('')

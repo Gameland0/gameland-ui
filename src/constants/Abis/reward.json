@@ -3,18 +3,12 @@
 		"inputs": [
 			{
 				"internalType": "address payable",
-				"name": "toaddress",
+				"name": "to",
 				"type": "address"
 			}
 		],
-		"name": "reward",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
+		"name": "paytoaddress",
+		"outputs": [],
 		"stateMutability": "payable",
 		"type": "function"
 	},
@@ -22,31 +16,30 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "toaddress",
-				"type": "address"
-			}
-		],
-		"name": "reward_usdt",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address payable",
-				"name": "_rev",
+				"name": "to",
 				"type": "address"
 			},
 			{
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "paytoaddress_usdt",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
-				"name": "u",
+				"name": "_u",
+				"type": "address"
+			},
+			{
+				"internalType": "address payable",
+				"name": "_rev",
 				"type": "address"
 			}
 		],
@@ -54,14 +47,44 @@
 		"type": "constructor"
 	},
 	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_owner",
+				"name": "_u",
 				"type": "address"
 			}
 		],
-		"name": "updateowner",
+		"name": "updateERC20",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_gove",
+				"type": "address"
+			}
+		],
+		"name": "updategove",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_Owner",
+				"type": "address"
+			}
+		],
+		"name": "updateOwner",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -80,17 +103,8 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_u",
-				"type": "address"
-			}
-		],
-		"name": "updateusdt",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
+		"stateMutability": "payable",
+		"type": "receive"
 	},
 	{
 		"inputs": [],
@@ -100,6 +114,62 @@
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "erc20allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "re",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "dz",
+				"type": "address"
+			}
+		],
+		"name": "erc20getBalance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "get_gove",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
 			}
 		],
 		"stateMutability": "view",

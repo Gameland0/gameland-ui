@@ -25,7 +25,8 @@ import {
   useControlContract,
   useAssetContract,
   useERC20Contract,
-  useRewardContract
+  useRewardContract,
+  useUSDTContract
 } from '../hooks'
 import { useFetchMyNfts } from '../hooks/useFetchMyNfts'
 import { handleClick } from './Header'
@@ -51,7 +52,10 @@ import {
   POLYGONControlContractAddress,
   OPENSEA_URL,
   OneControlContractAddress,
-  OneAssetContractAddress
+  OneAssetContractAddress,
+  BSCRewardAddress,
+  POLYGONRewardAddress,
+  OneRewardAddress
 } from '../constants'
 import { toastify } from './Toastify'
 import { Img } from './Img'
@@ -1450,6 +1454,7 @@ export const CollectionDetails = () => {
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
   const RewardContract = useRewardContract()
+  const USDTContract = useUSDTContract()
   const [starScore, setstarScore] = useState(0)
   const [approveTotalPage, setApproveTotalPage] = useState(0)
   const [approveTablePage, setApproveTablePage] = useState(0)
@@ -2129,7 +2134,7 @@ export const CollectionDetails = () => {
       }
       const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
       const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(PieOption('', Tokensdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+      TokensChart.setOption(PieOption('', Tokensdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
     }
   }
   const setNFTpie = () => {
@@ -2184,7 +2189,7 @@ export const CollectionDetails = () => {
       }
       const NFTdom = document.getElementById('NFT') as HTMLDivElement
       const NFTChart = echarts.init(NFTdom)
-      NFTChart.setOption(PieOption('', NFTdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+      NFTChart.setOption(PieOption('', NFTdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
     }
   }
   const setBotratioPie = () => {
@@ -2208,7 +2213,7 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('Botratio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
   }
   const setBotTransactionRatioPie = () => {
     let bot = 0
@@ -2234,7 +2239,7 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\ntotal: ${userActionData.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\n\ntotal: ${userActionData.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
   }
   const setRetentionRateColumnChart = async () => {
     const getdata = axios.create({
@@ -2868,9 +2873,39 @@ export const CollectionDetails = () => {
     if (!rewardQuantity || !library) return
     setLending(true)
     try {
-      const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
-        value: parseEther(rewardQuantity)
-      })
+      let amount
+      if (chainId === 56) {
+        amount = parseEther(rewardQuantity)
+      }
+      if (chainId === 137) {
+        amount = new BigNumber(rewardQuantity).times(new BigNumber(1000000))
+      }
+      if (chainId === 42161) {
+        amount = new BigNumber(rewardQuantity).times(new BigNumber(1000000))
+      }
+      let ContractAddress
+      if (chainId === 56) {
+        ContractAddress = BSCRewardAddress
+      }
+      if (chainId === 137) {
+        ContractAddress = POLYGONRewardAddress
+      }
+      if (chainId === 42161) {
+        ContractAddress = OneRewardAddress
+      }
+      let rented
+      if (rewardSelection === 'USDT') {
+        const approvetx = await USDTContract?.approve(ContractAddress, amount)
+        const approvereceipt = await fetchReceipt(approvetx.hash, library)
+        if (!approvereceipt.status) {
+            throw new Error('failed')
+        }
+        rented = await RewardContract?.connect(library.getSigner()).paytoaddress_usdt(rewardItem.useraddress,amount)
+      } else {
+        rented = await RewardContract?.connect(library.getSigner()).paytoaddress(rewardItem.useraddress, {
+          value: parseEther(rewardQuantity)
+        })
+      }
       const receipt = await fetchReceipt(rented.hash, library)
       const { status } = receipt
       if (!status) {

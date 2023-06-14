@@ -17,7 +17,10 @@ import {
   POLYGONSCAN_KEY,
   BSCPayMentAddress,
   PolygonPayMentAddress,
-  OnePayMentAddress
+  OnePayMentAddress,
+  BSCRewardAddress,
+  POLYGONRewardAddress,
+  OneRewardAddress
 } from '../constants'
 import { bschttp, http, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
@@ -67,6 +70,7 @@ import USDT from '../assets/USDT.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 import { findAddressIndex } from './RelationChart'
+import BigNumber from 'bignumber.js'
 
 interface CardProps {
   onClick?: () => void
@@ -1878,9 +1882,39 @@ export const UserPage = () => {
     if (!rewardQuantity || !library) return
     setLending(true)
     try {
-      const rented = await RewardContract?.connect(library.getSigner()).reward(rewardItem.useraddress, {
-        value: parseEther(rewardQuantity)
-      })
+      let amount
+      if (chainId === 56) {
+        amount = parseEther(rewardQuantity)
+      }
+      if (chainId === 137) {
+        amount = new BigNumber(rewardQuantity).times(new BigNumber(1000000))
+      }
+      if (chainId === 42161) {
+        amount = new BigNumber(rewardQuantity).times(new BigNumber(1000000))
+      }
+      let ContractAddress
+      if (chainId === 56) {
+        ContractAddress = BSCRewardAddress
+      }
+      if (chainId === 137) {
+        ContractAddress = POLYGONRewardAddress
+      }
+      if (chainId === 42161) {
+        ContractAddress = OneRewardAddress
+      }
+      let rented
+      if (rewardSelection === 'USDT') {
+        const approvetx = await USDTContract?.approve(ContractAddress, amount)
+        const approvereceipt = await fetchReceipt(approvetx.hash, library)
+        if (!approvereceipt.status) {
+            throw new Error('failed')
+        }
+        rented = await RewardContract?.connect(library.getSigner()).paytoaddress_usdt(rewardItem.useraddress,amount)
+      } else {
+        rented = await RewardContract?.connect(library.getSigner()).paytoaddress(rewardItem.useraddress, {
+          value: parseEther(rewardQuantity)
+        })
+      }
       const receipt = await fetchReceipt(rented.hash, library)
       const { status } = receipt
       if (!status) {
