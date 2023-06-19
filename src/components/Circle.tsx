@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import * as echarts from 'echarts/lib/echarts'
 import 'echarts/lib/chart/graph'
 import { useHistory } from 'react-router-dom'
 import { useActiveWeb3React, useStore } from '../hooks'
@@ -22,7 +21,15 @@ import github from '../assets/github.jpeg'
 import rss3 from '../assets/rss3.png'
 import galxe from '../assets/galxe.png'
 import loadd from '../assets/loading.svg'
+import searchBg from '../assets/searchBg.png'
+import searchBar from '../assets/searchBar.png'
+import magnifier from '../assets/magnifier.png'
+import down from '../assets/down_circle.png'
+import up from '../assets/up_circle.png'
+import tick from '../assets/tick.png'
+import moreIcon from '../assets/more_circle.png' 
 import { toastify } from './Toastify'
+import { log } from 'console'
 
 const CircleBox = styled.div`
   width: 100%;
@@ -110,6 +117,99 @@ const InfoCard = styled.div`
     height: 200px;
   }
 `
+const SearchBox = styled.div`
+  width: 100%;
+  position: relative;
+  .searchBar {
+    position: relative;
+    z-index: 9;
+    margin-top: -5px;
+    input {
+      width: 750px;
+      height: 72px;
+      padding-left: 20px;
+      font-size: 16px;
+      border: 0;
+      outline: none;
+      background: url(${searchBar});
+    }
+  }
+  .switch {
+    margin-top: 20px;
+    width: 190px;
+    height: 40px;
+    background: #FFFFFF;
+    border: 2px solid #009DFF;
+    border-radius: 20px;
+    justify-content: space-around;
+    font-size: 18px;
+    position: absolute;
+    right: 160px;
+    .choose {
+      padding: 10px 15px;
+      width: 190px;
+      height: 80px;
+      background: #FFFFFF;
+      border: 2px solid #009DFF;
+      border-radius: 20px;
+      position: absolute;
+      top: 40px;
+      z-index: 10;
+      div {
+        cursor: pointer;
+        &:hover {
+          background-color: #f4f7f9;
+        }
+      }
+    }
+  }
+  .game {
+    margin: auto;
+    margin-top: 40px;
+    width: 1000px;
+    .item {
+      position: relative;
+      width: 300px;
+      height: 56px;
+      margin-top: 30px;
+      background: #FFFFFF;
+      border: 1px solid #43B7FF;
+      border-radius: 28px;
+      font-size: 18px;
+      font-family: Noto Sans S Chinese;
+      padding: 10px 30px;
+      img {
+        width: 35px;
+        height: 35px;
+        margin-right: 10px;
+      }
+      .gameName {
+        width: 160px;
+      }
+      .add {
+        height: 28px;
+        line-height: 22px;
+        color: #41B6FF;
+        font-size: 24px;
+        position: absolute;
+        right: 30px;
+        img {
+          width: 20px;
+          height: 20px;
+          margin: 0;
+        }
+      }
+    }
+  }
+  .seeMore {
+    margin-top: 40px;
+    img {
+      width: 14px;
+      height: 14px;
+      margin-right: 10px;
+    }
+  }
+`
 
 const fetchData = (data: any[]) => {
   if (!data || !data.length) return []
@@ -123,10 +223,13 @@ export const Circle = () => {
   const { account } = useActiveWeb3React()
   const { userinfo } = useStore()
   const history = useHistory()
-  const [tab, setTab] = useState('All')
+  const [tab, setTab] = useState('Search')
+  const [switchTab, setSwitchTab] = useState('Recommend')
   const [page, setPage] = useState(0)
   const [myFollowe, setmyFollowe] = useState(0)
   const [FolloweMy, setFolloweMy] = useState(0)
+  const [RecommendPage, setRecommendPage] = useState(0)
+  const [RecentPage, setRecentPage] = useState(0)
   const [userInfo, setUserInfo] = useState([] as any)
   const [circleData, setCircleData] = useState([] as any)
   const [showData, setShowData] = useState([] as any)
@@ -134,6 +237,7 @@ export const Circle = () => {
   const [MyGame, setMyGame] = useState([] as any)
   const [NFTData, setNFTData] = useState([] as any)
   const [GameData, setGameData] = useState([] as any)
+  const [gameList, setGameList] = useState([] as any)
   const [PostsData, setPostsData] = useState([] as any)
   const [Myposts, setMyposts] = useState([] as any)
   const [ReviewData, setReviewData] = useState([] as any)
@@ -141,11 +245,15 @@ export const Circle = () => {
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [RecommendData, setRecommendData] = useState([] as any)
   const [Recommend, setRecommend] = useState([] as any)
+  const [seachGameList, setSeachGameList] = useState([] as any)
+  const [BSCseachGameList, setBSCSeachGameList] = useState([] as any)
+  const [PolygonseachGameList, setPolygonSeachGameList] = useState([] as any)
   const [UserInfoItem, setUserInfoItem] = useState({} as any)
   const [showUserInfo, setShowUserInfo] = useState(false)
   const [loadding, setLending] = useState(false)
   const [Failed, setFailed] = useState(false)
   const [FollowState, setFollowState] = useState(false)
+  const [showSwitch, setShowSwitch] = useState(false)
 
   const filterUser = (address: string) => {
     return userinfo.filter((item: any) => {
@@ -155,9 +263,7 @@ export const Circle = () => {
   useEffect(() => {
     if (userinfo.length) {
       getFollowes()
-      // getRecommendedFriend()
     }
-    // getMyCollection()
     getGames()
     getReviewData()
     getFollowData()
@@ -166,10 +272,16 @@ export const Circle = () => {
     if (20 * page > circleData.length) return
     setShowData(circleData.slice(20 * page, 20 * page + 20))
   }, [page])
+  useEffect(()=> {
+    if (switchTab === 'Recommend') {
+      setGameList(GameData.slice(0,(RecommendPage+1)*9))
+    }
+  }, [RecommendPage])
   const getGames = async () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')
     setGameData([...bsc.data.data, ...polygon.data.data])
+    setGameList([...bsc.data.data, ...polygon.data.data].slice(0,9))
   }
   const getRecommendedFriend = async () => {
     const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
@@ -404,10 +516,49 @@ export const Circle = () => {
       return data.length
     }
   }
-  const RecommendButton = () => {
-    setTab('Recommend')
-    setRecommendData(Recommend)
-    setShowData([])
+  const getTickState = (contractAddress: any) => {
+    const data = seachGameList.filter((item: any) => {
+      return item == contractAddress
+    })
+    return data.length
+  }
+  const addSeachGame = (item: any) => {
+    if (seachGameList.length>=4) {
+      toastify.error('Choose up to 4')
+      return
+    }
+    if (item.chain === 'bsc') {
+      const data = BSCseachGameList
+      data.push(item.contractAddress)
+      setBSCSeachGameList(data)
+    } else if (item.chain === 'polygon') {
+      const data = PolygonseachGameList
+      data.push(item.contractAddress)
+      setPolygonSeachGameList(data)
+    }
+    const arr = seachGameList
+    arr.push(item.contractAddress)
+    setSeachGameList(arr)
+    // getGames()
+    setGameList(GameData.slice(0,(RecommendPage+1)*9))
+  }
+  const deleteSeachGame = (item: any) => {
+    if (item.chain === 'bsc') {
+      const data = BSCseachGameList.filter((ele: any) => {
+        return ele !== item.contractAddress
+      })
+      setBSCSeachGameList(data)
+    } else if (item.chain === 'polygon') {
+      const data = PolygonseachGameList.filter((ele: any) => {
+        return ele !== item.contractAddress
+      })
+      setPolygonSeachGameList(data)
+    }
+    const arr = seachGameList.filter((ele: any) => {
+      return ele !== item.contractAddress
+    })
+    setSeachGameList(arr)
+    setGameList(GameData.slice(0,(RecommendPage+1)*9))
   }
   const buttonAll = () => {
     setTab('All')
@@ -462,6 +613,14 @@ export const Circle = () => {
       //     })
       // })
     })
+  }
+  const buttonSearch = () => {
+    setTab('Search')
+  }
+  const seeMore = () => {
+    if (switchTab === 'Recommend') {
+      setRecommendPage(RecommendPage + 1)
+    }
   }
 
   return (
@@ -653,6 +812,11 @@ export const Circle = () => {
           <div className="disabled"></div>
           Fans
         </div>
+        <div className="item flex flex-justify-content cursor" onClick={buttonSearch}>
+          {tab === 'Search' ? <span></span> : ''}
+          <div className={tab === 'Search' ? 'select' : 'disabled'}></div>
+          Search
+        </div>
         {/* <div className="item flex flex-justify-content cursor" onClick={RecommendButton}>
           {tab === 'Recommend' ? <span></span> : ''}
           <div className={tab === 'Recommend' ? 'select' : 'disabled'}></div>
@@ -690,6 +854,57 @@ export const Circle = () => {
         ) : (
           ''
         )}
+        {tab === 'Search' ? (
+          <SearchBox>
+            <div className="flex flex-justify-content">
+              <img src={searchBg} alt="" />
+            </div>
+            <div className="searchBar flex flex-justify-content">
+              <input type="text" placeholder="Please enter wallet address or smart contract." />
+            </div>
+            <div className="switch flex flex-v-center cursor" onClick={() => setShowSwitch(!showSwitch)}>
+              <div>{switchTab}</div>
+              {showSwitch? (
+                <div className="choose">
+                  <div onClick={() => {
+                    setSwitchTab('Recommend')
+                    setShowSwitch(false)
+                  }}>Recommend</div>
+                  <div onClick={() => {
+                    setSwitchTab('Recent')
+                    setShowSwitch(false)
+                  }}>Recent</div>
+                </div>
+              ) : ''}
+              {showSwitch? <img src={down} alt="" /> : <img src={up} alt="" />}
+            </div>
+            {switchTab === 'Recommend' ? (
+              <div className="game flex flex-h-between wrap">
+                {gameList&&gameList.length? (
+                  gameList.map((item: any, index: number) => (
+                    <div className="item flex flex-v-center" key={index}>
+                      <img src={item.image} alt="" />
+                      <div className="gameName Abbreviation">{item.contractName}</div>
+                      {getTickState(item.contractAddress)? (
+                        <div className="add cursor">
+                          <img src={tick} alt="" onClick={() => deleteSeachGame(item)} />
+                        </div>
+                      ) : (
+                        <div className="add cursor" onClick={() => addSeachGame(item)}>+</div>
+                      )}
+                    </div>
+                  ))
+                ) : ('')}
+              </div>
+            ) : (
+              <div className="game flex flex-h-between wrap">ssss</div>
+            )}
+            <div className="seeMore flex flex-center cursor" onClick={seeMore}>
+              <img src={moreIcon} alt="" />
+              <div>See More</div>
+            </div>
+          </SearchBox>
+        ) :''}
       </div>
       {showData && showData.length ? (
         <div className="replace flex flex-center cursor" onClick={Replace}>
