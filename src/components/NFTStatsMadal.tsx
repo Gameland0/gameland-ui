@@ -48,7 +48,6 @@ const RentDlist = styled.div`
 const SpanLabel = styled.span`
   display: inline-block;
   width: 5rem;
-  font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
   font-weight: bold;
   color: #333333;
 `
@@ -64,7 +63,6 @@ const Description = styled.div`
   .describe {
     max-height: 113px;
     font-size: 18px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     font-weight: 400;
     color: #333333;
     margin-top: 128px;
@@ -129,7 +127,6 @@ const StatsBox = styled.div`
       line-height: 4rem;
       span {
         font-size: 18px;
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
     }

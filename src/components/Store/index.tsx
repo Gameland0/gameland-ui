@@ -45,6 +45,10 @@ export const arbitrumhttp = axios.create({
   timeout: 30000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://arbone-api.gameland.network' : 'http://localhost:8093'
 })
+export const newhttp = axios.create({
+  timeout: 30000,
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://newapi.gameland.network' : 'http://localhost:8099'
+})
 
 
 export const fetcher = (url: string) => {

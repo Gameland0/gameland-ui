@@ -46,7 +46,6 @@ export const SendBox = styled.div`
   .title {
     width: 100%;
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     text-align: center;

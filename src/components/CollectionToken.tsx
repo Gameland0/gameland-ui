@@ -52,7 +52,6 @@ const BoxTap = styled.div`
     flex: 2;
     text-align: center;
     font-size: 20px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #35caa9;
   }
@@ -60,7 +59,6 @@ const BoxTap = styled.div`
 const TokenDetails = styled.div`
   margin-top: 16px;
   font-size: 16px;
-  font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   color: #41acef;
   .NAME {
     flex: 1;
@@ -73,7 +71,6 @@ const TokenDetails = styled.div`
       width: 90px;
       margin-left: 10px;
       font-size: 16px;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
       color: #333333;
       overflow: hidden;

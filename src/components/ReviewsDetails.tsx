@@ -55,7 +55,6 @@ const DetailsBox = styled.div`
     .previous {
       margin: -32px 0 24px 0;
       font-size: 32px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       color: #208ddf;
     }
     .user {
@@ -69,7 +68,6 @@ const DetailsBox = styled.div`
       .userName {
         font-size: 50px;
         line-height: 100px;
-        font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
         margin-left: 24px;
@@ -84,13 +82,11 @@ const DetailsBox = styled.div`
     .ranting {
       .title {
         font-size: 24px;
-        font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
       }
       .tips {
         font-size: 18px;
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
       .star {
@@ -152,7 +148,6 @@ const DetailsBox = styled.div`
           }
           .CommentContent {
             font-size: 24px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
             margin-top: 16px;
           }
@@ -203,7 +198,6 @@ const DetailsBox = styled.div`
     .exhibit {
       .title {
         font-size: 24px;
-        font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
       }
@@ -227,7 +221,6 @@ const DetailsBox = styled.div`
             padding-top: 8px;
             .name {
               font-size: 24px;
-              font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
               color: #333333;
             }
             .star {
@@ -252,7 +245,6 @@ const DetailsBox = styled.div`
           .time {
             margin-left: 300px;
             font-size: 24px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #d0d0d0;
           }
         }
@@ -275,7 +267,6 @@ const DetailsBox = styled.div`
         }
         .CommentContent {
           font-size: 24px;
-          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
           color: #333333;
           margin: 48px 0 28px 0;
         }
@@ -293,7 +284,6 @@ const DetailsBox = styled.div`
             border-radius: 48px;
           }
           .CommentContent {
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
             margin-top: 16px;
           }
@@ -312,7 +302,6 @@ const DetailsBox = styled.div`
             }
             .quantity {
               font-size: 18px;
-              font-family: DIN-Medium, DIN;
               color: #666666;
             }
           }
@@ -390,7 +379,6 @@ const DetailsBox = styled.div`
     padding: 30px 0 0 24px;
     .title {
       font-size: 32px;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
       color: #333333;
     }
@@ -410,7 +398,6 @@ const DetailsBox = styled.div`
           text-overflow: ellipsis;
           white-space: nowrap;
           font-size: 24px;
-          font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
           font-weight: bold;
           color: #333333;
         }
@@ -422,7 +409,6 @@ const DetailsBox = styled.div`
             background: #d2f2fe;
             border-radius: 8px;
             font-size: 14px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #41acef;
             margin-right: 12px;
           }
@@ -433,7 +419,6 @@ const DetailsBox = styled.div`
         align-items: center;
         margin: 0 0 0 30px;
         font-size: 24px;
-        font-family: DIN-Bold, DIN;
         font-weight: bold;
         color: #35caa9;
         img {

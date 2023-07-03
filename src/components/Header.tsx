@@ -52,7 +52,6 @@ const HeaderBox = styled.div`
       .chainName {
         color: #2b2f33;
         font-size: 16px;
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         font-weight: 700;
         margin: 0px 0 0 6px;
       }
@@ -72,7 +71,6 @@ const HeaderBox = styled.div`
           padding: 8px 16px 0 8px;
           color: #2b2f33;
           font-size: 16px;
-          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
           font-weight: 700;
           img {
             margin-right: 10px;
@@ -112,7 +110,6 @@ const HeadSearch = styled.div`
     margin-left: 2rem;
     ::-webkit-input-placeholder {
       font-size: 14px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       font-weight: 400;
       color: #d0d0d0;
     }
@@ -245,11 +242,14 @@ export const Header = () => {
         {!isMobile ? (
           <>
             <div className="flex flex-h-between hidden">
+              <Link exact to="/Explore">
+                <span>Explore</span>
+              </Link>
               <Link exact to="/">
                 <span>Games</span>
               </Link>
               <Link to="/expose">
-                <span>Expose</span>
+                <span>Review</span>
               </Link>
               <Link to="/circle">
                 <span>Circle</span>

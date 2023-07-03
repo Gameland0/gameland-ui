@@ -73,7 +73,6 @@ const RightBox = styled.div`
     font-size: 24px;
     div {
       font-size: 18px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       color: #41acef;
     }
     .Border {
@@ -234,18 +233,18 @@ export const Register = () => {
     <RegisterBox className="flex">
       <LeftBox className="flex flex-center">
         <div>
-          <div className="title Chinese-Bold">Create user</div>
-          <div className="minTitle Chinese-Regular">Create new user</div>
+          <div className="title">Create user</div>
+          <div className="minTitle">Create new user</div>
         </div>
       </LeftBox>
       <div className="boxDivider"></div>
       <RightBox>
-        <div className="optionTitle Chinese-Bold">userAddress</div>
-        <div className="divBorder Chinese-Regular">{account}</div>
-        <div className="optionTitle Chinese-Bold">Name</div>
-        <input type="text" className="divBorder Chinese-Regular" value={userName} onChange={userNameChange} />
-        <div className="optionTitle Chinese-Bold">Avatar</div>
-        <div className="divBorder Chinese-Regular flex flex-v-center">
+        <div className="optionTitle">userAddress</div>
+        <div className="divBorder">{account}</div>
+        <div className="optionTitle">Name</div>
+        <input type="text" className="divBorder" value={userName} onChange={userNameChange} />
+        <div className="optionTitle">Avatar</div>
+        <div className="divBorder flex flex-v-center">
           <div className="flex flex-v-center flex-column-between cursor" onClick={userAvatarClick}>
             <img src={avatar_upload} />
             &nbsp;Upload
@@ -254,13 +253,13 @@ export const Register = () => {
           <input id="inputFile" type="file" accept="image/png, image/jpeg" onChange={UploadImgChange} />
           {AvatarName}
         </div>
-        <div className="optionTitle Chinese-Bold">Twitter</div>
-        <input type="text" className="divBorder Chinese-Regular" value={Twitter} onChange={TwitterChange} />
-        <div className="optionTitle Chinese-Bold">Discord</div>
-        <input type="text" className="divBorder Chinese-Regular" value={Discord} onChange={DiscordChange} />
-        <div className="optionTitle Chinese-Bold">Telegram</div>
-        <input type="text" className="divBorder Chinese-Regular" value={Telegram} onChange={TelegramChange} />
-        <div className="optionTitle Chinese-Bold flex flex-v-center">
+        <div className="optionTitle">Twitter</div>
+        <input type="text" className="divBorder" value={Twitter} onChange={TwitterChange} />
+        <div className="optionTitle">Discord</div>
+        <input type="text" className="divBorder" value={Discord} onChange={DiscordChange} />
+        <div className="optionTitle">Telegram</div>
+        <input type="text" className="divBorder" value={Telegram} onChange={TelegramChange} />
+        <div className="optionTitle flex flex-v-center">
           Mirror :
           <div>
             <input type="checkbox" name="allow" onClick={Mirrow} />

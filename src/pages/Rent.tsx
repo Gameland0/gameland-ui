@@ -50,7 +50,6 @@ const Sort = styled.div`
   }
   .total {
     font-size: 16px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     font-weight: 400;
     color: #999999;
     line-height: 3.75rem;
@@ -61,7 +60,6 @@ const Sort = styled.div`
     border-radius: 10px 10px 10px 10px;
     border: 2px solid #e5e5e5;
     position: relative;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     line-height: 3.75rem;
@@ -82,7 +80,6 @@ const Sort = styled.div`
     div {
       height: 61px;
       font-size: 18px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       font-weight: 400;
       color: #333333;
       line-height: 61px;
@@ -117,7 +114,6 @@ export const DayInfoBox = styled.div<{ progress?: number }>`
     z-index: 2;
     position: relative;
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #35caa9;
   }
@@ -208,7 +204,6 @@ export const Title = styled.h1`
 export const Tips = styled.div`
   width: 40%;
   height: 3.5rem;
-  font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
   line-height: 3.5rem;
   text-align: right;
   font-size: 16px;
@@ -222,7 +217,6 @@ export const Tips = styled.div`
 export const SpanLabel = styled.span`
   display: inline-block;
   width: 5rem;
-  font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
   font-weight: bold;
   color: #333333;
 `
@@ -238,7 +232,6 @@ export const Description = styled.div`
   .describe {
     max-height: 113px;
     font-size: 18px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     font-weight: 400;
     color: #333333;
     margin-top: 128px;
@@ -304,7 +297,6 @@ export const StatsBox = styled.div`
       line-height: 4rem;
       span {
         font-size: 18px;
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
     }
@@ -332,7 +324,6 @@ export const Details = styled.div`
       line-height: 4rem;
       span {
         font-size: 18px;
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
     }
@@ -342,7 +333,6 @@ export const ContentBox = styled.div`
   .title {
     width: 100%;
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     text-align: center;
@@ -350,7 +340,6 @@ export const ContentBox = styled.div`
   p {
     margin-top: 2rem;
     font-size: 1.1rem;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     font-weight: 400;
     color: #666666;
   }
@@ -365,7 +354,6 @@ export const ContentBox = styled.div`
       background: #eaeaea;
       border-radius: 10px 10px 10px 10px;
       font-size: 18px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       font-weight: 400;
       color: #999999;
       text-align: center;
@@ -381,7 +369,6 @@ export const ContentBox = styled.div`
       background: #35caa9;
       border-radius: 10px 10px 10px 10px;
       font-size: 18px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       font-weight: 400;
       color: #fff;
       text-align: center;

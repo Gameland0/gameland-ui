@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
 import 'echarts/lib/chart/graph'
 import { useHistory } from 'react-router-dom'
@@ -27,9 +27,11 @@ import magnifier from '../assets/magnifier.png'
 import down from '../assets/down_circle.png'
 import up from '../assets/up_circle.png'
 import tick from '../assets/tick.png'
-import moreIcon from '../assets/more_circle.png' 
+import moreIcon from '../assets/more_circle.png'
+import arrow from '../assets/icon_select.svg'
 import { toastify } from './Toastify'
-import { log } from 'console'
+import { UservAnalysis } from './UservAnalysis'
+import { GameAnalysis } from './GameAnalysis'
 
 const CircleBox = styled.div`
   width: 100%;
@@ -121,17 +123,59 @@ const SearchBox = styled.div`
   width: 100%;
   position: relative;
   .searchBar {
+    width: 750px;
+    height: 72px;
     position: relative;
     z-index: 9;
+    margin: auto;
     margin-top: -5px;
+    background: url(${searchBar});
     input {
-      width: 750px;
-      height: 72px;
-      padding-left: 20px;
+      width: 500px;
+      height: 55px;
       font-size: 16px;
+      padding-left: 10px;
       border: 0;
       outline: none;
-      background: url(${searchBar});
+      border-radius: 35px;
+      margin-top: -5px;
+    }
+    .magnifier {
+      width: 30px;
+      height: 30px;
+      position: absolute;
+      right: 40px;
+      margin-top: -10px;
+    }
+    .seachType {
+      position: relative;
+      width: 60px;
+      height: 70px;
+      margin-left: 20px;
+      margin-right: 10px;
+      img {
+        width: 12px;
+        height: 12px;
+        margin-left: 8px;
+      }
+      .Switch {
+        width: 70px;
+        height: 50px;
+        padding: 5px;
+        position: absolute;
+        top: 50px;
+        left: 0;
+        background: #FFFFFF;
+        box-shadow: 0px 0px 10px 1px rgba(0,0,0,0.16);
+        border-radius: 10px;
+        font-size: 12px;
+        div {
+          cursor: pointer;
+          &:hover {
+            background-color: #f4f7f9;
+          }
+        }
+      }
     }
   }
   .switch {
@@ -176,7 +220,6 @@ const SearchBox = styled.div`
       border: 1px solid #43B7FF;
       border-radius: 28px;
       font-size: 18px;
-      font-family: Noto Sans S Chinese;
       padding: 10px 30px;
       img {
         width: 35px;
@@ -223,21 +266,16 @@ export const Circle = () => {
   const { account } = useActiveWeb3React()
   const { userinfo } = useStore()
   const history = useHistory()
-  const [tab, setTab] = useState('Search')
-  const [switchTab, setSwitchTab] = useState('Recommend')
+  const [tab, setTab] = useState('All')
   const [page, setPage] = useState(0)
   const [myFollowe, setmyFollowe] = useState(0)
   const [FolloweMy, setFolloweMy] = useState(0)
-  const [RecommendPage, setRecommendPage] = useState(0)
-  const [RecentPage, setRecentPage] = useState(0)
   const [userInfo, setUserInfo] = useState([] as any)
   const [circleData, setCircleData] = useState([] as any)
   const [showData, setShowData] = useState([] as any)
-  const [MyCollection, setMyCollection] = useState([] as any)
   const [MyGame, setMyGame] = useState([] as any)
   const [NFTData, setNFTData] = useState([] as any)
   const [GameData, setGameData] = useState([] as any)
-  const [gameList, setGameList] = useState([] as any)
   const [PostsData, setPostsData] = useState([] as any)
   const [Myposts, setMyposts] = useState([] as any)
   const [ReviewData, setReviewData] = useState([] as any)
@@ -245,15 +283,11 @@ export const Circle = () => {
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [RecommendData, setRecommendData] = useState([] as any)
   const [Recommend, setRecommend] = useState([] as any)
-  const [seachGameList, setSeachGameList] = useState([] as any)
-  const [BSCseachGameList, setBSCSeachGameList] = useState([] as any)
-  const [PolygonseachGameList, setPolygonSeachGameList] = useState([] as any)
   const [UserInfoItem, setUserInfoItem] = useState({} as any)
   const [showUserInfo, setShowUserInfo] = useState(false)
   const [loadding, setLending] = useState(false)
   const [Failed, setFailed] = useState(false)
   const [FollowState, setFollowState] = useState(false)
-  const [showSwitch, setShowSwitch] = useState(false)
 
   const filterUser = (address: string) => {
     return userinfo.filter((item: any) => {
@@ -268,20 +302,11 @@ export const Circle = () => {
     getReviewData()
     getFollowData()
   }, [account, userinfo])
-  useEffect(() => {
-    if (20 * page > circleData.length) return
-    setShowData(circleData.slice(20 * page, 20 * page + 20))
-  }, [page])
-  useEffect(()=> {
-    if (switchTab === 'Recommend') {
-      setGameList(GameData.slice(0,(RecommendPage+1)*9))
-    }
-  }, [RecommendPage])
   const getGames = async () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')
     setGameData([...bsc.data.data, ...polygon.data.data])
-    setGameList([...bsc.data.data, ...polygon.data.data].slice(0,9))
+    // setGameList([...bsc.data.data, ...polygon.data.data].slice(0,9))
   }
   const getRecommendedFriend = async () => {
     const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
@@ -516,111 +541,12 @@ export const Circle = () => {
       return data.length
     }
   }
-  const getTickState = (contractAddress: any) => {
-    const data = seachGameList.filter((item: any) => {
-      return item == contractAddress
-    })
-    return data.length
-  }
-  const addSeachGame = (item: any) => {
-    if (seachGameList.length>=4) {
-      toastify.error('Choose up to 4')
-      return
-    }
-    if (item.chain === 'bsc') {
-      const data = BSCseachGameList
-      data.push(item.contractAddress)
-      setBSCSeachGameList(data)
-    } else if (item.chain === 'polygon') {
-      const data = PolygonseachGameList
-      data.push(item.contractAddress)
-      setPolygonSeachGameList(data)
-    }
-    const arr = seachGameList
-    arr.push(item.contractAddress)
-    setSeachGameList(arr)
-    // getGames()
-    setGameList(GameData.slice(0,(RecommendPage+1)*9))
-  }
-  const deleteSeachGame = (item: any) => {
-    if (item.chain === 'bsc') {
-      const data = BSCseachGameList.filter((ele: any) => {
-        return ele !== item.contractAddress
-      })
-      setBSCSeachGameList(data)
-    } else if (item.chain === 'polygon') {
-      const data = PolygonseachGameList.filter((ele: any) => {
-        return ele !== item.contractAddress
-      })
-      setPolygonSeachGameList(data)
-    }
-    const arr = seachGameList.filter((ele: any) => {
-      return ele !== item.contractAddress
-    })
-    setSeachGameList(arr)
-    setGameList(GameData.slice(0,(RecommendPage+1)*9))
-  }
   const buttonAll = () => {
     setTab('All')
     setShowData(circleData.slice(0, 20))
   }
-  const buttonGame = () => {
-    if (showData.length < 1) return
-    const dataarr = [] as any
-    showData.slice(10, 20).map(async (item: any) => {
-      http.defaults.headers.common['X-Api-Key'] = MORALIS_KEY
-      const BscNft = await http.get(`https://deep-index.moralis.io/api/v2/${item.address}/nft?chain=bsc&format=decimal`)
-      const filterDataBsc = BscNft.data.result.filter((item: any) => {
-        return BscContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
-      })
-      const filterGame = MyCollection.filter((item: any) => {
-        return (
-          filterDataBsc.findIndex(
-            (ele: any) => ele.token_address.toLowerCase() === item.contractAddress.toLowerCase()
-          ) >= 0
-        )
-      })
-      if (filterGame && filterGame.length) {
-        dataarr.push(item)
-        setShowData(dataarr)
-      }
-      // const polygonNft = http.get(`
-      //   https://deep-index.moralis.io/api/v2/${item.address}/nft?chain=polygon&format=decimal`)
-      // Promise.all([BscNft]).then((vals) => {
-      //   const filterDataPolygon = vals[1].data.result.filter((item: any) => {
-      //     return PolygonContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
-      //   })
-      //   const filterDataBsc = vals[0].data.result.filter((item: any) => {
-      //     return BscContract.findIndex((ele: any) => ele?.toLowerCase() === item.token_address?.toLowerCase()) >= 0
-      //   })
-      //   const findDataBsc = fetchData(filterDataBsc, 'bsc')
-      //   const findDataPolygon = fetchData(filterDataPolygon, 'polygon')
-      //   Promise.all([...filterDataBsc])
-      //     .then((vals) => {
-      //       const filterGame = MyCollection.filter((item: any) => {
-      //         return (
-      //           vals.findIndex((ele: any) => ele.token_address.toLowerCase() === item.contractAddress.toLowerCase()) >=
-      //           0
-      //         )
-      //       })
-      //       if (filterGame && filterGame.length) {
-      //         dataarr.push(item)
-      //         setShowData(dataarr)
-      //       }
-      //     })
-      //     .catch(() => {
-      //       console.log('err')
-      //     })
-      // })
-    })
-  }
   const buttonSearch = () => {
     setTab('Search')
-  }
-  const seeMore = () => {
-    if (switchTab === 'Recommend') {
-      setRecommendPage(RecommendPage + 1)
-    }
   }
 
   return (
@@ -812,11 +738,6 @@ export const Circle = () => {
           <div className="disabled"></div>
           Fans
         </div>
-        <div className="item flex flex-justify-content cursor" onClick={buttonSearch}>
-          {tab === 'Search' ? <span></span> : ''}
-          <div className={tab === 'Search' ? 'select' : 'disabled'}></div>
-          Search
-        </div>
         {/* <div className="item flex flex-justify-content cursor" onClick={RecommendButton}>
           {tab === 'Recommend' ? <span></span> : ''}
           <div className={tab === 'Recommend' ? 'select' : 'disabled'}></div>
@@ -854,57 +775,6 @@ export const Circle = () => {
         ) : (
           ''
         )}
-        {tab === 'Search' ? (
-          <SearchBox>
-            <div className="flex flex-justify-content">
-              <img src={searchBg} alt="" />
-            </div>
-            <div className="searchBar flex flex-justify-content">
-              <input type="text" placeholder="Please enter wallet address or smart contract." />
-            </div>
-            <div className="switch flex flex-v-center cursor" onClick={() => setShowSwitch(!showSwitch)}>
-              <div>{switchTab}</div>
-              {showSwitch? (
-                <div className="choose">
-                  <div onClick={() => {
-                    setSwitchTab('Recommend')
-                    setShowSwitch(false)
-                  }}>Recommend</div>
-                  <div onClick={() => {
-                    setSwitchTab('Recent')
-                    setShowSwitch(false)
-                  }}>Recent</div>
-                </div>
-              ) : ''}
-              {showSwitch? <img src={down} alt="" /> : <img src={up} alt="" />}
-            </div>
-            {switchTab === 'Recommend' ? (
-              <div className="game flex flex-h-between wrap">
-                {gameList&&gameList.length? (
-                  gameList.map((item: any, index: number) => (
-                    <div className="item flex flex-v-center" key={index}>
-                      <img src={item.image} alt="" />
-                      <div className="gameName Abbreviation">{item.contractName}</div>
-                      {getTickState(item.contractAddress)? (
-                        <div className="add cursor">
-                          <img src={tick} alt="" onClick={() => deleteSeachGame(item)} />
-                        </div>
-                      ) : (
-                        <div className="add cursor" onClick={() => addSeachGame(item)}>+</div>
-                      )}
-                    </div>
-                  ))
-                ) : ('')}
-              </div>
-            ) : (
-              <div className="game flex flex-h-between wrap">ssss</div>
-            )}
-            <div className="seeMore flex flex-center cursor" onClick={seeMore}>
-              <img src={moreIcon} alt="" />
-              <div>See More</div>
-            </div>
-          </SearchBox>
-        ) :''}
       </div>
       {showData && showData.length ? (
         <div className="replace flex flex-center cursor" onClick={Replace}>

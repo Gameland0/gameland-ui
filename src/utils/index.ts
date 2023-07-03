@@ -43,16 +43,16 @@ export const formatAddress = (address: string, places = 4): string => {
   return `${start}...${end}`
 }
 
-export const formatting = (address: string, places = 4): string => {
-  if (address.length <= 8) return address
-  const len = address.length
+export const formatting = (address: any, places = 4): string => {
+  if (address?.length <= 8) return address
+  const len = address?.length
   const start = address.substring(0, places)
   const end = address.substring(len - places, len)
   return `${start}...${end}`
 }
 export const filterNftid = (address: string, places = 3): string => {
-  if (address.length <= 6) return address
-  const len = address.length
+  if (address?.length <= 6) return address
+  const len = address?.length
   const start = address.substring(0, places)
   const end = address.substring(len - places, len)
   return `${start}..${end}`

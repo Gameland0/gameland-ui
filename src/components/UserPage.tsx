@@ -261,14 +261,12 @@ const InfoLeft = styled.div`
   .userName {
     width: 260px;
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     margin: 40px 0 20px 0;
   }
   .useraddress {
     font-size: 18px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #35caa9;
     margin-bottom: 20px;
   }
@@ -293,7 +291,6 @@ const InfoLeft = styled.div`
   }
   .followInfo {
     height: 72px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     font-size: 18px;
     color: #666666;
     margin-bottom: 20px;
@@ -365,7 +362,6 @@ const InfoRight = styled.div`
     height: 50px;
     justify-content: flex-end;
     font-size: 18px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #41acef;
     div {
       margin-left: 64px;
@@ -396,7 +392,6 @@ const CommentsBox = styled.div`
     border: 1px solid #e5e5e5;
     padding: 24px 48px;
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     margin-bottom: 40px;
     .userInfo {
       .userImage {
@@ -453,7 +448,6 @@ const CommentsBox = styled.div`
       }
       .quantity {
         font-size: 16px;
-        font-family: DIN-Medium, DIN;
         font-weight: 500;
         color: #666666;
         margin-left: 8px;
@@ -688,7 +682,6 @@ const PostsContent = styled.div`
   border: 1px solid #e5e5e5;
   font-size: 24px;
   .user {
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #333333;
     img {
       border-radius: 10px;
@@ -700,10 +693,8 @@ const PostsContent = styled.div`
     position: absolute;
     top: 24px;
     right: 48px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   }
   .time {
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #d0d0d0;
     position: absolute;
     top: 64px;
@@ -712,14 +703,12 @@ const PostsContent = styled.div`
   .postsTitle {
     margin: 32px 0;
     font-size: 28px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
   }
   .postsContent {
     div {
       font-size: 24px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       color: #333333;
       word-wrap: break-word;
       margin-bottom: 32px;
@@ -741,7 +730,6 @@ const PostsContent = styled.div`
       }
       .quantity {
         font-size: 16px;
-        font-family: DIN-Medium, DIN;
         color: #666666;
       }
     }
@@ -782,7 +770,6 @@ const SettingsBox = styled.div`
   }
   .optionTitle {
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     color: #333333;
     margin-bottom: 32px;
   }
@@ -1414,8 +1401,12 @@ export const UserPage = () => {
   const setRelationChart = () => {
     const addressArr = [] as any
     interactAll.map((item: any) => {
-      addressArr.push(item.address_from)
-      addressArr.push(item.address_to)
+      if (item.address_from) {
+        addressArr.push(item.address_from)
+      }
+      if (item.address_to) {
+        addressArr.push(item.address_to)
+      }
     })
     const addressArrDeduplication = [...new Set(addressArr)]
     const optionData = [] as any
@@ -1423,7 +1414,7 @@ export const UserPage = () => {
     addressArrDeduplication.map((item: any, index: number) => {
       const object = {
         symbolSize: item?.toLowerCase() === useraddress?.toLowerCase() ? 60 : 40,
-        name: formatting(item as string),
+        name: formatting(item as any),
         itemStyle: {
           color: colorTable[index]
         }

@@ -36,7 +36,6 @@ const PostsContent = styled.div`
   margin: auto;
   margin-top: 40px;
   .user {
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #333333;
     img {
       border-radius: 10px;
@@ -48,10 +47,8 @@ const PostsContent = styled.div`
     position: absolute;
     top: 24px;
     right: 48px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   }
   .time {
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #d0d0d0;
     position: absolute;
     top: 64px;
@@ -60,14 +57,12 @@ const PostsContent = styled.div`
   .postsTitle {
     margin: 32px 0;
     font-size: 28px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
   }
   .postsContent {
     div {
       font-size: 24px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       color: #333333;
       word-wrap: break-word;
       margin-bottom: 32px;
@@ -89,7 +84,6 @@ const PostsContent = styled.div`
       }
       .quantity {
         font-size: 16px;
-        font-family: DIN-Medium, DIN;
         color: #666666;
       }
     }

@@ -25,6 +25,7 @@ import { ArticleContentPage } from '../components/ArticleContent'
 import { RelationChart } from '../components/RelationChart'
 import { Expose } from '../components/Expose'
 import { Circle } from '../components/Circle'
+import { Explore } from '../components/Explore'
 
 const browserHistory = createBrowserHistory()
 const Wrap = styled.div`
@@ -85,7 +86,7 @@ function App() {
       <Web3Manager>
         <Wrap className="">
           <Switch>
-            {/* <Route exact path="/" component={Rent} /> */}
+            <Route exact path="/Explore" component={Explore} />
             <Route exact path="/lend" component={Lend} />
             <Route exact path="/dashboard" component={MyPage} />
             <Route exact path="/" component={Games} />

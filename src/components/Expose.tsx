@@ -18,13 +18,11 @@ export const ExposeBox = styled.div`
   min-height: 400px;
   .noArticle {
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
   }
 `
 export const ArticleBox = styled.div`
   border-bottom: 1px solid #e5e5e5;
-  font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   color: #333333;
   margin-bottom: 48px;
   .information {
@@ -44,7 +42,6 @@ export const ArticleBox = styled.div`
   }
   .title {
     font-size: 44px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     margin: 24px 0;
   }
@@ -130,7 +127,6 @@ const Sort = styled.div`
     div {
       height: 1.5rem;
       font-size: 16px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       color: #333333;
       margin-bottom: 1rem;
       cursor: pointer;

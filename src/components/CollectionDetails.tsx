@@ -119,7 +119,6 @@ const DetailsBox = styled.div`
           border-radius: 10px;
         }
         .name {
-          font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
           font-weight: bold;
           color: #333333;
           overflow: hidden;
@@ -132,7 +131,6 @@ const DetailsBox = styled.div`
             padding: 6px;
             background: #d2f2fe;
             border-radius: 8px 8px 8px 8px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #41acef;
             margin-right: 12px;
           }
@@ -144,15 +142,12 @@ const DetailsBox = styled.div`
             justify-content: space-between;
             align-items: center;
             font-size: 18px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
             .fraction {
               font-size: 16px;
-              font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
               color: #999999;
               b {
                 font-size: 28px;
-                font-family: DIN-Bold, DIN;
                 color: #35caa9;
               }
             }
@@ -160,7 +155,6 @@ const DetailsBox = styled.div`
         }
       }
       .describe {
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
       .tab {
@@ -184,11 +178,9 @@ const DetailsBox = styled.div`
           background: #fff;
           font-weight: bold;
           color: #35caa9;
-          font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         }
         .unselect {
           color: #fff;
-          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         }
       }
       .nftBox {
@@ -219,7 +211,6 @@ const DetailsBox = styled.div`
     .user {
       display: flex;
       .userName {
-        font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         color: #333333;
         margin-left: 10px;
@@ -233,7 +224,6 @@ const DetailsBox = styled.div`
     .ranting {
       .tips {
         font-size: 18px;
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #333333;
       }
       .star {
@@ -287,7 +277,6 @@ const DetailsBox = styled.div`
           }
           .CommentContent {
             font-size: 16px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
             margin-top: 16px;
           }
@@ -335,7 +324,6 @@ const DetailsBox = styled.div`
       }
     }
     .title {
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
       color: #333333;
     }
@@ -354,7 +342,6 @@ const DetailsBox = styled.div`
             .name {
               width: 120px;
               font-size: 18px;
-              font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
               color: #333333;
               white-space: nowrap;
               overflow: hidden;
@@ -381,7 +368,6 @@ const DetailsBox = styled.div`
           .time {
             margin-left: 200px;
             font-size: 16px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #d0d0d0;
           }
         }
@@ -404,7 +390,6 @@ const DetailsBox = styled.div`
         }
         .CommentContent {
           font-size: 16px;
-          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
           color: #333333;
           margin: 16px 0;
           padding-right: 50px;
@@ -423,7 +408,6 @@ const DetailsBox = styled.div`
           }
           .CommentContent {
             font-size: 16px;
-            font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
             color: #333333;
             margin-top: 16px;
           }
@@ -442,7 +426,6 @@ const DetailsBox = styled.div`
             }
             .quantity {
               font-size: 16px;
-              font-family: DIN-Medium, DIN;
               color: #666666;
             }
           }
@@ -470,7 +453,6 @@ const DetailsBox = styled.div`
       .seeMore {
         margin: 16px 0;
         font-size: 18px;
-        font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
         color: #208ddf;
       }
     }
@@ -888,7 +870,7 @@ export const CommentNFTButton = styled.div`
     }
   }
 `
-const ApproveTable = styled.div`
+export const ApproveTable = styled.div`
   width: 96%;
   border: 1px solid #e5e5e5;
   border-radius: 10px;
@@ -923,7 +905,6 @@ const ApproveTable = styled.div`
       flex: 1;
       text-align: center;
       font-size: 14px;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
       padding: 0 10px;
     }
@@ -1079,7 +1060,6 @@ const TabBox = styled.div`
         flex: 2;
         text-align: center;
         font-size: 14px;
-        font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
         font-weight: bold;
         padding: 0 10px;
       }
@@ -1240,16 +1220,16 @@ export const Card: React.FC<CardProps> = ({
   }, [img])
   return (
     <CardBox className="flex flex-column" have={have} isLending={isLending} onClick={isLending ? handleClick : Click}>
-      <div className="contractType flex flex-center Chinese-Regular">#{contract_type}</div>
+      <div className="contractType flex flex-center">#{contract_type}</div>
       {src === '.mp4' || src === 'webm' ? (
         <video width="238" height="238" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
         <img className="contractImg" src={_img} alt={name} onError={handleImgError} />
       )}
-      <div className="name Abbreviation Chinese-Bold">{name}</div>
+      <div className="name Abbreviation">{name}</div>
       {isLending ? (
         <div className="info flex flex-v-center flex-h-between">
-          <div className="flex totalPrice flex-v-center Chinese-Bold">
+          <div className="flex totalPrice flex-v-center">
             {(days as number) * (price as number)}
             <img
               src={
@@ -1267,7 +1247,7 @@ export const Card: React.FC<CardProps> = ({
             <div>{days}</div>&nbsp;
             <div>days</div>
           </div>
-          <div className="Button flex flex-center Chinese-Regular">Rent</div>
+          <div className="Button flex flex-center">Rent</div>
         </div>
       ) : (
         ''
@@ -1399,7 +1379,7 @@ export const firstWeek = () => {
   const firstWeek = `${month>10?month:'0'+month}-${time}`
   return firstWeek
 }
-const calculateAverage = (data: any, activeUser: any) => {
+export const calculateAverage = (data: any, activeUser: any) => {
   const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
   const thisWeekActiveUser = [] as any
   const week2ActiveUser = [] as any

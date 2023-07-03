@@ -100,13 +100,13 @@ export const Card: React.FC<CardProps> = ({
   const src = img?.slice(-4)
   return (
     <CardBox className="flex flex-column-between flex-column">
-      <div className="contractType flex flex-center Chinese-Regular">#{contract_type}</div>
+      <div className="contractType flex flex-center">#{contract_type}</div>
       {src === '.mp4' || src === 'webm' ? (
         <video width="328" height="328" muted autoPlay={true} loop role="application" preload="auto" src={img}></video>
       ) : (
         <img className="contractImg" src={img} alt={name} onError={handleImgError} />
       )}
-      <div className="name Abbreviation Chinese-Bold">{name}</div>
+      <div className="name Abbreviation">{name}</div>
       {account.toLowerCase() === useraddress.toLowerCase() ? (
         <FakeButtons className="flex flex-h-between">
           <div className="button lend flex flex-center" onClick={Lend}>
@@ -211,14 +211,12 @@ const InfoLeft = styled.div`
   .userName {
     width: 240px;
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     margin: 40px 0 20px 0;
   }
   .useraddress {
     font-size: 18px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #35caa9;
     margin-bottom: 20px;
     .PaymentButton {
@@ -227,7 +225,6 @@ const InfoLeft = styled.div`
       background: linear-gradient(90deg, #41acef 0%, #35caa9 100%);
       border-radius: 20px;
       font-size: 14px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       color: #fff;
       img {
         margin-left: 8px;
@@ -255,7 +252,6 @@ const InfoLeft = styled.div`
   }
   .followInfo {
     height: 72px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     font-size: 18px;
     color: #666666;
     margin-bottom: 20px;
@@ -334,7 +330,6 @@ const InfoRight = styled.div`
     height: 50px;
     justify-content: flex-end;
     font-size: 18px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #41acef;
     div {
       margin-left: 64px;
@@ -365,7 +360,6 @@ const CommentsBox = styled.div`
     border: 1px solid #e5e5e5;
     padding: 24px 48px;
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     margin-bottom: 40px;
     .userInfo {
       .userImage {
@@ -422,7 +416,6 @@ const CommentsBox = styled.div`
       }
       .quantity {
         font-size: 16px;
-        font-family: DIN-Medium, DIN;
         font-weight: 500;
         color: #666666;
         margin-left: 8px;
@@ -542,7 +535,6 @@ export const AnalysisBox = styled.div`
     }
     span {
       font-size: 24px;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
       color: #999999;
     }
@@ -728,7 +720,6 @@ const PostsContent = styled.div`
   border: 1px solid #e5e5e5;
   font-size: 24px;
   .user {
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #333333;
     img {
       border-radius: 10px;
@@ -740,10 +731,8 @@ const PostsContent = styled.div`
     position: absolute;
     top: 24px;
     right: 48px;
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
   }
   .time {
-    font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
     color: #d0d0d0;
     position: absolute;
     top: 64px;
@@ -752,14 +741,12 @@ const PostsContent = styled.div`
   .postsTitle {
     margin: 32px 0;
     font-size: 28px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
   }
   .postsContent {
     div {
       font-size: 24px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       color: #333333;
       word-wrap: break-word;
       margin-bottom: 32px;
@@ -781,7 +768,6 @@ const PostsContent = styled.div`
       }
       .quantity {
         font-size: 16px;
-        font-family: DIN-Medium, DIN;
         color: #666666;
       }
     }
@@ -822,7 +808,6 @@ const SettingsBox = styled.div`
   }
   .optionTitle {
     font-size: 24px;
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     color: #333333;
     margin-bottom: 32px;
     div {
@@ -927,7 +912,6 @@ export const CollationTable = styled.div`
       flex: 1;
       text-align: center;
       font-size: 14px;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
     }
     .Address {
@@ -1733,8 +1717,12 @@ export const MyPage = () => {
   const setRelationChart = () => {
     const addressArr = [] as any
     interactAll.map((item: any) => {
-      addressArr.push(item.address_from)
-      addressArr.push(item.address_to)
+      if (item.address_from) {
+        addressArr.push(item.address_from)
+      }
+      if (item.address_to) {
+        addressArr.push(item.address_to)
+      }
     })
     const addressArrDeduplication = [...new Set(addressArr)]
     const optionData = [] as any
@@ -2623,7 +2611,7 @@ export const MyPage = () => {
             value={TelegramValue}
             onChange={TelegramChange}
           />
-          <div className="optionTitle Chinese-Bold flex flex-v-center">
+          <div className="optionTitle flex flex-v-center">
             Mirror :
             <div>
               <input

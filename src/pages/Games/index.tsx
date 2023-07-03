@@ -37,7 +37,6 @@ const Sort = styled.div`
     height: 3.75rem;
     border-radius: 10px;
     border: 2px solid rgba(1, 73, 57, 0.24);
-    font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
     font-weight: bold;
     color: #333333;
     line-height: 3.75rem;
@@ -63,7 +62,6 @@ const Sort = styled.div`
       position: relative;
       height: 61px;
       font-size: 18px;
-      font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
       font-weight: 400;
       color: #333333;
       line-height: 61px;
@@ -101,7 +99,6 @@ const CollectionBox = styled.div`
       color: #fff;
       font-size: 20px;
       font-weight: bold;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       &:hover {
         background: #41acef;
       }
@@ -113,7 +110,6 @@ const CollectionBox = styled.div`
       font-size: 20px;
       color: #fff;
       font-weight: bold;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       div {
         position: absolute;
         width: 100%;
@@ -140,7 +136,6 @@ const CollectionBox = styled.div`
     .name {
       height: 38px;
       font-size: 24px;
-      font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
       font-weight: bold;
       color: #333333;
       overflow: hidden;
@@ -168,7 +163,6 @@ const CollectionBox = styled.div`
         }
         span {
           margin: 0 20px;
-          font-family: Noto Sans S Chinese-Regular, Noto Sans S Chinese;
           color: #999999;
         }
       }
@@ -220,7 +214,6 @@ const SeeMore = styled.div`
 export const LoadFailed = styled.div`
   font-size: 40px;
   font-weight: bold;
-  font-family: Noto Sans S Chinese-Bold, Noto Sans S Chinese;
 `
 export const Loadding = styled.div`
   img {
