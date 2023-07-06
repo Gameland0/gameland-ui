@@ -16,6 +16,9 @@ const Analysis = styled.div`
     background: url(${pieBg});
     background-size: 100% 100%;
   }
+  .margin {
+    margin-left: 30px;
+  }
   #AverageActions {
     width: 88%;
     height: 350px;
@@ -90,10 +93,10 @@ const calculate = (data: any, activeUser: any) => {
     }
   })
   return [
-    Math.ceil(thisWeekData.length/thisWeekActiveUser.length),
-    Math.ceil(week2Data.length/week2ActiveUser.length),
-    Math.ceil(week3Data.length/week3ActiveUser.length),
-    Math.ceil(week4Data.length/week4ActiveUser.length)
+    Math.ceil(thisWeekActiveUser.length===0? 0:thisWeekData.length/thisWeekActiveUser.length),
+    Math.ceil(week2ActiveUser.length===0? 0:week2Data.length/week2ActiveUser.length),
+    Math.ceil(week3ActiveUser.length===0? 0:week3Data.length/week3ActiveUser.length),
+    Math.ceil(week4ActiveUser.length===0? 0:week4Data.length/week4ActiveUser.length)
   ]
 }
 
@@ -101,7 +104,6 @@ export const GameAnalysis = (data: any) => {
   const [PSstate, setPSstate] = useState(false)
 
   useEffect(() => {
-    console.log(data)
     if (data.seachContract.length) {
       detectionAddress()
     }
@@ -641,44 +643,50 @@ export const GameAnalysis = (data: any) => {
   return (
     <Analysis>
       {PSstate? (
-        <div className="text-center">{data.seachContract} The data might take a while to load. Please come back later.</div>
+        <div className="text-center">The data might take a while to load. Please come back later.</div>
       ) :''}
       {!PSstate ? (
         <AnalysisBox>
           <ApproveTable className="bg">
+            <div className="pieTitle text-center">UAW</div>
+            <div id="interactionsPerDay">
+              <div className="text-center margin">No Data</div>
+            </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
+          </ApproveTable>
+          <ApproveTable className="bg">
             <div className="pieTitle text-center">Player Proportion(%)</div>
             <div id="Botratio" className="item">
-              <div className="text-center">No Data</div>
+              <div className="text-center margin">No Data</div>
             </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
           <ApproveTable className="bg">
             <div className="pieTitle text-center">Player Transaction Proportion(%)</div>
             <div id="BotTransactionRatio" className="item">
-              <div className="text-center">No Data</div>
+              <div className="text-center margin">No Data</div>
             </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
           <ApproveTable className="bg">
             <div className="pieTitle text-center">NFT Transaction(%)</div>
             <div id="NFTTransaction">
-              <div className="text-center">No Data</div>
+              <div className="text-center margin">No Data</div>
             </div>
-          </ApproveTable>
-          <ApproveTable className="bg">
-            <div className="pieTitle text-center">DAU</div>
-            <div id="interactionsPerDay">
-              <div className="text-center">No Data</div>
-            </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
           <ApproveTable className="bg">
             <div id="AverageReward">
-              <div className="text-center">No Data</div>
+              <div className="text-center margin">No Data</div>
             </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
           <ApproveTable className="bg">
             <div id="AverageActions">
               <div className="text-center pieTitle">Average Action</div>
-              <div className="text-center">No Data</div>
+              <div className="text-center margin">No Data</div>
             </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
         </AnalysisBox>
       ) : ''}

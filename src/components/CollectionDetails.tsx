@@ -1420,10 +1420,10 @@ export const calculateAverage = (data: any, activeUser: any) => {
     }
   })
   return [
-    Math.ceil(thisWeekData.length/thisWeekActiveUser.length),
-    Math.ceil(week2Data.length/week2ActiveUser.length),
-    Math.ceil(week3Data.length/week3ActiveUser.length),
-    Math.ceil(week4Data.length/week4ActiveUser.length)
+    Math.ceil(thisWeekActiveUser.length===0? 0:thisWeekData.length/thisWeekActiveUser.length),
+    Math.ceil(week2ActiveUser.length===0? 0:week2Data.length/week2ActiveUser.length),
+    Math.ceil(week3ActiveUser.length===0? 0:week3Data.length/week3ActiveUser.length),
+    Math.ceil(week4ActiveUser.length===0? 0:week4Data.length/week4ActiveUser.length)
   ]
 }
 

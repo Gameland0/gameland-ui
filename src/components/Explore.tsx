@@ -7,10 +7,12 @@ import magnifier from '../assets/magnifier.png'
 import tick from '../assets/tick.png'
 import moreIcon from '../assets/more_circle.png'
 import arrow from '../assets/ICON.png'
+import defaultImg from '../assets/default.png'
 import { toastify } from './Toastify'
 import { UservAnalysis } from './UservAnalysis'
 import { GameAnalysis } from './GameAnalysis'
 import { useActiveWeb3React } from '../hooks'
+import { formatting, handleImgError } from '../utils'
 
 const SearchBox = styled.div`
   width: 100%;
@@ -65,18 +67,19 @@ const SearchBox = styled.div`
         background: #009DFF;
         box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
         color: #FFFFFF;
-        padding: 10px;
         position: absolute;
         top: 0px;
         left: 0;
+        padding: 5px;
         border-radius: 15px;
         font-size: 12px;
         z-index: 8;
         div {
           cursor: pointer;
           &:hover {
-            font-size: 14px;
+            padding-left: 5px;
             background: #2FAFFF;
+            border-radius: 15px;
             box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
           }
         }
@@ -87,18 +90,19 @@ const SearchBox = styled.div`
         background: #009DFF;
         box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
         color: #FFFFFF;
-        padding: 10px;
         position: absolute;
         top: 0px;
         left: 0;
+        padding: 5px;
         border-radius: 15px;
         font-size: 12px;
         z-index: 8;
         div {
           cursor: pointer;
           &:hover {
-            font-size: 14px;
+            padding-left: 5px;
             background: #2FAFFF;
+            border-radius: 15px;
             box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
           }
         }
@@ -375,22 +379,22 @@ export const Explore = () => {
           </div>
           {seachType === 'Contract' ? (
             <div className="seachType flex flex-center cursor" onClick={() => setSeachChainSwitch(!seachChainSwitch)}>
-              {seachChain}
+              {seachChain==='bsc'? 'BNB':seachChain==='eth'?'Eth':'Polygon'}
               <img src={arrow} />
               {seachChainSwitch ? (
               <div className="chainSwitch">
                 <div onClick={() => {
                   setSeachChain('polygon')
                   setSeachChainSwitch(false)
-                }}>polygon</div>
+                }}>Polygon</div>
                 <div onClick={() => {
                   setSeachChain('bsc')
                   setSeachChainSwitch(false)
-                }}>bsc</div>
+                }}>BNB</div>
                 <div onClick={() => {
                   setSeachChain('eth')
                   setSeachChainSwitch(false)
-                }}>eth</div>
+                }}>Eth</div>
               </div>
             ):''}
             </div>
@@ -438,8 +442,8 @@ export const Explore = () => {
             {cacheList&&cacheList.length? (
               cacheList.map((item: any, index: number) => (
                 <div className="item flex flex-v-center" key={index}>
-                  <img src={item.image} alt="" />
-                  <div className="gameName Abbreviation">{item.name}</div>
+                  <img src={item.image || defaultImg} alt="" onError={handleImgError}/>
+                  <div className="gameName Abbreviation">{item.name || formatting(item.address)}</div>
                   {getCacheTickState(item.address)? (
                     <div className="add cursor">
                       <img src={tick} alt="" onClick={() => deleteSeachGame(item)} />

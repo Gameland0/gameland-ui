@@ -6,11 +6,13 @@ import shortbutton from '../assets/short_button.jpg'
 import longbutton from '../assets/long_button.jpg'
 import loadd from '../assets/loading.svg'
 import pieBg from '../assets/pie_bg.png'
-import { AnalysisBox, CollationTable, PieOption, TableBox } from './MyPage'
+import { AnalysisBox, CollationTable, PieOption, RelationChartOption, TableBox } from './MyPage'
 import { formatting } from '../utils'
 import { MORALIS_KEY } from '../constants'
 import axios from 'axios'
 import { toastify } from './Toastify'
+import { colorTable } from '../constants/colorTable'
+import { findAddressIndex } from './RelationChart'
 
 const Analysis = styled.div`
   margin-top: 20px;
@@ -112,6 +114,11 @@ export const UservAnalysis = (data: any) => {
       setCollectionPie()
     }
   }, [PieChartData])
+  useEffect(() => {
+    if (interactAll&&interactAll.length) {
+      setRelationChart()
+    }
+  }, [interactAll])
   const getPieChartData = () => {
     setLoaddState(true)
     http
@@ -476,6 +483,46 @@ export const UservAnalysis = (data: any) => {
       CollationChart.setOption(PieOption('Collation', optionData))
     })
   }
+  const setRelationChart = () => {
+    const addressArr = [] as any
+    interactAll.map((item: any) => {
+      if (item.address_from) {
+        addressArr.push(item.address_from)
+      }
+      if (item.address_to) {
+        addressArr.push(item.address_to)
+      }
+    })
+    const addressArrDeduplication = [...new Set(addressArr)]
+    const optionData = [] as any
+    const linkData = [] as any
+    addressArrDeduplication.map((item: any, index: number) => {
+      const object = {
+        symbolSize: item?.toLowerCase() === data.useraddress?.toLowerCase() ? 60 : 40,
+        name: formatting(item as string),
+        itemStyle: {
+          color: colorTable[index]
+        }
+      }
+      optionData.push(object)
+    })
+    interactAll.map((item: any) => {
+      const object = {
+        source: findAddressIndex(Array.from(new Set(addressArr)), item.address_from),
+        target: findAddressIndex(Array.from(new Set(addressArr)), item.address_to),
+        value: `${item.type === 'transfer'
+          ? (item.type +' '+(item.actions[0].metadata.value_display * 1).toFixed(2)+' '+item.actions[0].metadata.symbol) || formatting(item.actions[0].metadata.id)
+          : item.type}`,
+        lineStyle: {
+          color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), item.address_to)]
+        }
+      }
+      linkData.push(object)
+    })
+    const relationDom = document.getElementById('relation') as HTMLDivElement
+    const relationChart = echarts.init(relationDom)
+    relationChart.setOption(RelationChartOption('Player Relationship',optionData,linkData))
+  }
   const getTokensData = async () => {
     polygonhttp.get(`v0/oklink/addressBalance?chainShortName=bsc&address=${data.useraddress}&protocolType=token_20`).then((vals) => {
       const Tokensoptionsdata = [] as any
@@ -762,14 +809,10 @@ export const UservAnalysis = (data: any) => {
             <div id="collationActivity" className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}></div>
           </div>
           <TableBox className="bg">
-            {interactAll&&interactAll.length ? (
-              <CollationTable id="relation"></CollationTable>
-            ) : (
-              <CollationTable>
-                <div className="title">Player Relationship</div>
-                <div className="text-center">No records</div>
-              </CollationTable>
-            )}
+            <CollationTable id="relation">
+              <div className="title">Player Relationship</div>
+              <div className="text-center">No records</div>
+            </CollationTable>
           </TableBox>
         </AnalysisBox>
       ): (
