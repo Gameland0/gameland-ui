@@ -102,6 +102,7 @@ const calculate = (data: any, activeUser: any) => {
 
 export const GameAnalysis = (data: any) => {
   const [PSstate, setPSstate] = useState(false)
+  const [showTokenTotal, setShowTokenTotal] = useState(false)
 
   useEffect(() => {
     if (data.seachContract.length) {
@@ -159,6 +160,7 @@ export const GameAnalysis = (data: any) => {
         return
       }
       data.seachCache.push(data.seachContract)
+      setShowTokenTotal(true)
       getCollectionTransaction()
       setAverageRewardChart()
       setAverageActionChart()
@@ -349,7 +351,13 @@ export const GameAnalysis = (data: any) => {
     const Real = [] as any
     const BotTransaction = [] as any
     const RealTransaction = [] as any
+    const ETHTotalData = [] as any
+    const BNBTotalData = [] as any
+    const MATICTotalData = [] as any
 
+    if (data.data.length) {
+      setShowTokenTotal(true)
+    }
     for (let index = 0; index < data.data.length; index++) {
       const element = data.data[index];
       const filterData = data.GameData.filter((ele: any) => {
@@ -454,7 +462,9 @@ export const GameAnalysis = (data: any) => {
       const approveData = [] as any
       const mintData = [] as any
       const activeUser = [] as any
-      const activeUserData = [] as any
+      let ETHTotal = 0
+      let BNBTotal = 0
+      let MATICTotal = 0
       actionData.data.data.map((item: any) => {
         if (item.action === 'Approval' || item.action === 'ApprovalForAll') {
           approveData.push(item)
@@ -468,7 +478,20 @@ export const GameAnalysis = (data: any) => {
         if (!filteraddress.length) {
           activeUser.push(filterAddress(item.t1))
         }
+        const value = new BigNumber(item.transactionvalue).div(1000000000000000000).toNumber()
+        if (filterData[0].chain === 'bsc') {
+          BNBTotal = BNBTotal + value
+        }
+        if (filterData[0].chain === 'polygon') {
+          MATICTotal = MATICTotal + value
+        }
+        if (filterData[0].chain === 'eth') {
+          ETHTotal = ETHTotal + value
+        }
       })
+      ETHTotalData.push(ETHTotal.toFixed(2))
+      BNBTotalData.push(BNBTotal.toFixed(2))
+      MATICTotalData.push(MATICTotal.toFixed(2))
       let bot = 0
       let bottransaction = 0
       activeUser.map((item: any) => {
@@ -638,6 +661,45 @@ export const GameAnalysis = (data: any) => {
     const BotTransactionratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
     const BotTransactionratioChart = echarts.init(BotTransactionratiodom)
     BotTransactionratioChart.setOption(BotTransactionOption)
+
+    const TokenTotalOption = {
+      tooltip: {
+        trigger: 'axis' as any,
+      },
+      grid: {
+        left: '3%',
+        right: '3%',
+        bottom: '3%',
+        containLabel: true
+      },
+      legend: {},
+      xAxis:{
+        data: NFTxAxis
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [
+        {
+          name: 'ETH',
+          type: 'bar',
+          data: ETHTotalData
+        },
+        {
+          name: 'BNB',
+          type: 'bar',
+          data: BNBTotalData
+        },
+        {
+          name: 'MATIC',
+          type: 'bar',
+          data: MATICTotalData
+        }
+      ]
+    }
+    const TokenTotaldom = document.getElementById('TokenTotal') as HTMLDivElement
+    const TokenTotalChart = echarts.init(TokenTotaldom)
+    TokenTotalChart.setOption(TokenTotalOption)
   }
 
   return (
@@ -654,6 +716,15 @@ export const GameAnalysis = (data: any) => {
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
+          {showTokenTotal ? (
+            <ApproveTable className="bg">
+              <div className="pieTitle text-center">Token Transactions Total</div>
+              <div id="TokenTotal" className="item">
+                <div className="text-center margin">No Data</div>
+              </div>
+              <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
+            </ApproveTable>
+          ):''}
           <ApproveTable className="bg">
             <div className="pieTitle text-center">Player Proportion(%)</div>
             <div id="Botratio" className="item">
