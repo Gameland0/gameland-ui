@@ -2600,7 +2600,7 @@ export const UserPage = () => {
                 <span>{index + 1}.</span>&nbsp;&nbsp;&nbsp;
                 {item.timestamp.substr(0, 10)}&nbsp;&nbsp;
                 <span className="blue">{formatting(item.address_from)}</span>&nbsp;&nbsp;
-                <b>{item.type}</b>&nbsp;
+                <b>{item.type}{item.platform?`(${item.platform})`:''}</b>&nbsp;
                 <b>
                   {item.type === 'revise'
                     ? ''
@@ -2622,7 +2622,7 @@ export const UserPage = () => {
                   ? (item.actions[0].metadata.to.value_display * 1).toFixed(2) +
                     ' ' +
                     item.actions[0].metadata.to.symbol
-                  : <span className="blue">{formatting(item.address_to)}</span>}
+                  : <span className="blue">{formatting(item.address_to || '0x000')}</span>}
                 &nbsp;&nbsp;in {item.network}
               </div>
             ))

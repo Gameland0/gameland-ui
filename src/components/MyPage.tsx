@@ -3190,12 +3190,13 @@ export const MyPage = () => {
                 <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>
                   <div className="title">NFT Transactions</div>
                   <div className="tab flex">
-                    <div>COLLATION</div>
-                    <div>NFTNAME</div>
-                    <div>PRICE</div>
-                    <div>CHAIN</div>
-                    <div>TYPE</div>
-                    <div>TIME</div>
+                    <div>Collation</div>
+                    <div>NFT Name</div>
+                    <div>Price</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                    <div>Time</div>
+                    <div>Platform</div>
                   </div>
                   {tableData && tableData.length ? (
                     tableData.map((item: any, index: number) => (
@@ -3228,11 +3229,12 @@ export const MyPage = () => {
                 <CollationTable className={transactionTab === 'DeFi' ? '' : 'none'}>
                   <div className="title">Defi Transactions</div>
                   <div className="tab flex">
-                    <div>sold</div>
+                    <div>Sold</div>
                     <div>Received</div>
                     <div>Chain</div>
                     <div>Type</div>
                     <div>Time</div>
+                    <div>Platform</div>
                   </div>
                   {swapData && swapData.length ? (
                     swapData.map((item: any, index: number) => (
@@ -3242,6 +3244,7 @@ export const MyPage = () => {
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
                         <div>{item?.time}</div>
+                        <div>{item.platform || '--'}</div>
                       </div>
                     ))
                   ) : (
