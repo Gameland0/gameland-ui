@@ -21,17 +21,9 @@ import github from '../assets/github.jpeg'
 import rss3 from '../assets/rss3.png'
 import galxe from '../assets/galxe.png'
 import loadd from '../assets/loading.svg'
-import searchBg from '../assets/searchBg.png'
 import searchBar from '../assets/searchBar.png'
-import magnifier from '../assets/magnifier.png'
-import down from '../assets/down_circle.png'
-import up from '../assets/up_circle.png'
-import tick from '../assets/tick.png'
-import moreIcon from '../assets/more_circle.png'
-import arrow from '../assets/icon_select.svg'
 import { toastify } from './Toastify'
-import { UservAnalysis } from './UservAnalysis'
-import { GameAnalysis } from './GameAnalysis'
+
 
 const CircleBox = styled.div`
   width: 100%;
@@ -267,7 +259,7 @@ export const Circle = () => {
   const { userinfo } = useStore()
   const history = useHistory()
   const [tab, setTab] = useState('All')
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(1)
   const [myFollowe, setmyFollowe] = useState(0)
   const [FolloweMy, setFolloweMy] = useState(0)
   const [userInfo, setUserInfo] = useState([] as any)
@@ -295,18 +287,15 @@ export const Circle = () => {
     })
   }
   useEffect(() => {
-    if (userinfo.length) {
-      getFollowes()
-    }
+    getFollowes()
     getGames()
     getReviewData()
     getFollowData()
-  }, [account, userinfo])
+  }, [account])
   const getGames = async () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')
     setGameData([...bsc.data.data, ...polygon.data.data])
-    // setGameList([...bsc.data.data, ...polygon.data.data].slice(0,9))
   }
   const getRecommendedFriend = async () => {
     const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
@@ -335,39 +324,18 @@ export const Circle = () => {
     })
   }
   const getFollowes = async () => {
-    const aa = '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5'
     const data = (await bschttp.get(`v0/userinfo/${account}`)).data.data
     setUserInfo(data)
-    const myFollowe = (await bschttp.get(`v0/lens_relationships/address/${account}`)).data.data
-    if (myFollowe.length) {
-      const data = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[0].followers_address}`)).data.data
-      const data1 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[1].followers_address}`)).data.data
-      const data2 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[2].followers_address}`)).data.data
-      const data3 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[3].followers_address}`)).data.data
-      const data4 = (await bschttp.get(`v0/lens_relationships/followers/${myFollowe[4].followers_address}`)).data.data
-      const dataarr = [] as any
-      ;[...data4, ...data3, ...data1, ...data].map((item: any) => {
-        if (item.address !== account) {
-          const Item = userinfo.filter((ele: any) => {
-            return ele.useraddress?.toLowerCase() === item.address?.toLowerCase()
-          })
-          if (Item[0]?.username) {
-            dataarr.push(item)
-          }
-        }
-      })
-      const newarr = [] as any
-      dataarr.map((item: any) => {
-        const data = newarr.filter((ele: any) => {
-          return ele.address === item.address
-        })
-        if (data.length === 0) {
-          newarr.push(item)
-        }
-      })
-      setCircleData(newarr)
-      setShowData(newarr.slice(0, 20))
+    const param = {
+      page: 1,
+      pagesize: 20
     }
+    const myFollowe = (await bschttp.post(`v0/userinfo/paging`, param)).data.data
+    const filterData = myFollowe.filter((item: any) => {
+      return item.useraddress?.toLowerCase() !== account?.toLowerCase()
+    })
+    setShowData(filterData)
+    setCircleData(filterData)
   }
   const getFollowData = () => {
     bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
@@ -410,25 +378,30 @@ export const Circle = () => {
       throw res.message || res.data.message
     }
   }
-  const Replace = () => {
+  const Replace = async () => {
     if (showData.length < 1) return
-    setPage(page + 1)
-  }
-  const echartsDataClick = (address: any) => {
-    if (address?.toLowerCase() === account?.toLowerCase()) return
-    const Item = userinfo.filter((item: any) => {
-      return item.useraddress?.toLowerCase() === address?.toLowerCase()
-    })
-    if (Item.length && Item) {
-      getNftData(Item[0].useraddress)
-      getMyReview(Item[0].useraddress)
-      getMyArticle(Item[0].useraddress)
-      getFollowState(Item[0].useraddress)
-      getFollowe('myFollowe', Item[0]?.useraddress)
-      getFollowe('FolloweMy', Item[0]?.useraddress)
-      setUserInfoItem(Item[0])
-      setShowUserInfo(true)
+    const param = {
+      page: page,
+      pagesize: 20
     }
+    const myFollowe = (await bschttp.post(`v0/userinfo/paging`, param)).data.data
+    const filterData = myFollowe.filter((item: any) => {
+      return item.useraddress?.toLowerCase() !== account?.toLowerCase()
+    })
+    setShowData(filterData)
+    setCircleData(filterData)
+    setPage(page+1)
+  }
+  const echartsDataClick = (item: any) => {
+    if (item.useraddress?.toLowerCase() === account?.toLowerCase()) return
+    getNftData(item.useraddress)
+    getMyReview(item.useraddress)
+    getMyArticle(item.useraddress)
+    getFollowState(item.useraddress)
+    getFollowe('myFollowe', item.useraddress)
+    getFollowe('FolloweMy', item.useraddress)
+    setUserInfoItem(item)
+    setShowUserInfo(true)
   }
   const link = (type: string, item: any) => {
     if (type === 'Posts') {
@@ -543,7 +516,6 @@ export const Circle = () => {
   }
   const buttonAll = () => {
     setTab('All')
-    setShowData(circleData.slice(0, 20))
   }
   const buttonSearch = () => {
     setTab('Search')
@@ -604,7 +576,11 @@ export const Circle = () => {
                 <a href={UserInfoItem?.Telegram} target="_blank" rel="noreferrer">
                   <img src={Telegram} className={UserInfoItem?.Telegram ? '' : 'transparency'} />
                 </a>
-                <a href={UserInfoItem?.Mirror} target="_blank" rel="noreferrer">
+                <a
+                  href={UserInfoItem.mirror === 1 ? `https://mirror.xyz/${UserInfoItem.useraddress}` : UserInfoItem.Mirror}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <img src={Mirror} className={UserInfoItem?.mirror === 1 ? '' : 'transparency'} />
                 </a>
                 <a href={UserInfoItem?.cyber} target="_blank" rel="noreferrer">
@@ -738,21 +714,16 @@ export const Circle = () => {
           <div className="disabled"></div>
           Fans
         </div>
-        {/* <div className="item flex flex-justify-content cursor" onClick={RecommendButton}>
-          {tab === 'Recommend' ? <span></span> : ''}
-          <div className={tab === 'Recommend' ? 'select' : 'disabled'}></div>
-          Recommend
-        </div> */}
       </div>
       <div className="container flex wrap flex-h-between">
         {showData && showData.length && tab === 'All' ? (
           showData.map((item: any, index: number) => (
-            <InfoCard key={index} className="cursor" onClick={() => echartsDataClick(item.address)}>
+            <InfoCard key={index} className="cursor" onClick={() => echartsDataClick(item)}>
               <div className="avatar flex flex-h-between flex-v-center">
-                <img src={filterUser(item.address)[0]?.image || defaultImg} onError={handleImgError} />
+                <img src={item.image || defaultImg} onError={handleImgError} />
                 <div className="More flex flex-center">See More</div>
               </div>
-              <div className="name Abbreviation">{filterUser(item.address)[0]?.username || `user#${index}`}</div>
+              <div className="name Abbreviation">{item.username || formatting(item.useraddress)}</div>
             </InfoCard>
           ))
         ) : tab === 'All' ? (

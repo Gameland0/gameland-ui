@@ -7,11 +7,18 @@ import { AnalysisBox } from './MyPage'
 import { ApproveTable, calculateAverage, firstWeek } from './CollectionDetails'
 import { MORALIS_KEY } from '../constants'
 import pieBg from '../assets/pie_bg.png'
+import defaultImg from '../assets/default.png'
+import PolygonImg from '../assets/polygon.svg'
+import BSCImg from '../assets/binance.svg'
+import ETHImg from '../assets/eth.svg'
 import { filterAddress } from '../utils'
 import BigNumber from 'bignumber.js'
 import { toastify } from './Toastify'
 
 const Analysis = styled.div`
+  .borderNone {
+    border: none;
+  }
   .bg {
     background: url(${pieBg});
     background-size: 100% 100%;
@@ -30,6 +37,52 @@ const Analysis = styled.div`
   .item {
     width: 96%;
     height: 350px;
+  }
+`
+const TokenTransactions = styled.div`
+  margin: auto;
+  margin-top: 20px;
+  width: 1230px;
+  .CollectionItem {
+    width: 400px;
+    height: 105px;
+    border: 1px solid #43B7FF;
+    padding: 10px 20px;
+    border-radius: 28px;
+    .Collection {
+      width: 155px;
+    }
+    .Volume {
+      width: 65px;
+      margin-left: 8px;
+      text-align: right;
+      img {
+        width: 15px;
+        height: 15px;
+        margin-right: 5px;
+        margin-top: -3px;
+      }
+    }
+    .Avg {
+      width: 55px;
+      text-align: right;
+    }
+    .Sales {
+      width: 65px;
+      text-align: right;
+    }
+    .info {
+      margin-top: 10px;
+      .gameImg {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+      .name {
+        width: 105px;
+      }
+    }
   }
 `
 const calculate = (data: any, activeUser: any) => {
@@ -103,6 +156,8 @@ const calculate = (data: any, activeUser: any) => {
 export const GameAnalysis = (data: any) => {
   const [PSstate, setPSstate] = useState(false)
   const [showTokenTotal, setShowTokenTotal] = useState(false)
+  const [showPlatform, setShowPlatform] = useState(false)
+  const [CollectionData, setCollectionData] = useState([] as any)
 
   useEffect(() => {
     if (data.seachContract.length) {
@@ -113,7 +168,7 @@ export const GameAnalysis = (data: any) => {
       setAverageRewardChart()
       setAverageActionChart()
     }
-  }, [data.seachContract])
+  }, [data])
 
   const detectionAddress = async () => {
     const filterData = data.GameData.filter((item: any) => {
@@ -161,6 +216,7 @@ export const GameAnalysis = (data: any) => {
       }
       data.seachCache.push(data.seachContract)
       setShowTokenTotal(true)
+      setShowPlatform(true)
       getCollectionTransaction()
       setAverageRewardChart()
       setAverageActionChart()
@@ -262,6 +318,10 @@ export const GameAnalysis = (data: any) => {
       },
       series: seriesData
     }
+    if (document.getElementById('interactionsPerDay') == null) {
+      return
+    }
+    echarts.dispose(document.getElementById('interactionsPerDay') as HTMLDivElement)
     const Activitydom = document.getElementById('interactionsPerDay') as HTMLDivElement
     const ActivityChart = echarts.init(Activitydom)
     ActivityChart.setOption(options)
@@ -341,6 +401,7 @@ export const GameAnalysis = (data: any) => {
   }
 
   const setAverageActionChart = async () => {
+    setCollectionData([])
     const legend = [] as any
     const NFTxAxis = [] as any
     const seriesData = [] as any
@@ -354,9 +415,13 @@ export const GameAnalysis = (data: any) => {
     const ETHTotalData = [] as any
     const BNBTotalData = [] as any
     const MATICTotalData = [] as any
+    const OpenSeaTotal = [] as any
+    const ElementTotal = [] as any
+    const BlurTotal = [] as any
+    const X2Y2Total = [] as any
 
-    if (data.data.length) {
-      setShowTokenTotal(true)
+    if (data.seachCache.length) {
+      setShowPlatform(true)
     }
     for (let index = 0; index < data.data.length; index++) {
       const element = data.data[index];
@@ -452,20 +517,35 @@ export const GameAnalysis = (data: any) => {
         smooth: true
       })
     }
-
+    const arr = []
     for (let index = 0; index < data.seachCache.length; index++) {
       const element = data.seachCache[index]
       const filterData = data.gameData.filter((ele: any) => {
         return element.toLowerCase() === ele.address.toLowerCase()
       })
+
       const actionData = await newhttp.get(`v0/games_${filterData[0].chain}/${element}`)
       const approveData = [] as any
       const mintData = [] as any
       const activeUser = [] as any
-      let ETHTotal = 0
-      let BNBTotal = 0
-      let MATICTotal = 0
+      let TokenTotal = 0
+      let OpenSea = 0
+      let Element = 0
+      let Blur = 0
+      let X2Y2 = 0
       actionData.data.data.map((item: any) => {
+        if (item.market === 'OpenSea') {
+          OpenSea = OpenSea+1
+        }
+        if (item.market === 'Element') {
+          Element = Element+1
+        }
+        if (item.market === 'Blur') {
+          Blur = Blur+1
+        }
+        if (item.market === 'X2Y2') {
+          X2Y2 = X2Y2+1
+        }
         if (item.action === 'Approval' || item.action === 'ApprovalForAll') {
           approveData.push(item)
         }
@@ -478,20 +558,27 @@ export const GameAnalysis = (data: any) => {
         if (!filteraddress.length) {
           activeUser.push(filterAddress(item.t1))
         }
-        const value = new BigNumber(item.transactionvalue).div(1000000000000000000).toNumber()
-        if (filterData[0].chain === 'bsc') {
-          BNBTotal = BNBTotal + value
-        }
-        if (filterData[0].chain === 'polygon') {
-          MATICTotal = MATICTotal + value
-        }
-        if (filterData[0].chain === 'eth') {
-          ETHTotal = ETHTotal + value
+        if (item.action === 'sale') {
+          const value = new BigNumber(item.transactionvalue).div(1000000000000000000).toNumber()
+          TokenTotal = TokenTotal + value
         }
       })
-      ETHTotalData.push(ETHTotal.toFixed(2))
-      BNBTotalData.push(BNBTotal.toFixed(2))
-      MATICTotalData.push(MATICTotal.toFixed(2))
+      const Sales = actionData.data.data.filter((item: any)=> {
+        return item.action === 'sale'
+      })
+      
+      arr.push({
+        image: filterData[0].image,
+        name: filterData[0].name,
+        Sales: Sales.length,
+        Avg: new BigNumber(TokenTotal.toFixed(2)).div(Sales.length).toFixed(2),
+        chain: filterData[0].chain,
+        Volume: TokenTotal.toFixed(2)
+      })
+      OpenSeaTotal.push(OpenSea)
+      ElementTotal.push(Element)
+      BlurTotal.push(Blur)
+      X2Y2Total.push(X2Y2)
       let bot = 0
       let bottransaction = 0
       activeUser.map((item: any) => {
@@ -532,6 +619,10 @@ export const GameAnalysis = (data: any) => {
       })
     }
 
+    setCollectionData(arr)
+    if (data.seachCache.length) {
+      setShowTokenTotal(true)
+    }
     const option = {
       tooltip: {
         trigger: 'axis' as any,
@@ -553,6 +644,10 @@ export const GameAnalysis = (data: any) => {
       },
       series: seriesData
     }
+    if (document.getElementById('AverageActions') == null) {
+      return
+    }
+    echarts.dispose(document.getElementById('AverageActions') as HTMLDivElement)
     const AverageActionDom = document.getElementById('AverageActions') as HTMLDivElement
     const AverageActionChart = echarts.init(AverageActionDom)
     AverageActionChart.setOption(option)
@@ -661,45 +756,51 @@ export const GameAnalysis = (data: any) => {
     const BotTransactionratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
     const BotTransactionratioChart = echarts.init(BotTransactionratiodom)
     BotTransactionratioChart.setOption(BotTransactionOption)
-
-    const TokenTotalOption = {
-      tooltip: {
-        trigger: 'axis' as any,
-      },
-      grid: {
-        left: '3%',
-        right: '3%',
-        bottom: '3%',
-        containLabel: true
-      },
-      legend: {},
-      xAxis:{
-        data: NFTxAxis
-      },
-      yAxis: {
-        type: 'value' as any
-      },
-      series: [
-        {
-          name: 'ETH',
-          type: 'bar',
-          data: ETHTotalData
+    if (data.seachCache.length) {
+      const PlatformOption = {
+        tooltip: {
+          trigger: 'axis' as any,
         },
-        {
-          name: 'BNB',
-          type: 'bar',
-          data: BNBTotalData
+        grid: {
+          left: '3%',
+          right: '3%',
+          bottom: '3%',
+          containLabel: true
         },
-        {
-          name: 'MATIC',
-          type: 'bar',
-          data: MATICTotalData
-        }
-      ]
+        legend: {},
+        xAxis:{
+          data: NFTxAxis
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: [
+          {
+            name: 'OpenSea',
+            type: 'bar',
+            data: OpenSeaTotal
+          },
+          {
+            name: 'Element',
+            type: 'bar',
+            data: ElementTotal
+          },
+          {
+            name: 'Blur',
+            type: 'bar',
+            data: BlurTotal
+          },
+          {
+            name: 'X2Y2',
+            type: 'bar',
+            data: X2Y2Total
+          }
+        ]
+      }
+      const Platformdom = document.getElementById('Platform') as HTMLDivElement
+      const PlatformChart = echarts.init(Platformdom)
+      PlatformChart.setOption(PlatformOption)
     }
-    const TokenTotaldom = document.getElementById('TokenTotal') as HTMLDivElement
-    const TokenTotalChart = echarts.init(TokenTotaldom)
-    TokenTotalChart.setOption(TokenTotalOption)
   }
 
   return (
@@ -709,23 +810,52 @@ export const GameAnalysis = (data: any) => {
       ) :''}
       {!PSstate ? (
         <AnalysisBox>
-          <ApproveTable className="bg">
+          {showTokenTotal ? (
+            <TokenTransactions className="flex flex-h-between wrap">
+              {CollectionData.map((item: any, index: number) => (
+                <div className="CollectionItem" key={index}>
+                  <div className="flex title flex-v-center">
+                    <div className="Collection">Collection</div>
+                    <div className="Avg">Avg price</div>
+                    <div className="Sales">Sales</div>
+                    <div className="Volume">Volume</div>
+                  </div>
+                  <div className="flex info flex-v-center">
+                    <img className="gameImg" src={item.image || defaultImg} alt="" />
+                    <div className="name Abbreviation">{item.name}</div>
+                    <div className="Avg">{item.Avg}</div>
+                    <div className="Sales">{item.Sales}</div>
+                    <div className="Volume">
+                      {item.chain==='polygon'
+                        ? (<img src={PolygonImg} alt="" />)
+                        : item.chain==='bsc'
+                        ? (<img src={BSCImg} alt="" />)
+                        : (<img src={ETHImg} alt="" />)
+                      }
+                      {item.Volume}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </TokenTransactions>
+          ):''}
+          <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">UAW</div>
             <div id="interactionsPerDay">
               <div className="text-center margin">No Data</div>
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          {showTokenTotal ? (
-            <ApproveTable className="bg">
-              <div className="pieTitle text-center">Token Transactions Total</div>
-              <div id="TokenTotal" className="item">
+          {showPlatform ? (
+            <ApproveTable className="bg borderNone">
+              <div className="pieTitle text-center">Transactions Platform</div>
+              <div id="Platform" className="item">
                 <div className="text-center margin">No Data</div>
               </div>
               <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
             </ApproveTable>
           ):''}
-          <ApproveTable className="bg">
+          <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">Player Proportion(%)</div>
             <div id="Botratio" className="item">
               <div className="text-center margin">No Data</div>
@@ -739,20 +869,20 @@ export const GameAnalysis = (data: any) => {
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <ApproveTable className="bg">
+          <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">NFT Transaction(%)</div>
             <div id="NFTTransaction">
               <div className="text-center margin">No Data</div>
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <ApproveTable className="bg">
+          <ApproveTable className="bg borderNone">
             <div id="AverageReward">
               <div className="text-center margin">No Data</div>
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <ApproveTable className="bg">
+          <ApproveTable className="bg borderNone">
             <div id="AverageActions">
               <div className="text-center pieTitle">Average Action</div>
               <div className="text-center margin">No Data</div>

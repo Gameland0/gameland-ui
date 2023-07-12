@@ -8,6 +8,7 @@ import tick from '../assets/tick.png'
 import moreIcon from '../assets/more_circle.png'
 import arrow from '../assets/ICON.png'
 import defaultImg from '../assets/default.png'
+import close from '../assets/close.png'
 import { toastify } from './Toastify'
 import { UservAnalysis } from './UservAnalysis'
 import { GameAnalysis } from './GameAnalysis'
@@ -176,6 +177,30 @@ const SearchBox = styled.div`
     }
   }
 `
+const SearchGame = styled.div`
+ margin: auto;
+  width: 750px;
+  .item {
+    width: 120px;
+    height: 30px;
+    background: #E7F4FF;
+    border-radius: 15px;
+    margin-right: 10px;
+    font-size: 12px;
+    color: #60AEFF;
+    padding: 0 9px;
+    .text {
+      width: 80px;
+      height: 30px;
+      line-height: 30px;
+    }
+    .close {
+      width: 14px;
+      height: 14px;
+      margin-left: 8px;
+    }
+  }
+`
 
 export const Explore = () => {
   const { account } = useActiveWeb3React()
@@ -210,6 +235,21 @@ export const Explore = () => {
     }
   }, [RecommendPage, RecentPage])
 
+  const findName = (address: string) => {
+    const findRecommend = GameData.filter((item: any) => {
+      return address === item.contractAddress
+    })
+    if (findRecommend.length) {
+      return findRecommend[0].contractName
+    }
+    const findRecent = cacheData.filter((item: any) => {
+      return address === item.address
+    })
+    if (findRecent.length) {
+      return findRecent[0].name
+    }
+  }
+
   const getGames = async () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')
@@ -232,6 +272,8 @@ export const Explore = () => {
     return data.length
   }
   const addSeachGame = (item: any) => {
+    setSeachGames([])
+    setSeachCache([])
     if (switchTab === 'Recommend') {
       if (seachGameList.length+seachCacheList.length>=3) {
         toastify.error('Choose up to 3')
@@ -345,8 +387,27 @@ export const Explore = () => {
       setRecentPage(RecentPage + 1)
     }
   }
+  const closeButton = (address: string) => {
+    if (address === seachContract) {
+      setSeachContract('')
+    }
+    const arr = seachGames.filter((ele: any) => {
+      return ele !== address
+    })
+    setSeachGames(arr)
+    setSeachGameList(arr)
+    const arr2 = seachCache.filter((ele: any) => {
+      return ele !== address
+    })
+    setSeachCache(arr2)
+    setSeachCacheList(arr2)
+  }
   const SeachChange = useCallback((ele) => {
     const val = ele.currentTarget.value
+    if (val==='') {
+      setSeachContract('')
+      setSeachAddress('')
+    }
     setSeachInputValue(val)
   }, [])
 
@@ -410,6 +471,16 @@ export const Explore = () => {
           />
           <img className="magnifier cursor" src={magnifier} onClick={SeachAddress} alt="" />
         </div>
+        {[...seachCache,...seachGames].length? (
+          <SearchGame className="searchGame flex">
+            {[...seachCache,...seachGames].map((item: any, index: number) => (
+              <div className="item flex flex-v-center" key={index}>
+                <div className="text Abbreviation">{findName(item)}</div>
+                <img className="close cursor" src={close} alt="" onClick={() => closeButton(item)} />
+              </div>
+            ))}
+          </SearchGame>
+        ):''}
         {!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length ? (
           <div className="switch flex flex-v-center">
             <div className={switchTab === 'Recommend' ? 'text-center chooes':'text-center'} onClick={() => setSwitchTab('Recommend')}>Recommend</div>

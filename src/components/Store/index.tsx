@@ -34,19 +34,19 @@ export const http = axios.create({
   timeout: 30000
 })
 export const bschttp = axios.create({
-  timeout: 30000,
+  timeout: 60000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://bsc-api.gameland.network' : 'http://localhost:8091'
 })
 export const polygonhttp = axios.create({
-  timeout: 30000,
+  timeout: 60000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089'
 })
 export const arbitrumhttp = axios.create({
-  timeout: 30000,
+  timeout: 60000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://arbone-api.gameland.network' : 'http://localhost:8093'
 })
 export const newhttp = axios.create({
-  timeout: 30000,
+  timeout: 60000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://newapi.gameland.network' : 'http://localhost:8099'
 })
 

@@ -126,7 +126,11 @@ export const UservAnalysis = (data: any) => {
         `https://api.rss3.io/v1/notes/${data.useraddress}?limit=500&include_poap=false&count_only=false&query_status=false`
       )
       .then((vals) => {
-        setPieChartData(vals.data.result)
+        if (vals.data.error_code) {
+          toastify.error('Only support for wallet addresses.')
+        } else {
+          setPieChartData(vals.data.result)
+        }
         setLoaddState(false)
       })
       .catch((e)=> {

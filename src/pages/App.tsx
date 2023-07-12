@@ -63,7 +63,7 @@ function App() {
   return (
     <div className="App">
       <Header />
-      {visible ? (
+      {/* {visible ? (
         <Popups>
           <a
             target="_blank"
@@ -75,14 +75,10 @@ function App() {
               etc.) in the future. This link tells how to get reputation points
             </div>
           </a>
-          {/* <div className="close" onClick={close}>
-            x
-          </div> */}
         </Popups>
       ) : (
         <div className="sticky"></div>
-      )}
-      {/* <Filling></Filling> */}
+      )} */}
       <Web3Manager>
         <Wrap className="">
           <Switch>

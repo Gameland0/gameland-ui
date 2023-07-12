@@ -156,6 +156,7 @@ export const UserInfoBox = styled.div`
   }
   .transparency {
     opacity: 0.3;
+    cursor: not-allowed;
   }
   .seeMore {
     margin: 16px 0;
