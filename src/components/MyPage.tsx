@@ -3207,6 +3207,7 @@ export const MyPage = () => {
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
                         <div>{item?.time}</div>
+                        <div>{item.platform || '--'}</div>
                       </div>
                     ))
                   ) : (

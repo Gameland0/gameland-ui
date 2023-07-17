@@ -438,30 +438,6 @@ export const Explore = () => {
               </div>
             ):''}
           </div>
-          {seachType === 'Contract' ? (
-            <div className="seachType flex flex-center cursor" onClick={() => setSeachChainSwitch(!seachChainSwitch)}>
-              {seachChain==='bsc'? 'BNB':seachChain==='eth'?'Eth':'Polygon'}
-              <img src={arrow} />
-              {seachChainSwitch ? (
-              <div className="chainSwitch">
-                <div onClick={() => {
-                  setSeachChain('polygon')
-                  setSeachChainSwitch(false)
-                }}>Polygon</div>
-                <div onClick={() => {
-                  setSeachChain('bsc')
-                  setSeachChainSwitch(false)
-                }}>BNB</div>
-                <div onClick={() => {
-                  setSeachChain('eth')
-                  setSeachChainSwitch(false)
-                }}>Eth</div>
-              </div>
-            ):''}
-            </div>
-          ) :(
-            ''
-          )}
           <input
             type="text"
             placeholder="Please enter address"
