@@ -221,7 +221,6 @@ export const Explore = () => {
   const [seachGames, setSeachGames] = useState([] as any)
   const [seachCache, setSeachCache] = useState([] as any)
   const [seachTypeSwitch, setSeachTypeSwitch] = useState(false)
-  const [seachChainSwitch, setSeachChainSwitch] = useState(false)
 
   useEffect(() => {
     getGames()
@@ -351,7 +350,7 @@ export const Explore = () => {
       setSeachContract('')
       setSeachAddress('')
       if (seachType === 'Wallet') {
-        if (seachGameList.length) {
+        if (seachGameList.length ||seachCacheList.length) {
           toastify.error('SmartContract addresses cannot be mixed with wallet addresses for querying.')
           return
         }

@@ -238,10 +238,9 @@ export const GameAnalysis = (data: any) => {
     }
     if (data.data.length || data.seachCache.length) {
       getCollectionTransaction()
-      setAverageRewardChart()
       setAverageActionChart()
     }
-  }, [data])
+  }, [])
 
   useEffect(() => {
     if (saleRankTab!=='') {
@@ -274,7 +273,7 @@ export const GameAnalysis = (data: any) => {
         }
       })
       const bscinfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=bsc&format=decimal&media_items=false`)
-      if (bscinfo.data.result[0].contract_type.length) {
+      if (bscinfo.data.result[0]?.contract_type) {
         const params = {
           address: data.seachContract,
           chain: 'bsc',
@@ -285,7 +284,7 @@ export const GameAnalysis = (data: any) => {
         newhttp.post(`v0/games_cache`, params)
       }
       const polygoninfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=polygon&format=decimal&media_items=false`)
-      if (polygoninfo.data.result[0].contract_type.length) {
+      if (polygoninfo.data.result[0]?.contract_type) {
         const params = {
           address: data.seachContract,
           chain: 'polygon',
@@ -296,7 +295,7 @@ export const GameAnalysis = (data: any) => {
         newhttp.post(`v0/games_cache`, params)
       }
       const ethinfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=eth&format=decimal&media_items=false`)
-      if (ethinfo.data.result[0].contract_type.length) {
+      if (ethinfo.data.result[0]?.contract_type) {
         const params = {
           address: data.seachContract,
           chain: 'eth',
@@ -314,7 +313,6 @@ export const GameAnalysis = (data: any) => {
       }
       data.data.push(data.seachContract)
       getCollectionTransaction()
-      setAverageRewardChart()
       setAverageActionChart()
     }
     if (gamescache.data.data.length) {
@@ -329,7 +327,6 @@ export const GameAnalysis = (data: any) => {
       setShowTokenTotal(true)
       setShowPlatform(true)
       getCollectionTransaction()
-      setAverageRewardChart()
       setAverageActionChart()
     }
     if (Data.length || filterCache.length) {
@@ -439,79 +436,6 @@ export const GameAnalysis = (data: any) => {
     const Activitydom = document.getElementById('interactionsPerDay') as HTMLDivElement
     const ActivityChart = echarts.init(Activitydom)
     ActivityChart.setOption(options)
-  }
-
-  const setAverageRewardChart = () => {
-    const week = new Date().getUTCDay()
-      const day = new Date().getDate()
-      let month = new Date().getMonth()+1
-      let time
-      if (week > 0) {
-        if ((day - week) === 0) {
-          month = month - 1
-          time = 30
-        } else {
-          time = day - week
-        }
-      } else if (week === 0) {
-        time = day
-      }
-      const firstWeek = `${month>10?month:'0'+month}-${time}`
-      const option = {
-        title: {
-          text: 'Average Reward',
-          left: 20
-        },
-        tooltip: {
-          trigger: 'axis' as any,
-          axisPointer: {
-            type: 'shadow' as any
-          }
-        },
-        legend: {},
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        xAxis: [
-          {
-            type: 'category' as any,
-            data: [firstWeek, 'Week2', 'Week3', 'Week4'],
-            axisTick: {
-              show: false
-            }
-          }
-        ],
-        yAxis: [
-          {
-            type: 'value' as any
-          }
-        ],
-        series: [
-          {
-            name: 'Bot',
-            type: 'bar',
-            barGap: 0,
-            emphasis: {
-              focus: 'series'
-            },
-            data: [0,0,0,0]
-          },
-          {
-            name: 'Real',
-            type: 'bar',
-            emphasis: {
-              focus: 'series'
-            },
-            data: [0,0,0,0]
-          }
-        ]
-      }
-      const AverageRewardDom = document.getElementById('AverageReward') as HTMLDivElement
-      const AverageRewardChart = echarts.init(AverageRewardDom)
-      AverageRewardChart.setOption(option)
   }
 
   const setAverageActionChart = async () => {
@@ -742,7 +666,7 @@ export const GameAnalysis = (data: any) => {
         image: filterData[0].image,
         name: filterData[0].name,
         Sales: Sales.length,
-        Avg: new BigNumber(TokenTotal.toFixed(2)).div(Sales.length).toFixed(2),
+        Avg: Sales.length===0? Sales.length: new BigNumber(TokenTotal.toFixed(2)).div(Sales.length).toFixed(2),
         chain: filterData[0].chain,
         Volume: TokenTotal.toFixed(2)
       })
@@ -757,9 +681,9 @@ export const GameAnalysis = (data: any) => {
           bot = bot + 1
           bottransaction = bottransaction + data.length
           level = 'Bot'
-        } else if (data.length < 25 && data.length > 18) {
+        } else if (data.length <= 25 && data.length > 18) {
           level = 'High'
-        } else {
+        } else if(data.length < 18){
           level = 'Middle'
         }
         actionRankData.push({
@@ -828,9 +752,6 @@ export const GameAnalysis = (data: any) => {
     }
 
     setCollectionData(arr)
-    if (data.seachCache.length) {
-      setShowTokenTotal(true)
-    }
     const option = {
       tooltip: {
         trigger: 'axis' as any,
@@ -1000,35 +921,33 @@ export const GameAnalysis = (data: any) => {
       ) :''}
       {!PSstate ? (
         <AnalysisBox>
-          {showTokenTotal ? (
-            <TokenTransactions className="flex flex-h-between wrap">
-              {CollectionData.map((item: any, index: number) => (
-                <div className="CollectionItem" key={index}>
-                  <div className="flex title flex-v-center">
-                    <div className="Collection">Collection</div>
-                    <div className="Avg">Avg price</div>
-                    <div className="Sales">Sales</div>
-                    <div className="Volume">Volume</div>
-                  </div>
-                  <div className="flex info flex-v-center">
-                    <img className="gameImg" src={item.image || defaultImg} alt="" />
-                    <div className="name Abbreviation">{item.name}</div>
-                    <div className="Avg">{item.Avg}</div>
-                    <div className="Sales">{item.Sales}</div>
-                    <div className="Volume">
-                      {item.chain==='polygon'
-                        ? (<img src={PolygonImg} alt="" />)
-                        : item.chain==='bsc'
-                        ? (<img src={BSCImg} alt="" />)
-                        : (<img src={ETHImg} alt="" />)
-                      }
-                      {item.Volume}
-                    </div>
+          <TokenTransactions className="flex flex-h-between wrap">
+            {CollectionData.map((item: any, index: number) => (
+              <div className="CollectionItem" key={index}>
+                <div className="flex title flex-v-center">
+                  <div className="Collection">Collection</div>
+                  <div className="Avg">Avg price</div>
+                  <div className="Sales">Sales</div>
+                  <div className="Volume">Volume</div>
+                </div>
+                <div className="flex info flex-v-center">
+                  <img className="gameImg" src={item.image || defaultImg} alt="" />
+                  <div className="name Abbreviation">{item.name}</div>
+                  <div className="Avg">{item.Avg}</div>
+                  <div className="Sales">{item.Sales}</div>
+                  <div className="Volume">
+                    {item.chain==='polygon'
+                      ? (<img src={PolygonImg} alt="" />)
+                      : item.chain==='bsc'
+                      ? (<img src={BSCImg} alt="" />)
+                      : (<img src={ETHImg} alt="" />)
+                    }
+                    {item.Volume}
                   </div>
                 </div>
-              ))}
-            </TokenTransactions>
-          ):''}
+              </div>
+            ))}
+          </TokenTransactions>
           <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">UAW</div>
             <div id="interactionsPerDay">
@@ -1036,15 +955,13 @@ export const GameAnalysis = (data: any) => {
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          {showPlatform ? (
-            <ApproveTable className="bg borderNone">
-              <div className="pieTitle text-center">Transactions Platform</div>
-              <div id="Platform" className="item">
-                <div className="text-center margin">No Data</div>
-              </div>
-              <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
-            </ApproveTable>
-          ):''}
+          <ApproveTable className="bg borderNone">
+            <div className="pieTitle text-center">Transactions Platform</div>
+            <div id="Platform" className="item">
+              <div className="text-center margin">No Data</div>
+            </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
+          </ApproveTable>
           <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">Player Proportion(%)</div>
             <div id="Botratio" className="item">
@@ -1062,12 +979,6 @@ export const GameAnalysis = (data: any) => {
           <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">NFT Transaction(%)</div>
             <div id="NFTTransaction">
-              <div className="text-center margin">No Data</div>
-            </div>
-            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
-          </ApproveTable>
-          <ApproveTable className="bg borderNone">
-            <div id="AverageReward">
               <div className="text-center margin">No Data</div>
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
