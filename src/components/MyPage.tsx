@@ -2277,6 +2277,7 @@ export const MyPage = () => {
                 sent: (ele.metadata.from.value_display * 1).toFixed(2) + ' ' + ele.metadata.from.symbol,
                 received: (ele.metadata.to.value_display * 1).toFixed(2) + ' ' + ele.metadata.to.symbol,
                 type: 'Swap',
+                platform: item.platform,
                 chain: chains,
                 time: item.timestamp.substr(0, 10)
               })
@@ -3196,7 +3197,6 @@ export const MyPage = () => {
                     <div>Chain</div>
                     <div>Type</div>
                     <div>Time</div>
-                    <div>Platform</div>
                   </div>
                   {tableData && tableData.length ? (
                     tableData.map((item: any, index: number) => (
@@ -3207,7 +3207,6 @@ export const MyPage = () => {
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
                         <div>{item?.time}</div>
-                        <div>{item.platform || '--'}</div>
                       </div>
                     ))
                   ) : (

@@ -124,6 +124,12 @@
   opacity: 0;
   z-index: -1;
 }
+.absolute {
+ position: absolute;
+}
 .spacing-5 {
   margin-bottom: 5px;
+}
+.bag {
+  background: #f4f9fb;
 }

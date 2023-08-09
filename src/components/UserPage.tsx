@@ -3090,7 +3090,6 @@ export const UserPage = () => {
                     <div>Price</div>
                     <div>Chain</div>
                     <div>Type</div>
-                    <div>Platform</div>
                   </div>
                   {tableData && tableData.length ? (
                     tableData.map((item: any, index: number) => (
@@ -3101,7 +3100,6 @@ export const UserPage = () => {
                         <div>{item?.price}</div>
                         <div>{item?.chain}</div>
                         <div>{item?.type}</div>
-                        <div>{item.platform || '--'}</div>
                       </div>
                     ))
                   ) : (

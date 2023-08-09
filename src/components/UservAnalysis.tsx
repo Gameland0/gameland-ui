@@ -723,6 +723,7 @@ export const UservAnalysis = (data: any) => {
                 <div>Chain</div>
                 <div>Type</div>
                 <div>Time</div>
+                <div>Platform</div>
               </div>
               {swapData && swapData.length ? (
                 swapData.map((item: any, index: number) => (
@@ -732,6 +733,7 @@ export const UservAnalysis = (data: any) => {
                     <div>{item?.chain}</div>
                     <div>{item?.type}</div>
                     <div>{item?.time}</div>
+                    <div>{item.platform || '--'}</div>
                   </div>
                 ))
               ) : (

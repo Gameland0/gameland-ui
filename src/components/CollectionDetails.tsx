@@ -1367,7 +1367,7 @@ export const firstWeek = () => {
   let month = new Date().getMonth()+1
   let time
   if (week > 0) {
-    if ((day - week) === 0) {
+    if ((day - week) <= 0) {
       month = month - 1
       time = 30
     } else {
@@ -1429,7 +1429,6 @@ export const calculateAverage = (data: any, activeUser: any) => {
 
 export const CollectionDetails = () => {
   const { account, library, chainId } = useActiveWeb3React()
-  // const { data: _myNfts, mutate: mutateMyNfts } = useFetchMyNfts()
   const ERC20Contract = useERC20Contract()
   const ControlContract = useControlContract()
   const AssetContract = useAssetContract()
