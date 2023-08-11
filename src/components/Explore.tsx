@@ -149,6 +149,7 @@ const SearchBox = styled.div`
         width: 35px;
         height: 35px;
         margin-right: 10px;
+        border-radius: 50%;
       }
       .gameName {
         width: 160px;

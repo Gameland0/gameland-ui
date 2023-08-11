@@ -22,7 +22,7 @@ import {
   POLYGONRewardAddress,
   OneRewardAddress
 } from '../constants'
-import { bschttp, http, polygonhttp } from './Store'
+import { bschttp, http, newhttp, polygonhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt } from '../utils'
 import { colorTable } from '../constants/colorTable'
 import { firstWeek, getTime } from './CollectionDetails'
@@ -916,6 +916,7 @@ export const UserPage = () => {
   const [ethColletionTotal, setEthColletionTotal] = useState(-1)
   const [polygonColletionTotal, setPolygonColletionTotal] = useState(-1)
   const [activityTab, setActivityTab] = useState('Chains')
+  const [activityTab2, setActivityTab2] = useState('Lens')
   const [tokenTab, setTokenTab] = useState('Polygon')
   const [collectionTab, setCollectionTab] = useState('Polygon')
   const [transactionTab, setTransactionTab] = useState('NFT')
@@ -1025,6 +1026,7 @@ export const UserPage = () => {
   useEffect(() => {
     if (showTabs === 'Analysis' && PieChartData.length) {
       setQuickPreviewChart()
+      getLensData()
     }
   }, [PieChartData, showTabs, QuickPreviewData])
   useEffect(() => {
@@ -2176,6 +2178,8 @@ export const UserPage = () => {
       const transactionData = [] as any
       const interactArr = [] as any
       const currentTime = new Date().getTime()
+      const OATData = [] as any
+      const OATtime = [] as any
       PieChartData?.map((item: any) => {
         chainarr.push(item.network)
         tagarr.push(item.tag)
@@ -2278,6 +2282,34 @@ export const UserPage = () => {
                 prices = 0
               }
               Tabledata.push({
+                collation: ele.metadata.collection,
+                nftname: ele.metadata.name,
+                price: prices,
+                chain: chains,
+                platform: item.platform,
+                type: ele.address_from?.toLowerCase() === useraddress?.toLowerCase() ? 'Sold' : 'Bought',
+                time: item.timestamp.substr(0, 10)
+              })
+            }
+          })
+        }
+        if (item.tag === 'collectible') {
+          item.actions.map((ele: any) => {
+            if (ele.metadata.collection=== 'Galaxy OAT') {
+              const filterTime = OATtime.filter((val: any) => {
+                return val === item.timestamp.substr(5, 5)
+              })
+              if (filterTime.length===0) {
+                OATtime.push(item.timestamp.substr(5, 5))
+              }
+              const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+              let prices
+              if (ele.metadata.cost) {
+                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              } else {
+                prices = 0
+              }
+              OATData.push({
                 collation: ele.metadata.collection,
                 nftname: ele.metadata.name,
                 price: prices,
@@ -2412,6 +2444,37 @@ export const UserPage = () => {
         },
         series: collationActivity
       }
+      const OATseriesdata = [] as any
+      OATtime.map((item: any) => {
+        const data = OATData.filter((ele: any) => {
+          return item === ele.time.substr(5, 5)
+        })
+        OATseriesdata.push(data.length)
+      })
+      const OAToptions = {
+        title: {
+          text: 'Galxe OAT Activity',
+          top : '90%',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: []
+        },
+        xAxis: {
+          data: OATtime
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: [{
+          name: 'OAT',
+          type: 'line',
+          data: OATseriesdata
+        }]
+      }
       const Chainsdom = document.getElementById('Chains') as HTMLDivElement
       const ChainsChart = echarts.init(Chainsdom)
       ChainsChart.setOption(PieOption('Chains', Chainsoptionsdata))
@@ -2426,6 +2489,81 @@ export const UserPage = () => {
       const collationActivityChart = echarts.init(collationActivitydom)
       collationActivityChart.setOption(collationActivityoption)
       collationActivityChart.on('click', collationActivityClick)
+      if (OATData.length) {
+        const OATdom = document.getElementById('ActivityOAT') as HTMLDivElement
+        const OATChart = echarts.init(OATdom)
+        OATChart.setOption(OAToptions)
+      }
+    }
+  }
+  const getLensData = async () => {
+    const postsData =  await newhttp.get(`v0/lens_posts/${useraddress}`)
+    const commentdata = await newhttp.get(`v0/lens_comments/${useraddress}`)
+    const timearr = [] as any
+    const postseriesdata = [] as any
+    const commentseriesdata = [] as any
+    if (postsData.data.data.length) {
+      postsData.data.data.map((item: any) => {
+        const filterTime = timearr.filter((ele: any) => {
+          return ele === item.post_createdAt.substr(5, 5)
+        })
+        if (!filterTime.length) {
+          timearr.push(item.post_createdAt.substr(5, 5))
+        }
+      })
+    }
+    if (commentdata.data.data.length) {
+      commentdata.data.data.map((item: any) => {
+        const filterTime = timearr.filter((ele: any) => {
+          return ele === item.comment_createdAt.substr(5, 5)
+        })
+        if (!filterTime.length) {
+          timearr.push(item.comment_createdAt.substr(5, 5))
+        }
+      })
+    }
+    timearr.map((item: any) => {
+      const findPost = postsData.data.data.filter((ele: any) => {
+        return ele.post_createdAt.substr(5, 5) === item
+      })
+      const findComment = commentdata.data.data.filter((ele: any) => {
+        return ele.comment_createdAt.substr(5, 5) === item
+      })
+      postseriesdata.push(findPost.length)
+      commentseriesdata.push(findComment.length)
+    })
+    if (commentdata.data.data.length || postsData.data.data.length) {
+      const options = {
+        title: {
+          text: 'Lens Activity',
+          top : '90%',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: ['Post','Comment']
+        },
+        xAxis: {
+          data: timearr
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: [{
+          name: 'Post',
+          type: 'line',
+          data: postseriesdata
+        },{
+          name: 'Comment',
+          type: 'line',
+          data: commentseriesdata
+        }]
+      }
+      const Lensdom = document.getElementById('ActivityLens') as HTMLDivElement
+      const LensChart = echarts.init(Lensdom)
+      LensChart.setOption(options)
     }
   }
   const chainActivityClick = (params: any) => {
@@ -3237,6 +3375,24 @@ export const UserPage = () => {
                     <img src={coffee} alt="" />
                   </div>
                 </div>) : ''}
+              </div>
+              <div className="Activity">
+                <div className="tabs flex">
+                  <div onClick={() => setActivityTab2('Lens')}>
+                    Lens
+                    {activityTab2 === 'Lens' ? <img src={shortbutton} /> : ''}
+                  </div>
+                  <div onClick={() => setActivityTab2('OAT')}>
+                    Galxe OAT
+                    {activityTab2 === 'OAT' ? <img src={longbutton} /> : ''}
+                  </div>
+                </div>
+                <div id="ActivityLens" className={activityTab2 === 'Lens' ? 'lineChart' : 'lineChart none'}>
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                </div>
+                <div id="ActivityOAT" className={activityTab2 === 'OAT' ? 'lineChart' : 'lineChart none'}>
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                </div>
               </div>
               <TableBox>
                 {interactAll&&interactAll.length ? (
