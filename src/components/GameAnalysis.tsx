@@ -14,9 +14,11 @@ import ETHImg from '../assets/eth.svg'
 import shortbutton from '../assets/short_button.jpg'
 import { filterAddress, formatting } from '../utils'
 import BigNumber from 'bignumber.js'
+import html2canvas from 'html2canvas'
 import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
 import { SendBox } from '../pages/Dashboard'
+import { Return } from './RentingCard'
 
 const Analysis = styled.div`
   .borderNone {
@@ -41,6 +43,20 @@ const Analysis = styled.div`
     width: 96%;
     height: 350px;
   }
+  .Download {
+    width: 160px;
+    height: 40px;
+    background: #2FAFFF;
+    box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #FFFFFF;
+    line-height: 40px;
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+  }
 `
 const TokenTransactions = styled.div`
   margin: auto;
@@ -56,8 +72,8 @@ const TokenTransactions = styled.div`
       width: 155px;
     }
     .Volume {
-      width: 65px;
-      margin-left: 8px;
+      width: 75px;
+      margin-left: 10px;
       text-align: right;
       img {
         width: 15px;
@@ -71,7 +87,7 @@ const TokenTransactions = styled.div`
       text-align: right;
     }
     .Sales {
-      width: 65px;
+      width: 55px;
       text-align: right;
     }
     .info {
@@ -577,12 +593,13 @@ export const GameAnalysis = (data: any) => {
   useEffect(() => {
     if (data.seachContract.length) {
       detectionAddress()
+    } else {
+      if (data.data.length || data.seachCache.length) {
+        getCollectionTransaction()
+        setAverageActionChart()
+      }
     }
-    if (data.data.length || data.seachCache.length) {
-      getCollectionTransaction()
-      setAverageActionChart()
-    }
-  }, [data])
+  }, [data.data,data.seachCache,data.seachContract])
 
   useEffect(() => {
     if (saleRankTab!=='') {
@@ -649,6 +666,10 @@ export const GameAnalysis = (data: any) => {
       }
     }
     if (filterData.length) {
+      if (Data.length || filterCache.length) {
+        toastify.error('The game has been searched')
+        return
+      }
       if (data.data.length>=3) {
         toastify.error('Choose up to 3')
         return
@@ -661,6 +682,10 @@ export const GameAnalysis = (data: any) => {
       setPSstate(true)
     }
     if (gamesdata.data.data.length) {
+      if (Data.length || filterCache.length) {
+        toastify.error('The game has been searched')
+        return
+      }
       if (data.seachCache.length>=3) {
         toastify.error('Choose up to 3')
         return
@@ -669,9 +694,7 @@ export const GameAnalysis = (data: any) => {
       getCollectionTransaction()
       setAverageActionChart()
     }
-    if (Data.length || filterCache.length) {
-      return
-    }
+    
   }
 
   const getCollectionTransaction = async () => {
@@ -796,6 +819,7 @@ export const GameAnalysis = (data: any) => {
     const arr = []
     const BoughttimeArr = [] as any
     const SoldtimeArr = [] as any
+    RankData.length=0
 
     for (let index = 0; index < data.data.length; index++) {
       const element = data.data[index];
@@ -993,15 +1017,22 @@ export const GameAnalysis = (data: any) => {
         }
       })
       const BoughtDetailsData= [] as any
+      const BoughtSpentData = [] as any
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
       sortBoughttime.map((item: any) => {
+        let spent = 0
         const times = new Date(item * 1000).toJSON().substring(5, 10)
         const data = Sales.filter((ele: any)=> {
           const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
           return times === time
         })
+        data.map((ele: any)=> {
+          spent = spent+ele.transactionvalue*1
+        })
+        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
         BoughttimeArr.push(times)
         BoughtDetailsData.push(data.length)
+        BoughtSpentData.push(vules)
       })
       const Soldtime = [] as any
       Sold.map((item: any) => {
@@ -1015,15 +1046,22 @@ export const GameAnalysis = (data: any) => {
         }
       })
       const SoldDetailsData = [] as any
+      const SoldSpentData = [] as any
       const sortSoldtime = Soldtime.sort((a: any,b: any)=> {return b-a})
       sortSoldtime.map((item: any) => {
+        let spent = 0
         const times = new Date(item * 1000).toJSON().substring(5, 10)
         const data = Sold.filter((ele: any)=> {
           const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
           return times === time
         })
+        data.map((ele: any)=> {
+          spent = spent+ele.transactionvalue*1
+        })
+        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
         SoldtimeArr.push(times)
         SoldDetailsData.push(data.length)
+        SoldSpentData.push(vules)
       })
       SalesAddress.map((item: any) => {
         const data = Sales.filter((ele: any) => {
@@ -1061,15 +1099,27 @@ export const GameAnalysis = (data: any) => {
       legend.push(`${filterData[0].contractName} Average Transction`)
       Platformlegend.push(...[`${filterData[0].contractName} OpenSea`,`${filterData[0].contractName} Element`,`${filterData[0].contractName} Blur`,`${filterData[0].contractName} X2Y2`,])
       BoughtDetailsSeries.push({
-        name: filterData[0].contractName,
+        name: `${filterData[0].contractName} Bought`,
         type: 'line',
         data: BoughtDetailsData
+      },{
+        name: `${filterData[0].contractName} Price & Volume`,
+        type: 'line',
+        data: BoughtSpentData
       })
       SoldDetailsSeries.push({
-        name: filterData[0].contractName,
+        name: `${filterData[0].contractName} Sold`,
         type: 'line',
         data: SoldDetailsData
+      },{
+        name: `${filterData[0].contractName} Price & Volume`,
+        type: 'line',
+        data: SoldSpentData
       })
+      BoughtDetailslegend.push(`${filterData[0].contractName} Bought`)
+      BoughtDetailslegend.push(`${filterData[0].contractName} Price & Volume`)
+      SoldDetailslegend.push(`${filterData[0].contractName} Sold`)
+      SoldDetailslegend.push(`${filterData[0].contractName} Price & Volume`)
       seriesData.push({
         name: `${filterData[0].contractName} Average Approve`,
         data: calculateAverage(approveData, users.data.data),
@@ -1256,39 +1306,63 @@ export const GameAnalysis = (data: any) => {
         }
       })
       const BoughtDetailsData= [] as any
+      const BoughtSpentData = [] as any
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
       sortBoughttime.map((item: any) => {
+        let spent = 0
         const times = new Date(item * 1000).toJSON().substring(5, 10)
         const data = Sales.filter((ele: any)=> {
           const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
           return times === time
         })
+        data.map((ele: any)=> {
+          spent = spent+ele.transactionvalue*1
+        })
+        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
         BoughttimeArr.push(times)
         BoughtDetailsData.push(data.length)
+        BoughtSpentData.push(vules)
       })
       const SoldDetailsData = [] as any
+      const SoldSpentData = [] as any
       const sortSoldtime = Soldtime.sort((a: any,b: any)=> {return b-a})
       sortSoldtime.map((item: any) => {
+        let spent = 0
         const times = new Date(item * 1000).toJSON().substring(5, 10)
         const data = Sold.filter((ele: any)=> {
           const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
           return times === time
         })
+        data.map((ele: any)=> {
+          spent = spent+ele.transactionvalue*1
+        })
+        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
         SoldtimeArr.push(times)
         SoldDetailsData.push(data.length)
+        SoldSpentData.push(vules)
       })
       BoughtDetailsSeries.push({
-        name: filterData[0].name,
+        name: `${filterData[0].name} Bought`,
         type: 'line',
         data: BoughtDetailsData
+      },{
+        name: `${filterData[0].name} Price & Volume`,
+        type: 'line',
+        data: BoughtSpentData
       })
       SoldDetailsSeries.push({
-        name: filterData[0].name,
+        name: `${filterData[0].name} Sold`,
         type: 'line',
         data: SoldDetailsData
+      },{
+        name: `${filterData[0].name} Price & Volume`,
+        type: 'line',
+        data: SoldSpentData
       })
-      BoughtDetailslegend.push(filterData[0].name)
-      SoldDetailslegend.push(filterData[0].name)
+      BoughtDetailslegend.push(`${filterData[0].name} Bought`)
+      BoughtDetailslegend.push(`${filterData[0].name} Price & Volume`)
+      SoldDetailslegend.push(`${filterData[0].name} Sold`)
+      SoldDetailslegend.push(`${filterData[0].name} Price & Volume`)
       SalesAddress.map((item: any) => {
         const data = Sales.filter((ele: any) => {
           return item === filterAddress(ele.t1)
@@ -1594,36 +1668,58 @@ export const GameAnalysis = (data: any) => {
 
   const BoughtChartClick = (params: any) => {
     const data = seachGameData.filter((item: any) => {
-      return item.name === params.seriesName
+      return `${item.name} Bought` === params.seriesName
     })
-    const Bought = data[0].data.filter((item: any)=> {
-      return item.action === 'sale'|| item.xw=== 'sale'
-    })
-    const filterData = Bought.filter((item: any)=> {
-      const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
-      return time === params.name
-    })
-    const parm = [{
-      chain: data[0].chain,
-      data: filterData
-    }]
-    console.log(parm)
-    setPopUpsData(parm)
-    setShowActivity(true)
+    if (data.length) {
+      const Bought = data[0].data.filter((item: any)=> {
+        return item.action === 'sale'|| item.xw=== 'sale'
+      })
+      const filterData = Bought.filter((item: any)=> {
+        const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
+        return time === params.name
+      })
+      const parm = [{
+        chain: data[0].chain,
+        data: filterData
+      }]
+      setPopUpsData(parm)
+      setShowActivity(true)
+    }
   }
   const SoldChartClick = (params: any) => {
     const data = seachGameData.filter((item: any) => {
-      return item.name === params.seriesName
+      return `${item.name} Sold` === params.seriesName
     })
-    const Bought = data[0].data.filter((item: any)=> {
-      return item.action === 'sold'|| item.xw=== 'sold'
+    if (data.length) {
+      const Bought = data[0].data.filter((item: any)=> {
+        return item.action === 'sold'|| item.xw=== 'sold'
+      })
+      const filterData = Bought.filter((item: any)=> {
+        const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
+        return time === params.name
+      })
+      const parm = [{
+        chain: data[0].chain,
+        data: filterData
+      }]
+      setPopUpsData(parm)
+      setShowActivity(true)
+    }
+  }
+  const download = () => {
+    const dom = document.getElementById('download') as HTMLElement
+    html2canvas(dom).then((canvas) => {
+      const imgData = canvas.toDataURL('image', 1.0)
+      saveFile(imgData, 'download')
     })
-    const filterData = Bought.filter((item: any)=> {
-      const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
-      return time === params.name
-    })
-    setPopUpsData(filterData)
-    setShowActivity(true)
+  }
+  const saveFile = (data: any, name: string) => {
+    const a = document.createElement('a')
+    a.style.display = 'none'
+    const event = new MouseEvent('click')
+    a.download = name
+    a.href = data
+    a.dispatchEvent(event)
   }
 
   return (
@@ -1655,7 +1751,7 @@ export const GameAnalysis = (data: any) => {
         <div className="text-center">The data might take a while to load. Please come back later.</div>
       ) :''}
       {!PSstate ? (
-        <AnalysisBox>
+        <AnalysisBox id="download">
           <TokenTransactions className="flex flex-h-between wrap">
             {CollectionData.map((item: any, index: number) => (
               <div className="CollectionItem" key={index}>
@@ -1827,6 +1923,7 @@ export const GameAnalysis = (data: any) => {
           </RankingTable>
         </AnalysisBox>
       ) : ''}
+      {/* <div className="Download cursor" onClick={download}>Download $</div> */}
     </Analysis>
   )
 }

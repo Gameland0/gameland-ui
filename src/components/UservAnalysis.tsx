@@ -10,6 +10,7 @@ import { AnalysisBox, CollationTable, PieOption, RelationChartOption, TableBox }
 import { formatting } from '../utils'
 import { MORALIS_KEY } from '../constants'
 import axios from 'axios'
+import html2canvas from 'html2canvas'
 import { toastify } from './Toastify'
 import { colorTable } from '../constants/colorTable'
 import { findAddressIndex } from './RelationChart'
@@ -32,6 +33,21 @@ const Analysis = styled.div`
     background: url(${pieBg});
     background-size: 100% 100%;
   }
+  .Download {
+    width: 160px;
+    height: 40px;
+    background: #2FAFFF;
+    box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #FFFFFF;
+    line-height: 40px;
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+  }
+
   @media screen and (min-width: 1440px) {
     .pies {
       width: 48%;
@@ -60,6 +76,8 @@ export const UservAnalysis = (data: any) => {
   const [transaction, setTransaction] = useState([] as any)
   const [interactAll, setInteractAll] = useState([] as any)
   const [interact, setInteract] = useState([] as any)
+  const [washData, setWashData] = useState([] as any)
+  const [washDataAll, setWashDataAll] = useState([] as any)
   const [showActivity, setShowActivity] = useState(false)
   const [loaddState, setLoaddState] = useState(false)
   const [collectionTab, setCollectionTab] = useState('Polygon')
@@ -133,74 +151,107 @@ export const UservAnalysis = (data: any) => {
     }
   }
   const getLensData = async () => {
-    const postsData =  await newhttp.get(`v0/lens_posts/${data.useraddress}`)
-    const commentdata = await newhttp.get(`v0/lens_comments/${data.useraddress}`)
     const timearr = [] as any
-    const postseriesdata = [] as any
-    const commentseriesdata = [] as any
-    if (postsData.data.data.length) {
-      postsData.data.data.map((item: any) => {
-        const filterTime = timearr.filter((ele: any) => {
-          return ele === item.post_createdAt.substr(5, 5)
+    const post = [] as any
+    const mint = [] as any
+    const share = [] as any
+    const follow = [] as any
+    const comment = [] as any
+    const seriespost = [] as any
+    const seriesmint = [] as any
+    const seriesshare = [] as any
+    const seriesfollow = [] as any
+    const seriescomment = [] as any
+    PieChartData?.map((item: any) => {
+      if (item.platform === 'Lens') {
+        const filterdata = timearr.filter((ele: any) => {
+          return ele === item.timestamp.substr(5, 5)
         })
-        if (!filterTime.length) {
-          timearr.push(item.post_createdAt.substr(5, 5))
+        if (!filterdata.length) {
+          timearr.push(item.timestamp.substr(5, 5))
         }
-      })
-    }
-    if (commentdata.data.data.length) {
-      commentdata.data.data.map((item: any) => {
-        const filterTime = timearr.filter((ele: any) => {
-          return ele === item.comment_createdAt.substr(5, 5)
-        })
-        if (!filterTime.length) {
-          timearr.push(item.comment_createdAt.substr(5, 5))
+        if (item.type === 'post') {
+          post.push(item)
         }
-      })
-    }
-    timearr.map((item: any) => {
-      const findPost = postsData.data.data.filter((ele: any) => {
-        return ele.post_createdAt.substr(5, 5) === item
-      })
-      const findComment = commentdata.data.data.filter((ele: any) => {
-        return ele.comment_createdAt.substr(5, 5) === item
-      })
-      postseriesdata.push(findPost.length)
-      commentseriesdata.push(findComment.length)
-    })
-    if (commentdata.data.data.length || postsData.data.data.length) {
-      const options = {
-        title: {
-          text: 'Lens Activity',
-          top : '90%',
-          left: 'center'
-        },
-        tooltip: {
-          trigger: 'axis' as any
-        },
-        legend: {
-          data: ['Post','Comment']
-        },
-        xAxis: {
-          data: timearr
-        },
-        yAxis: {
-          type: 'value' as any
-        },
-        series: [{
-          name: 'Post',
-          type: 'line',
-          data: postseriesdata
-        },{
-          name: 'Comment',
-          type: 'line',
-          data: commentseriesdata
-        }]
+        if (item.type === 'mint') {
+          mint.push(item)
+        }
+        if (item.type === 'share') {
+          share.push(item)
+        }
+        if (item.type === 'follow') {
+          follow.push(item)
+        }
+        if (item.type === 'comment') {
+          comment.push(item)
+        }
       }
-      const Lensdom = document.getElementById('ActivityLens') as HTMLDivElement
-      const LensChart = echarts.init(Lensdom)
-      LensChart.setOption(options)
+    })
+    timearr.map((item: any) => {
+      const filterpost = post.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filtermint = mint.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filtershare = share.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filterfollow = follow.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filtercomment = comment.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      seriespost.push(filterpost.length)
+      seriesmint.push(filtermint.length)
+      seriesshare.push(filtershare.length)
+      seriesfollow.push(filterfollow.length)
+      seriescomment.push(filtercomment.length)
+    })
+    const options = {
+      title: {
+        text: 'Lens Activity',
+        top : '90%',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        data: ['Post','Comment','Mint','Follow','Share']
+      },
+      xAxis: {
+        data: timearr
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [{
+        name: 'Post',
+        type: 'line',
+        data: seriespost
+      },{
+        name: 'Mint',
+        type: 'line',
+        data: seriesmint
+      },{
+        name: 'Follow',
+        type: 'line',
+        data: seriesfollow
+      },{
+        name: 'Share',
+        type: 'line',
+        data: seriesshare
+      },{
+        name: 'Comment',
+        type: 'line',
+        data: seriescomment
+      }]
     }
+    const Lensdom = document.getElementById('ActivityLens') as HTMLDivElement
+    const LensChart = echarts.init(Lensdom)
+    LensChart.setOption(options)
   }
   const getPieChartData = () => {
     setLoaddState(true)
@@ -581,7 +632,7 @@ export const UservAnalysis = (data: any) => {
       setBscNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('bscCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(PieOption('Collation', optionData))
+      CollationChart.setOption(PieOption('Colletion', optionData))
     })
     getdata.get(`https://deep-index.moralis.io/api/v2/${data.useraddress}/nft?chain=polygon&format=decimal`).then((vals) => {
       const addressArr = [] as any
@@ -607,7 +658,7 @@ export const UservAnalysis = (data: any) => {
       setPolygonNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('polygonCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(PieOption('Collation', optionData))
+      CollationChart.setOption(PieOption('Colletion', optionData))
     })
     getdata.get(`https://deep-index.moralis.io/api/v2/${data.useraddress}/nft?chain=eth&format=decimal`).then((vals) => {
       const addressArr = [] as any
@@ -633,7 +684,7 @@ export const UservAnalysis = (data: any) => {
       setEthNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('ethCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(PieOption('Collation', optionData))
+      CollationChart.setOption(PieOption('Colletion', optionData))
     })
   }
   const setRelationChart = () => {
@@ -752,6 +803,21 @@ export const UservAnalysis = (data: any) => {
       setInteract(interactAll.slice(10 * index, 10 * index + 10))
     }
   }
+  const download = () => {
+    const dom = document.getElementById('download') as HTMLElement
+    html2canvas(dom).then((canvas) => {
+      const imgData = canvas.toDataURL('image/jpeg', 1.0)
+      saveFile(imgData, 'download')
+    })
+  }
+  const saveFile = (data: any, name: string) => {
+    const a = document.createElement('a')
+    a.style.display = 'none'
+    const event = new MouseEvent('click')
+    a.download = name
+    a.href = data
+    a.dispatchEvent(event)
+  }
 
   return (
     <Analysis>
@@ -763,7 +829,7 @@ export const UservAnalysis = (data: any) => {
         </div>
       ) : ''}
       {PieChartData.length ? (
-        <AnalysisBox>
+        <AnalysisBox id="download">
           <div className="pieitem flex flex-column-between">
             <div className="pies bg">
               <div id="Chains" className="lineCharts"></div>
@@ -825,6 +891,10 @@ export const UservAnalysis = (data: any) => {
               <div onClick={() => setTransactionTab('Token')}>
                 Token
                 {transactionTab === 'Token' ? <img src={shortbutton} /> : ''}
+              </div>
+              <div onClick={() => setTransactionTab('Wash')}>
+                Wash Trading
+                {transactionTab === 'Wash' ? <img src={shortbutton} /> : ''}
               </div>
             </div>
             <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>
@@ -948,6 +1018,43 @@ export const UservAnalysis = (data: any) => {
                   : ''}
               </div>
             </CollationTable>
+            <CollationTable className={transactionTab === 'Wash' ? '' : 'none'}>
+              <div className="title">NFT Transactions</div>
+              <div className="tab flex">
+                <div>COLLATION</div>
+                <div>NFTNAME</div>
+                <div>PRICE</div>
+                <div>CHAIN</div>
+                <div>TYPE</div>
+                <div>TIME</div>
+              </div>
+              {washData && washData.length ? (
+                washData.map((item: any, index: number) => (
+                  <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                    <div>{item?.collation}</div>
+                    <div>{item?.nftname}</div>
+                    <div>{item?.price}</div>
+                    <div>{item?.chain}</div>
+                    <div>{item?.type}</div>
+                    <div>{item?.time}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="Notrecords flex flex-justify-content">No records</div>
+              )}
+              <div className="tablePage flex">
+                {washDataAll && washDataAll.length
+                  ? washDataAll.slice(0, 35).map((item: any, index: number) => (
+                    <div
+                      className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
+                      key={index}
+                      onClick={() => nextPage(index, 'NFT')}
+                    >
+                      {index + 1}
+                      </div>
+                  )): ''}
+              </div>
+            </CollationTable>
           </TableBox>
           <div className="Activity bg">
             <div className="tabs flex">
@@ -995,6 +1102,11 @@ export const UservAnalysis = (data: any) => {
       ): (
         <div className="text-center">No data</div>
       )}
+      {/* {PieChartData.length ? (
+        <div className="Download cursor" onClick={download}>Download $</div>
+      ): (
+        ''
+      )} */}
     </Analysis>
   )
 }

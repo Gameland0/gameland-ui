@@ -221,6 +221,7 @@ export const Explore = () => {
   const [seachCacheList, setSeachCacheList] = useState([] as any)
   const [seachGames, setSeachGames] = useState([] as any)
   const [seachCache, setSeachCache] = useState([] as any)
+  const [seachList, setSeachList] = useState([] as any)
   const [seachTypeSwitch, setSeachTypeSwitch] = useState(false)
 
   useEffect(() => {
@@ -317,7 +318,7 @@ export const Explore = () => {
         setSeachContract('')
         setSeachAddress('')
         if (seachType === 'Wallet') {
-          if (seachGameList.length) {
+          if (seachGameList.length||seachCacheList.length) {
             toastify.error('SmartContract addresses cannot be mixed with wallet addresses for querying.')
             return
           }
@@ -334,6 +335,14 @@ export const Explore = () => {
           }
           if (seachCacheList&&seachCacheList.length) {
             setSeachCache(seachCacheList)
+          }
+          const arr = [...seachCache,...seachGames]
+          const filterCacheList = arr.filter((item: any) => {
+            return SeachInputValue.toLowerCase() === item.toLowerCase()
+          })
+          if (!filterCacheList.length) {
+            arr.push(SeachInputValue)
+            setSeachList(arr)
           }
         }
       } else {
@@ -369,6 +378,14 @@ export const Explore = () => {
         if (seachCacheList&&seachCacheList.length) {
           setSeachCache(seachCacheList)
         }
+        const arr = [...seachCache,...seachGames]
+        const filterCacheList = arr.filter((item: any) => {
+          return SeachInputValue.toLowerCase() === item.toLowerCase()
+        })
+        if (!filterCacheList.length) {
+          arr.push(SeachInputValue)
+          setSeachList(arr)
+        }
       }
     } else {
       if (seachGameList&&seachGameList.length) {
@@ -401,6 +418,7 @@ export const Explore = () => {
     })
     setSeachCache(arr2)
     setSeachCacheList(arr2)
+    setSeachList([...arr,...arr2])
   }
   const SeachChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -447,9 +465,9 @@ export const Explore = () => {
           />
           <img className="magnifier cursor" src={magnifier} onClick={SeachAddress} alt="" />
         </div>
-        {[...seachCache,...seachGames].length? (
+        {seachList.length? (
           <SearchGame className="searchGame flex">
-            {[...seachCache,...seachGames].map((item: any, index: number) => (
+            {seachList.map((item: any, index: number) => (
               <div className="item flex flex-v-center" key={index}>
                 <div className="text Abbreviation">{findName(item)}</div>
                 <img className="close cursor" src={close} alt="" onClick={() => closeButton(item)} />

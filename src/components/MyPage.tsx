@@ -1147,6 +1147,8 @@ export const MyPage = () => {
   const [interact, setInteract] = useState([] as any)
   const [interactAll, setInteractAll] = useState([] as any)
   const [QuickPreviewData, setQuickPreviewsData] = useState([] as any)
+  const [washData, setWashData] = useState([] as any)
+  const [washDataAll, setWashDataAll] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -1615,7 +1617,7 @@ export const MyPage = () => {
       setBscNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('bscCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(PieOption('Collation', optionData))
+      CollationChart.setOption(PieOption('Colletion', optionData))
     })
     getdata.get(`https://deep-index.moralis.io/api/v2/${account}/nft?chain=polygon&format=decimal`).then((vals) => {
       const addressArr = [] as any
@@ -1641,7 +1643,7 @@ export const MyPage = () => {
       setPolygonNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('polygonCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(PieOption('Collation', optionData))
+      CollationChart.setOption(PieOption('Colletion', optionData))
     })
     getdata.get(`https://deep-index.moralis.io/api/v2/${account}/nft?chain=eth&format=decimal`).then((vals) => {
       const addressArr = [] as any
@@ -1667,7 +1669,7 @@ export const MyPage = () => {
       setEthNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('ethCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
-      CollationChart.setOption(PieOption('Collation', optionData))
+      CollationChart.setOption(PieOption('Colletion', optionData))
     })
   }
   const setPayAmount = async () => {
@@ -3325,11 +3327,15 @@ export const MyPage = () => {
                     Token
                     {transactionTab === 'Token' ? <img src={shortbutton} /> : ''}
                   </div>
+                  <div onClick={() => setTransactionTab('Wash')}>
+                    Wash Trading
+                    {transactionTab === 'Wash' ? <img src={shortbutton} /> : ''}
+                  </div>
                 </div>
                 <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>
                   <div className="title">NFT Transactions</div>
                   <div className="tab flex">
-                    <div>Collation</div>
+                    <div>Colletion</div>
                     <div>NFT Name</div>
                     <div>Price</div>
                     <div>Chain</div>
@@ -3446,6 +3452,43 @@ export const MyPage = () => {
                           </div>
                         ))
                       : ''}
+                  </div>
+                </CollationTable>
+                <CollationTable className={transactionTab === 'Wash' ? '' : 'none'}>
+                  <div className="title">NFT Transactions</div>
+                  <div className="tab flex">
+                    <div>COLLATION</div>
+                    <div>NFTNAME</div>
+                    <div>PRICE</div>
+                    <div>CHAIN</div>
+                    <div>TYPE</div>
+                    <div>TIME</div>
+                  </div>
+                  {washData && washData.length ? (
+                    washData.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.collation}</div>
+                        <div>{item?.nftname}</div>
+                        <div>{item?.price}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                        <div>{item?.time}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
+                  <div className="tablePage flex">
+                    {washDataAll && washDataAll.length
+                      ? washDataAll.slice(0, 35).map((item: any, index: number) => (
+                        <div
+                          className={index + 1 > totalPage ? 'notShow' : tablePage === index ? 'flex selected' : 'flex'}
+                          key={index}
+                          onClick={() => nextPage(index, 'NFT')}
+                        >
+                          {index + 1}
+                          </div>
+                      )): ''}
                   </div>
                 </CollationTable>
               </TableBox>

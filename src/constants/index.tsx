@@ -106,7 +106,7 @@ export const POLYGONControlContractAddress = '0x81486D24FC4755534bABF19601475342
 export const POLYGONAssetContractAddress = '0x4d57cBfFacc67F04605e13a1Eb9A1E69F9EDDBE8'
 export const POLYGONRewardAddress = '0x062161B776ac0421F0414d5fb290b47b5F5E1D8F'
 export const WETHaddress = '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619'
-export const PolygonPayMentAddress = '0x881cF83a01278180E0696FC9DDa5a2360d82B879'
+export const PolygonPayMentAddress = '0xae4357eb7aaf14f5feb8b56be18d4cd1e4a6e158'
 export const PolygonContract = [
   '0x94e42811db93ef7831595b6ff9360491b987dfbd',
   '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
@@ -160,7 +160,7 @@ export const BSCControlContractAddress = '0xf0Bccbd3516e655d2EBA7836EAF78108a306
 export const BSCAssetContractAddress = '0x0B7b14E00017a6f46E180086Ffce54b1a5FC7dDc'
 export const BSCRewardAddress = '0x028391eA16E8d7F35f740eBc1D55376b9fDD183f'
 export const BUSDAddress = '0xe9e7cea3dedca5984780bafc599bd69add087d56'
-export const BSCPayMentAddress = '0xB92Daa7e07C211F0B450F416EF444CE10a555196'
+export const BSCPayMentAddress = '0x967Fe0F548D40a05a4A3190bd29E236e8b7269aB'
 export const BscContract = [
   '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
   '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
