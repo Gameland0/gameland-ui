@@ -82,16 +82,21 @@ const SendBox = styled.div`
 export const LineChartMadal: React.FC<MadalProps> = ({
   visible,
   data,
+  onClick,
   children
 }) => {
   return (
-    <Modal footer={null} onCancel={() => ''} open={visible} destroyOnClose closable={false}>
+    <Modal footer={null} onCancel={onClick} open={visible} destroyOnClose closable={false} >
       <SendBox>
         <div className="title">Activity details</div>
           {data && data.length ? (
             data.map((item: any, index: number) => (
               <div className="spacing-5" key={index}>
                 {item.timestamp.substr(0, 10)}&nbsp;&nbsp;
+                {item.type==='share'?'Shared posts':item.type==='post'?'Published  posts':item.type}&nbsp;&nbsp;
+                {item.type==='vote'?item.actions[0].related_urls[0]:item.actions[0].related_urls[1]}&nbsp;&nbsp;
+                in&nbsp;&nbsp;
+                {item.network}
               </div>
           ))
         ) : (

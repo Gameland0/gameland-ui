@@ -57,6 +57,7 @@ import USDT from '../assets/USDT.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 import { findAddressIndex } from './RelationChart'
+import { LineChartMadal } from './LineChartMadal'
 
 interface CardProps {
   onClick?: () => void
@@ -1115,6 +1116,7 @@ export const MyPage = () => {
   const [showDeletePosts, setShowDeletePosts] = useState(false)
   const [showActivity, setShowActivity] = useState(false)
   const [showSetPayMent, setShowSetPayMent] = useState(false)
+  const [showLensModal, setShowLensModal] = useState(false)
   const [rewardItem, setrewardItem] = useState({} as any)
   const [postsItem, setPostsItem] = useState({} as any)
   const [NFTStatsMadalData, setNFTStatsMadalData] = useState({} as any)
@@ -1149,6 +1151,8 @@ export const MyPage = () => {
   const [QuickPreviewData, setQuickPreviewsData] = useState([] as any)
   const [washData, setWashData] = useState([] as any)
   const [washDataAll, setWashDataAll] = useState([] as any)
+  const [poapData, setPoapData] = useState([] as any)
+  const [lensModalData, setLensModalData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -2584,74 +2588,179 @@ export const MyPage = () => {
     }
   }
   const getLensData = async () => {
-    const postsData =  await newhttp.get(`v0/lens_posts/${account}`)
-    const commentdata = await newhttp.get(`v0/lens_comments/${account}`)
     const timearr = [] as any
-    const postseriesdata = [] as any
-    const commentseriesdata = [] as any
-    if (postsData.data.data.length) {
-      postsData.data.data.map((item: any) => {
-        const filterTime = timearr.filter((ele: any) => {
-          return ele === item.post_createdAt.substr(5, 5)
+    const post = [] as any
+    const mint = [] as any
+    const share = [] as any
+    const follow = [] as any
+    const comment = [] as any
+    const seriespost = [] as any
+    const seriesmint = [] as any
+    const seriesshare = [] as any
+    const seriesfollow = [] as any
+    const seriescomment = [] as any
+    const poap = [] as any
+    const Snapshot = [] as any
+    const SnapshotTime = [] as any
+    const seriesvote = [] as any
+    PieChartData?.map((item: any) => {
+      if (item.platform === 'Lens') {
+        const filterdata = timearr.filter((ele: any) => {
+          return ele === item.timestamp.substr(5, 5)
         })
-        if (!filterTime.length) {
-          timearr.push(item.post_createdAt.substr(5, 5))
+        if (!filterdata.length) {
+          timearr.push(item.timestamp.substr(5, 5))
         }
-      })
-    }
-    if (commentdata.data.data.length) {
-      commentdata.data.data.map((item: any) => {
-        const filterTime = timearr.filter((ele: any) => {
-          return ele === item.comment_createdAt.substr(5, 5)
-        })
-        if (!filterTime.length) {
-          timearr.push(item.comment_createdAt.substr(5, 5))
+        if (item.type === 'post') {
+          post.push(item)
         }
-      })
-    }
-    timearr.map((item: any) => {
-      const findPost = postsData.data.data.filter((ele: any) => {
-        return ele.post_createdAt.substr(5, 5) === item
-      })
-      const findComment = commentdata.data.data.filter((ele: any) => {
-        return ele.comment_createdAt.substr(5, 5) === item
-      })
-      postseriesdata.push(findPost.length)
-      commentseriesdata.push(findComment.length)
-    })
-    if (commentdata.data.data.length || postsData.data.data.length) {
-      const options = {
-        title: {
-          text: 'Lens Activity',
-          top : '90%',
-          left: 'center'
-        },
-        tooltip: {
-          trigger: 'axis' as any
-        },
-        legend: {
-          data: ['Post','Comment']
-        },
-        xAxis: {
-          data: timearr
-        },
-        yAxis: {
-          type: 'value' as any
-        },
-        series: [{
-          name: 'Post',
-          type: 'line',
-          data: postseriesdata
-        },{
-          name: 'Comment',
-          type: 'line',
-          data: commentseriesdata
-        }]
+        if (item.type === 'mint') {
+          mint.push(item)
+        }
+        if (item.type === 'share') {
+          share.push(item)
+        }
+        if (item.type === 'follow') {
+          follow.push(item)
+        }
+        if (item.type === 'comment') {
+          comment.push(item)
+        }
       }
-      const Lensdom = document.getElementById('ActivityLens') as HTMLDivElement
-      const LensChart = echarts.init(Lensdom)
-      LensChart.setOption(options)
+      if (item.tag === 'collectible') {
+        item.actions.map((ele: any) => {
+          const index = ele.metadata.name?.indexOf('POAP')
+          if (index>=0) {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            poap.push({
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              platform: item.platform,
+              type: ele.type,
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+        })
+      }
+      if (item.platform === 'Snapshot') {
+        const filterdata = SnapshotTime.filter((ele: any) => {
+          return ele === item.timestamp.substr(5, 5)
+        })
+        if (!filterdata.length) {
+          SnapshotTime.push(item.timestamp.substr(5, 5))
+        }
+        Snapshot.push(item)
+      }
+    })
+    setPoapData(poap)
+    timearr.map((item: any) => {
+      const filterpost = post.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filtermint = mint.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filtershare = share.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filterfollow = follow.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      const filtercomment = comment.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      seriespost.push(filterpost.length)
+      seriesmint.push(filtermint.length)
+      seriesshare.push(filtershare.length)
+      seriesfollow.push(filterfollow.length)
+      seriescomment.push(filtercomment.length)
+    })
+    SnapshotTime.map((item: any) => {
+      const filtervote = Snapshot.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      seriesvote.push(filtervote.length)
+    })
+    const options = {
+      title: {
+        text: 'Lens Activity',
+        top : '90%',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        data: ['post','comment','mint','follow','share']
+      },
+      xAxis: {
+        data: timearr
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [{
+        name: 'post',
+        type: 'line',
+        data: seriespost
+      },{
+        name: 'mint',
+        type: 'line',
+        data: seriesmint
+      },{
+        name: 'follow',
+        type: 'line',
+        data: seriesfollow
+      },{
+        name: 'share',
+        type: 'line',
+        data: seriesshare
+      },{
+        name: 'comment',
+        type: 'line',
+        data: seriescomment
+      }]
     }
+    const Lensdom = document.getElementById('ActivityLens') as HTMLDivElement
+    const LensChart = echarts.init(Lensdom)
+    LensChart.setOption(options)
+    LensChart.on('click', LensChartClick)
+    const Snapshotoptions = {
+      title: {
+        text: 'Snapshot Activity',
+        top : '90%',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        data: ['vote']
+      },
+      xAxis: {
+        data: SnapshotTime
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [{
+        name: 'vote',
+        type: 'line',
+        data: seriesvote
+      }]
+    }
+    const Snapshotdom = document.getElementById('ActivitySnapshot') as HTMLDivElement
+    const SnapshotChart = echarts.init(Snapshotdom)
+    SnapshotChart.setOption(Snapshotoptions)
+    SnapshotChart.on('click', SnapshotChartClick)
   }
   const chainActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
@@ -2666,6 +2775,21 @@ export const MyPage = () => {
     })
     setPopUpsData(data)
     setShowActivity(true)
+  }
+  const LensChartClick = (params: any) => {
+    console.log(params.name, params.seriesName)
+    const filterData = PieChartData.filter((item: any) => {
+      return item.platform==='Lens'&&item.timestamp.substr(5, 5)===params.name&&item.type===params.seriesName
+    })
+    setLensModalData(filterData)
+    setShowLensModal(true)
+  }
+  const SnapshotChartClick = (params: any) => {
+    const filterData = PieChartData.filter((item: any) => {
+      return item.platform==='Snapshot'&&item.timestamp.substr(5, 5)===params.name
+    })
+    setLensModalData(filterData)
+    setShowLensModal(true)
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -2912,6 +3036,7 @@ export const MyPage = () => {
           </ButtonBox>
         </SendBox>
       </Dialog>
+      <LineChartMadal visible={showLensModal} data={lensModalData} onClick={() => setShowLensModal(false)}></LineChartMadal>
       <div className="topBackground"></div>
       <UserInfo className="flex">
         <InfoLeft>
@@ -3327,6 +3452,10 @@ export const MyPage = () => {
                     Token
                     {transactionTab === 'Token' ? <img src={shortbutton} /> : ''}
                   </div>
+                  <div onClick={() => setTransactionTab('Poap')}>
+                    POAP
+                    {transactionTab === 'Poap' ? <img src={shortbutton} /> : ''}
+                  </div>
                   <div onClick={() => setTransactionTab('Wash')}>
                     Wash Trading
                     {transactionTab === 'Wash' ? <img src={shortbutton} /> : ''}
@@ -3490,6 +3619,31 @@ export const MyPage = () => {
                           </div>
                       )): ''}
                   </div>
+                </CollationTable>
+                <CollationTable className={transactionTab === 'Poap' ? '' : 'none'}>
+                  <div className="title">NFT Transactions</div>
+                  <div className="tab flex">
+                    <div>Time</div>
+                    <div>Colletion</div>
+                    <div>NFT Name</div>
+                    <div>Price</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                  </div>
+                  {poapData && poapData.length ? (
+                    poapData.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.time}</div>
+                        <div>{item?.collation}</div>
+                        <div>{item?.nftname}</div>
+                        <div>{item?.price}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
                 </CollationTable>
               </TableBox>
               <div className="Activity">

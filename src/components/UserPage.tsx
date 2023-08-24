@@ -71,6 +71,7 @@ import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 import { findAddressIndex } from './RelationChart'
 import BigNumber from 'bignumber.js'
+import { LineChartMadal } from './LineChartMadal'
 
 interface CardProps {
   onClick?: () => void
@@ -858,6 +859,7 @@ export const UserPage = () => {
   const [rewardoptions, setrewardoptions] = useState(false)
   const [lending, setLending] = useState(false)
   const [showMyNFTModal, setShowMyNFTModal] = useState(false)
+  const [showLensModal, setShowLensModal] = useState(false)
   const [showPostsContent, setShowPostsContent] = useState(false)
   const [showPostsReplayWindow, setShowPostsReplayWindow] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -901,6 +903,7 @@ export const UserPage = () => {
   const [washData, setWashData] = useState([] as any)
   const [washDataAll, setWashDataAll] = useState([] as any)
   const [poapData, setPoapData] = useState([] as any)
+  const [lensModalData, setLensModalData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -2562,7 +2565,6 @@ export const UserPage = () => {
           }
         })
       }
-      // console.log(item.type)
       if (item.platform === 'Snapshot') {
         const filterdata = SnapshotTime.filter((ele: any) => {
           return ele === item.timestamp.substr(5, 5)
@@ -2673,6 +2675,7 @@ export const UserPage = () => {
     const Snapshotdom = document.getElementById('ActivitySnapshot') as HTMLDivElement
     const SnapshotChart = echarts.init(Snapshotdom)
     SnapshotChart.setOption(Snapshotoptions)
+    SnapshotChart.on('click', SnapshotChartClick)
   }
   const chainActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
@@ -2691,9 +2694,17 @@ export const UserPage = () => {
   const LensChartClick = (params: any) => {
     console.log(params.name, params.seriesName)
     const filterData = PieChartData.filter((item: any) => {
-      return item.platform==='Lens'&&item.timestamp.substr(5, 5)===params.name
+      return item.platform==='Lens'&&item.timestamp.substr(5, 5)===params.name&&item.type===params.seriesName
     })
-    console.log(filterData)
+    setLensModalData(filterData)
+    setShowLensModal(true)
+  }
+  const SnapshotChartClick = (params: any) => {
+    const filterData = PieChartData.filter((item: any) => {
+      return item.platform==='Snapshot'&&item.timestamp.substr(5, 5)===params.name
+    })
+    setLensModalData(filterData)
+    setShowLensModal(true)
   }
   const handlerewardQuantityChange = useCallback((ele) => {
     const val = ele.currentTarget.value
@@ -2889,6 +2900,7 @@ export const UserPage = () => {
           <div className="text-center">Please swith to {userPayInfo[0]?.chain} Chain</div>
         </SendBox>
       </Dialog>
+      <LineChartMadal visible={showLensModal} data={lensModalData} onClick={() => setShowLensModal(false)}></LineChartMadal>
       <div className="topBackground"></div>
       <UserInfo className="flex">
         <InfoLeft>

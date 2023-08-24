@@ -78,6 +78,7 @@ export const UservAnalysis = (data: any) => {
   const [interact, setInteract] = useState([] as any)
   const [washData, setWashData] = useState([] as any)
   const [washDataAll, setWashDataAll] = useState([] as any)
+  const [poapData, setPoapData] = useState([] as any)
   const [showActivity, setShowActivity] = useState(false)
   const [loaddState, setLoaddState] = useState(false)
   const [collectionTab, setCollectionTab] = useState('Polygon')
@@ -162,6 +163,10 @@ export const UservAnalysis = (data: any) => {
     const seriesshare = [] as any
     const seriesfollow = [] as any
     const seriescomment = [] as any
+    const poap = [] as any
+    const Snapshot = [] as any
+    const SnapshotTime = [] as any
+    const seriesvote = [] as any
     PieChartData?.map((item: any) => {
       if (item.platform === 'Lens') {
         const filterdata = timearr.filter((ele: any) => {
@@ -186,7 +191,40 @@ export const UservAnalysis = (data: any) => {
           comment.push(item)
         }
       }
+      if (item.tag === 'collectible') {
+        item.actions.map((ele: any) => {
+          const index = ele.metadata.name?.indexOf('POAP')
+          if (index>=0) {
+            const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
+            let prices
+            if (ele.metadata.cost) {
+              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+            } else {
+              prices = 0
+            }
+            poap.push({
+              collation: ele.metadata.collection,
+              nftname: ele.metadata.name,
+              price: prices,
+              chain: chains,
+              platform: item.platform,
+              type: ele.type,
+              time: item.timestamp.substr(0, 10)
+            })
+          }
+        })
+      }
+      if (item.platform === 'Snapshot') {
+        const filterdata = SnapshotTime.filter((ele: any) => {
+          return ele === item.timestamp.substr(5, 5)
+        })
+        if (!filterdata.length) {
+          SnapshotTime.push(item.timestamp.substr(5, 5))
+        }
+        Snapshot.push(item)
+      }
     })
+    setPoapData(poap)
     timearr.map((item: any) => {
       const filterpost = post.filter((ele: any) => {
         return item === ele.timestamp.substr(5, 5)
@@ -209,6 +247,12 @@ export const UservAnalysis = (data: any) => {
       seriesfollow.push(filterfollow.length)
       seriescomment.push(filtercomment.length)
     })
+    SnapshotTime.map((item: any) => {
+      const filtervote = Snapshot.filter((ele: any) => {
+        return item === ele.timestamp.substr(5, 5)
+      })
+      seriesvote.push(filtervote.length)
+    })
     const options = {
       title: {
         text: 'Lens Activity',
@@ -219,7 +263,7 @@ export const UservAnalysis = (data: any) => {
         trigger: 'axis' as any
       },
       legend: {
-        data: ['Post','Comment','Mint','Follow','Share']
+        data: ['post','comment','mint','follow','share']
       },
       xAxis: {
         data: timearr
@@ -228,23 +272,23 @@ export const UservAnalysis = (data: any) => {
         type: 'value' as any
       },
       series: [{
-        name: 'Post',
+        name: 'post',
         type: 'line',
         data: seriespost
       },{
-        name: 'Mint',
+        name: 'mint',
         type: 'line',
         data: seriesmint
       },{
-        name: 'Follow',
+        name: 'follow',
         type: 'line',
         data: seriesfollow
       },{
-        name: 'Share',
+        name: 'share',
         type: 'line',
         data: seriesshare
       },{
-        name: 'Comment',
+        name: 'comment',
         type: 'line',
         data: seriescomment
       }]
@@ -252,6 +296,35 @@ export const UservAnalysis = (data: any) => {
     const Lensdom = document.getElementById('ActivityLens') as HTMLDivElement
     const LensChart = echarts.init(Lensdom)
     LensChart.setOption(options)
+    // LensChart.on('click', LensChartClick)
+    const Snapshotoptions = {
+      title: {
+        text: 'Snapshot Activity',
+        top : '90%',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        data: ['vote']
+      },
+      xAxis: {
+        data: SnapshotTime
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [{
+        name: 'vote',
+        type: 'line',
+        data: seriesvote
+      }]
+    }
+    const Snapshotdom = document.getElementById('ActivitySnapshot') as HTMLDivElement
+    const SnapshotChart = echarts.init(Snapshotdom)
+    SnapshotChart.setOption(Snapshotoptions)
+    // SnapshotChart.on('click', SnapshotChartClick)
   }
   const getPieChartData = () => {
     setLoaddState(true)
@@ -892,6 +965,10 @@ export const UservAnalysis = (data: any) => {
                 Token
                 {transactionTab === 'Token' ? <img src={shortbutton} /> : ''}
               </div>
+              <div onClick={() => setTransactionTab('Poap')}>
+                POAP
+                {transactionTab === 'Poap' ? <img src={shortbutton} /> : ''}
+              </div>
               <div onClick={() => setTransactionTab('Wash')}>
                 Wash Trading
                 {transactionTab === 'Wash' ? <img src={shortbutton} /> : ''}
@@ -1054,6 +1131,31 @@ export const UservAnalysis = (data: any) => {
                       </div>
                   )): ''}
               </div>
+            </CollationTable>
+            <CollationTable className={transactionTab === 'Poap' ? '' : 'none'}>
+                  <div className="title">NFT Transactions</div>
+                  <div className="tab flex">
+                    <div>Time</div>
+                    <div>Colletion</div>
+                    <div>NFT Name</div>
+                    <div>Price</div>
+                    <div>Chain</div>
+                    <div>Type</div>
+                  </div>
+                  {poapData && poapData.length ? (
+                    poapData.map((item: any, index: number) => (
+                      <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                        <div>{item?.time}</div>
+                        <div>{item?.collation}</div>
+                        <div>{item?.nftname}</div>
+                        <div>{item?.price}</div>
+                        <div>{item?.chain}</div>
+                        <div>{item?.type}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="Notrecords flex flex-justify-content">No records</div>
+                  )}
             </CollationTable>
           </TableBox>
           <div className="Activity bg">
