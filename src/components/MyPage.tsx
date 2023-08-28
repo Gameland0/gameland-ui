@@ -2733,34 +2733,36 @@ export const MyPage = () => {
     const LensChart = echarts.init(Lensdom)
     LensChart.setOption(options)
     LensChart.on('click', LensChartClick)
-    const Snapshotoptions = {
-      title: {
-        text: 'Snapshot Activity',
-        top : '90%',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'axis' as any
-      },
-      legend: {
-        data: ['vote']
-      },
-      xAxis: {
-        data: SnapshotTime
-      },
-      yAxis: {
-        type: 'value' as any
-      },
-      series: [{
-        name: 'vote',
-        type: 'line',
-        data: seriesvote
-      }]
+    if (Snapshot.length) {
+      const Snapshotoptions = {
+        title: {
+          text: 'Snapshot Activity',
+          top : '90%',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: ['vote']
+        },
+        xAxis: {
+          data: SnapshotTime
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: [{
+          name: 'vote',
+          type: 'line',
+          data: seriesvote
+        }]
+      }
+      const Snapshotdom = document.getElementById('ActivitySnapshot') as HTMLDivElement
+      const SnapshotChart = echarts.init(Snapshotdom)
+      SnapshotChart.setOption(Snapshotoptions)
+      SnapshotChart.on('click', SnapshotChartClick)
     }
-    const Snapshotdom = document.getElementById('ActivitySnapshot') as HTMLDivElement
-    const SnapshotChart = echarts.init(Snapshotdom)
-    SnapshotChart.setOption(Snapshotoptions)
-    SnapshotChart.on('click', SnapshotChartClick)
   }
   const chainActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
@@ -3005,7 +3007,7 @@ export const MyPage = () => {
                     ' ' +
                     item.actions[0].metadata.to.symbol
                   : <span className="blue">{formatting(item.address_to)}</span>}
-                &nbsp;in {item.network}
+                &nbsp;on {item.network}
               </div>
             ))
           ) : (
@@ -3673,11 +3675,18 @@ export const MyPage = () => {
                     Galxe OAT
                     {activityTab2 === 'OAT' ? <img src={longbutton} /> : ''}
                   </div>
+                  <div onClick={() => setActivityTab2('Snapshot')}>
+                    Snapshot
+                    {activityTab2 === 'Snapshot' ? <img src={longbutton} /> : ''}
+                  </div>
                 </div>
                 <div id="ActivityLens" className={activityTab2 === 'Lens' ? 'lineChart' : 'lineChart none'}>
                   <div className="Notrecords flex flex-justify-content">No records</div>
                 </div>
                 <div id="ActivityOAT" className={activityTab2 === 'OAT' ? 'lineChart' : 'lineChart none'}>
+                  <div className="Notrecords flex flex-justify-content">No records</div>
+                </div>
+                <div id="ActivitySnapshot" className={activityTab2 === 'Snapshot' ? 'lineChart' : 'lineChart none'}>
                   <div className="Notrecords flex flex-justify-content">No records</div>
                 </div>
               </div>

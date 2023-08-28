@@ -487,7 +487,7 @@ const calcuNFTTranction = (data: any) => {
     const time = item.timeStamp * 1000
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       thisWeek.push(item)
-      if (item.action==='sold'||item.xw==='sold') {
+      if (item.action==='Transfer'||item.xw==='tranfer') {
         thisWeeSold.push(item.t1)
       }
       if (item.action==='sale'||item.xw==='sale') {
@@ -499,7 +499,7 @@ const calcuNFTTranction = (data: any) => {
     }
     if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
       Week2.push(item)
-      if (item.action==='sold'||item.xw==='sold') {
+      if (item.action==='Transfer'||item.xw==='tranfer') {
         Week2Sold.push(item.t1)
       }
       if (item.action==='sale'||item.xw==='sale') {
@@ -511,7 +511,7 @@ const calcuNFTTranction = (data: any) => {
     }
     if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
       Week3.push(item)
-      if (item.action==='sold'||item.xw==='sold') {
+      if (item.action==='Transfer'||item.xw==='tranfer') {
         Week3Sold.push(item.t1)
       }
       if (item.action==='sale'||item.xw==='sale') {
@@ -523,7 +523,7 @@ const calcuNFTTranction = (data: any) => {
     }
     if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
       Week4.push(item)
-      if (item.action==='sold'||item.xw==='sold') {
+      if (item.action==='Transfer'||item.xw==='tranfer') {
         Week4Sold.push(item.t1)
       }
       if (item.action==='sale'||item.xw==='sale') {
@@ -540,7 +540,7 @@ const calcuNFTTranction = (data: any) => {
   const week4Other = Week4.length-Week4Sold.length-Week4Bought.length-Week4Mint.length
 
   return {
-    sold: [
+    Transfer: [
       calcuRatio(thisWeeSold,thisWeek,'ratio'),
       calcuRatio(Week2Sold,Week2,'ratio'),
       calcuRatio(Week3Sold,Week3,'ratio'),
@@ -1162,13 +1162,13 @@ export const GameAnalysis = (data: any) => {
         data: calcuNFTTranction(actions.data.data).other
       },
       {
-        name: `${filterData[0].contractName} Sold`,
+        name: `${filterData[0].contractName} Transfer`,
         type: 'bar',
         stack: filterData[0].contractName,
-        data: calcuNFTTranction(actions.data.data).sold
+        data: calcuNFTTranction(actions.data.data).Transfer
       },
       {
-        name: `${filterData[0].contractName} Bought`,
+        name: `${filterData[0].contractName} Sale`,
         type: 'bar',
         stack: filterData[0].contractName,
         data: calcuNFTTranction(actions.data.data).bought
@@ -1270,9 +1270,6 @@ export const GameAnalysis = (data: any) => {
       const Sales = actionData.data.data.filter((item: any)=> {
         return item.action === 'sale'
       })
-      const Sold = actionData.data.data.filter((item: any)=> {
-        return item.action === 'sold'
-      })
       const SalesAddress = [] as any
       const Boughttime = [] as any
       Sales.map((item: any) => {
@@ -1294,17 +1291,6 @@ export const GameAnalysis = (data: any) => {
           }
         }
       })
-      const Soldtime = [] as any
-      Sold.map((item: any) => {
-        const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
-        const data = Soldtime.filter((ele: any) => {
-          const times = new Date(ele * 1000).toJSON().substring(5, 10)
-          return times === time
-        })
-        if (data.length === 0) {
-          Soldtime.push(time)
-        }
-      })
       const BoughtDetailsData= [] as any
       const BoughtSpentData = [] as any
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
@@ -1323,26 +1309,8 @@ export const GameAnalysis = (data: any) => {
         BoughtDetailsData.push(data.length)
         BoughtSpentData.push(vules)
       })
-      const SoldDetailsData = [] as any
-      const SoldSpentData = [] as any
-      const sortSoldtime = Soldtime.sort((a: any,b: any)=> {return b-a})
-      sortSoldtime.map((item: any) => {
-        let spent = 0
-        const times = new Date(item * 1000).toJSON().substring(5, 10)
-        const data = Sold.filter((ele: any)=> {
-          const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
-          return times === time
-        })
-        data.map((ele: any)=> {
-          spent = spent+ele.transactionvalue*1
-        })
-        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
-        SoldtimeArr.push(times)
-        SoldDetailsData.push(data.length)
-        SoldSpentData.push(vules)
-      })
       BoughtDetailsSeries.push({
-        name: `${filterData[0].name} Bought`,
+        name: `${filterData[0].name} Sale`,
         type: 'line',
         data: BoughtDetailsData
       },{
@@ -1350,19 +1318,8 @@ export const GameAnalysis = (data: any) => {
         type: 'line',
         data: BoughtSpentData
       })
-      SoldDetailsSeries.push({
-        name: `${filterData[0].name} Sold`,
-        type: 'line',
-        data: SoldDetailsData
-      },{
-        name: `${filterData[0].name} Price & Volume`,
-        type: 'line',
-        data: SoldSpentData
-      })
-      BoughtDetailslegend.push(`${filterData[0].name} Bought`)
+      BoughtDetailslegend.push(`${filterData[0].name} Sale`)
       BoughtDetailslegend.push(`${filterData[0].name} Price & Volume`)
-      SoldDetailslegend.push(`${filterData[0].name} Sold`)
-      SoldDetailslegend.push(`${filterData[0].name} Price & Volume`)
       SalesAddress.map((item: any) => {
         const data = Sales.filter((ele: any) => {
           return item === filterAddress(ele.t1)
@@ -1454,13 +1411,13 @@ export const GameAnalysis = (data: any) => {
         data: calcuNFTTranction(actionData.data.data).other
       },
       {
-        name: `${filterData[0].name} Sold`,
+        name: `${filterData[0].name} Transfer`,
         type: 'bar',
         stack: filterData[0].name,
-        data: calcuNFTTranction(actionData.data.data).sold
+        data: calcuNFTTranction(actionData.data.data).Transfer
       },
       {
-        name: `${filterData[0].name} Bought`,
+        name: `${filterData[0].name} Sale`,
         type: 'bar',
         stack: filterData[0].name,
         data: calcuNFTTranction(actionData.data.data).bought
@@ -1645,25 +1602,6 @@ export const GameAnalysis = (data: any) => {
     const BoughtChart = echarts.init(Boughtmdom)
     BoughtChart.setOption(Boughtoptions)
     BoughtChart.on('click', BoughtChartClick)
-    const Soldoptions = {
-      tooltip: {
-        trigger: 'axis' as any
-      },
-      legend: {
-        data: SoldDetailslegend
-      },
-      xAxis: {
-        data: SoldtimeArr
-      },
-      yAxis: {
-        type: 'value' as any
-      },
-      series: SoldDetailsSeries
-    }
-    const Soldmdom = document.getElementById('SoldDetails') as HTMLDivElement
-    const SoldChart = echarts.init(Soldmdom)
-    SoldChart.setOption(Soldoptions)
-    SoldChart.on('click', SoldChartClick)
   }
 
   const BoughtChartClick = (params: any) => {
@@ -1673,26 +1611,6 @@ export const GameAnalysis = (data: any) => {
     if (data.length) {
       const Bought = data[0].data.filter((item: any)=> {
         return item.action === 'sale'|| item.xw=== 'sale'
-      })
-      const filterData = Bought.filter((item: any)=> {
-        const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
-        return time === params.name
-      })
-      const parm = [{
-        chain: data[0].chain,
-        data: filterData
-      }]
-      setPopUpsData(parm)
-      setShowActivity(true)
-    }
-  }
-  const SoldChartClick = (params: any) => {
-    const data = seachGameData.filter((item: any) => {
-      return `${item.name} Sold` === params.seriesName
-    })
-    if (data.length) {
-      const Bought = data[0].data.filter((item: any)=> {
-        return item.action === 'sold'|| item.xw=== 'sold'
       })
       const filterData = Bought.filter((item: any)=> {
         const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
@@ -1736,7 +1654,7 @@ export const GameAnalysis = (data: any) => {
                 Spent&nbsp;
                 {calcucost(item.transactionvalue,18)}&nbsp;
                 {PopUpsData[0].chain==='bsc'?'BNB':PopUpsData[0].chain==='eth'?'ETH':'MATIC'}&nbsp;
-                <b>{item.action === 'sale'||item.xw==='sale'? 'Bought':'Sold'}</b>&nbsp;
+                <b>{item.action === 'sale'||item.xw==='sale'? 'Sale':'Sale'}</b>&nbsp;
                 NFT&nbsp;{item.t3||item.tokenid}&nbsp;
                 {item.action === 'sale'||item.xw==='sale'? 'From':' To '}&nbsp;
                 <span className="blue">{formatting(filterAddress(item.t2))}</span>
@@ -1796,20 +1714,20 @@ export const GameAnalysis = (data: any) => {
           <Activity className="bg borderNone">
             <div className="tabs flex">
               <div onClick={() => setActivityTab('Bought')}>
-                Bought
+                Sale
                 {activityTab === 'Bought' ? <img src={shortbutton} /> : ''}
               </div>
-              <div onClick={() => setActivityTab('Sold')}>
+              {/* <div onClick={() => setActivityTab('Sold')}>
                 Sold
                 {activityTab === 'Sold' ? <img src={shortbutton} /> : ''}
-              </div>
+              </div> */}
             </div>
             <div id="BoughtDetails" className={activityTab === 'Bought' ? 'item absolute' : 'item absolute none'}>
               <div className="text-center margin">No Data</div>
             </div>
-            <div id="SoldDetails" className={activityTab === 'Sold' ? 'item absolute' : 'item absolute none'}>
+            {/* <div id="SoldDetails" className={activityTab === 'Sold' ? 'item absolute' : 'item absolute none'}>
               <div className="text-center margin">No Data</div>
-            </div>
+            </div> */}
           </Activity>
           <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">Player Proportion(%)</div>

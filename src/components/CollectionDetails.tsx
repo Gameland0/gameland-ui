@@ -94,6 +94,9 @@ import BNBIcon from '../assets/bnb.svg'
 import BUSDIcon from '../assets/busd.svg'
 import WETHIcon from '../assets/WETH.svg'
 import shortbutton from '../assets/short_button.jpg'
+import PolygonImg from '../assets/polygon.svg'
+import BSCImg from '../assets/binance.svg'
+import ETHImg from '../assets/eth.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 import ERC1155 from '../constants/Abis/1155abi.json'
@@ -1292,6 +1295,91 @@ export const MyNFTCard: React.FC<MyNFTCardProps> = ({ img, name, onClick, contra
     </MyNFTCardBox>
   )
 }
+const RankingTable= styled.div`
+  width: 96%;
+  margin: auto;
+  margin-top: 20px;
+  .bag {
+    background: #f4f9fb;
+  }
+  .itemDiv {
+    padding: 10px;
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid #e5e5e5;
+    border-radius: 14px;
+  }
+  .Tab {
+    padding-left: 10px;
+    div {
+      position: relative;
+      cursor: pointer;
+      margin-right: 16px;
+      img {
+        width: 100%;
+        height: 8px;
+        position: absolute;
+        bottom: 1px;
+        left: 0px;
+      }
+    }
+  }
+  .titleBar {
+    div {
+      flex: 1;
+      text-align: center;
+    }
+    .Address {
+      flex: 4;
+    }
+  }
+  .title {
+    margin: 5px 0;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .dataArea {
+    .dataItem {
+      margin: 5px 0;
+      div {
+        flex: 1;
+        text-align: center;
+      }
+      .Address {
+        flex: 4;
+      }
+      .Volume {
+        img {
+          width: 15px;
+          height: 15px;
+          margin-right: 3px;
+          margin-top: -3px;
+        }
+      }
+    }
+    .NoData {
+      margin-top: 15px;
+    }
+  }
+  .tablePage {
+    margin-top: 10px;
+    div {
+      width: 20px;
+      height: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 5px;
+      margin-right: 5px;
+      cursor: pointer;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      align-content: center;
+    }
+    .selected {
+      background: #41acef;
+    }
+  }
+`
 
 export const getTime = (time: any) => {
   const year = new Date(time).getFullYear()
@@ -1439,6 +1527,7 @@ export const CollectionDetails = () => {
   const [approveTablePage, setApproveTablePage] = useState(0)
   const [transactionsTotalPage, setTransactionsTotalPage] = useState(0)
   const [transactionsTablePage, setTransactionsTablePage] = useState(0)
+  const [saleRinkDataPage, setSaleRinkDataPage] = useState(0)
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
@@ -1468,6 +1557,8 @@ export const CollectionDetails = () => {
   const [tokenRiskData, setTokenRiskData] = useState([] as any)
   const [tokenHoldData, setTokenHoldData] = useState([] as any)
   const [activeUser, setActiveUser] = useState([] as any)
+  const [showSaleData, setShowSaleData] = useState([] as any)
+  const [SaleDataAll, setSaleDataAll] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
@@ -1745,6 +1836,9 @@ export const CollectionDetails = () => {
     if (tap === 'Analysis' && userActionData && userActionData.length&&actionDataAll&&actionDataAll.length) {
       setBotTransactionRatioPie()
     }
+    if (tap === 'Analysis' && userActionData && userActionData.length) {
+      setSaleRinkDataTable()
+    }
   },[userActionData, actionDataAll, tap])
   useEffect(() => {
     if (tap === 'Analysis' && userActionData && userActionData.length&&activeUser&&activeUser.length) {
@@ -1761,6 +1855,11 @@ export const CollectionDetails = () => {
       setRecommendPlayer()
     }
   }, [tokenHoldData, tap])
+  useEffect(() => {
+    if (SaleDataAll.length) {
+      setShowSaleData(SaleDataAll.slice(saleRinkDataPage*10,(saleRinkDataPage+1)*10))
+    }
+  },[saleRinkDataPage,SaleDataAll])
   const getActiveData = () => {
     const actions = http2.get(`v0/active_actions/${address}`)
     const users = http2.get(`v0/active_users/${address}`)
@@ -2118,54 +2217,37 @@ export const CollectionDetails = () => {
   }
   const setNFTpie = () => {
     if (tap === 'Analysis') {
-      const adrr = '0x0000000000000000000000000000000000000000'
-      actionAll.map((item: any) => {
-        if (filterAddress(item.t1)?.toLowerCase() === item.address?.toLowerCase()) {
-          item.type = 'Sold'
-        }
-        if (filterAddress(item.t1)?.toLowerCase() === adrr?.toLowerCase()) {
-          item.type = 'Mint'
-        }
-        item.t1 = filterAddress(item.t1)
-        item.t2 = filterAddress(item.t2)
-      })
       const SoldData = actionAll.filter((item: any) => {
-        return item.type === 'Sold'
+        return item.xw === 'sale'
       })
       const MintData = actionAll.filter((item: any) => {
-        return item.type === 'Mint'
+        return item.xw === 'mint'
+      })
+      const tranferData = actionAll.filter((item: any) => {
+        return item.xw === 'tranfer'
       })
       const SoldValue = new BigNumber((SoldData.length / actionAll.length).toFixed(2)).multipliedBy(100).toNumber()
       const MintValue = new BigNumber((MintData.length / actionAll.length).toFixed(2)).multipliedBy(100).toNumber()
-      const BoughtValue = 100 - MintValue - SoldValue
-      let NFTdata
-      if (BoughtValue + SoldValue === 100) {
-        NFTdata = [
-          {
-            value: BoughtValue,
-            name: 'Bought'
-          },
-          {
-            value: SoldValue,
-            name: 'Sold'
-          }
-        ]
-      } else {
-        NFTdata = [
+      const tranferValue = new BigNumber((tranferData.length / actionAll.length).toFixed(2)).multipliedBy(100).toNumber()
+      const otherValue = 100 - MintValue - SoldValue - tranferValue
+      const NFTdata = [
           {
             value: MintValue,
             name: 'Mint'
           },
           {
-            value: BoughtValue,
-            name: 'Bought'
+            value: SoldValue,
+            name: 'Sale'
           },
           {
-            value: SoldValue,
-            name: 'Sold'
+            value: tranferValue,
+            name: 'Tranfer'
+          },
+          {
+            value: otherValue,
+            name: 'Other'
           }
         ]
-      }
       const NFTdom = document.getElementById('NFT') as HTMLDivElement
       const NFTChart = echarts.init(NFTdom)
       NFTChart.setOption(PieOption('', NFTdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
@@ -2532,6 +2614,46 @@ export const CollectionDetails = () => {
       item.NFT = '--'
     })
     setRecommendPlayerData(tokenHoldData)
+  }
+  const setSaleRinkDataTable = () => {
+    const saleData = userActionData.filter((item: any) => {
+      return item.xw === 'sale'
+    })
+    const saleUser = [] as any
+    saleData.map((item: any) => {
+      const filterUser = saleUser.filter((ele: any) => {
+        return item.address===ele
+      })
+      if (!filterUser.length) {
+        saleUser.push(item.address)
+      }
+    })
+    const userSaleValueData = [] as any
+    saleUser.map((item: any) => {
+      let total = 0
+      const userdata = saleData.filter((ele: any) => {
+        return item === ele.address
+      })
+      userdata.map((ele: any) => {
+        total = total + new BigNumber(ele.transactionvalue).div(1000000000000000000).toNumber()
+      })
+      userSaleValueData.push({
+        address: item,
+        Sales: userdata.length,
+        Volume: total.toFixed(3),
+        chain: collectionDetails.chain
+      })
+    })
+    const sortsaleRankData = userSaleValueData.sort((a: any,b: any)=> {
+      if (b.Volume===a.Volume) {
+        return b.Sales - a.Sales
+      }
+      return b.Volume-a.Volume
+    })
+    sortsaleRankData.map((item: any, index: number) => {
+      item.ranking = index+1
+    })
+    setSaleDataAll(sortsaleRankData)
   }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
@@ -3434,6 +3556,9 @@ export const CollectionDetails = () => {
     setTransactionsTablePage(index)
     setTransactionsData(transactionsDataAll.slice(10 * index, 10 * index + 10))
   }
+  const saleRinkNext = (index: number) => {
+    setSaleRinkDataPage(index)
+  }
   const TransactionsButtonAll = () => {
     setTransactionsData([])
     setTransactionsType('All')
@@ -4206,34 +4331,62 @@ export const CollectionDetails = () => {
                     <div className="nextPage flex flex-center cursor" onClick={nextPage}>Next</div>
                   </div>
                 </TabBox>
-                <ApproveTable>
-                  <div className="title">Recommended Player</div>
-                  <div className="tableTab flex">
-                    <div className="Address">Address</div>
-                    <div>Social</div>
-                    <div>Token Balance</div>
-                    <div>NFT</div>
-                  </div>
-                  {RecommendPlayerData && RecommendPlayerData.length ? (
-                    RecommendPlayerData.map((item: any, index: number) => (
-                      <div
-                        className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
-                        key={index}
-                      >
-                        <div className="Address">{item.holderAddress}</div>
-                        <div>
-                          <img className="translucent" src={twitter} alt="" />&nbsp;
-                          <img className="translucent" src={discord} alt="" />&nbsp;
-                          <img className="translucent" src={Telegram} alt="" />
-                        </div>
-                        <div>{item.amount}</div>
-                        <div>{item.NFT}</div>
+                <RankingTable className="">
+                  <div className="saleRank itemDiv">
+                    <div className='Tab flex'>
+                      <div>
+                        {collectionDetails.contractName}
+                        <img src={shortbutton} />
                       </div>
-                    ))
-                  ) : (
-                    <div className="Notrecords flex flex-justify-content">No records</div>
-                  )}
-                </ApproveTable>
+                    </div>
+                    <div className="title text-center">Top Sales</div>
+                    <div className="titleBar flex">
+                      <div>Ranking</div>
+                      <div className="Address">Address</div>
+                      <div>Sales</div>
+                      <div>Volume</div>
+                    </div>
+                    <div className="dataArea">
+                      {showSaleData&&showSaleData.length? (
+                        showSaleData.map((item: any, index: number) =>(
+                          <div
+                            className={(index + 1) % 2 === 0 ? 'dataItem flex bag' : 'dataItem flex'}
+                            key={index}
+                          >
+                            <div>{item.ranking}</div>
+                            <div className="Address">{item.address}</div>
+                            <div>{item.Sales}</div>
+                            <div  className="Volume">
+                              {item.chain==='polygon'
+                                ? (<img src={PolygonImg} alt="" />)
+                                : item.chain==='bsc'
+                                ? (<img src={BSCImg} alt="" />)
+                                : (<img src={ETHImg} alt="" />)
+                              }
+                              {item.Volume}
+                            </div>
+                          </div>
+                        ))
+                      ):(
+                        <div className="NoData text-center">No data</div>
+                      )}
+                    </div>
+                    <div className="tablePage flex">
+                      {SaleDataAll && SaleDataAll.length
+                        ? SaleDataAll.slice(0, Math.ceil(SaleDataAll.length/10)).map((item: any, index: number) => (
+                          <div
+                            className={saleRinkDataPage === index? 'flex selected': 'flex'
+                            }
+                            key={index}
+                            onClick={() => saleRinkNext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                    </div>
+                  </div>
+                </RankingTable>
               </AnalysisBox>
             ) : (
               ''

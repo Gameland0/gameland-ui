@@ -2648,34 +2648,36 @@ export const UserPage = () => {
     const LensChart = echarts.init(Lensdom)
     LensChart.setOption(options)
     LensChart.on('click', LensChartClick)
-    const Snapshotoptions = {
-      title: {
-        text: 'Snapshot Activity',
-        top : '90%',
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'axis' as any
-      },
-      legend: {
-        data: ['vote']
-      },
-      xAxis: {
-        data: SnapshotTime
-      },
-      yAxis: {
-        type: 'value' as any
-      },
-      series: [{
-        name: 'vote',
-        type: 'line',
-        data: seriesvote
-      }]
+    if (Snapshot.length) {
+      const Snapshotoptions = {
+        title: {
+          text: 'Snapshot Activity',
+          top : '90%',
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis' as any
+        },
+        legend: {
+          data: ['vote']
+        },
+        xAxis: {
+          data: SnapshotTime
+        },
+        yAxis: {
+          type: 'value' as any
+        },
+        series: [{
+          name: 'vote',
+          type: 'line',
+          data: seriesvote
+        }]
+      }
+      const Snapshotdom = document.getElementById('ActivitySnapshot') as HTMLDivElement
+      const SnapshotChart = echarts.init(Snapshotdom)
+      SnapshotChart.setOption(Snapshotoptions)
+      SnapshotChart.on('click', SnapshotChartClick)
     }
-    const Snapshotdom = document.getElementById('ActivitySnapshot') as HTMLDivElement
-    const SnapshotChart = echarts.init(Snapshotdom)
-    SnapshotChart.setOption(Snapshotoptions)
-    SnapshotChart.on('click', SnapshotChartClick)
   }
   const chainActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
@@ -2887,7 +2889,7 @@ export const UserPage = () => {
                     ' ' +
                     item.actions[0].metadata.to.symbol
                   : <span className="blue">{formatting(item.address_to || '0x000')}</span>}
-                &nbsp;&nbsp;in {item.network}
+                &nbsp;&nbsp;on {item.network}
               </div>
             ))
           ) : (
@@ -3345,13 +3347,13 @@ export const UserPage = () => {
                     Token
                     {transactionTab === 'Token' ? <img src={shortbutton} /> : ''}
                   </div>
-                  <div onClick={() => setTransactionTab('Wash')}>
-                    Wash Trading
-                    {transactionTab === 'Wash' ? <img src={shortbutton} /> : ''}
-                  </div>
                   <div onClick={() => setTransactionTab('Poap')}>
                     POAP
                     {transactionTab === 'Poap' ? <img src={shortbutton} /> : ''}
+                  </div>
+                  <div onClick={() => setTransactionTab('Wash')}>
+                    Wash Trading
+                    {transactionTab === 'Wash' ? <img src={shortbutton} /> : ''}
                   </div>
                 </div>
                 <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>

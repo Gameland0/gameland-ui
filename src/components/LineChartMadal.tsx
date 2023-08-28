@@ -91,11 +91,13 @@ export const LineChartMadal: React.FC<MadalProps> = ({
         <div className="title">Activity details</div>
           {data && data.length ? (
             data.map((item: any, index: number) => (
-              <div className="spacing-5" key={index}>
+              <div className="spacing-5 text-center" key={index}>
                 {item.timestamp.substr(0, 10)}&nbsp;&nbsp;
-                {item.type==='share'?'Shared posts':item.type==='post'?'Published  posts':item.type}&nbsp;&nbsp;
-                {item.type==='vote'?item.actions[0].related_urls[0]:item.actions[0].related_urls[1]}&nbsp;&nbsp;
-                in&nbsp;&nbsp;
+                <b>{item.type==='share'?'Shared posts':item.type==='post'?'Published  posts':item.type}</b>&nbsp;&nbsp;
+                <a target='_blank' href={item.type==='vote'?item.actions[0].related_urls[0]:item.actions[0].related_urls[1]}>
+                  {item.type==='vote'?item.actions[0].related_urls[0]:item.actions[0].related_urls[1]}
+                </a>&nbsp;&nbsp;
+                on&nbsp;&nbsp;
                 {item.network}
               </div>
           ))
