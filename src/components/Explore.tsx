@@ -342,8 +342,8 @@ export const Explore = () => {
           })
           if (!filterCacheList.length) {
             arr.push(SeachInputValue)
-            setSeachList(arr)
           }
+          setSeachList(arr)
         }
       } else {
         if (seachGameList&&seachGameList.length) {
@@ -352,6 +352,7 @@ export const Explore = () => {
         if (seachCacheList&&seachCacheList.length) {
           setSeachCache(seachCacheList)
         }
+        setSeachList([...seachCacheList,...seachGameList])
       }
     }
   }
@@ -378,14 +379,14 @@ export const Explore = () => {
         if (seachCacheList&&seachCacheList.length) {
           setSeachCache(seachCacheList)
         }
-        const arr = [...seachCache,...seachGames]
+        const arr = [...seachCacheList,...seachGameList]
         const filterCacheList = arr.filter((item: any) => {
           return SeachInputValue.toLowerCase() === item.toLowerCase()
         })
         if (!filterCacheList.length) {
           arr.push(SeachInputValue)
-          setSeachList(arr)
         }
+        setSeachList(arr)
       }
     } else {
       if (seachGameList&&seachGameList.length) {
@@ -394,6 +395,7 @@ export const Explore = () => {
       if (seachCacheList&&seachCacheList.length) {
         setSeachCache(seachCacheList)
       }
+      setSeachList([...seachCacheList,...seachGameList])
     }
   }
   const seeMore = () => {

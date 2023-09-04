@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import * as echarts from 'echarts'
 import axios from 'axios'
-import { bschttp, polygonhttp, newhttp } from './Store'
+import { bschttp, polygonhttp, newhttp, http } from './Store'
 import { AnalysisBox } from './MyPage'
 import { ApproveTable, calculateAverage, firstWeek } from './CollectionDetails'
-import { MORALIS_KEY } from '../constants'
+import { MORALIS_KEY, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
 import pieBg from '../assets/pie_bg.png'
 import defaultImg from '../assets/default.png'
 import PolygonImg from '../assets/polygon.svg'
@@ -631,35 +631,43 @@ export const GameAnalysis = (data: any) => {
           'X-API-Key': MORALIS_KEY
         }
       })
+      const time = Math.ceil(new Date().getTime()/1000)
       const bscinfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=bsc&format=decimal&media_items=false`)
       if (bscinfo.data.result[0]?.contract_type) {
+        const block = await http.get(`https://api.bscscan.com/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${BSCSCAN_KEY}`)
         const params = {
           address: data.seachContract,
           chain: 'bsc',
           type: bscinfo.data.result[0].contract_type,
           name: bscinfo.data.result[0].name,
+          blocknumber: block.data.result*1,
           uri: bscinfo.data.result[0].token_uri
         }
         newhttp.post(`v0/games_cache`, params)
       }
       const polygoninfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=polygon&format=decimal&media_items=false`)
       if (polygoninfo.data.result[0]?.contract_type) {
+        const block = await http.get(`https://api.polygonscan.com/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${POLYGONSCAN_KEY}`)
         const params = {
           address: data.seachContract,
           chain: 'polygon',
           type: polygoninfo.data.result[0].contract_type,
           name: polygoninfo.data.result[0].name,
+          blocknumber: block.data.result*1,
           uri: polygoninfo.data.result[0].token_uri
         }
         newhttp.post(`v0/games_cache`, params)
       }
       const ethinfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=eth&format=decimal&media_items=false`)
       if (ethinfo.data.result[0]?.contract_type) {
+        const apiKey = '5BCXEYI6ATAC8W93PHXY8UR598YSGNBWCT'
+        const block = await http.get(`https://api.etherscan.com/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${apiKey}`)
         const params = {
           address: data.seachContract,
           chain: 'eth',
           type: ethinfo.data.result[0].contract_type,
           name: ethinfo.data.result[0].name,
+          blocknumber: block.data.result*1,
           uri: ethinfo.data.result[0].token_uri
         }
         newhttp.post(`v0/games_cache`, params)
@@ -1019,20 +1027,43 @@ export const GameAnalysis = (data: any) => {
       const BoughtDetailsData= [] as any
       const BoughtSpentData = [] as any
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
+      let tokenPrice: any
+      if (filterData[0].chain === 'eth') {
+        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+      }
+      if (filterData[0].chain === 'bsc') {
+        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
+      }
+      if (filterData[0].chain === 'polygon') {
+        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
+      }
       sortBoughttime.map((item: any) => {
         let spent = 0
+        let ERC20Value = 0
         const times = new Date(item * 1000).toJSON().substring(5, 10)
         const data = Sales.filter((ele: any)=> {
           const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
           return times === time
         })
-        data.map((ele: any)=> {
-          spent = spent+ele.transactionvalue*1
+        data.map(async (ele: any)=> {
+          if (ele.token) {
+            if (ele.token==='WETH') {
+              const Price = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+              const value = new BigNumber(ele.price).div(1000000000000000000).toNumber()*Price
+              ERC20Value = ERC20Value + value
+            }
+            if (ele.token==='Binance USD') {
+              ERC20Value = ERC20Value + new BigNumber(ele.price).div(1000000000000000000).toNumber()
+            }
+          } else {
+            spent = spent+ele.transactionvalue*1
+          }
         })
-        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
+        const vules = new BigNumber(spent).div(1000000000000000000).toNumber()
+        const tokenValue = vules * tokenPrice + ERC20Value
         BoughttimeArr.push(times)
         BoughtDetailsData.push(data.length)
-        BoughtSpentData.push(vules)
+        BoughtSpentData.push(tokenValue.toFixed(3))
       })
       const Soldtime = [] as any
       Sold.map((item: any) => {
@@ -1099,27 +1130,16 @@ export const GameAnalysis = (data: any) => {
       legend.push(`${filterData[0].contractName} Average Transction`)
       Platformlegend.push(...[`${filterData[0].contractName} OpenSea`,`${filterData[0].contractName} Element`,`${filterData[0].contractName} Blur`,`${filterData[0].contractName} X2Y2`,])
       BoughtDetailsSeries.push({
-        name: `${filterData[0].contractName} Bought`,
+        name: `${filterData[0].contractName} Sale`,
         type: 'line',
         data: BoughtDetailsData
       },{
-        name: `${filterData[0].contractName} Price & Volume`,
+        name: `${filterData[0].contractName} Price & Volume($)`,
         type: 'line',
         data: BoughtSpentData
       })
-      SoldDetailsSeries.push({
-        name: `${filterData[0].contractName} Sold`,
-        type: 'line',
-        data: SoldDetailsData
-      },{
-        name: `${filterData[0].contractName} Price & Volume`,
-        type: 'line',
-        data: SoldSpentData
-      })
-      BoughtDetailslegend.push(`${filterData[0].contractName} Bought`)
-      BoughtDetailslegend.push(`${filterData[0].contractName} Price & Volume`)
-      SoldDetailslegend.push(`${filterData[0].contractName} Sold`)
-      SoldDetailslegend.push(`${filterData[0].contractName} Price & Volume`)
+      BoughtDetailslegend.push(`${filterData[0].contractName} Sale`)
+      BoughtDetailslegend.push(`${filterData[0].contractName} Price & Volume($)`)
       seriesData.push({
         name: `${filterData[0].contractName} Average Approve`,
         data: calculateAverage(approveData, users.data.data),
@@ -1294,32 +1314,55 @@ export const GameAnalysis = (data: any) => {
       const BoughtDetailsData= [] as any
       const BoughtSpentData = [] as any
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
-      sortBoughttime.map((item: any) => {
+      let tokenPrice: any
+      if (filterData[0].chain === 'eth') {
+        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+      }
+      if (filterData[0].chain === 'bsc') {
+        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
+      }
+      if (filterData[0].chain === 'polygon') {
+        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
+      }
+      sortBoughttime.map(async (item: any) => {
         let spent = 0
+        let ERC20Value = 0
         const times = new Date(item * 1000).toJSON().substring(5, 10)
         const data = Sales.filter((ele: any)=> {
           const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
           return times === time
         })
-        data.map((ele: any)=> {
-          spent = spent+ele.transactionvalue*1
+        data.map(async (ele: any)=> {
+          if (ele.token) {
+            if (ele.token==='WETH') {
+              const Price = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+              const value = new BigNumber(ele.price).div(1000000000000000000).toNumber()*Price
+              ERC20Value = ERC20Value + value
+            }
+            if (ele.token==='Binance USD') {
+              ERC20Value = ERC20Value + new BigNumber(ele.price).div(1000000000000000000).toNumber()
+            }
+          } else {
+            spent = spent+ele.transactionvalue*1
+          }
         })
-        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
+        const vules = new BigNumber(spent).div(1000000000000000000).toNumber()
+        const tokenValue = vules * tokenPrice + ERC20Value
         BoughttimeArr.push(times)
         BoughtDetailsData.push(data.length)
-        BoughtSpentData.push(vules)
+        BoughtSpentData.push(tokenValue.toFixed(3))
       })
       BoughtDetailsSeries.push({
         name: `${filterData[0].name} Sale`,
         type: 'line',
         data: BoughtDetailsData
       },{
-        name: `${filterData[0].name} Price & Volume`,
+        name: `${filterData[0].name} Price & Volume($)`,
         type: 'line',
         data: BoughtSpentData
       })
       BoughtDetailslegend.push(`${filterData[0].name} Sale`)
-      BoughtDetailslegend.push(`${filterData[0].name} Price & Volume`)
+      BoughtDetailslegend.push(`${filterData[0].name} Price & Volume($)`)
       SalesAddress.map((item: any) => {
         const data = Sales.filter((ele: any) => {
           return item === filterAddress(ele.t1)
@@ -1598,7 +1641,7 @@ export const GameAnalysis = (data: any) => {
       },
       series: BoughtDetailsSeries
     }
-    const Boughtmdom = document.getElementById('BoughtDetails') as HTMLDivElement
+    const Boughtmdom = document.getElementById('SaleDetails') as HTMLDivElement
     const BoughtChart = echarts.init(Boughtmdom)
     BoughtChart.setOption(Boughtoptions)
     BoughtChart.on('click', BoughtChartClick)
@@ -1722,7 +1765,7 @@ export const GameAnalysis = (data: any) => {
                 {activityTab === 'Sold' ? <img src={shortbutton} /> : ''}
               </div> */}
             </div>
-            <div id="BoughtDetails" className={activityTab === 'Bought' ? 'item absolute' : 'item absolute none'}>
+            <div id="SaleDetails" className={activityTab === 'Bought' ? 'item absolute' : 'item absolute none'}>
               <div className="text-center margin">No Data</div>
             </div>
             {/* <div id="SoldDetails" className={activityTab === 'Sold' ? 'item absolute' : 'item absolute none'}>
