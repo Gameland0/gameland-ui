@@ -16,6 +16,7 @@ import ERC721 from '../constants/Abis/erc721.json'
 import WETH from '../constants/Abis/WETH.json'
 import rewardAbi from '../constants/Abis/reward.json'
 import payment from '../constants/Abis/payment.json'
+import PaidDownload from '../constants/Abis/PaidDownloads.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import {
@@ -35,6 +36,7 @@ import {
   OneAssetContractAddress,
   OnePayMentAddress,
   OneRewardAddress,
+  PaidDownloads,
   OneUSDT
 } from '../constants'
 
@@ -199,6 +201,12 @@ export function useUSDTContract() {
   }
 }
 
+export function useTestUSDTContract() {
+  const { library, chainId } = useActiveWeb3React()
+  if (!library) return null
+  return new Contract('0x40BAC2848EFD60c89F8d10fd2AeD32F25C200d15', ERC20, library.getSigner())
+}
+
 export function usePayMentContract() {
   const { library, chainId } = useActiveWeb3React()
   if (!library) return null
@@ -210,6 +218,13 @@ export function usePayMentContract() {
     return new Contract(OnePayMentAddress, payment, library.getSigner())
   }
 }
+
+export function usePaidDownloadContract() {
+  const { library, chainId } = useActiveWeb3React()
+  if (!library) return null
+  return new Contract(PaidDownloads, PaidDownload, library.getSigner())
+}
+
 
 export function useAssetContract() {
   const { library, chainId } = useActiveWeb3React()

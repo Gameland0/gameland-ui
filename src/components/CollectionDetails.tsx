@@ -2538,7 +2538,7 @@ export const CollectionDetails = () => {
       if (item.tokenid * 1 === 0) {
         approveData.push(item)
       }
-      if (tokeninfo[0].tokenAddress[0]?.toLowerCase() === filterAddress(item.t1)?.toLowerCase()) {
+      if (tokeninfo[0]?.tokenAddress[0]?.toLowerCase() === filterAddress(item.t1)?.toLowerCase()) {
         claimData.push(item)
       }
     })

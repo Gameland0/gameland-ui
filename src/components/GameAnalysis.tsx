@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import * as echarts from 'echarts'
 import axios from 'axios'
 import { bschttp, polygonhttp, newhttp, http } from './Store'
-import { AnalysisBox } from './MyPage'
+import { AnalysisBox, PieOption } from './MyPage'
 import { ApproveTable, calculateAverage, firstWeek } from './CollectionDetails'
 import { MORALIS_KEY, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
 import pieBg from '../assets/pie_bg.png'
@@ -12,13 +12,14 @@ import PolygonImg from '../assets/polygon.svg'
 import BSCImg from '../assets/binance.svg'
 import ETHImg from '../assets/eth.svg'
 import shortbutton from '../assets/short_button.jpg'
-import { filterAddress, formatting } from '../utils'
+import { fetchReceipt, filterAddress, formatting } from '../utils'
 import BigNumber from 'bignumber.js'
 import html2canvas from 'html2canvas'
 import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
 import { SendBox } from '../pages/Dashboard'
-import { Return } from './RentingCard'
+import { useTestUSDTContract, usePaidDownloadContract, useActiveWeb3React } from '../hooks'
+import { log } from 'console'
 
 const Analysis = styled.div`
   .borderNone {
@@ -56,6 +57,10 @@ const Analysis = styled.div`
     text-align: center;
     margin: auto;
     margin-top: 20px;
+  }
+  .ApproveTable {
+    width: 96%;
+    height: 430px;
   }
 `
 const TokenTransactions = styled.div`
@@ -177,6 +182,22 @@ const Activity = styled.div`
   padding: 10px;
   margin: auto;
   margin-bottom: 20px;
+`
+const Tap = styled.div`
+  padding-left: 10px;
+  margin-top: 20px;
+  div {
+    position: relative;
+    cursor: pointer;
+    margin-right: 16px;
+    img {
+      width: 100%;
+      height: 8px;
+      position: absolute;
+      bottom: 1px;
+      left: 0px;
+    }
+  }
 `
 
 const calculate = (data: any, activeUser: any) => {
@@ -579,16 +600,22 @@ const calcucost = (val: any, places: number) => {
 }
 
 export const GameAnalysis = (data: any) => {
+  const { account, chainId, library } = useActiveWeb3React()
   const [saleRankTab, setSaleRankTab] = useState('')
   const [activityTab,setActivityTab] = useState('Bought')
+  const [userComparisonTap, setUserComparisonTap] = useState('AverageActive')
   const [PSstate, setPSstate] = useState(false)
   const [showActivity, setShowActivity] = useState(false)
+  const [moreDetails, setMoreDetails] = useState(false)
+  const [Chart, setChart] = useState(false)
   const [CollectionData, setCollectionData] = useState([] as any)
   const [RankData, setRankData] = useState([] as any)
   const [showSaleData, setShowSaleData] = useState([] as any)
   const [showPlayer, setShowPlayer] = useState([] as any)
   const [seachGameData,setSeachGameData] = useState([] as any)
   const [PopUpsData, setPopUpsData] = useState([] as any)
+  const TestUSDTContract = useTestUSDTContract()
+  const PaidDownloadContract = usePaidDownloadContract()
 
   useEffect(() => {
     if (data.seachContract.length) {
@@ -603,13 +630,25 @@ export const GameAnalysis = (data: any) => {
 
   useEffect(() => {
     if (saleRankTab!=='') {
-      const data = RankData.filter((item: any) => {
+      const filterdata = RankData.filter((item: any) => {
         return saleRankTab === item.tab
       })
-      setShowSaleData(data[0].saleData)
-      setShowPlayer(data[0].Player)
+      setShowSaleData(filterdata[0].saleData)
+      setShowPlayer(filterdata[0].Player)
     }
   }, [saleRankTab])
+
+  useEffect(() => {
+    if (saleRankTab!==''&&moreDetails) {
+      setUsercache(RankData)
+    }
+  }, [moreDetails])
+
+  useEffect(() => {
+    if (Chart) {
+      setuserComparisonChart()
+    }
+  }, [Chart])
 
   const detectionAddress = async () => {
     const filterData = data.GameData.filter((item: any) => {
@@ -830,7 +869,7 @@ export const GameAnalysis = (data: any) => {
     RankData.length=0
 
     for (let index = 0; index < data.data.length; index++) {
-      const element = data.data[index];
+      const element = data.data[index]
       const filterData = data.GameData.filter((ele: any) => {
         return element.toLowerCase() === ele.contractAddress.toLowerCase()
       })
@@ -1029,13 +1068,13 @@ export const GameAnalysis = (data: any) => {
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
       let tokenPrice: any
       if (filterData[0].chain === 'eth') {
-        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
       }
       if (filterData[0].chain === 'bsc') {
-        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
       }
       if (filterData[0].chain === 'polygon') {
-        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
       }
       sortBoughttime.map((item: any) => {
         let spent = 0
@@ -1048,7 +1087,7 @@ export const GameAnalysis = (data: any) => {
         data.map(async (ele: any)=> {
           if (ele.token) {
             if (ele.token==='WETH') {
-              const Price = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+              const Price = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
               const value = new BigNumber(ele.price).div(1000000000000000000).toNumber()*Price
               ERC20Value = ERC20Value + value
             }
@@ -1113,6 +1152,7 @@ export const GameAnalysis = (data: any) => {
       const Rankarr = RankData
       Rankarr.push({
         tab: filterData[0].contractName,
+        contractAddress: filterData[0].contractAddress,
         saleData: sortsaleRankData.slice(0,10),
         Player: sortactionRankData.slice(0,10)
       })
@@ -1316,13 +1356,13 @@ export const GameAnalysis = (data: any) => {
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
       let tokenPrice: any
       if (filterData[0].chain === 'eth') {
-        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
       }
       if (filterData[0].chain === 'bsc') {
-        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
       }
       if (filterData[0].chain === 'polygon') {
-        tokenPrice = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
       }
       sortBoughttime.map(async (item: any) => {
         let spent = 0
@@ -1335,7 +1375,7 @@ export const GameAnalysis = (data: any) => {
         data.map(async (ele: any)=> {
           if (ele.token) {
             if (ele.token==='WETH') {
-              const Price = (await polygonhttp.get(`http://localhost:8089/v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+              const Price = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
               const value = new BigNumber(ele.price).div(1000000000000000000).toNumber()*Price
               ERC20Value = ERC20Value + value
             }
@@ -1415,6 +1455,7 @@ export const GameAnalysis = (data: any) => {
       const Rankarr = RankData
       Rankarr.push({
         tab: filterData[0].name,
+        contractAddress: filterData[0].address,
         saleData: sortsaleRankData.slice(0,10),
         Player: sortactionRankData.slice(0,10)
       })
@@ -1646,7 +1687,247 @@ export const GameAnalysis = (data: any) => {
     BoughtChart.setOption(Boughtoptions)
     BoughtChart.on('click', BoughtChartClick)
   }
+  const setUsercache = async (addressData: any) => {
+    const Time = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
+    for (let index = 0; index < addressData.length; index++) {
+      const element = addressData[index];
+      const userdata = await newhttp.get(`v0/user/${element.contractAddress}`)
+      const usercacheData = await newhttp.get(`v0/user_cache/${element.contractAddress}`)
 
+      const filteruserdata = userdata.data.data.filter((item: any) => {
+        const itemTime = new Date(item.dates).getTime()
+        return itemTime>Time && itemTime<Time+604800000
+      })
+      const filterusercacheData = usercacheData.data.data.filter((item: any) => {
+        const itemTime = new Date(item.dates).getTime()
+        return itemTime>Time && itemTime<Time+604800000
+      })
+
+      if (!filteruserdata.length&&!filterusercacheData.length) {
+          let PlayerAddress = ''
+          if (element.Player.length) {
+            element.Player.map((item: any) => {
+              PlayerAddress=PlayerAddress + item.address +','
+            })
+            const parm = {
+              address: PlayerAddress,
+              action: 'topPlayers',
+              contractaddress: element.contractAddress
+            }
+            newhttp.post(`v0/user_cache`,parm)
+          }
+
+          let saleAddress = ''
+          if (element.saleData.length) {
+            element.saleData.map((item: any) => {
+              saleAddress=saleAddress + item.address +','
+            })
+            const saleparm = {
+              address: saleAddress,
+              action: 'topSalers',
+              contractaddress: element.contractAddress
+            }
+            newhttp.post(`v0/user_cache`,saleparm)
+          }
+      } else {
+        setChart(true)
+      }
+    }
+  }
+  const setuserComparisonChart = async () => {
+    let arr: any
+    if (data.seachContract) {
+      arr = [...data.data,...data.seachCache,data.seachContract]
+    } else {
+      arr = [...data.data,...data.seachCache]
+    }
+    const GameData = [...data.GameData,...data.gameData]
+    const Time = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
+    const AverageActiveLegend = [] as any
+    const AverageActiveTime = [] as any
+    const AverageActiveSeries = [] as any
+    const ChainActivityData = [] as any
+    const AverageAssetsData = [] as any
+    
+    for (let index = 0; index < arr.length; index++) {
+      const element = arr[index]
+      const filterData = GameData.filter((ele: any) => {
+        return element?.toLowerCase() === ele.contractAddress?.toLowerCase() || element?.toLowerCase() === ele.address?.toLowerCase()
+      })
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Players Approve`)
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Salers Approve`)
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Players Transfer`)
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transfer`)
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Players Mint`)
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`)
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Players Transactions`)
+      AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`)
+      const statistic = await newhttp.get(`v0/data_statistic/${element}`)
+      const statisticDay = await newhttp.get(`v0/data_statistic_day/${element}`)
+      const filterstatisticDay = statisticDay.data.data.filter((item: any) => {
+        const itemTime = new Date(item.dates).getTime()
+        return itemTime>Time && itemTime<Time+604800000
+      })
+      const PlayersApprove = [] as any
+      const SalersApprove = [] as any
+      const PlayersTransfer = [] as any
+      const SalersTransfer = [] as any
+      const PlayersMint = [] as any
+      const SalersMint = [] as any
+      const PlayersTransactions = [] as any
+      const SalersTransactions = [] as any
+      filterstatisticDay.map((item: any) => {
+        const findTime = AverageActiveTime.filter((ele: any) => {
+          return ele === item.days.slice(5)
+        })
+        if (!findTime.length) {
+          AverageActiveTime.push(item.days.slice(5))
+        }
+        if (item.actions==='topPlayers') {
+          PlayersApprove.push(item.approvels)
+          PlayersTransfer.push(item.transfers)
+          PlayersMint.push(item.mints)
+          PlayersTransactions.push(item.Transactions)
+        }
+        if (item.actions==='topSalers') {
+          SalersApprove.push(item.approvels)
+          SalersTransfer.push(item.transfers)
+          SalersMint.push(item.mints)
+          SalersTransactions.push(item.Transactions)
+        }
+      })
+      if (PlayersApprove.length||SalersApprove.length||
+      PlayersTransfer.length||SalersTransfer.length||
+      PlayersMint.length||SalersMint.length||
+      PlayersTransactions.length||SalersTransactions.length) {
+          AverageActiveSeries.push({
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Approve`,
+            type: 'line',
+            data: PlayersApprove
+          },{
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Approve`,
+            type: 'line',
+            data: SalersApprove
+          },{
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Transfer`,
+            type: 'line',
+            data: PlayersTransfer
+          },{
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transfer`,
+            type: 'line',
+            data: SalersTransfer
+          },{
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`,
+            type: 'line',
+            data: PlayersMint
+          },{
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`,
+            type: 'line',
+            data: SalersMint
+          },{
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`,
+            type: 'line',
+            data: PlayersTransactions
+          },{
+            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`,
+            type: 'line',
+            data: SalersTransactions
+          })
+      }
+      
+      const filterstatistic = statistic.data.data.filter((item: any) => {
+        const itemTime = new Date(item.dates).getTime()
+        return itemTime>Time && itemTime<Time+604800000
+      })
+
+      filterstatistic.map((item: any) => {
+        if (item.actions==='topPlayers') {
+          console.log(item)
+          if (item.ethereums||item.polygons||item.binance_smart_chains) {
+            ChainActivityData.push({
+              value: item.ethereums,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Ethereum`
+            },{
+              value: item.polygons,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Polygon`
+            },{
+              value: item.binance_smart_chains,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Binance_chains`
+            })
+          }
+          if (item.bscnfts+item.polygonnfts+item.ethnfts) {
+            AverageAssetsData.push({
+              value: item.bscnfts+item.polygonnfts+item.ethnfts,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players`
+            })
+          }
+        }
+        if (item.actions==='topSalers') {
+          if (item.ethereums||item.polygons||item.binance_smart_chains) {
+            ChainActivityData.push({
+              value: item.ethereums,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Ethereum`
+            },{
+              value: item.polygons,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Polygon`
+            },{
+              value: item.binance_smart_chains,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Binance_chains`
+            })
+          }
+          console.log(item.bscnfts,item.polygonnfts,item.ethnfts)
+          if (item.bscnfts+item.polygonnfts+item.ethnfts) {
+            console.log(item.bscnfts+item.polygonnfts+item.ethnfts)
+            AverageAssetsData.push({
+              value: item.bscnfts+item.polygonnfts+item.ethnfts,
+              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers`
+            })
+          }
+        }
+      })
+    }
+    const AverageActiveOption = {
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      grid: {
+        left: '3%',
+        right: '8%',
+        bottom: '3%',
+        containLabel: true
+      },
+      legend: {
+        data: AverageActiveLegend
+      },
+      xAxis: {
+        data: AverageActiveTime
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: AverageActiveSeries
+    }
+    if (AverageActiveSeries.length) {
+      echarts.dispose(document.getElementById('AverageActive') as HTMLDivElement)
+      const AverageActivedom = document.getElementById('AverageActive') as HTMLDivElement
+      const AverageActiveChart = echarts.init(AverageActivedom)
+      AverageActiveChart.setOption(AverageActiveOption)
+    }
+
+    if (ChainActivityData.length) {
+      echarts.dispose(document.getElementById('ChainActivity') as HTMLDivElement)
+      const ChainActivitydom = document.getElementById('ChainActivity') as HTMLDivElement
+      const ChainActivityChart = echarts.init(ChainActivitydom)
+      ChainActivityChart.setOption(PieOption('', ChainActivityData))
+    }
+    
+    if (AverageAssetsData.length) {
+      echarts.dispose(document.getElementById('AverageAssets') as HTMLDivElement)
+      const AverageAssetsdom = document.getElementById('AverageAssets') as HTMLDivElement
+      const AverageAssetsChart = echarts.init(AverageAssetsdom)
+      AverageAssetsChart.setOption(PieOption('', AverageAssetsData))
+    }
+  }
   const BoughtChartClick = (params: any) => {
     const data = seachGameData.filter((item: any) => {
       return `${item.name} Bought` === params.seriesName
@@ -1667,12 +1948,26 @@ export const GameAnalysis = (data: any) => {
       setShowActivity(true)
     }
   }
-  const download = () => {
-    const dom = document.getElementById('download') as HTMLElement
-    html2canvas(dom).then((canvas) => {
-      const imgData = canvas.toDataURL('image', 1.0)
-      saveFile(imgData, 'download')
-    })
+  const download = async () => {
+    if (!library) return
+    const approvetx = await TestUSDTContract?.approve('0xBb183C2BF6f9867250C9507254534A74cc34686F', 5000000)
+    const approvereceipt = await fetchReceipt(approvetx.hash, library)
+    if (!approvereceipt.status) {
+        throw new Error('failed')
+    }
+    const addressArr = ['0x2953399124f0cbb46d2cbacd8a89cf0599974963','0x9928a8ea82d86290dfd1920e126b3872890525b3','0x7ad922413739ebd7f1cb8fdcf74e6936dcec9e51']
+    const rented = await PaidDownloadContract?.connect(library.getSigner()).buyreport(addressArr,addressArr.length,0)
+    const receipt = await fetchReceipt(rented.hash, library)
+    const { status } = receipt
+    if (!status) {
+      throw Error('Failed to rent.')
+    } else {
+      const dom = document.getElementById('download') as HTMLElement
+      html2canvas(dom).then((canvas) => {
+        const imgData = canvas.toDataURL('image', 1.0)
+        saveFile(imgData, 'download')
+      })
+    }
   }
   const saveFile = (data: any, name: string) => {
     const a = document.createElement('a')
@@ -1760,17 +2055,10 @@ export const GameAnalysis = (data: any) => {
                 Sale
                 {activityTab === 'Bought' ? <img src={shortbutton} /> : ''}
               </div>
-              {/* <div onClick={() => setActivityTab('Sold')}>
-                Sold
-                {activityTab === 'Sold' ? <img src={shortbutton} /> : ''}
-              </div> */}
             </div>
-            <div id="SaleDetails" className={activityTab === 'Bought' ? 'item absolute' : 'item absolute none'}>
+            <div id="SaleDetails" className={activityTab === 'Bought' ? 'item' : 'item none'}>
               <div className="text-center margin">No Data</div>
             </div>
-            {/* <div id="SoldDetails" className={activityTab === 'Sold' ? 'item absolute' : 'item absolute none'}>
-              <div className="text-center margin">No Data</div>
-            </div> */}
           </Activity>
           <ApproveTable className="bg borderNone">
             <div className="pieTitle text-center">Player Proportion(%)</div>
@@ -1882,6 +2170,35 @@ export const GameAnalysis = (data: any) => {
               </div>
             </div>
           </RankingTable>
+          {moreDetails?(
+            <ApproveTable className="ApproveTable bg borderNone">
+              <Tap className="flex">
+                <div onClick={()=> setUserComparisonTap('AverageActive')}>
+                  Average active rate
+                  {userComparisonTap === 'AverageActive' ? <img src={shortbutton} /> : ''}
+                </div>
+                <div onClick={()=> setUserComparisonTap('ChainActivity')}>
+                  Chain activity rate
+                  {userComparisonTap === 'ChainActivity' ? <img src={shortbutton} /> : ''}
+                </div>
+                <div onClick={()=> setUserComparisonTap('AverageAssets')}>
+                  Average assets(NFT)
+                  {userComparisonTap === 'AverageAssets' ? <img src={shortbutton} /> : ''}
+                </div>
+              </Tap>
+              <div id="AverageActive" className={userComparisonTap==='AverageActive'?'item absolute':'item absolute none'}>
+                <div className="text-center margin">No Data</div>
+              </div>
+              <div id="ChainActivity" className={userComparisonTap==='ChainActivity'?'item':'item absolute none'}>
+                <div className="text-center margin">No Data</div>
+              </div>
+              <div id="AverageAssets" className={userComparisonTap==='AverageAssets'?'item':'item absolute none'}>
+                <div className="text-center margin">No Data</div>
+              </div>
+            </ApproveTable>
+          ) : (
+            <div className="Download cursor" onClick={() => setMoreDetails(true)}>See More Detail</div>
+          )}
         </AnalysisBox>
       ) : ''}
       {/* <div className="Download cursor" onClick={download}>Download $</div> */}

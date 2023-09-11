@@ -97,6 +97,7 @@ export const MORALIS_API = 'https://deep-index.moralis.io/api/v2'
 
 export const BSCUSDT = '0x55d398326f99059fF775485246999027B3197955'
 export const PolygonUSDT = '0xc2132d05d31c914a87c6611c10748aeb04b58e8f'
+export const PaidDownloads = '0xBb183C2BF6f9867250C9507254534A74cc34686F'
 
 export const POLYGONSCAN_KEY = 'D2X13TWY3D9KYC7TQ7C6X2RYD3ZN3379Q6'
 export const POLYGON_CHAIN_ID = 137 // 137
