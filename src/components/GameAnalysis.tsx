@@ -19,7 +19,6 @@ import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
 import { SendBox } from '../pages/Dashboard'
 import { useTestUSDTContract, usePaidDownloadContract, useActiveWeb3React } from '../hooks'
-import { log } from 'console'
 
 const Analysis = styled.div`
   .borderNone {
@@ -647,6 +646,7 @@ export const GameAnalysis = (data: any) => {
   useEffect(() => {
     if (Chart) {
       setuserComparisonChart()
+      setAveragePurchasing()
     }
   }, [Chart])
 
@@ -853,7 +853,6 @@ export const GameAnalysis = (data: any) => {
     const PlatformSeriesData = [] as any
     const Platformlegend = [] as any
     const BoughtDetailslegend = [] as any
-    const SoldDetailslegend = [] as any
     const PlatformxAxis = [] as any
     const legend = [] as any
     const NFTxAxis = [] as any
@@ -862,7 +861,6 @@ export const GameAnalysis = (data: any) => {
     const BotTranctionSeries = [] as any
     const NFTTransactionSeries = [] as any
     const BoughtDetailsSeries = [] as any
-    const SoldDetailsSeries = [] as any
     const arr = []
     const BoughttimeArr = [] as any
     const SoldtimeArr = [] as any
@@ -1747,7 +1745,8 @@ export const GameAnalysis = (data: any) => {
     const AverageActiveTime = [] as any
     const AverageActiveSeries = [] as any
     const ChainActivityData = [] as any
-    const AverageAssetsData = [] as any
+    const PlayersCollactionData = [] as any
+    const SalersCollactionData = [] as any
     
     for (let index = 0; index < arr.length; index++) {
       const element = arr[index]
@@ -1839,10 +1838,35 @@ export const GameAnalysis = (data: any) => {
         const itemTime = new Date(item.dates).getTime()
         return itemTime>Time && itemTime<Time+604800000
       })
+      const PlayersId = filterstatistic.filter((item: any) => {
+        return item.actions==='topPlayers'
+      })
+      const SalersId = filterstatistic.filter((item: any) => {
+        return item.actions==='topSalers'
+      })
+      const Playercollaction = await newhttp.get(`v0/data_statistics_rank5s/${PlayersId[0].id}`)
+      Playercollaction.data.data.map((ele: any) => {
+        if (ele.contractname.length>0) {
+          console.log(PlayersCollactionData)
+          PlayersCollactionData.push({
+            value: ele.amount,
+            name: ele.contractname
+          })
+        }
+      })
+      const Salerscollaction = await newhttp.get(`v0/data_statistics_rank5s/${SalersId[0].id}`)
+      Salerscollaction.data.data.map((ele: any) => {
+        if (ele.contractname.length>0) {
+          console.log(PlayersCollactionData)
+          SalersCollactionData.push({
+            value: ele.amount,
+            name: ele.contractname
+          })
+        }
+      })
 
-      filterstatistic.map((item: any) => {
+      filterstatistic.map(async (item: any) => {
         if (item.actions==='topPlayers') {
-          console.log(item)
           if (item.ethereums||item.polygons||item.binance_smart_chains) {
             ChainActivityData.push({
               value: item.ethereums,
@@ -1853,12 +1877,6 @@ export const GameAnalysis = (data: any) => {
             },{
               value: item.binance_smart_chains,
               name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Binance_chains`
-            })
-          }
-          if (item.bscnfts+item.polygonnfts+item.ethnfts) {
-            AverageAssetsData.push({
-              value: item.bscnfts+item.polygonnfts+item.ethnfts,
-              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players`
             })
           }
         }
@@ -1873,14 +1891,6 @@ export const GameAnalysis = (data: any) => {
             },{
               value: item.binance_smart_chains,
               name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Binance_chains`
-            })
-          }
-          console.log(item.bscnfts,item.polygonnfts,item.ethnfts)
-          if (item.bscnfts+item.polygonnfts+item.ethnfts) {
-            console.log(item.bscnfts+item.polygonnfts+item.ethnfts)
-            AverageAssetsData.push({
-              value: item.bscnfts+item.polygonnfts+item.ethnfts,
-              name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers`
             })
           }
         }
@@ -1920,13 +1930,161 @@ export const GameAnalysis = (data: any) => {
       const ChainActivityChart = echarts.init(ChainActivitydom)
       ChainActivityChart.setOption(PieOption('', ChainActivityData))
     }
-    
-    if (AverageAssetsData.length) {
-      echarts.dispose(document.getElementById('AverageAssets') as HTMLDivElement)
-      const AverageAssetsdom = document.getElementById('AverageAssets') as HTMLDivElement
-      const AverageAssetsChart = echarts.init(AverageAssetsdom)
-      AverageAssetsChart.setOption(PieOption('', AverageAssetsData))
+
+    if (PlayersCollactionData.length) {
+      echarts.dispose(document.getElementById('PlayersCollections') as HTMLDivElement)
+      const PlayersCollactiondom = document.getElementById('PlayersCollections') as HTMLDivElement
+      const PlayersCollactionChart = echarts.init(PlayersCollactiondom)
+      PlayersCollactionChart.setOption(PieOption('', PlayersCollactionData))
     }
+
+    if (SalersCollactionData.length) {
+      echarts.dispose(document.getElementById('SalersCollections') as HTMLDivElement)
+      const SalersCollactiondom = document.getElementById('SalersCollections') as HTMLDivElement
+      const SalersCollactionChart = echarts.init(SalersCollactiondom)
+      SalersCollactionChart.setOption(PieOption('', SalersCollactionData))
+    }
+  }
+  const setAveragePurchasing = async () => {
+    const averagePurchasingSeries = [] as any
+    const averagePurchasingTime = [] as any
+    const averagePurchasingLegend = [] as any
+    const GameData = [...data.GameData,...data.gameData]
+    let arr: any
+    if (data.seachContract) {
+      arr = [...data.data,...data.seachCache,data.seachContract]
+    } else {
+      arr = [...data.data,...data.seachCache]
+    }
+
+    if (seachGameData.length) {
+      for (let index = 0; index < arr.length; index++) {
+        const element = arr[index]
+        const filterData = GameData.filter((ele: any) => {
+          return element?.toLowerCase() === ele.contractAddress?.toLowerCase() || element?.toLowerCase() === ele.address?.toLowerCase()
+        })
+        let tokenPrice: any
+        if (filterData[0].chain === 'eth') {
+          tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+        }
+        if (filterData[0].chain === 'bsc') {
+          tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
+        }
+        if (filterData[0].chain === 'polygon') {
+          tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
+        }
+        const findGame = seachGameData.filter((item: any) => {
+          return item.name === filterData[0].name || item.name === filterData[0].contractName
+        })
+        const Sales = findGame[0].data.filter((item: any)=> {
+          return item.action === 'sale' || item.xw === 'sale'
+        })
+        const Boughttime = [] as any
+        Sales.map((item: any) => {
+          const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
+          const data = Boughttime.filter((ele: any) => {
+            const times = new Date(ele * 1000).toJSON().substring(5, 10)
+            return times === time
+          })
+          if (data.length === 0) {
+            Boughttime.push(item.timeStamp)
+          }
+        })
+        
+        const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
+        const findRankData = RankData.filter((item:any) => {
+          return item.contractAddress === element
+        })
+        const PlayerData = [] as any
+        const SaleData = [] as any
+        sortBoughttime.map(async (item: any) => {
+          let spent = 0
+          let ERC20Value = 0
+          let saleSpent = 0
+          let saleERC20Value = 0
+          const times = new Date(item * 1000).toJSON().substring(5, 10)
+          const data = Sales.filter((ele: any)=> {
+            const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
+            return times === time
+          })
+          data.map(async (ele: any)=> {
+            const PlayerIndex = findRankData[0].Player.findIndex((i: any) => {
+              return i.address === ele.address || i.address === filterAddress(ele.t1)
+            })
+            const saleIndex = findRankData[0].saleData.findIndex((i: any) => {
+              return i.address === ele.address || i.address === filterAddress(ele.t1)
+            })
+            if (PlayerIndex>=0) {
+              if (ele.token) {
+                if (ele.token==='WETH') {
+                  const Price = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+                  const value = new BigNumber(ele.price).div(1000000000000000000).toNumber()*Price
+                  ERC20Value = ERC20Value + value
+                }
+                if (ele.token==='Binance USD') {
+                  ERC20Value = ERC20Value + new BigNumber(ele.price).div(1000000000000000000).toNumber()
+                }
+              } else {
+                spent = spent+ele.transactionvalue*1
+              }
+            }
+            if (saleIndex>=0) {
+              if (ele.token) {
+                if (ele.token==='WETH') {
+                  const Price = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+                  const value = new BigNumber(ele.price).div(1000000000000000000).toNumber()*Price
+                  saleERC20Value = saleERC20Value + value
+                }
+                if (ele.token==='Binance USD') {
+                  saleERC20Value = saleERC20Value + new BigNumber(ele.price).div(1000000000000000000).toNumber()
+                }
+              } else {
+                saleSpent = saleSpent+ele.transactionvalue*1
+              }
+            }
+            
+          })
+          const vules = new BigNumber(spent).div(1000000000000000000).toNumber()
+          const saleVules = new BigNumber(saleSpent).div(1000000000000000000).toNumber()
+          const tokenValue = (vules * tokenPrice + ERC20Value) /findRankData[0].Player.length
+          const saleTokenValue = (saleVules * tokenPrice + saleERC20Value) /findRankData[0].saleData.length
+          averagePurchasingTime.push(times)
+          PlayerData.push(tokenValue.toFixed(3))
+          SaleData.push(saleTokenValue.toFixed(3))
+        })
+        averagePurchasingLegend.push(`${filterData[0].name||filterData[0]?.contractName} Top Players($)`)
+        averagePurchasingLegend.push(`${filterData[0].name||filterData[0]?.contractName} Top Salers($)`)
+        averagePurchasingSeries.push({
+          name: `${filterData[0].name||filterData[0]?.contractName} Top Players($)`,
+          type: 'line',
+          data: PlayerData
+        },{
+          name: `${filterData[0].name||filterData[0]?.contractName} Top Salers($)`,
+          type: 'line',
+          data: SaleData
+        })
+      }
+    }
+    
+    const averagePurchasingoption = {
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        data: averagePurchasingLegend
+      },
+      xAxis: {
+        data: averagePurchasingTime
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: averagePurchasingSeries
+    }
+    const averagePurchasingdom = document.getElementById('averagePurchasing') as HTMLDivElement
+    const averagePurchasingChart = echarts.init(averagePurchasingdom)
+    averagePurchasingChart.setOption(averagePurchasingoption)
+    
   }
   const BoughtChartClick = (params: any) => {
     const data = seachGameData.filter((item: any) => {
@@ -2177,22 +2335,34 @@ export const GameAnalysis = (data: any) => {
                   Average active rate
                   {userComparisonTap === 'AverageActive' ? <img src={shortbutton} /> : ''}
                 </div>
+                <div onClick={()=> setUserComparisonTap('averagePurchasing')}>
+                  average purchasing rate
+                  {userComparisonTap === 'averagePurchasing' ? <img src={shortbutton} /> : ''}
+                </div>
                 <div onClick={()=> setUserComparisonTap('ChainActivity')}>
                   Chain activity rate
                   {userComparisonTap === 'ChainActivity' ? <img src={shortbutton} /> : ''}
                 </div>
-                <div onClick={()=> setUserComparisonTap('AverageAssets')}>
-                  Average assets(NFT)
-                  {userComparisonTap === 'AverageAssets' ? <img src={shortbutton} /> : ''}
+                <div onClick={()=> setUserComparisonTap('PlayersCollections')}>
+                  Top Players Collections
+                  {userComparisonTap === 'PlayersCollections' ? <img src={shortbutton} /> : ''}
+                </div>
+                <div onClick={()=> setUserComparisonTap('SalersCollections')}>
+                  Top Salers Collections
+                  {userComparisonTap === 'SalersCollections' ? <img src={shortbutton} /> : ''}
                 </div>
               </Tap>
               <div id="AverageActive" className={userComparisonTap==='AverageActive'?'item absolute':'item absolute none'}>
                 <div className="text-center margin">No Data</div>
               </div>
+              <div id="averagePurchasing" className={userComparisonTap==='averagePurchasing'?'item absolute':'item absolute none'}></div>
               <div id="ChainActivity" className={userComparisonTap==='ChainActivity'?'item':'item absolute none'}>
                 <div className="text-center margin">No Data</div>
               </div>
-              <div id="AverageAssets" className={userComparisonTap==='AverageAssets'?'item':'item absolute none'}>
+              <div id="PlayersCollections" className={userComparisonTap==='PlayersCollections'?'item':'item absolute none'}>
+                <div className="text-center margin">No Data</div>
+              </div>
+              <div id="SalersCollections" className={userComparisonTap==='SalersCollections'?'item':'item absolute none'}>
                 <div className="text-center margin">No Data</div>
               </div>
             </ApproveTable>
