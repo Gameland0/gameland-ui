@@ -18,6 +18,7 @@ import html2canvas from 'html2canvas'
 import { toastify } from './Toastify'
 import { Dialog } from './Dialog'
 import { SendBox } from '../pages/Dashboard'
+import { Loading } from './Loading'
 import { useTestUSDTContract, usePaidDownloadContract, useActiveWeb3React } from '../hooks'
 
 const Analysis = styled.div`
@@ -607,6 +608,11 @@ export const GameAnalysis = (data: any) => {
   const [showActivity, setShowActivity] = useState(false)
   const [moreDetails, setMoreDetails] = useState(false)
   const [Chart, setChart] = useState(false)
+  const [UAWLoad, setUAWLoad] = useState(false)
+  const [ComparisonChartLoad, setComparisonChartLoad] = useState(false)
+  const [PurchasingLoad, setPurchasingLoad] = useState(false)
+  const [ActionChartLoad, setActionChartLoad] = useState(false)
+  const [RankingTableLoad, setRankingTableLoad] = useState(false)
   const [CollectionData, setCollectionData] = useState([] as any)
   const [RankData, setRankData] = useState([] as any)
   const [showSaleData, setShowSaleData] = useState([] as any)
@@ -634,6 +640,7 @@ export const GameAnalysis = (data: any) => {
       })
       setShowSaleData(filterdata[0].saleData)
       setShowPlayer(filterdata[0].Player)
+      setRankingTableLoad(false)
     }
   }, [saleRankTab])
 
@@ -645,6 +652,8 @@ export const GameAnalysis = (data: any) => {
 
   useEffect(() => {
     if (Chart) {
+      setComparisonChartLoad(true)
+      setPurchasingLoad(true)
       setuserComparisonChart()
       setAveragePurchasing()
     }
@@ -745,6 +754,7 @@ export const GameAnalysis = (data: any) => {
   }
 
   const getCollectionTransaction = async () => {
+    setUAWLoad(true)
     const legend = [] as any
     const seriesData = [] as any
     const timearr = [] as any
@@ -824,6 +834,7 @@ export const GameAnalysis = (data: any) => {
         smooth: true
       })
     }
+    setUAWLoad(false)
     const options = {
       tooltip: {
         trigger: 'axis' as any
@@ -850,6 +861,8 @@ export const GameAnalysis = (data: any) => {
 
   const setAverageActionChart = async () => {
     setCollectionData([])
+    setActionChartLoad(true)
+    setRankingTableLoad(true)
     const PlatformSeriesData = [] as any
     const Platformlegend = [] as any
     const BoughtDetailslegend = [] as any
@@ -1544,6 +1557,7 @@ export const GameAnalysis = (data: any) => {
       })
     }
 
+    setActionChartLoad(false)
     setCollectionData(arr)
     const option = {
       tooltip: {
@@ -1747,6 +1761,7 @@ export const GameAnalysis = (data: any) => {
     const ChainActivityData = [] as any
     const PlayersCollactionData = [] as any
     const SalersCollactionData = [] as any
+    const TimeArr = [] as any
     
     for (let index = 0; index < arr.length; index++) {
       const element = arr[index]
@@ -1776,11 +1791,11 @@ export const GameAnalysis = (data: any) => {
       const PlayersTransactions = [] as any
       const SalersTransactions = [] as any
       filterstatisticDay.map((item: any) => {
-        const findTime = AverageActiveTime.filter((ele: any) => {
-          return ele === item.days.slice(5)
+        const findTime = TimeArr.filter((ele: any) => {
+          return ele === new Date(item.days).getTime()
         })
         if (!findTime.length) {
-          AverageActiveTime.push(item.days.slice(5))
+          TimeArr.push(new Date(item.days).getTime())
         }
         if (item.actions==='topPlayers') {
           PlayersApprove.push(item.approvels)
@@ -1795,44 +1810,43 @@ export const GameAnalysis = (data: any) => {
           SalersTransactions.push(item.Transactions)
         }
       })
-      if (PlayersApprove.length||SalersApprove.length||
-      PlayersTransfer.length||SalersTransfer.length||
-      PlayersMint.length||SalersMint.length||
-      PlayersTransactions.length||SalersTransactions.length) {
-          AverageActiveSeries.push({
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Approve`,
-            type: 'line',
-            data: PlayersApprove
-          },{
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Approve`,
-            type: 'line',
-            data: SalersApprove
-          },{
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Transfer`,
-            type: 'line',
-            data: PlayersTransfer
-          },{
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transfer`,
-            type: 'line',
-            data: SalersTransfer
-          },{
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`,
-            type: 'line',
-            data: PlayersMint
-          },{
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`,
-            type: 'line',
-            data: SalersMint
-          },{
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`,
-            type: 'line',
-            data: PlayersTransactions
-          },{
-            name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`,
-            type: 'line',
-            data: SalersTransactions
-          })
-      }
+      TimeArr.sort((a: any,b: any)=> {return b-a}).map((item: any) => {
+        AverageActiveTime.push(new Date(item).toJSON().slice(5,10))
+      })
+      
+      AverageActiveSeries.push({
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Approve`,
+          type: 'line',
+          data: PlayersApprove
+        },{
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Approve`,
+          type: 'line',
+          data: SalersApprove
+        },{
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Transfer`,
+          type: 'line',
+          data: PlayersTransfer
+        },{
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transfer`,
+          type: 'line',
+          data: SalersTransfer
+        },{
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`,
+          type: 'line',
+          data: PlayersMint
+        },{
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`,
+          type: 'line',
+          data: SalersMint
+        },{
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`,
+          type: 'line',
+          data: PlayersTransactions
+        },{
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`,
+          type: 'line',
+          data: SalersTransactions
+      })
       
       const filterstatistic = statistic.data.data.filter((item: any) => {
         const itemTime = new Date(item.dates).getTime()
@@ -1847,7 +1861,6 @@ export const GameAnalysis = (data: any) => {
       const Playercollaction = await newhttp.get(`v0/data_statistics_rank5s/${PlayersId[0].id}`)
       Playercollaction.data.data.map((ele: any) => {
         if (ele.contractname.length>0) {
-          console.log(PlayersCollactionData)
           PlayersCollactionData.push({
             value: ele.amount,
             name: ele.contractname
@@ -1857,7 +1870,6 @@ export const GameAnalysis = (data: any) => {
       const Salerscollaction = await newhttp.get(`v0/data_statistics_rank5s/${SalersId[0].id}`)
       Salerscollaction.data.data.map((ele: any) => {
         if (ele.contractname.length>0) {
-          console.log(PlayersCollactionData)
           SalersCollactionData.push({
             value: ele.amount,
             name: ele.contractname
@@ -1896,6 +1908,7 @@ export const GameAnalysis = (data: any) => {
         }
       })
     }
+    setComparisonChartLoad(false)
     const AverageActiveOption = {
       tooltip: {
         trigger: 'axis' as any
@@ -1924,26 +1937,21 @@ export const GameAnalysis = (data: any) => {
       AverageActiveChart.setOption(AverageActiveOption)
     }
 
-    if (ChainActivityData.length) {
-      echarts.dispose(document.getElementById('ChainActivity') as HTMLDivElement)
-      const ChainActivitydom = document.getElementById('ChainActivity') as HTMLDivElement
-      const ChainActivityChart = echarts.init(ChainActivitydom)
-      ChainActivityChart.setOption(PieOption('', ChainActivityData))
-    }
+    echarts.dispose(document.getElementById('ChainActivity') as HTMLDivElement)
+    const ChainActivitydom = document.getElementById('ChainActivity') as HTMLDivElement
+    const ChainActivityChart = echarts.init(ChainActivitydom)
+    ChainActivityChart.setOption(PieOption('', ChainActivityData))
 
-    if (PlayersCollactionData.length) {
-      echarts.dispose(document.getElementById('PlayersCollections') as HTMLDivElement)
-      const PlayersCollactiondom = document.getElementById('PlayersCollections') as HTMLDivElement
-      const PlayersCollactionChart = echarts.init(PlayersCollactiondom)
-      PlayersCollactionChart.setOption(PieOption('', PlayersCollactionData))
-    }
+    echarts.dispose(document.getElementById('PlayersCollections') as HTMLDivElement)
+    const PlayersCollactiondom = document.getElementById('PlayersCollections') as HTMLDivElement
+    const PlayersCollactionChart = echarts.init(PlayersCollactiondom)
+    PlayersCollactionChart.setOption(PieOption('', PlayersCollactionData))
+    
 
-    if (SalersCollactionData.length) {
-      echarts.dispose(document.getElementById('SalersCollections') as HTMLDivElement)
-      const SalersCollactiondom = document.getElementById('SalersCollections') as HTMLDivElement
-      const SalersCollactionChart = echarts.init(SalersCollactiondom)
-      SalersCollactionChart.setOption(PieOption('', SalersCollactionData))
-    }
+    echarts.dispose(document.getElementById('SalersCollections') as HTMLDivElement)
+    const SalersCollactiondom = document.getElementById('SalersCollections') as HTMLDivElement
+    const SalersCollactionChart = echarts.init(SalersCollactiondom)
+    SalersCollactionChart.setOption(PieOption('', SalersCollactionData))
   }
   const setAveragePurchasing = async () => {
     const averagePurchasingSeries = [] as any
@@ -1956,7 +1964,6 @@ export const GameAnalysis = (data: any) => {
     } else {
       arr = [...data.data,...data.seachCache]
     }
-
     if (seachGameData.length) {
       for (let index = 0; index < arr.length; index++) {
         const element = arr[index]
@@ -2065,7 +2072,7 @@ export const GameAnalysis = (data: any) => {
         })
       }
     }
-    
+    setPurchasingLoad(false)
     const averagePurchasingoption = {
       tooltip: {
         trigger: 'axis' as any
@@ -2193,21 +2200,29 @@ export const GameAnalysis = (data: any) => {
               </div>
             ))}
           </TokenTransactions>
-          <ApproveTable className="bg borderNone">
+          <ApproveTable className="bg borderNone relative">
             <div className="pieTitle text-center">UAW</div>
-            <div id="interactionsPerDay">
-              <div className="text-center margin">No Data</div>
-            </div>
+              <div id="interactionsPerDay">
+                {UAWLoad? (
+                  <Loading></Loading>
+                ): (
+                  <div className="text-center margin">No Data</div>
+                )}
+              </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <ApproveTable className="bg borderNone">
+          <ApproveTable className="bg borderNone relative">
             <div className="pieTitle text-center">Transactions Platform</div>
             <div id="Platform" className="item">
-              <div className="text-center margin">No Data</div>
+              {ActionChartLoad? (
+                <Loading></Loading>
+              ):(
+                <div className="text-center margin">No Data</div>
+              )}
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <Activity className="bg borderNone">
+          <Activity className="bg borderNone relative">
             <div className="tabs flex">
               <div onClick={() => setActivityTab('Bought')}>
                 Sale
@@ -2215,121 +2230,155 @@ export const GameAnalysis = (data: any) => {
               </div>
             </div>
             <div id="SaleDetails" className={activityTab === 'Bought' ? 'item' : 'item none'}>
-              <div className="text-center margin">No Data</div>
+              {ActionChartLoad? (
+                <Loading></Loading>
+              ):(
+                <div className="text-center margin">No Data</div>
+              )}
             </div>
           </Activity>
-          <ApproveTable className="bg borderNone">
+          <ApproveTable className="bg borderNone relative">
             <div className="pieTitle text-center">Player Proportion(%)</div>
             <div id="Botratio" className="item">
-              <div className="text-center margin">No Data</div>
+              {ActionChartLoad? (
+                <Loading></Loading>
+              ):(
+                <div className="text-center margin">No Data</div>
+              )}
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <ApproveTable className="bg borderNone">
+          <ApproveTable className="bg borderNone relative">
             <div className="pieTitle text-center">Player Transaction Proportion(%)</div>
             <div id="BotTransactionRatio" className="item">
-              <div className="text-center margin">No Data</div>
+              {ActionChartLoad? (
+                <Loading></Loading>
+              ):(
+                <div className="text-center margin">No Data</div>
+              )}
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <ApproveTable className="bg borderNone">
+          <ApproveTable className="bg borderNone relative">
             <div className="pieTitle text-center">NFT Transaction(%)</div>
             <div id="NFTTransaction">
-              <div className="text-center margin">No Data</div>
+              {ActionChartLoad? (
+                <Loading></Loading>
+              ):(
+                <div className="text-center margin">No Data</div>
+              )}
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
-          <ApproveTable className="bg borderNone">
+          <ApproveTable className="bg borderNone relative">
             <div id="AverageActions">
-              <div className="text-center pieTitle">Average Action</div>
-              <div className="text-center margin">No Data</div>
+              {ActionChartLoad? (
+                <Loading></Loading>
+              ):(
+                <div>
+                  <div className="text-center pieTitle">Average Action</div>
+                  <div className="text-center margin">No Data</div>
+                </div>
+              )}
             </div>
             <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
           </ApproveTable>
           <RankingTable className="flex flex-h-between">
-            <div className="actionRank itemDiv bg">
-              <div className='Tab flex'>
-                {RankData&&RankData.length? (
-                  RankData.map((item: any, index: number) =>(
-                    <div onClick={() => setSaleRankTab(item.tab)} key={index}>
-                      {item.tab}
-                      {saleRankTab === item.tab ? <img src={shortbutton} /> : ''}
-                    </div>
-                  ))
-                ): ('')}
-              </div>
-              <div className="title text-center">Top 10 Players</div>
-              <div className="titleBar flex">
-                <div>Ranking</div>
-                <div className="Address">Address</div>
-                <div>Action</div>
-                <div>Level</div>
-              </div>
-              <div className="dataArea">
-                {showPlayer&&showPlayer.length? (
-                  showPlayer.map((item: any, index: number) =>(
-                    <div
-                      className={(index + 1) % 2 === 0 ? 'dataItem flex bag' : 'dataItem flex'}
-                      key={index}
-                    >
-                      <div>{index+1}</div>
-                      <div className="Address">{item.address}</div>
-                      <div>{item.action}</div>
-                      <div className={item?.level==='Bot' ? 'red':item?.level === 'High' ? 'green':item?.level === 'Middle' ? 'blue' : 'cyan'}>{item.level}</div>
-                    </div>
-                  ))
-                ):(
-                  <div className="NoData text-center">No data</div>
-                )}
-              </div>
+            <div className="actionRank itemDiv bg relative">
+              {RankingTableLoad? (
+                <Loading></Loading>
+              ):(
+                <div>
+                  <div className='Tab flex'>
+                    {RankData&&RankData.length? (
+                      RankData.map((item: any, index: number) =>(
+                        <div onClick={() => setSaleRankTab(item.tab)} key={index}>
+                          {item.tab}
+                          {saleRankTab === item.tab ? <img src={shortbutton} /> : ''}
+                        </div>
+                      ))
+                    ): ('')}
+                  </div>
+                  <div className="title text-center">Top 10 Players</div>
+                  <div className="titleBar flex">
+                    <div>Ranking</div>
+                    <div className="Address">Address</div>
+                    <div>Action</div>
+                    <div>Level</div>
+                  </div>
+                  <div className="dataArea">
+                    {showPlayer&&showPlayer.length? (
+                      showPlayer.map((item: any, index: number) =>(
+                        <div
+                          className={(index + 1) % 2 === 0 ? 'dataItem flex bag' : 'dataItem flex'}
+                          key={index}
+                        >
+                          <div>{index+1}</div>
+                          <div className="Address">{item.address}</div>
+                          <div>{item.action}</div>
+                          <div className={item?.level==='Bot' ? 'red':item?.level === 'High' ? 'green':item?.level === 'Middle' ? 'blue' : 'cyan'}>{item.level}</div>
+                        </div>
+                      ))
+                    ):(
+                      <div className="NoData text-center">No data</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="saleRank itemDiv bg">
-              <div className='Tab flex'>
-                {RankData&&RankData.length? (
-                  RankData.map((item: any, index: number) =>(
-                    <div onClick={() => setSaleRankTab(item.tab)} key={index}>
-                      {item.tab}
-                      {saleRankTab === item.tab ? <img src={shortbutton} /> : ''}
-                    </div>
-                  ))
-                ): ('')}
-              </div>
-              <div className="title text-center">Top 10 salers</div>
-              <div className="titleBar flex">
-                <div>Ranking</div>
-                <div className="Address">Address</div>
-                <div>Sales</div>
-                <div>Volume</div>
-              </div>
-              <div className="dataArea">
-                {showSaleData&&showSaleData.length? (
-                  showSaleData.map((item: any, index: number) =>(
-                    <div
-                      className={(index + 1) % 2 === 0 ? 'dataItem flex bag' : 'dataItem flex'}
-                      key={index}
-                    >
-                      <div>{index+1}</div>
-                      <div className="Address">{item.address}</div>
-                      <div>{item.Sales}</div>
-                      <div  className="Volume">
-                        {item.chain==='polygon'
-                          ? (<img src={PolygonImg} alt="" />)
-                          : item.chain==='bsc'
-                          ? (<img src={BSCImg} alt="" />)
-                          : (<img src={ETHImg} alt="" />)
-                        }
-                        {item.Volume}
-                      </div>
-                    </div>
-                  ))
-                ):(
-                  <div className="NoData text-center">No data</div>
-                )}
-              </div>
+            <div className="saleRank itemDiv bg relative">
+              {RankingTableLoad? (
+                <Loading></Loading>
+              ):(
+                <div>
+                  <div className='Tab flex'>
+                    {RankData&&RankData.length? (
+                      RankData.map((item: any, index: number) =>(
+                        <div onClick={() => setSaleRankTab(item.tab)} key={index}>
+                          {item.tab}
+                          {saleRankTab === item.tab ? <img src={shortbutton} /> : ''}
+                        </div>
+                      ))
+                    ): ('')}
+                  </div>
+                  <div className="title text-center">Top 10 salers</div>
+                  <div className="titleBar flex">
+                    <div>Ranking</div>
+                    <div className="Address">Address</div>
+                    <div>Sales</div>
+                    <div>Volume</div>
+                  </div>
+                  <div className="dataArea">
+                    {showSaleData&&showSaleData.length? (
+                      showSaleData.map((item: any, index: number) =>(
+                        <div
+                          className={(index + 1) % 2 === 0 ? 'dataItem flex bag' : 'dataItem flex'}
+                          key={index}
+                        >
+                          <div>{index+1}</div>
+                          <div className="Address">{item.address}</div>
+                          <div>{item.Sales}</div>
+                          <div  className="Volume">
+                            {item.chain==='polygon'
+                              ? (<img src={PolygonImg} alt="" />)
+                              : item.chain==='bsc'
+                              ? (<img src={BSCImg} alt="" />)
+                              : (<img src={ETHImg} alt="" />)
+                            }
+                            {item.Volume}
+                          </div>
+                        </div>
+                      ))
+                    ):(
+                      <div className="NoData text-center">No data</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </RankingTable>
           {moreDetails?(
-            <ApproveTable className="ApproveTable bg borderNone">
+            <ApproveTable className="ApproveTable bg borderNone relative">
               <Tap className="flex">
                 <div onClick={()=> setUserComparisonTap('AverageActive')}>
                   Average active rate
@@ -2353,17 +2402,39 @@ export const GameAnalysis = (data: any) => {
                 </div>
               </Tap>
               <div id="AverageActive" className={userComparisonTap==='AverageActive'?'item absolute':'item absolute none'}>
-                <div className="text-center margin">No Data</div>
+                {ComparisonChartLoad? (
+                  <Loading></Loading>
+                ):(
+                  <div className="text-center margin">No Data</div>
+                )}
               </div>
-              <div id="averagePurchasing" className={userComparisonTap==='averagePurchasing'?'item absolute':'item absolute none'}></div>
+              <div id="averagePurchasing" className={userComparisonTap==='averagePurchasing'?'item absolute':'item absolute none'}>
+                {PurchasingLoad? (
+                  <Loading></Loading>
+                ):(
+                  <div className="text-center margin">No Data</div>
+                )}
+              </div>
               <div id="ChainActivity" className={userComparisonTap==='ChainActivity'?'item':'item absolute none'}>
-                <div className="text-center margin">No Data</div>
+                {ComparisonChartLoad? (
+                  <Loading></Loading>
+                ):(
+                  <div className="text-center margin">No Data</div>
+                )}
               </div>
               <div id="PlayersCollections" className={userComparisonTap==='PlayersCollections'?'item':'item absolute none'}>
-                <div className="text-center margin">No Data</div>
+                {ComparisonChartLoad? (
+                  <Loading></Loading>
+                ):(
+                  <div className="text-center margin">No Data</div>
+                )}
               </div>
               <div id="SalersCollections" className={userComparisonTap==='SalersCollections'?'item':'item absolute none'}>
-                <div className="text-center margin">No Data</div>
+                {ComparisonChartLoad? (
+                  <Loading></Loading>
+                ):(
+                  <div className="text-center margin">No Data</div>
+                )}
               </div>
             </ApproveTable>
           ) : (
