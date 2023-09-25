@@ -305,7 +305,7 @@ const calcuBotratio = (data: any) => {
       const data = thisWeekUser.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length &&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         thisWeekUser.push(filterAddress(item.t1))
       }
     }
@@ -314,7 +314,7 @@ const calcuBotratio = (data: any) => {
       const data = Week2User.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length&&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         Week2User.push(filterAddress(item.t1))
       }
     }
@@ -323,7 +323,7 @@ const calcuBotratio = (data: any) => {
       const data = Week3User.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length&&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         Week3User.push(filterAddress(item.t1))
       }
     }
@@ -332,7 +332,7 @@ const calcuBotratio = (data: any) => {
       const data = Week4User.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length&&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         Week4User.push(filterAddress(item.t1))
       }
     }
@@ -377,7 +377,6 @@ const calcuBotratio = (data: any) => {
       Week4Player.push(item)
     }
   })
-  
   return {
     bot: [calcuRatio(thisWeekBot,thisWeekUser,'ratio'),calcuRatio(Week2Bot,Week2User,'ratio'),calcuRatio(Week3Bot,Week3User,'ratio'),calcuRatio(Week4Bot,Week4User,'ratio')],
     user: [calcuRatio(thisWeekPlayer,thisWeekUser,'ratio'),calcuRatio(Week2Player,Week2User,'ratio'),calcuRatio(Week3Player,Week3User,'ratio'),calcuRatio(Week4Player,Week4User,'ratio')]
@@ -404,38 +403,46 @@ const calcuBotTranction = (data: any) => {
   data.map((item: any) => {
     const time = item.timeStamp * 1000
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
-      thisWeek.push(item)
+      if (filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
+        thisWeek.push(item)
+      }
       const data = thisWeekUser.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length&&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         thisWeekUser.push(filterAddress(item.t1))
       }
     }
     if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
-      Week2.push(item)
+      if (filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
+        Week2.push(item)
+      }
       const data = Week2User.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length&&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         Week2User.push(filterAddress(item.t1))
       }
     }
     if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
-      Week3.push(item)
+      if (filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
+        Week3.push(item)
+      }
       const data = Week3User.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length&&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         Week3User.push(filterAddress(item.t1))
       }
     }
     if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
-      Week4.push(item)
+      if (filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
+        Week4.push(item)
+      }
       const data = Week4User.filter((ele: any) => {
         return ele === filterAddress(item.t1)
       })
-      if (!data.length) {
+      if (!data.length&&filterAddress(item.t1)!=='0x0000000000000000000000000000000000000000') {
         Week4User.push(filterAddress(item.t1))
       }
     }
@@ -1831,7 +1838,7 @@ export const GameAnalysis = (data: any) => {
           type: 'line',
           data: SalersTransfer
         },{
-          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Mint`,
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Mint`,
           type: 'line',
           data: PlayersMint
         },{
@@ -1839,7 +1846,7 @@ export const GameAnalysis = (data: any) => {
           type: 'line',
           data: SalersMint
         },{
-          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`,
+          name: `${filterData[0]?.name||filterData[0]?.contractName} Top Players Transactions`,
           type: 'line',
           data: PlayersTransactions
         },{
@@ -1858,7 +1865,7 @@ export const GameAnalysis = (data: any) => {
       const SalersId = filterstatistic.filter((item: any) => {
         return item.actions==='topSalers'
       })
-      const Playercollaction = await newhttp.get(`v0/data_statistics_rank5s/${PlayersId[0].id}`)
+      const Playercollaction = await newhttp.get(`v0/data_statistics_rank5s/${PlayersId[0]?.id}`)
       Playercollaction.data.data.map((ele: any) => {
         if (ele.contractname.length>0) {
           PlayersCollactionData.push({
@@ -1867,7 +1874,7 @@ export const GameAnalysis = (data: any) => {
           })
         }
       })
-      const Salerscollaction = await newhttp.get(`v0/data_statistics_rank5s/${SalersId[0].id}`)
+      const Salerscollaction = await newhttp.get(`v0/data_statistics_rank5s/${SalersId[0]?.id}`)
       Salerscollaction.data.data.map((ele: any) => {
         if (ele.contractname.length>0) {
           SalersCollactionData.push({
