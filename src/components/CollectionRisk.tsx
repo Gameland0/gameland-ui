@@ -54,7 +54,7 @@ export const CollectionRisk = (data: any) => {
         </div>
       </div> */}
       <div className="contractRisk flex flex-column-between">
-        {data.data&&data.data.length? (
+        {data.data&&Object.keys(data.data).length? (
           <div className="Security">
             <div className="title">Contract Security</div>
             <div className="minTitle">
@@ -234,7 +234,7 @@ export const CollectionRisk = (data: any) => {
             <div>No Data</div>
           </div>
         )}
-        {data.data&&data.data.length? (
+        {data.data&&Object.keys(data.data).length? (
           <div className="Honeypot">
             <div className="title">Honeypot Risk</div>
             <div className="minTitle">
