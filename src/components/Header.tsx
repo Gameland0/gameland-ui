@@ -248,8 +248,8 @@ export const Header = () => {
               <Link exact to="/">
                 <span>Games</span>
               </Link>
-              <Link to="/expose">
-                <span>Review</span>
+              <Link to="/Market">
+                <span>Market</span>
               </Link>
               <Link to="/circle">
                 <span>Circle</span>
