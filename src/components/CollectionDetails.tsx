@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { parseEther } from '@ethersproject/units'
 import { useHistory } from 'react-router-dom'
+import { Contract } from '@ethersproject/contracts'
 import { Row, Col, Button } from 'antd'
 import * as echarts from 'echarts'
 import { LoadFailed, Loadding } from '../pages/Games'
@@ -26,9 +27,9 @@ import {
   useAssetContract,
   useERC20Contract,
   useRewardContract,
-  useUSDTContract
+  useUSDTContract,
+  useAirdropContract
 } from '../hooks'
-import { useFetchMyNfts } from '../hooks/useFetchMyNfts'
 import { handleClick } from './Header'
 import {
   fetchReceipt,
@@ -55,7 +56,12 @@ import {
   OneAssetContractAddress,
   BSCRewardAddress,
   POLYGONRewardAddress,
-  OneRewardAddress
+  OneRewardAddress,
+  BNBAirdropAddress,
+  ETHAirdropAddress,
+  PolygonAirdropAddress,
+  ETH_CHAIN_ID_HEX,
+  ETH_RPC_URL
 } from '../constants'
 import { toastify } from './Toastify'
 import { Img } from './Img'
@@ -100,6 +106,7 @@ import ETHImg from '../assets/eth.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 import ERC1155 from '../constants/Abis/1155abi.json'
+import ERC20 from '../constants/Abis/ERC20.json'
 import { MyTabs, PieOption, TabPaneBox } from './MyPage'
 
 const DetailsBox = styled.div`
@@ -910,9 +917,15 @@ export const ApproveTable = styled.div`
       font-size: 14px;
       font-weight: bold;
       padding: 0 10px;
+      input {
+        width: 80px;
+        height: 16px;
+        border: 1px solid #e5e5e5;
+        padding-left: 10px;
+      }
     }
     .Address {
-      flex: 3;
+      flex: 4;
       padding: 0;
     }
   }
@@ -936,8 +949,21 @@ export const ApproveTable = styled.div`
       }
     }
     .Address {
-      flex: 3;
+      flex: 4;
       padding: 0;
+    }
+    .AirdropInput {
+      width: 100px;
+      height: 20px;
+      border-radius: 20px;
+      padding-left: 10px;
+      background: #FFFFFF;
+      border: 1px solid #CEEAFF;
+      box-shadow: -4px 4px 12px 0px rgba(197,212,231,0.18), 5px -3px 12px 0px rgba(0,114,255,0.1);
+    }
+    .AirdropCheck {
+      width: 100px;
+      height: 16px;
     }
   }
   .Notrecords {
@@ -962,6 +988,35 @@ export const ApproveTable = styled.div`
     }
     .selected {
       background: #41acef;
+    }
+  }
+  .Airdrop {
+    width: 160px;
+    height: 40px;
+    background: #2FAFFF;
+    box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #FFFFFF;
+    line-height: 40px;
+    text-align: center;
+    margin: auto;
+    margin-top: 20px;
+  }
+  .switchMenu {
+    padding: 10px;
+    div {
+      position: relative;
+      cursor: pointer;
+      margin-right: 16px;
+      img {
+        width: 100%;
+        height: 8px;
+        position: absolute;
+        bottom: 1px;
+        left: 0px;
+      }
     }
   }
 `
@@ -1136,6 +1191,50 @@ const TabBox = styled.div`
 `
 const RiskBox = styled.div`
   padding: 0 20px;
+`
+const ChooseToken = styled.div`
+  position: relative;
+  width: 140px;
+  line-height: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid #B5E3FF;
+  box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
+  font-size: 20px;
+  padding-left: 10px;
+  margin-left: 20px;
+  .toeknIcon {
+    width: 30px;
+    height: 30px;
+  }
+  .arrowIcon {
+    position: absolute;
+    right: 10px;
+  }
+  .sortSelect {
+    width: 140px;
+    background: #fff;
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);
+    border-radius: 10px;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    z-index: auto;
+    div {
+      position: relative;
+      height: 40px;
+      padding: 0 10px;
+      font-size: 14px;
+      color: #333333;
+      line-height: 40px;
+      cursor: pointer;
+      z-index: 60;
+      &:hover {
+        background: #ccc;
+      }
+    }
+  }
 `
 export interface CardProps {
   onClick?: () => void
@@ -1522,6 +1621,7 @@ export const CollectionDetails = () => {
   const AssetContract = useAssetContract()
   const RewardContract = useRewardContract()
   const USDTContract = useUSDTContract()
+  const AirdropContract = useAirdropContract()
   const [starScore, setstarScore] = useState(0)
   const [approveTotalPage, setApproveTotalPage] = useState(0)
   const [approveTablePage, setApproveTablePage] = useState(0)
@@ -1559,8 +1659,12 @@ export const CollectionDetails = () => {
   const [activeUser, setActiveUser] = useState([] as any)
   const [showSaleData, setShowSaleData] = useState([] as any)
   const [SaleDataAll, setSaleDataAll] = useState([] as any)
+  const [AirdropInfoLis, setAirdropInfoList] = useState([] as any)
+  const [holdingTokenList, setHoldingTokenList] = useState([] as any)
   const [clickStatus, setclickStatus] = useState(false)
   const [visible, setVisible] = useState(false)
+  const [AirdropListModal, setAirdropListModal] = useState(false)
+  const [AirdropInfoModal, setAirdropInfoModal] = useState(false)
   const [lendvisible, setlendVisible] = useState(false)
   const [expired, setExpired] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
@@ -1583,6 +1687,7 @@ export const CollectionDetails = () => {
   const [showMyNFTModal, setShowMyNFTModal] = useState(false)
   const [renting, setRenting] = useState(false)
   const [refreshBy, setrefreshBy] = useState(false)
+  const [filterMenu, setFilterMenu] = useState(false)
   const [rewardItem, setrewardItem] = useState({} as any)
   const [forward, setForward] = useState({} as any)
   const [currentItem, setCurrentItem] = useState({} as any)
@@ -1602,7 +1707,7 @@ export const CollectionDetails = () => {
   const [collateral, setCollateral] = useState('')
   const [newUserName, setNewUserName] = useState('')
   const [currentSelection, setCurrentSelection] = useState(chainId === 56 ? 'BNB' :chainId === 42161 ? 'ONE' : 'MATIC')
-  const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' :chainId === 42161 ? 'ONE' : 'MATIC')
+  const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' :chainId === 42161 ? 'ONE' : chainId === 1 ? 'ETH':'MATIC')
   const [tap, setTab] = useState('NFT')
   const [transactionsType, setTransactionsType] = useState('All')
   const [transactionsTypeRatio, setTransactionsTypeRatio] = useState('NFT')
@@ -1610,6 +1715,9 @@ export const CollectionDetails = () => {
   const [cursor, setCursor] = useState('')
   const [holdNFTtotal, setHoldNFTtotal] = useState('')
   const [holdTokentotal, setHoldTokentotal] = useState('')
+  const [AirdropType, setAirdropType] = useState('Average')
+  const [AirdropTokenType, setAirdropTokenType] = useState('')
+  const [AirdropQuantity, setAirdropQuantity] = useState('')
   const { state } = useLocation() as any
   const { contractName } = useParams() as any
   const history = useHistory()
@@ -1795,6 +1903,8 @@ export const CollectionDetails = () => {
       handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
     } else if (rewardSelection === 'ONE') {
       handleClick(ONE_CHAIN_ID,ONE_RPC_URL)
+    } else if (rewardSelection === 'ETH') {
+      handleClick(ETH_CHAIN_ID_HEX,ETH_RPC_URL)
     }
   }, [rewardSelection])
   const total = useMemo(() => {
@@ -3436,6 +3546,10 @@ export const CollectionDetails = () => {
     const val = ele.currentTarget.value
     settextareaValue(val)
   }, [])
+  const AirdropQuantityChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setAirdropQuantity(val)
+  }, [])
   const handleNewuserNameChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setNewUserName(val)
@@ -3549,6 +3663,8 @@ export const CollectionDetails = () => {
     setForward({})
   }
   const approvenext = (index: number) => {
+    const dom = document.getElementById('selectAll') as any
+    dom.checked = false
     setApproveTablePage(index)
     setActionData(actionDataAll.slice(10 * index, 10 * index + 10))
   }
@@ -3582,6 +3698,101 @@ export const CollectionDetails = () => {
       console.log(error)
     }
   }
+  const OpenAirdropList = async () => {
+    actionDataAll.map((item: any) => {
+      item.checked = false
+      item.amount = 0
+    })
+    const chainName = chainId===1? 'ETH' : chainId===56? 'bsc':'polygon'
+    const tokenData = await polygonhttp.get(`v0/oklink/addressBalance?chainShortName=${chainName}&address=${account}&protocolType=token_20`)
+    const list = tokenData.data.data[0].tokenList.filter((item: any) => {
+      return item.valueUsd*1 > 0
+    })
+    setHoldingTokenList(list)
+    setAirdropTokenType(list[0].token)
+    setAirdropQuantity('')
+    setAirdropListModal(true)
+  }
+  const AirdropInfo = () => {
+    const info = actionDataAll.filter((item: any) => {
+      return item.checked === true || item.amount > 0
+    })
+    setAirdropInfoList(info)
+    setAirdropInfoModal(true)
+    setAirdropListModal(false)
+  }
+  const AirdropChange = (address: any) => { 
+    const index = actionDataAll.findIndex((item: any) => {
+      return item.address === address
+    })
+    actionDataAll[index].checked = !actionDataAll[index].checked
+    setActionData(actionDataAll.slice(10 * approveTablePage, 10 * approveTablePage + 10))
+  }
+  const Airdrop = async () => {
+    if (!library) {
+      return
+    }
+    const list = holdingTokenList.filter((item: any) => {
+      return item.token === AirdropTokenType
+    })
+    const contract = new Contract(list[0].tokenContractAddress, ERC20, library.getSigner())
+    const AirdropAddress = chainId===1? ETHAirdropAddress: chainId===56? PolygonAirdropAddress:BNBAirdropAddress
+    const addressArr = [] as any[]
+    const amountArr = [] as any[]
+    let total = 0
+    AirdropInfoLis.map((item: any) => {
+      addressArr.push(item.address)
+      amountArr.push((item?.amount||AirdropQuantity) + '000000000000000000')
+      total = total + (item?.amount||AirdropQuantity)*1
+    })
+    const bigtotal = new BigNumber(total).times(1000000000000000000).toNumber().toString()
+    const gas = new BigNumber(bigtotal).times(0.03).toNumber().toString()
+    const approveAmount = new BigNumber(bigtotal).plus(gas).toNumber().toString()
+    const approvetx = await contract?.approve(AirdropAddress, approveAmount)
+    const approvereceipt = await fetchReceipt(approvetx.hash, library)
+    if (!approvereceipt.status) {
+        throw new Error('failed')
+    }
+    const rented = await AirdropContract?.connect(library.getSigner()).airdrop(
+      list[0].tokenContractAddress,
+      addressArr,
+      amountArr,
+      bigtotal,
+      gas
+    )
+    const receipt = await fetchReceipt(rented.hash, library)
+    const { status } = receipt
+    if (!status) {
+      throw Error('Failed to rent.')
+    } else {
+      toastify.success('succeed')
+      setAirdropInfoModal(false)
+    }
+    const params = {
+      user: account,
+      addressArr: addressArr,
+      amountArr: amountArr,
+      token: list[0].token
+    }
+    polygonhttp.post(`/v0/aridrops`, params)
+  }
+
+  const SelectAll = () => {
+    actionDataAll.slice(10 * approveTablePage, 10 * approveTablePage + 10).map((item: any) => {
+      item.checked = !item.checked
+    })
+    setActionData(actionDataAll.slice(10 * approveTablePage, 10 * approveTablePage + 10))
+  }
+
+  const AirdropInputChange = (address: any, index: any) => {
+    const ele = document.getElementsByClassName('AirdropInput') as any
+    const indexs = actionDataAll.findIndex((item: any) => {
+      return item.address === address
+    })
+    actionDataAll[indexs].amount = ele[index].value
+    setActionData(actionDataAll.slice(10 * approveTablePage, 10 * approveTablePage + 10))
+  }
+
   return (
     <div className="container">
       <Modal destroyOnClose footer={null} onCancel={() => setlendVisible(false)} open={lendvisible} closable={false}>
@@ -3843,6 +4054,159 @@ export const CollectionDetails = () => {
           </Details>
         </Row>
       </Modal>
+      <Modal footer={null} onCancel={() => setAirdropListModal(false)} open={AirdropListModal} destroyOnClose closable={false}>
+        <ApproveTable>
+          <div className="switchMenu flex">
+            <div onClick={()=>setAirdropType('Average')}>
+              Average
+              {AirdropType === 'Average' ? <img src={shortbutton} /> : ''}
+            </div>
+            <div onClick={()=>setAirdropType('Customize')}>
+              Customize
+              {AirdropType === 'Customize' ? <img src={shortbutton} /> :''}
+            </div>
+          </div>
+          <div className="title">Most Active Users</div>
+          <div className="tableTab flex">
+            <div>Ranking</div>
+            <div className="Address">Address</div>
+            <div>Token</div>
+            <div>NFT</div>
+            <div>Active</div>
+            <div>Level</div>
+            <div>
+              {AirdropType === 'Average' ? (
+                <input type="checkbox" id="selectAll" onChange={SelectAll}/>
+              ) : ''}
+            </div>
+          </div>
+          {actionData && actionData.length ? (
+            actionData.map((item: any, index: number) => (
+              <div
+                id="Airdrop"
+                className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                key={index}
+              >
+                <div>{item?.ranking}</div>
+                <div className="Address">{item?.address}</div>
+                <div>{getTokenBalance(item?.address)}</div>
+                <div>{item?.nftTotal}</div>
+                <div>{item?.actiontotal}</div>
+                <div className={item?.Level === 'Bot' ? 'red' : item?.Level === 'High' ? 'green' : item?.Level === 'Middle' ? 'blue' : 'cyan'}>{item?.Level}</div>
+                {AirdropType === 'Average' ? (
+                  <input type="checkbox" checked={item?.checked} onChange={() => AirdropChange(item?.address)} className="AirdropCheck"/>
+                ) : (
+                  <input
+                    className="AirdropInput"
+                    name="Airdrop"
+                    value={item.amount||''}
+                    placeholder="Quantity"
+                    type="text"
+                    onChange={()=> AirdropInputChange(item?.address,index)}
+                  />
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="Notrecords flex flex-justify-content">No records</div>
+          )}
+          <div className="tablePage flex">
+            {actionDataAll && actionDataAll.length
+              ? actionDataAll.slice(0, 36).map((item: any, index: number) => (
+                  <div
+                    className={
+                      index + 1 > approveTotalPage
+                        ? 'notShow'
+                        : approveTablePage === index
+                        ? 'flex selected'
+                        : 'flex'
+                    }
+                    key={index}
+                    onClick={() => approvenext(index)}
+                  >
+                    {index + 1}
+                  </div>
+                ))
+              : ''}
+          </div>
+        </ApproveTable>
+        <div className="flex">
+          {AirdropType === 'Average' ? (
+            <div>
+              <input
+                className="AirdropQuantity"
+                value={AirdropQuantity}
+                type="text"
+                placeholder="Quantity"
+                onChange={AirdropQuantityChange}
+              />
+              <div className="ps">Ps: Each user receives the same amount of tokens.</div>
+            </div>
+          ):''}
+          <ChooseToken>
+            <div onClick={()=>setFilterMenu(!filterMenu)}>
+              {AirdropTokenType}
+              <img src={arrow} className="arrowIcon" />
+            </div>
+            {filterMenu ? (
+              <div className="sortSelect">
+                {holdingTokenList&&holdingTokenList.length ? (
+                  holdingTokenList.map((item: any, index: number) => (
+                    <div key={index} onClick={()=>{
+                      setAirdropTokenType(item.token)
+                      setFilterMenu(false)
+                    }}>{(item.holdingAmount*1).toFixed(3)} {item.token}</div>
+                  ))
+                ) : ''}
+              </div>
+            ):''}
+          </ChooseToken>
+        </div>
+        <ContentBox>
+          <div className="button">
+            <div className="cancel" onClick={() => setAirdropListModal(false)}>
+              Cancel
+            </div>
+            <div className="ok" onClick={AirdropInfo}>
+              OK
+            </div>
+          </div>
+        </ContentBox>
+      </Modal>
+      <Modal footer={null} onCancel={() => setAirdropInfoModal(false)} open={AirdropInfoModal} destroyOnClose closable={false}>
+        <ApproveTable>
+          <div className="title">Airdrop List</div>
+          <div className="tableTab flex">
+            <div>Ranking</div>
+            <div className="Address">Address</div>
+            <div>Amount</div>
+          </div>
+          {AirdropInfoLis && AirdropInfoLis.length ? (
+            AirdropInfoLis.map((item: any, index: number) => (
+              <div
+                className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
+                key={index}
+              >
+                <div>{index + 1}</div>
+                <div className="Address">{item?.address}</div>
+                <div>{item?.amount||AirdropQuantity} {AirdropTokenType}</div>
+              </div>
+            ))
+          ) : (
+            <div className="Notrecords flex flex-justify-content">No records</div>
+          )}
+        </ApproveTable>
+        <ContentBox>
+          <div className="button">
+            <div className="cancel" onClick={() => setAirdropInfoModal(false)}>
+              Cancel
+            </div>
+            <div className="ok" onClick={Airdrop}>
+              OK
+            </div>
+          </div>
+        </ContentBox>
+      </Modal>
       <NFTStatsMadal
         visible={showMyNFTModal}
         data={NFTStatsMadalData}
@@ -3899,7 +4263,7 @@ export const CollectionDetails = () => {
           </p>
           <div className="button">
             <div className="cancel" onClick={() => setPrompt(false)}>
-              cancel
+              Cancel
             </div>
             <div className="ok" onClick={handleRent}>
               OK
@@ -3994,7 +4358,7 @@ export const CollectionDetails = () => {
           </p>
           <div className="button">
             <div className="cancel" onClick={() => setscoreDialog(false)}>
-              cancel
+              Cancel
             </div>
             <div className="ok" onClick={submit}>
               OK
@@ -4242,6 +4606,9 @@ export const CollectionDetails = () => {
                         ))
                       : ''}
                   </div>
+                  {actionData && actionData.length ? (
+                    <div className="Airdrop cursor" onClick={OpenAirdropList}>Airdrop</div>
+                  ) : ('')}
                 </ApproveTable>
                 <TabBox>
                   <div className="switchMenu flex">

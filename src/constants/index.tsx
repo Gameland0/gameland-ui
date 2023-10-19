@@ -91,6 +91,11 @@ export const DAYS = 24 * HOUR
 export const NFTDigits = 9 // asume the NFT basic number is 100000
 
 export const OPENSEA_API_KEY = 'f5b8f957f34a40548ed97bd5b41bf761'
+export const ETH_CHAIN_ID_HEX = '0x1'
+export const ETH_RPC_URL = 'https://mainnet.infura.io/v3/'
+export const BNBAirdropAddress = '0x2620Ade2e3A9d532cD0D1d0C1E03E93F4b0E46D7'
+export const ETHAirdropAddress = '0xC1Cc174B1711714a254b164db4987c115CB8f9cF'
+export const PolygonAirdropAddress = '0x9ada7b5d61c1aeb0d2dd1724dc0993d74e6f3321'
 
 export const MORALIS_KEY = 'xXnq9dJMxd0VrXQ08mHhJpOIaKSHVq37LJ8OWdhxlSoObQeCeDwWGOH2iOD99Ayu'
 export const MORALIS_API = 'https://deep-index.moralis.io/api/v2'

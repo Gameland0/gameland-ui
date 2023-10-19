@@ -38,6 +38,11 @@ const MarketBox = styled.div`
       }
     }
   }
+  .comingsoon {
+    text-align: center;
+    color: #000;
+    font-size: 22px;
+  }
 `
 export const Market = () => {
 
@@ -53,6 +58,7 @@ export const Market = () => {
           Models
         </div>
       </div>
+      <div className="comingsoon">coming soon...</div>
     </MarketBox>
   )
 }

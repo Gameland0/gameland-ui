@@ -12,11 +12,11 @@ import ControlContractAbi from '../constants/Abis/controlContract.json'
 // import erc721Abi from '../constants/Abis/erc721.json'
 import BUSD from '../constants/Abis/busd.json'
 import ERC20 from '../constants/Abis/ERC20.json'
-import ERC721 from '../constants/Abis/erc721.json'
 import WETH from '../constants/Abis/WETH.json'
 import rewardAbi from '../constants/Abis/reward.json'
 import payment from '../constants/Abis/payment.json'
 import PaidDownload from '../constants/Abis/PaidDownloads.json'
+import airdrop from '../constants/Abis/airdrop.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import {
@@ -37,7 +37,10 @@ import {
   OnePayMentAddress,
   OneRewardAddress,
   PaidDownloads,
-  OneUSDT
+  OneUSDT,
+  BNBAirdropAddress,
+  ETHAirdropAddress,
+  PolygonAirdropAddress
 } from '../constants'
 
 interface OpenseaData {
@@ -202,9 +205,21 @@ export function useUSDTContract() {
 }
 
 export function useTestUSDTContract() {
-  const { library, chainId } = useActiveWeb3React()
+  const { library } = useActiveWeb3React()
   if (!library) return null
   return new Contract('0x40BAC2848EFD60c89F8d10fd2AeD32F25C200d15', ERC20, library.getSigner())
+}
+
+export function useAirdropContract() {
+  const { library, chainId } = useActiveWeb3React()
+  if (!library) return null
+  if (chainId === 56) {
+    return new Contract(BNBAirdropAddress, airdrop, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract(PolygonAirdropAddress, airdrop, library.getSigner())
+  } else if (chainId === 1) {
+    return new Contract(ETHAirdropAddress, airdrop, library.getSigner())
+  }
 }
 
 export function usePayMentContract() {

@@ -142,9 +142,11 @@ export const fetchAbi = async (address: string, chain: any) => {
       apiKey = POLYGONSCAN_KEY
     } else if (chain === 'arbiscan') {
       apiKey = ONE_API_KEY
+    } else if (chain='etherscan') {
+      apiKey = '5BCXEYI6ATAC8W93PHXY8UR598YSGNBWCT'
     }
     const data = await fetch(
-      `https://api.${chain}.${chain ==='arbiscan'? 'io':'com'}/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
+      `https://api.${chain}.${chain ==='arbiscan'||'etherscan'? 'io':'com'}/api?module=contract&action=getabi&address=${address}&apikey=${apiKey}`,
       {
         method: 'GET',
         mode: 'cors'

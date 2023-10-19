@@ -7,12 +7,15 @@ import NovaImg from '../assets/arbitrumNova.svg'
 import OneImg from '../assets/ArbitrumOne.png'
 import PolygonImg from '../assets/polygon.svg'
 import BSCImg from '../assets/binance.svg'
+import ETHimg from '../assets/eth.svg'
 import { Grid, Drawer } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
 import { useActiveWeb3React } from '../hooks'
 import {
   POLYGON_CHAIN_ID_HEX,
   POLYGON_RPC_URL,
+  ETH_RPC_URL,
+  ETH_CHAIN_ID_HEX,
   BSC_CHAIN_ID_HEX,
   BSC_RPC_URL,
   ONE_CHAIN_ID,
@@ -218,7 +221,10 @@ export const Header = () => {
   }, [screens])
 
   useEffect(() => {
-    if (chainId === 56) {
+    if (chainId === 1) {
+      setChainName('ETH')
+      setChainImg(ETHimg)
+    } else if (chainId === 56) {
       setChainName('BNB chain')
       setChainImg(BSCImg)
     } else if (chainId === 137) {
@@ -263,6 +269,10 @@ export const Header = () => {
                 <img src={chainImg} alt="" />
                 <div className="chainName">{chainName}</div>
                 <div className="menu">
+                  <div onClick={() => handleClick(ETH_CHAIN_ID_HEX, ETH_RPC_URL)}>
+                    <img src={ETHimg} alt="" />
+                    ETH
+                  </div>
                   <div onClick={() => handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)}>
                     <img src={PolygonImg} />
                     Polygon

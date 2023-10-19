@@ -4,7 +4,7 @@ import { POLYGON_CHAIN_ID, POLYGON_RPC_URL } from '../constants'
 import ChainId from '../utils/chainIdInfo'
 
 export const supportedNetwork = [
-  // ChainId.mainnet,
+  ChainId.mainnet,
   ChainId.polygon,
   // ChainId.rinkeby,
   // ChainId.goerli,
