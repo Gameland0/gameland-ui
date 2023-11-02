@@ -255,8 +255,15 @@ export const Explore = () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')
     const gamesdata = await newhttp.get(`v0/games`)
-    setGameData([...bsc.data.data, ...polygon.data.data])
-    setGameList([...bsc.data.data, ...polygon.data.data].slice(0,9))
+    const newArr = [...bsc.data.data, ...polygon.data.data]
+    newArr.splice(7,0,{
+      contractName: 'THE PLANET OF THE HARES',
+      contractAddress: '0x1f8a79d58D25Ba00b14eDC1B96F6eD95987428c5',
+      chain: 'eth',
+      image: 'https://i.seadn.io/gcs/files/bb68b62d561e421f1ae28aa0ffc8c17c.gif?auto=format&dpr=1&w=48'
+    })
+    setGameData(newArr)
+    setGameList(newArr.slice(0,9))
     setCacheData(gamesdata.data.data)
     setCacheList(gamesdata.data.data.slice(0,9))
   }

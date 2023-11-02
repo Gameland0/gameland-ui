@@ -1563,7 +1563,7 @@ export const firstWeek = () => {
   } else if (week === 0) {
     time = day
   }
-  const firstWeek = `${month>10?month:'0'+month}-${time}`
+  const firstWeek = `${month>9?month:'0'+month}-${time}`
   return firstWeek
 }
 export const calculateAverage = (data: any, activeUser: any) => {
@@ -2445,7 +2445,7 @@ export const CollectionDetails = () => {
       } else if (week === 0) {
         time = day
       }
-      const firstWeek = `${month>10?month:'0'+month}-${time}`
+      const firstWeek = `${month>9?month:'0'+month}-${time}`
       const thisWeekTime = new Date(`2023-${firstWeek} 23:59:59`).getTime()
       const thisWeekActiveUser = [] as any
       const week2ActiveUser = [] as any
@@ -2581,7 +2581,7 @@ export const CollectionDetails = () => {
       } else if (week === 0) {
         time = day
       }
-      const firstWeek = `${month>10?month:'0'+month}-${time}`
+      const firstWeek = `${month>9?month:'0'+month}-${time}`
       const option = {
         title: {
           text: 'Average Reward',

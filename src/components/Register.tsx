@@ -11,7 +11,6 @@ import avatar_upload from '../assets/icon_avatar_upload.svg'
 import line from '../assets/img_line.svg'
 
 const RegisterBox = styled.div`
-  width: 1600px;
   min-height: 842px;
   background: #fff;
   box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.16);

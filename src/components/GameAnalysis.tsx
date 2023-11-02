@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import * as echarts from 'echarts'
 import axios from 'axios'
-import { bschttp, polygonhttp, newhttp, http } from './Store'
+import { bschttp, polygonhttp, newhttp, http, ethhttp } from './Store'
 import { AnalysisBox, PieOption } from './MyPage'
 import { ApproveTable, calculateAverage, firstWeek } from './CollectionDetails'
 import { MORALIS_KEY, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
@@ -901,6 +901,10 @@ export const GameAnalysis = (data: any) => {
         actions = await polygonhttp.get(`v0/active_actions/${element}`)
         users = await polygonhttp.get(`v0/active_users/${element}`)
       }
+      if (filterData[0].chain === 'eth') {
+        actions = await ethhttp.get(`v0/active_actions/${element}`)
+        users = await ethhttp.get(`v0/active_users/${element}`)
+      }
       const ItemGameData = seachGameData
       ItemGameData.push({
         name: filterData[0].contractName,
@@ -1754,12 +1758,7 @@ export const GameAnalysis = (data: any) => {
     }
   }
   const setuserComparisonChart = async () => {
-    let arr: any
-    if (data.seachContract) {
-      arr = [...data.data,...data.seachCache,data.seachContract]
-    } else {
-      arr = [...data.data,...data.seachCache]
-    }
+    const arr = [...data.data,...data.seachCache]
     const GameData = [...data.GameData,...data.gameData]
     const Time = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
     const AverageActiveLegend = [] as any

@@ -41,6 +41,10 @@ export const polygonhttp = axios.create({
   timeout: 60000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://polygon-api.gameland.network' : 'http://localhost:8089'
 })
+export const ethhttp = axios.create({
+  timeout: 60000,
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://ethereum-api.gameland.network' : 'http://localhost:8094'
+})
 export const arbitrumhttp = axios.create({
   timeout: 60000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://arbone-api.gameland.network' : 'http://localhost:8093'
