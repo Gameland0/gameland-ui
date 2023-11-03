@@ -4,8 +4,8 @@ import { useHistory } from 'react-router-dom'
 import { Contract } from '@ethersproject/contracts'
 import { Row, Col, Button } from 'antd'
 import * as echarts from 'echarts'
-import { LoadFailed, Loadding } from '../pages/Games'
-import { divide, isEmpty } from 'lodash'
+import { LoadFailed } from '../pages/Games'
+import { isEmpty } from 'lodash'
 import BigNumber from 'bignumber.js'
 import { lowerCase } from 'lower-case'
 import axios from 'axios'
@@ -76,14 +76,13 @@ import { NumInput } from '../components/NumInput'
 import { NFTStatsMadal } from './NFTStatsMadal'
 import { ScoreStatistics } from './ScoreStatistics'
 import { Icon } from '../components/Icon'
-import { bschttp, polygonhttp, http, arbitrumhttp } from './Store'
+import { bschttp, polygonhttp, http, arbitrumhttp, ethhttp } from './Store'
 import { Close } from './UserPage'
 import { ImgBox, Title, SpanLabel, Tips, Properties, StatsBox, Description, FakeButton, Details } from '../pages/Rent'
 import { ExposeBox, ArticleBox } from './Expose'
 import { getContract, fetchAbi, SendBox } from '../pages/Dashboard'
 import twitter from '../assets/icon_twitter.svg'
 import discord from '../assets/icon_discord.svg'
-import Telegram from '../assets/Telegram.png'
 import loadding from '../assets/loading.svg'
 import website from '../assets/icon_globe.svg'
 import defaultImg from '../assets/default.png'
@@ -1756,6 +1755,9 @@ export const CollectionDetails = () => {
     AssetContractAddress = OneAssetContractAddress
     ControlContractAddress = OneControlContractAddress
     contracts = ['0x990eb28e378659b93a29d46ff41f08dc6316dd98']
+  } else if (chain === 'eth') {
+    http2 = ethhttp
+    contracts = ['0x1f8a79d58D25Ba00b14eDC1B96F6eD95987428c5']
   }
   const fetchMetadata = (data: any[]) => {
     if (!data || !data.length) {
@@ -2431,22 +2433,7 @@ export const CollectionDetails = () => {
         ...res6.data.result,
         ...res7.data.result
       ]
-      const week = new Date().getUTCDay()
-      const day = new Date().getDate()
-      let month = new Date().getMonth()+1
-      let time
-      if (week > 0) {
-        if ((day - week) === 0) {
-          month = month - 1
-          time = 30
-        } else {
-          time = day - week
-        }
-      } else if (week === 0) {
-        time = day
-      }
-      const firstWeek = `${month>9?month:'0'+month}-${time}`
-      const thisWeekTime = new Date(`2023-${firstWeek} 23:59:59`).getTime()
+      const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
       const thisWeekActiveUser = [] as any
       const week2ActiveUser = [] as any
       const week3ActiveUser = [] as any
@@ -2531,7 +2518,7 @@ export const CollectionDetails = () => {
         xAxis: [
           {
             type: 'category' as any,
-            data: [firstWeek, 'Week2', 'Week3', 'Week4', 'Week5'],
+            data: [firstWeek(), 'Week2', 'Week3', 'Week4', 'Week5'],
             axisTick: {
               show: false
             }
@@ -2567,21 +2554,6 @@ export const CollectionDetails = () => {
       RetentionChart.setOption(option)
   }
   const setAverageRewardChart = () => {
-    const week = new Date().getUTCDay()
-      const day = new Date().getDate()
-      let month = new Date().getMonth()+1
-      let time
-      if (week > 0) {
-        if ((day - week) === 0) {
-          month = month - 1
-          time = 30
-        } else {
-          time = day - week
-        }
-      } else if (week === 0) {
-        time = day
-      }
-      const firstWeek = `${month>9?month:'0'+month}-${time}`
       const option = {
         title: {
           text: 'Average Reward',
@@ -2603,7 +2575,7 @@ export const CollectionDetails = () => {
         xAxis: [
           {
             type: 'category' as any,
-            data: [firstWeek, 'Week2', 'Week3', 'Week4'],
+            data: [firstWeek(), 'Week2', 'Week3', 'Week4'],
             axisTick: {
               show: false
             }
@@ -2719,8 +2691,6 @@ export const CollectionDetails = () => {
   const setRecommendPlayer = async () => {
     tokenHoldData.map(async (item: any) => {
       item.amount = (item.amount*1).toFixed(2)
-      // const data = await polygonhttp.get(`/v0/oklink/addressBalance?chainShortName=${chain}&address=${item.holderAddress}&protocolType=token_721`)
-      // item.NFT = data.data.data[0].tokenList.length
       item.NFT = '--'
     })
     setRecommendPlayerData(tokenHoldData)

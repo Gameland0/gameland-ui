@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react'
 import styled from 'styled-components'
-import { bschttp, polygonhttp, arbitrumhttp } from '../../components/Store'
-import { useActiveWeb3React, useStore, useAssetContract } from '../../hooks'
+import { bschttp, polygonhttp, arbitrumhttp, ethhttp } from '../../components/Store'
+import { useActiveWeb3React, useStore } from '../../hooks'
 import { useHistory } from 'react-router-dom'
 import { toastify } from '../../components/Toastify'
 import loadd from '../../assets/loading.svg'
@@ -14,7 +14,7 @@ import followed from '../../assets/icon_followed.svg'
 import avatar1 from '../../assets/icon_avatar_1.svg'
 import PolygonImg from '../../assets/polygon.svg'
 import BSCImg from '../../assets/binance.svg'
-import NovaImg from '../../assets/arbitrumNova.svg'
+import EthImg from '../../assets/eth.svg'
 import OneImg from '../../assets/ArbitrumOne.png'
 
 const BgImg = styled.div`
@@ -258,18 +258,21 @@ export const Games = () => {
       const bsc = bschttp.get('/v0/games')
       const one = arbitrumhttp.get('/v0/games/find/one')
       const polygon = polygonhttp.get('/v0/games')
+      const eth = ethhttp.get('/v0/games')
       const bscReview = bschttp.get('/v0/review')
       const polygonReview = polygonhttp.get('/v0/review')
+      const ethReview = ethhttp.get('/v0/review')
       const bscFollow = bschttp.get('/v0/followGames')
       const polygonFollow = polygonhttp.get('/v0/followGames')
       const OneFollow = arbitrumhttp.get('/v0/followGames')
-      Promise.all([bsc, polygon, bscReview, polygonReview, bscFollow, polygonFollow, one,OneFollow])
+      const ethFollow = ethhttp.get('/v0/followGames')
+      Promise.all([bsc, polygon, bscReview, polygonReview, bscFollow, polygonFollow, one,OneFollow,eth,ethFollow,ethReview])
         .then((vals) => {
           if (gamesFilter === 'ALL') {
-            setGames([...vals[0].data.data, ...vals[1].data.data,...vals[6].data.data].sort(compare()))
-            setData([...vals[0].data.data, ...vals[1].data.data,...vals[6].data.data].sort(compare()))
-            setReviewData([...vals[2].data.data, ...vals[3].data.data])
-            setGameFollow([...vals[4].data.data, ...vals[5].data.data,...vals[7].data.data])
+            setGames([...vals[0].data.data, ...vals[1].data.data,...vals[6].data.data,...vals[8].data.data].sort(compare()))
+            setData([...vals[0].data.data, ...vals[1].data.data,...vals[6].data.data,...vals[8].data.data].sort(compare()))
+            setReviewData([...vals[2].data.data, ...vals[3].data.data, ...vals[10].data.data])
+            setGameFollow([...vals[4].data.data, ...vals[5].data.data,...vals[7].data.data,...vals[9].data.data])
           } else if (gamesFilter === 'Polygon') {
             setGames(vals[1].data.data.sort(compare()))
             setData(vals[1].data.data.sort(compare()))
@@ -279,13 +282,17 @@ export const Games = () => {
             setGames(vals[6].data.data.sort(compare()))
             setData(vals[6].data.data.sort(compare()))
             setGameFollow(vals[7].data.data)
+          } else if (gamesFilter === 'ETH') {
+            setGames(vals[8].data.data.sort(compare()))
+            setData(vals[8].data.data.sort(compare()))
+            setGameFollow(vals[9].data.data)
+            setReviewData(vals[10].data.data)
           } else {
             setGames(vals[0].data.data.sort(compare()))
             setData(vals[0].data.data.sort(compare()))
             setReviewData(vals[2].data.data)
             setGameFollow(vals[4].data.data)
           }
-          // setUserinfo(vals[4].data.data)
           setLending(false)
         })
         .catch(() => {
@@ -303,7 +310,7 @@ export const Games = () => {
       const arr: any[] = []
       games.map((item: any) => {
         if (item.contractName) {
-          if (item.contractName.indexOf(collection) !== -1 && collection !== '') {
+          if (item.contractName.toLowerCase().indexOf(collection.toLowerCase()) !== -1 && collection !== '') {
             arr.push(item)
           } else {
             setCollectionFilterResult([])
@@ -360,6 +367,8 @@ export const Games = () => {
       res = await bschttp.post(`/v0/followGames`, params)
     } else if (item.chain === 'polygon') {
       res = await polygonhttp.post(`/v0/followGames`, params)
+    } else if (item.chain === 'eth') {
+      res = await ethhttp.post(`/v0/followGames`, params)
     } else {
       res = await arbitrumhttp.post(`/v0/followGames`, params)
     }
@@ -378,8 +387,12 @@ export const Games = () => {
     let res: any
     if (item.chain === 'bsc') {
       res = await bschttp.delete(`/v0/followGames/${data[0].id}`)
-    } else {
+    } else if (item.chain === 'eth') {
+      res = await ethhttp.delete(`/v0/followGames/${data[0].id}`)
+    } else if (item.chain === 'polygon') {
       res = await polygonhttp.delete(`/v0/followGames/${data[0].id}`)
+    } else {
+      res = await arbitrumhttp.delete(`/v0/followGames/${data[0].id}`)
     }
     if (res.data.code === 1) {
       toastify.success('succeed')
@@ -441,7 +454,7 @@ export const Games = () => {
       </div>
       <Sort className="flex flex-j-end">
         <div className="filter cursor" onClick={() => setFilterMenu(!filterMenu)}>
-          <img src={gamesFilter==='Polygon'? PolygonImg : gamesFilter==='One'? OneImg : gamesFilter==='ALL'? ' ' : BSCImg} />
+          <img src={gamesFilter==='Polygon'? PolygonImg : gamesFilter==='One'? OneImg : gamesFilter==='ALL'? ' ' : gamesFilter==='ETH'? EthImg:BSCImg} />
           &nbsp;{gamesFilter}
           <img src={arrow} className="arrowIcon" />
         </div>
@@ -476,6 +489,16 @@ export const Games = () => {
             >
               <img src={BSCImg} alt="" />
               BNB chain
+            </div>
+            <div
+              className="border-bottom"
+              onClick={() => {
+                setGamesFilter('ETH')
+                setFilterMenu(false)
+              }}
+            >
+              <img src={EthImg} />
+              ETH
             </div>
             <div
               onClick={() => {
