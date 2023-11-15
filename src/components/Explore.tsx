@@ -64,7 +64,7 @@ const SearchBox = styled.div`
       }
       .Switch {
         width: 100%;
-        height: 60px;
+        height: 67px;
         background: #009DFF;
         box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
         color: #FFFFFF;
@@ -321,11 +321,61 @@ export const Explore = () => {
   }
   const Enter = async (e: any) => {
     if (e.keyCode === 13) {
+      if (SeachInputValue.length&&SeachInputValue.length<42) {
+        setSeachContract(SeachInputValue)
+      } else {
+        if (SeachInputValue.length === 42) {
+          setSeachContract('')
+          setSeachAddress('')
+          if (seachType === 'Wallet') {
+            if (seachGameList.length||seachCacheList.length) {
+              toastify.error('SmartContract addresses cannot be mixed with wallet addresses for querying.')
+              return
+            }
+            setSeachAddress(SeachInputValue)
+          }
+          if (seachType === 'Contract') {
+            if (seachGameList.length>2) {
+              toastify.error('Query up to 3 contract')
+              return
+            }
+            setSeachContract(SeachInputValue)
+            if (seachGameList&&seachGameList.length) {
+              setSeachGames(seachGameList)
+            }
+            if (seachCacheList&&seachCacheList.length) {
+              setSeachCache(seachCacheList)
+            }
+            const arr = [...seachCache,...seachGames]
+            const filterCacheList = arr.filter((item: any) => {
+              return SeachInputValue.toLowerCase() === item.toLowerCase()
+            })
+            if (!filterCacheList.length) {
+              arr.push(SeachInputValue)
+            }
+            setSeachList(arr)
+          }
+        } else {
+          if (seachGameList&&seachGameList.length) {
+            setSeachGames(seachGameList)
+          }
+          if (seachCacheList&&seachCacheList.length) {
+            setSeachCache(seachCacheList)
+          }
+          setSeachList([...seachCacheList,...seachGameList])
+        }
+      }
+    }
+  }
+  const SeachAddress = () => {
+    if (SeachInputValue.length&&SeachInputValue.length<42) {
+      setSeachContract(SeachInputValue)
+    } else {
       if (SeachInputValue.length === 42) {
         setSeachContract('')
         setSeachAddress('')
         if (seachType === 'Wallet') {
-          if (seachGameList.length||seachCacheList.length) {
+          if (seachGameList.length ||seachCacheList.length) {
             toastify.error('SmartContract addresses cannot be mixed with wallet addresses for querying.')
             return
           }
@@ -343,7 +393,7 @@ export const Explore = () => {
           if (seachCacheList&&seachCacheList.length) {
             setSeachCache(seachCacheList)
           }
-          const arr = [...seachCache,...seachGames]
+          const arr = [...seachCacheList,...seachGameList]
           const filterCacheList = arr.filter((item: any) => {
             return SeachInputValue.toLowerCase() === item.toLowerCase()
           })
@@ -361,48 +411,6 @@ export const Explore = () => {
         }
         setSeachList([...seachCacheList,...seachGameList])
       }
-    }
-  }
-  const SeachAddress = () => {
-    if (SeachInputValue.length === 42) {
-      setSeachContract('')
-      setSeachAddress('')
-      if (seachType === 'Wallet') {
-        if (seachGameList.length ||seachCacheList.length) {
-          toastify.error('SmartContract addresses cannot be mixed with wallet addresses for querying.')
-          return
-        }
-        setSeachAddress(SeachInputValue)
-      }
-      if (seachType === 'Contract') {
-        if (seachGameList.length>2) {
-          toastify.error('Query up to 3 contract')
-          return
-        }
-        setSeachContract(SeachInputValue)
-        if (seachGameList&&seachGameList.length) {
-          setSeachGames(seachGameList)
-        }
-        if (seachCacheList&&seachCacheList.length) {
-          setSeachCache(seachCacheList)
-        }
-        const arr = [...seachCacheList,...seachGameList]
-        const filterCacheList = arr.filter((item: any) => {
-          return SeachInputValue.toLowerCase() === item.toLowerCase()
-        })
-        if (!filterCacheList.length) {
-          arr.push(SeachInputValue)
-        }
-        setSeachList(arr)
-      }
-    } else {
-      if (seachGameList&&seachGameList.length) {
-        setSeachGames(seachGameList)
-      }
-      if (seachCacheList&&seachCacheList.length) {
-        setSeachCache(seachCacheList)
-      }
-      setSeachList([...seachCacheList,...seachGameList])
     }
   }
   const seeMore = () => {

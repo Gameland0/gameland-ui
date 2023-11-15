@@ -59,6 +59,9 @@ export const filterNftid = (address: string, places = 3): string => {
 }
 
 export const filterAddress = (address: any) => {
+  if (address===undefined) {
+    return '0x'
+  }
   const res = address.substring(26)
   return `0x${res}`
 }
