@@ -12,6 +12,7 @@ import close from '../assets/close.png'
 import { toastify } from './Toastify'
 import { UservAnalysis } from './UservAnalysis'
 import { GameAnalysis } from './GameAnalysis'
+import { SolanaGameAnalysis } from './SolanaGameAnalysis'
 import { useActiveWeb3React } from '../hooks'
 import { formatting, handleImgError } from '../utils'
 
@@ -48,7 +49,7 @@ const SearchBox = styled.div`
     }
     .seachType {
       position: relative;
-      width: 89px;
+      width: 105px;
       height: 30px;
       background: #009DFF;
       box-shadow: 0px 0px 8px 0px rgba(0,19,47,0.1);
@@ -113,7 +114,7 @@ const SearchBox = styled.div`
   .switch {
     margin: auto;
     margin-top: 20px;
-    width: 180px;
+    width: 240px;
     height: 30px;
     padding-left: 2px;
     background: #009DFF;
@@ -207,20 +208,24 @@ export const Explore = () => {
   const { account } = useActiveWeb3React()
   const [switchTab, setSwitchTab] = useState('Recommend')
   const [seachType, setSeachType] = useState('Wallet')
-  const [seachChain, setSeachChain] = useState('polygon')
   const [seachAddress, setSeachAddress] = useState('')
   const [seachContract, setSeachContract] = useState('')
   const [SeachInputValue, setSeachInputValue] = useState('')
   const [RecommendPage, setRecommendPage] = useState(0)
   const [RecentPage, setRecentPage] = useState(0)
+  const [SolanaPage, setSolanaPage] = useState(0)
   const [GameData, setGameData] = useState([] as any)
   const [gameList, setGameList] = useState([] as any)
   const [cacheData, setCacheData] = useState([] as any)
   const [cacheList, setCacheList] = useState([] as any)
+  const [solanaGameData, setSolanaGameData] = useState([] as any)
+  const [solanaList, setSolanaList] = useState([] as any)
   const [seachGameList, setSeachGameList] = useState([] as any)
   const [seachCacheList, setSeachCacheList] = useState([] as any)
+  const [seachSolanaCacheList, setSeachSolanaCacheList] = useState([] as any)
   const [seachGames, setSeachGames] = useState([] as any)
   const [seachCache, setSeachCache] = useState([] as any)
+  const [seachSolanaCache, setSeachSolanaCache] = useState([] as any)
   const [seachList, setSeachList] = useState([] as any)
   const [seachTypeSwitch, setSeachTypeSwitch] = useState(false)
 
@@ -234,7 +239,10 @@ export const Explore = () => {
     if (switchTab === 'Recent') {
       setCacheList(cacheData.slice(0,(RecentPage+1)*9))
     }
-  }, [RecommendPage, RecentPage])
+    if (switchTab === 'Solana') {
+      setSolanaList(solanaGameData.slice(0,(SolanaPage+1)*9))
+    }
+  }, [RecommendPage, RecentPage, SolanaPage])
 
   const findName = (address: string) => {
     const findRecommend = GameData.filter((item: any) => {
@@ -249,12 +257,19 @@ export const Explore = () => {
     if (findRecent.length) {
       return findRecent[0].name
     }
+    const findSolana = solanaGameData.filter((item: any) => {
+      return address === item.address
+    })
+    if (findSolana.length) {
+      return findSolana[0].name
+    }
   }
 
   const getGames = async () => {
     const bsc = await bschttp.get('/v0/games')
     const polygon = await polygonhttp.get('/v0/games')
     const gamesdata = await newhttp.get(`v0/games`)
+    const soalnaGmage = await newhttp.get(`v0/solana_games`)
     const newArr = [...bsc.data.data, ...polygon.data.data]
     newArr.splice(7,0,{
       contractName: 'THE PLANET OF THE HARES',
@@ -266,6 +281,8 @@ export const Explore = () => {
     setGameList(newArr.slice(0,9))
     setCacheData(gamesdata.data.data)
     setCacheList(gamesdata.data.data.slice(0,9))
+    setSolanaGameData(soalnaGmage.data.data)
+    setSolanaList(soalnaGmage.data.data.slice(0,9))
   }
   const getTickState = (contractAddress: any) => {
     const data = seachGameList.filter((item: any) => {
@@ -279,10 +296,21 @@ export const Explore = () => {
     })
     return data.length
   }
+  const getSolanaCacheTickState = (contractAddress: any) => {
+    const data = seachSolanaCacheList.filter((item: any) => {
+      return item == contractAddress
+    })
+    return data.length
+  }
   const addSeachGame = (item: any) => {
     setSeachGames([])
     setSeachCache([])
+    setSeachSolanaCache([])
     if (switchTab === 'Recommend') {
+      if (seachSolanaCacheList.length) {
+        toastify.error('Cannot be searched together with Solana games')
+        return
+      }
       if (seachGameList.length+seachCacheList.length>=3) {
         toastify.error('Choose up to 3')
         return
@@ -293,6 +321,10 @@ export const Explore = () => {
       setGameList(GameData.slice(0,(RecommendPage+1)*9))
     }
     if (switchTab === 'Recent') {
+      if (seachSolanaCacheList.length) {
+        toastify.error('Cannot be searched together with Solana games')
+        return
+      }
       if (seachGameList.length+seachCacheList.length>=3) {
         toastify.error('Choose up to 3')
         return
@@ -301,6 +333,20 @@ export const Explore = () => {
       arr.push(item.address)
       setSeachCacheList(arr)
       setCacheList(cacheData.slice(0,(RecentPage+1)*9))
+    }
+    if (switchTab === 'Solana') {
+      if (seachGameList.length||seachCacheList.length) {
+        toastify.error('Cannot be searched together with EVM games')
+        return
+      }
+      if (seachSolanaCacheList.length>=3) {
+        toastify.error('Choose up to 3')
+        return
+      }
+      const arr = seachSolanaCacheList
+      arr.push(item.address)
+      setSeachSolanaCacheList(arr)
+      setSolanaList(solanaGameData.slice(0,(SolanaPage+1)*9))
     }
   }
   const deleteSeachGame = (item: any) => {
@@ -318,11 +364,29 @@ export const Explore = () => {
       setSeachCacheList(arr)
       setCacheList(cacheData.slice(0,(RecentPage+1)*9))
     }
+    if (switchTab === 'Solana') {
+      const arr = seachSolanaCacheList.filter((ele: any) => {
+        return ele !== item.address
+      })
+      setSeachSolanaCacheList(arr)
+      setSolanaList(solanaGameData.slice(0,(SolanaPage+1)*9))
+    }
   }
   const Enter = async (e: any) => {
     if (e.keyCode === 13) {
-      if (SeachInputValue.length&&SeachInputValue.length<42) {
+      if (SeachInputValue.length&&SeachInputValue.length!==42) {
         setSeachContract(SeachInputValue)
+        const gameData = solanaGameData.filter((item: any) => {
+          return SeachInputValue.toLowerCase() === item.name.toLowerCase()
+        })
+        const SeachListarr = seachList
+        const filterList = SeachListarr.filter((item: any) => {
+          return gameData[0].address.toLowerCase() === item.toLowerCase()
+        })
+        if (!filterList.length) {
+          SeachListarr.push(gameData[0].address)
+        }
+        setSeachList(SeachListarr)
       } else {
         if (SeachInputValue.length === 42) {
           setSeachContract('')
@@ -362,14 +426,29 @@ export const Explore = () => {
           if (seachCacheList&&seachCacheList.length) {
             setSeachCache(seachCacheList)
           }
-          setSeachList([...seachCacheList,...seachGameList])
+          if (seachSolanaCacheList&&seachSolanaCacheList.length) {
+            setSeachSolanaCache(seachSolanaCacheList)
+          }
+          setSeachList([...seachCacheList,...seachGameList,...seachSolanaCacheList])
         }
       }
     }
   }
+
   const SeachAddress = () => {
-    if (SeachInputValue.length&&SeachInputValue.length<42) {
+    if (SeachInputValue.length&&SeachInputValue.length!==42) {
       setSeachContract(SeachInputValue)
+      const gameData = solanaGameData.filter((item: any) => {
+        return SeachInputValue.toLowerCase() === item.name.toLowerCase()
+      })
+      const SeachListarr = seachList
+      const filterList = SeachListarr.filter((item: any) => {
+        return gameData[0].address.toLowerCase() === item.toLowerCase()
+      })
+      if (!filterList.length) {
+        SeachListarr.push(gameData[0].address)
+      }
+      setSeachList(SeachListarr)
     } else {
       if (SeachInputValue.length === 42) {
         setSeachContract('')
@@ -409,7 +488,11 @@ export const Explore = () => {
         if (seachCacheList&&seachCacheList.length) {
           setSeachCache(seachCacheList)
         }
-        setSeachList([...seachCacheList,...seachGameList])
+        if (seachSolanaCacheList&&seachSolanaCacheList.length) {
+          setSeachSolanaCache(seachSolanaCacheList)
+        }
+        console.log(seachSolanaCacheList)
+        setSeachList([...seachCacheList,...seachGameList,...seachSolanaCacheList])
       }
     }
   }
@@ -421,6 +504,7 @@ export const Explore = () => {
       setRecentPage(RecentPage + 1)
     }
   }
+
   const closeButton = (address: string) => {
     if (address === seachContract) {
       setSeachContract('')
@@ -435,8 +519,15 @@ export const Explore = () => {
     })
     setSeachCache(arr2)
     setSeachCacheList(arr2)
-    setSeachList([...arr,...arr2])
+    const arr3 = seachSolanaCache.filter((ele: any) => {
+      return ele !== address
+    })
+    setSeachSolanaCache(arr3)
+    setSeachSolanaCacheList(arr3)
+
+    setSeachList([...arr,...arr2,...arr3])
   }
+
   const SeachChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     if (val==='') {
@@ -458,7 +549,7 @@ export const Explore = () => {
         </div>
         <div className="searchBar flex flex-v-center">
           <div className="seachType flex flex-center cursor" onClick={() => setSeachTypeSwitch(!seachTypeSwitch)}>
-            {seachType}
+            {seachType==='SolanaName'? 'Solana Name':seachType}
             <img src={arrow} />
             {seachTypeSwitch ? (
               <div className="Switch">
@@ -470,12 +561,16 @@ export const Explore = () => {
                   setSeachType('Contract')
                   setSeachTypeSwitch(false)
                 }}>Contract</div>
+                <div onClick={() => {
+                  setSeachType('SolanaName')
+                  setSeachTypeSwitch(false)
+                }}>Solana Name</div>
               </div>
             ):''}
           </div>
           <input
             type="text"
-            placeholder="Please enter address"
+            placeholder="Please enter EVM smart contract address or Solana NFT mint address"
             value={SeachInputValue}
             onChange={SeachChange}
             onKeyDown={(e) => Enter(e)}
@@ -492,13 +587,15 @@ export const Explore = () => {
             ))}
           </SearchGame>
         ):''}
-        {!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length ? (
+        {!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length&&!seachSolanaCache.length ? (
           <div className="switch flex flex-v-center">
             <div className={switchTab === 'Recommend' ? 'text-center chooes':'text-center'} onClick={() => setSwitchTab('Recommend')}>Recommend</div>
             <div className={switchTab === 'Recent' ? 'text-center chooes':'text-center'} onClick={() => setSwitchTab('Recent')}>Recent</div>
+            <div className={switchTab === 'Solana' ? 'text-center chooes':'text-center'} onClick={() => setSwitchTab('Solana')}>Solana</div>
           </div>
         ) : ''}
-        {switchTab === 'Recommend'&&!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length ? (
+
+        {switchTab === 'Recommend'&&!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length&&!seachSolanaCache.length ? (
           <div className="game flex flex-h-between wrap">
             {gameList&&gameList.length? (
               gameList.map((item: any, index: number) => (
@@ -519,7 +616,8 @@ export const Explore = () => {
         ) : (
           ''
         )}
-        {switchTab === 'Recent'&&!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length ? (
+
+        {switchTab === 'Recent'&&!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length&&!seachSolanaCache.length ? (
           <div className="game flex flex-h-between wrap">
             {cacheList&&cacheList.length? (
               cacheList.map((item: any, index: number) => (
@@ -540,24 +638,59 @@ export const Explore = () => {
         ) : (
           ''
         )}
-        {!seachAddress.length&&!seachGames.length&&gameList.length&&cacheList.length&&!seachContract.length&&!seachCache.length ? (
+
+        {switchTab === 'Solana'&&!seachAddress.length&&!seachGames.length&&!seachContract.length&&!seachCache.length&&!seachSolanaCache.length ? (
+          <div className="game flex flex-h-between wrap">
+            {solanaList&&solanaList.length? (
+              solanaList.map((item: any, index: number) => (
+                <div className="item flex flex-v-center" key={index}>
+                  <img src={item.image || defaultImg} alt="" onError={handleImgError}/>
+                  <div className="gameName Abbreviation">{item.name || formatting(item.address)}</div>
+                  {getSolanaCacheTickState(item.address)? (
+                    <div className="add cursor">
+                      <img src={tick} alt="" onClick={() => deleteSeachGame(item)} />
+                    </div>
+                  ) : (
+                    <div className="add cursor" onClick={() => addSeachGame(item)}>+</div>
+                  )}
+                </div>
+              ))
+            ) : ('')}
+          </div>
+        ) : (
+          ''
+        )}
+
+        {!seachAddress.length&&!seachGames.length&&gameList.length&&cacheList.length&&!seachContract.length&&!seachCache.length&&!seachSolanaCache.length ? (
           <div className="seeMore flex flex-center cursor" onClick={seeMore}>
             <img src={moreIcon} alt="" />
             <div>See More</div>
           </div>
         ): ''}
+
         {seachAddress.length ? (
-          <UservAnalysis useraddress={seachAddress}></UservAnalysis>
+          <UservAnalysis useraddress={seachAddress} key={new Date()}></UservAnalysis>
         ):''}
-        {seachGames.length || seachContract.length || seachCache.length ? (
+
+        {seachGames.length || seachContract.length===42 || seachCache.length ? (
           <GameAnalysis
+            key={seachGames.length+seachCache.length+seachContract.length}
             data={seachGames}
-            chain={seachChain}
             GameData={GameData}
             seachContract={seachContract}
             seachCache={seachCache}
             gameData={cacheData}
           ></GameAnalysis>
+        ) : ''}
+
+        {(seachContract.length!==42 && seachContract.length) || seachSolanaCache.length ? (
+          <SolanaGameAnalysis
+            key={seachSolanaCache.length+seachContract.length}
+            seachContract={seachContract}
+            seachCache={seachSolanaCache}
+            gameData={solanaGameData}
+            seachType={seachType}
+          ></SolanaGameAnalysis>
         ) : ''}
       </SearchBox>
     </div>

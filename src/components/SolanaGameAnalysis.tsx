@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import * as echarts from 'echarts'
 import axios from 'axios'
-import { bschttp, polygonhttp, newhttp, http, ethhttp } from './Store'
+import { polygonhttp, newhttp } from './Store'
 import { AnalysisBox, PieOption } from './MyPage'
-import { ApproveTable, calculateAverage, firstWeek } from './CollectionDetails'
-import { MORALIS_KEY, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
+import { ApproveTable, firstWeek } from './CollectionDetails'
 import pieBg from '../assets/pie_bg.png'
 import defaultImg from '../assets/default.png'
 import PolygonImg from '../assets/polygon.svg'
@@ -21,7 +20,6 @@ import { Dialog } from './Dialog'
 import { SendBox } from '../pages/Dashboard'
 import { Loading } from './Loading'
 import { useTestUSDTContract, usePaidDownloadContract, useActiveWeb3React } from '../hooks'
-import { TokenTransactions } from './SolanaGameAnalysis'
 
 const Analysis = styled.div`
   .borderNone {
@@ -65,7 +63,67 @@ const Analysis = styled.div`
     height: 430px;
   }
 `
-
+export const TokenTransactions = styled.div`
+  margin: auto;
+  margin-top: 20px;
+  width: 1230px;
+  .CollectionItem {
+    width: 400px;
+    height: 130px;
+    border: 1px solid #43B7FF;
+    padding: 10px 20px;
+    border-radius: 28px;
+    .Collection {
+      width: 155px;
+    }
+    .tabDiv {
+      margin-bottom: 15px;
+      div {
+        position: relative;
+        cursor: pointer;
+        margin-right: 15px;
+        img {
+          width: 100%;
+          height: 8px;
+          position: absolute;
+          bottom: 1px;
+          left: 0px;
+        }
+      }
+    }
+    .Volume {
+      width: 75px;
+      margin-left: 10px;
+      text-align: right;
+      img {
+        width: 15px;
+        height: 15px;
+        margin-right: 5px;
+        margin-top: -3px;
+      }
+    }
+    .Avg {
+      width: 55px;
+      text-align: right;
+    }
+    .Sales {
+      width: 55px;
+      text-align: right;
+    }
+    .info {
+      margin-top: 10px;
+      .gameImg {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+      .name {
+        width: 105px;
+      }
+    }
+  }
+`
 const RankingTable= styled.div`
   width: 96%;
   margin: auto;
@@ -156,44 +214,44 @@ const Tap = styled.div`
     }
   }
 `
-const getPeopleNumber = (activeUser: any) => {
+const getPeopleNumber = (activeData: any) => {
   const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeekActiveUser = [] as any
   const week2ActiveUser = [] as any
   const week3ActiveUser = [] as any
   const week4ActiveUser = [] as any
-  activeUser.map((item: any) => {
+  activeData.map((item: any) => {
     const time = item.timeStamp * 1000
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       const data = thisWeekActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        thisWeekActiveUser.push(item.t1)
+        thisWeekActiveUser.push(item.buyer)
       }
     }
     if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
       const data = week2ActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        week2ActiveUser.push(item.t1)
+        week2ActiveUser.push(item.buyer)
       }
     }
     if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
       const data = week3ActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        week3ActiveUser.push(item.t1)
+        week3ActiveUser.push(item.buyer)
       }
     }
     if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
       const data = week4ActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        week4ActiveUser.push(item.t1)
+        week4ActiveUser.push(item.buyer)
       }
     }
   })
@@ -215,34 +273,34 @@ const calculate = (data: any, activeUser: any) => {
     const time = item.timeStamp * 1000
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       const data = thisWeekActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        thisWeekActiveUser.push(item.t1)
+        thisWeekActiveUser.push(item.buyer)
       }
     }
     if (time < thisWeekTime - 604800000 && time > thisWeekTime - 604800000 * 2) {
       const data = week2ActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        week2ActiveUser.push(item.t1)
+        week2ActiveUser.push(item.buyer)
       }
     }
     if (time < thisWeekTime - 604800000*2 && time > thisWeekTime - 604800000 * 3) {
       const data = week3ActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        week3ActiveUser.push(item.t1)
+        week3ActiveUser.push(item.buyer)
       }
     }
     if (time < thisWeekTime - 604800000*3 && time > thisWeekTime - 604800000 * 4) {
       const data = week4ActiveUser.filter((ele: any) => {
-        return ele === item.t1
+        return ele === item.buyer
       })
       if (!data.length) {
-        week4ActiveUser.push(item.t1)
+        week4ActiveUser.push(item.buyer)
       }
     }
   })
@@ -266,10 +324,10 @@ const calculate = (data: any, activeUser: any) => {
     }
   })
   return [
-    Math.ceil(thisWeekActiveUser.length===0? 0:thisWeekData.length/thisWeekActiveUser.length),
-    Math.ceil(week2ActiveUser.length===0? 0:week2Data.length/week2ActiveUser.length),
-    Math.ceil(week3ActiveUser.length===0? 0:week3Data.length/week3ActiveUser.length),
-    Math.ceil(week4ActiveUser.length===0? 0:week4Data.length/week4ActiveUser.length)
+    (thisWeekActiveUser.length===0? 0:thisWeekData.length/thisWeekActiveUser.length).toFixed(0),
+    (week2ActiveUser.length===0? 0:week2Data.length/week2ActiveUser.length).toFixed(0),
+    (week3ActiveUser.length===0? 0:week3Data.length/week3ActiveUser.length).toFixed(0),
+    (week4ActiveUser.length===0? 0:week4Data.length/week4ActiveUser.length).toFixed(0)
   ]
 }
 const calcuRatio  = (data: any, all: any, type: string) => {
@@ -305,7 +363,7 @@ const calcuBotratio = (data: any, chain: any) => {
   const Week4Player = [] as any
   data.map((item: any) => {
     const time = item.timeStamp * 1000
-    const address =filterAddress(item.t1)
+    const address = item.buyerddress=filterAddress(item.t1)
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       thisWeek.push(item)
       const data = thisWeekUser.filter((ele: any) => {
@@ -345,7 +403,7 @@ const calcuBotratio = (data: any, chain: any) => {
   })
   thisWeekUser.map((item: any) => {
     const data = thisWeek.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       thisWeekBot.push(item)
@@ -355,7 +413,7 @@ const calcuBotratio = (data: any, chain: any) => {
   })
   Week2User.map((item: any) => {
     const data = Week2.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       Week2Bot.push(item)
@@ -365,7 +423,7 @@ const calcuBotratio = (data: any, chain: any) => {
   })
   Week3User.map((item: any) => {
     const data = Week3.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       Week3Bot.push(item)
@@ -375,7 +433,7 @@ const calcuBotratio = (data: any, chain: any) => {
   })
   Week4User.map((item: any) => {
     const data = Week4.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       Week4Bot.push(item)
@@ -408,8 +466,7 @@ const calcuBotTranction = (data: any,chain: any) => {
   let Week4Player = 0
   data.map((item: any) => {
     const time = item.timeStamp * 1000
-    const address=filterAddress(item.t1)
-    
+    const address = item.buyer
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       if (address!=='0x0000000000000000000000000000000000000000') {
         thisWeek.push(item)
@@ -457,7 +514,7 @@ const calcuBotTranction = (data: any,chain: any) => {
   })
   thisWeekUser.map((item: any) => {
     const data = thisWeek.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       thisWeekBot=thisWeekBot+data.length
@@ -467,7 +524,7 @@ const calcuBotTranction = (data: any,chain: any) => {
   })
   Week2User.map((item: any) => {
     const data = Week2.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       Week2Bot=Week2Bot+data.length
@@ -477,7 +534,7 @@ const calcuBotTranction = (data: any,chain: any) => {
   })
   Week3User.map((item: any) => {
     const data = Week3.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       Week3Bot=Week3Bot+data.length
@@ -487,7 +544,7 @@ const calcuBotTranction = (data: any,chain: any) => {
   })
   Week4User.map((item: any) => {
     const data = Week4.filter((ele: any) => {
-      return item === filterAddress(ele.t1)
+      return item === ele.buyer
     })
     if (data.length>70) {
       Week4Bot=Week4Bot+data.length
@@ -613,7 +670,7 @@ const calcucost = (val: any, places: number) => {
   return 0
 }
 
-export const GameAnalysis = (data: any) => {
+export const SolanaGameAnalysis = (data: any) => {
   const { library } = useActiveWeb3React()
   const [saleRankTab, setSaleRankTab] = useState('')
   const [activityTab,setActivityTab] = useState('Bought')
@@ -627,6 +684,7 @@ export const GameAnalysis = (data: any) => {
   const [ComparisonChartLoad, setComparisonChartLoad] = useState(false)
   const [PurchasingLoad, setPurchasingLoad] = useState(false)
   const [ActionChartLoad, setActionChartLoad] = useState(false)
+  const [FloorPriceLoad, setFloorPriceLoad] = useState(false)
   const [RankingTableLoad, setRankingTableLoad] = useState(false)
   const [CollectionDataList, setCollectionDataList] = useState([] as any)
   const [CollectionData, setCollectionData] = useState([] as any)
@@ -639,12 +697,16 @@ export const GameAnalysis = (data: any) => {
   const PaidDownloadContract = usePaidDownloadContract()
 
   useEffect(() => {
-    console.log(data.seachContract.length)
-    if (data.seachContract.length===42) {
-        detectionAddress()
+    if (data.seachContract.length) {
+      if (data.seachType==='SolanaName'){
+        SolanaDetectionNmae()
+      } else if (data.seachContract.length>42) {
+        SolanaDetectionAddress()
+      }
     } else {
-      if (data.data.length || data.seachCache.length) {
+      if (data.seachCache.length) {
         getCollectionTransaction()
+        getFloorRrice()
         setAverageActionChart()
       }
     }
@@ -662,6 +724,12 @@ export const GameAnalysis = (data: any) => {
   }, [saleRankTab])
 
   useEffect(() => {
+    if (saleRankTab!==''&&moreDetails) {
+      setUsercache(RankData)
+    }
+  }, [moreDetails])
+
+  useEffect(() => {
     if (CollectionDataList.length) {
       const data = [] as any
       for (let index = 0; index < CollectionDataList.length; index++) {
@@ -673,12 +741,6 @@ export const GameAnalysis = (data: any) => {
   }, [CollectionDataTab])
 
   useEffect(() => {
-    if (saleRankTab!==''&&moreDetails) {
-      setUsercache(RankData)
-    }
-  }, [moreDetails])
-
-  useEffect(() => {
     if (Chart) {
       setComparisonChartLoad(true)
       setPurchasingLoad(true)
@@ -687,86 +749,48 @@ export const GameAnalysis = (data: any) => {
     }
   }, [Chart])
 
-  const detectionAddress = async () => {
-    const filterData = data.GameData.filter((item: any) => {
-      return data.seachContract.toLowerCase() === item.contractAddress.toLowerCase()
+  const SolanaDetectionNmae = async () => {
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
+      }
     })
-    const Data = data.data.filter((item: any) => {
-      return data.seachContract.toLowerCase() === item.toLowerCase()
+    const parm = {
+      searchStrategy: "default",
+      collectionName: data.seachContract
+    }
+    const getID = await getdata.post(`https://rest-api.hellomoon.io/v0/nft/collection/name`,parm)
+    if (!getID.data.data.length) {
+      setPSstate(true)
+      toastify.error('The collection was not found')
+      return
+    }
+    const gameList = await newhttp.get(`v0/solana_games`)
+    const filterGames = gameList.data.data.filter((item: any) => {
+      return getID.data.data[0]?.collectionName === item.name
     })
     const filterCache = data.seachCache.filter((item: any) => {
-      return data.seachContract.toLowerCase() === item.toLowerCase()
+      return filterGames[0].address === item
     })
-    const gamesdata = await newhttp.get(`v0/games/${data.seachContract}`)
-    const gamescache = await newhttp.get(`v0/games_cache/${data.seachContract}`)
-    if (!filterData.length&&!gamesdata.data.data.length&&!gamescache.data.data.length) {
+    const gamesdata = await newhttp.get(`v0/solana_games/${filterGames[0]?.address}`)
+    const gamescache = await newhttp.get(`v0/games_solana_cache/${getID.data.data[0]?.collectionName}`)
+
+    if (!gamesdata.data.data.length&&!gamescache.data.data.length) {
       setPSstate(true)
-      const getdata = axios.create({
-        timeout: 100000,
-        headers: {
-          'X-API-Key': MORALIS_KEY
-        }
-      })
-      const time = Math.ceil(new Date().getTime()/1000)
-      const bscinfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=bsc&format=decimal&media_items=false`)
-      if (bscinfo.data.result[0]?.contract_type) {
-        const block = await http.get(`https://api.bscscan.com/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${BSCSCAN_KEY}`)
-        const params = {
-          address: data.seachContract,
-          chain: 'bsc',
-          type: bscinfo.data.result[0].contract_type,
-          name: bscinfo.data.result[0].name,
-          blocknumber: block.data.result*1,
-          uri: bscinfo.data.result[0].token_uri
-        }
-        newhttp.post(`v0/games_cache`, params)
+      const params = {
+        hellomoonid: getID.data.data[0]?.helloMoonCollectionId,
+        collectionName: getID.data.data[0]?.collectionName
       }
-      const polygoninfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=polygon&format=decimal&media_items=false`)
-      if (polygoninfo.data.result[0]?.contract_type) {
-        const block = await http.get(`https://api.polygonscan.com/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${POLYGONSCAN_KEY}`)
-        const params = {
-          address: data.seachContract,
-          chain: 'polygon',
-          type: polygoninfo.data.result[0].contract_type,
-          name: polygoninfo.data.result[0].name,
-          blocknumber: block.data.result*1,
-          uri: polygoninfo.data.result[0].token_uri
-        }
-        newhttp.post(`v0/games_cache`, params)
-      }
-      const ethinfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=eth&format=decimal&media_items=false`)
-      if (ethinfo.data.result[0]?.contract_type) {
-        const apiKey = '5BCXEYI6ATAC8W93PHXY8UR598YSGNBWCT'
-        const block = await http.get(`https://api.etherscan.com/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${apiKey}`)
-        const params = {
-          address: data.seachContract,
-          chain: 'eth',
-          type: ethinfo.data.result[0].contract_type,
-          name: ethinfo.data.result[0].name,
-          blocknumber: block.data.result*1,
-          uri: ethinfo.data.result[0].token_uri
-        }
-        newhttp.post(`v0/games_cache`, params)
-      }
-    }
-    if (filterData.length) {
-      if (Data.length || filterCache.length) {
-        // toastify.error('The game has been searched')
-        return
-      }
-      if (data.data.length>=3) {
-        toastify.error('Choose up to 3')
-        return
-      }
-      data.data.push(data.seachContract)
-      getCollectionTransaction()
-      setAverageActionChart()
+      newhttp.post(`v0/games_solana_cache`, params)
     }
     if (gamescache.data.data.length) {
       setPSstate(true)
     }
     if (gamesdata.data.data.length) {
-      if (Data.length || filterCache.length) {
+      if (filterCache.length) {
         // toastify.error('The game has been searched')
         return
       }
@@ -774,8 +798,69 @@ export const GameAnalysis = (data: any) => {
         toastify.error('Choose up to 3')
         return
       }
-      data.seachCache.push(data.seachContract)
+      data.seachCache.push(filterGames[0]?.address)
       getCollectionTransaction()
+      getFloorRrice()
+      setAverageActionChart()
+    }
+  }
+
+  const SolanaDetectionAddress = async () => {
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
+      }
+    })
+    const parm = {
+      nftMint: data.seachContract
+    }
+    const getIDByMint = await getdata.post(`https://rest-api.hellomoon.io/v0/nft/mints-by-owner`,parm)
+    if (!getIDByMint.data.data.length||!getIDByMint.data.data[0]?.helloMoonCollectionId) {
+      setPSstate(true)
+      toastify.error('The address is wrong, please confirm')
+      return
+    }
+    const iDparm = {
+      searchStrategy: "default",
+      helloMoonCollectionId: getIDByMint.data.data[0].helloMoonCollectionId
+    }
+    const getID = await getdata.post(`https://rest-api.hellomoon.io/v0/nft/collection/name`,iDparm)
+    const gameList = await newhttp.get(`v0/solana_games`)
+    const filterGames = gameList.data.data.filter((item: any) => {
+      return getID.data.data[0]?.collectionName === item.name
+    })
+    const filterCache = data.seachCache.filter((item: any) => {
+      return filterGames[0].address === item
+    })
+    const gamesdata = await newhttp.get(`v0/solana_games/${filterGames[0]?.address}`)
+    const gamescache = await newhttp.get(`v0/games_solana_cache/${getID.data.data[0]?.collectionName}`)
+
+    if (!gamesdata.data.data.length&&!gamescache.data.data.length) {
+      setPSstate(true)
+      const params = {
+        hellomoonid: getID.data.data[0]?.helloMoonCollectionId,
+        collectionName: getID.data.data[0]?.collectionName
+      }
+      newhttp.post(`v0/games_solana_cache`, params)
+    }
+    if (gamescache.data.data.length) {
+      setPSstate(true)
+    }
+    if (gamesdata.data.data.length) {
+      if (filterCache.length) {
+        // toastify.error('The game has been searched')
+        return
+      }
+      if (data.seachCache.length>=3) {
+        toastify.error('Choose up to 3')
+        return
+      }
+      data.seachCache.push(filterGames[0]?.address)
+      getCollectionTransaction()
+      getFloorRrice()
       setAverageActionChart()
     }
   }
@@ -786,55 +871,15 @@ export const GameAnalysis = (data: any) => {
     const seriesData = [] as any
     const timearr = [] as any
     const sortTime = [] as any
-    for (let index = 0; index < data.data.length; index++) {
-      const filterData = data.GameData.filter((ele: any) => {
-        return data.data[index].toLowerCase() === ele.contractAddress.toLowerCase()
-      })
-      const res = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0].chain}&tokenContractAddress=${data.data[index]}`)
-      const res2 = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0].chain}&tokenContractAddress=${data.data[index]}&page=${2}`)
-      const dataAll = [...res.data.data[0].transactionLists, ...res2.data.data[0].transactionLists]
-      
-      dataAll.map((item: any) => {
-        const time = new Date(item.transactionTime *1).toJSON().substring(5, 10)
-        const data = timearr.filter((ele: any) => {
-          return ele === time
-        })
-        if (data.length === 0) {
-          timearr.push(time)
-        }
-      })
-      const seriesItem = [] as any
-      timearr.map((item: any) => {
-        const addressArr = [] as any
-        const filterdata = dataAll.filter((ele: any) => {
-          return new Date(ele.transactionTime *1).toJSON().substring(5, 10) === item
-        })
-        filterdata.map((val: any) => {
-          addressArr.push(val.from)
-        })
-        const addressDeduplicationData = [...new Set(addressArr)]
-        seriesItem.push(addressDeduplicationData.length)
-      })
-      legend.push(filterData[0].contractName)
-      seriesData.push({
-        name: filterData[0].contractName,
-        data: seriesItem,
-        type: 'line',
-        smooth: true
-      })
-    }
 
     for (let index = 0; index < data.seachCache.length; index++) {
       const element = data.seachCache[index]
       const filterData = data.gameData.filter((ele: any) => {
         return element.toLowerCase() === ele.address.toLowerCase()
       })
-      const res = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0].chain}&tokenContractAddress=${element}`)
-      const res2 = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0].chain}&tokenContractAddress=${element}&page=${2}`)
-      const dataAll = [...res.data.data[0].transactionLists, ...res2.data.data[0].transactionLists]
-
+      const dataAll = (await newhttp.get(`v0/games_solana/${filterData[0].address}`)).data.data
       dataAll.map((item: any) => {
-        const time = item.transactionTime*1
+        const time = item.timeStamp*1000 
         const data = timearr.filter((ele: any) => {
           return ele === time
         })
@@ -855,10 +900,10 @@ export const GameAnalysis = (data: any) => {
       sortTime.map((item: any) => {
         const addressArr = [] as any
         const filterdata = dataAll.filter((ele: any) => {
-          return new Date(ele.transactionTime*1).toJSON().substring(5, 10) === item
+          return new Date(ele.timeStamp*1000).toJSON().substring(5, 10) === item
         })
         filterdata.map((val: any) => {
-          addressArr.push(val.from)
+          addressArr.push(val.buyer)
         })
         const addressDeduplicationData = [...new Set(addressArr)]
         seriesItem.push(addressDeduplicationData.length)
@@ -871,6 +916,7 @@ export const GameAnalysis = (data: any) => {
         smooth: true
       })
     }
+
     setUAWLoad(false)
     const options = {
       tooltip: {
@@ -887,17 +933,97 @@ export const GameAnalysis = (data: any) => {
       },
       series: seriesData
     }
-    // if (document.getElementById('interactionsPerDay') == null) {
-    //   return
-    // }
+
     echarts.dispose(document.getElementById('interactionsPerDay') as HTMLDivElement)
     const Activitydom = document.getElementById('interactionsPerDay') as HTMLDivElement
     const ActivityChart = echarts.init(Activitydom)
     ActivityChart.setOption(options)
   }
 
+  const getFloorRrice = async () => {
+    setFloorPriceLoad(true)
+    const legend = [] as any
+    const seriesData = [] as any
+    const timearr = [] as any
+    const sortTime = [] as any
+    const getdata = axios.create({
+      timeout: 100000,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
+      }
+    })
+    for (let index = 0; index < data.seachCache.length; index++){
+      const element = data.seachCache[index]
+      const filterData = data.gameData.filter((ele: any) => {
+        return element.toLowerCase() === ele.address.toLowerCase()
+      })
+      const params = {
+        helloMoonCollectionId: element,
+        granularity: "ONE_DAY"
+      }
+      const getPriceList = await getdata.post(`https://rest-api.hellomoon.io/v0/nft/collection/floorprice/candlesticks`,params)
+      getPriceList.data.data.map((item: any) => {
+        const time = item.startTime*1000 
+        const data = timearr.filter((ele: any) => {
+          return ele === time
+        })
+        if (data.length === 0) {
+          timearr.push(time)
+        }
+      })
+      const seriesItem = [] as any
+      const sortimearr = timearr.sort((a: any,b: any)=> {return b-a})
+      sortimearr.map((item: any) => {
+        const filterTime = sortTime.filter((ele: any) => {
+          return ele === new Date(item).toJSON().substring(5, 10)
+        })
+        if (filterTime.length === 0) {
+          sortTime.push(new Date(item).toJSON().substring(5, 10))
+        }
+        const filterdata = getPriceList.data.data.filter((ele: any) => {
+          return ele.startTime*1000 === item
+        })
+        const pricr = new BigNumber(filterdata[0]?.close).div(1000000000).toNumber()
+        seriesItem.push(pricr)
+      })
+
+      legend.push(filterData[0].name)
+      seriesData.push({
+        name: filterData[0].name,
+        data: seriesItem,
+        type: 'line',
+        smooth: true
+      })
+    }
+
+    setFloorPriceLoad(false)
+    const options = {
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        data: legend
+      },
+      xAxis: {
+        data: sortTime
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: seriesData
+    }
+
+    echarts.dispose(document.getElementById('FloorPrice') as HTMLDivElement)
+    const FloorPricedom = document.getElementById('FloorPrice') as HTMLDivElement
+    const FloorPriceChart = echarts.init(FloorPricedom)
+    FloorPriceChart.setOption(options)
+    
+  }
+
   const setAverageActionChart = async () => {
-    setCollectionData([])
+    setCollectionDataList([])
     setActionChartLoad(true)
     setRankingTableLoad(true)
     const PlatformSeriesData = [] as any
@@ -917,384 +1043,6 @@ export const GameAnalysis = (data: any) => {
     RankData.length=0
     const days7time = new Date().getTime() - 604800000
     const days14time = new Date().getTime() - 1209600000
-
-    for (let index = 0; index < data.data.length; index++) {
-      const element = data.data[index]
-      const filterData = data.GameData.filter((ele: any) => {
-        return element.toLowerCase() === ele.contractAddress.toLowerCase()
-      })
-      let actions: any
-      let users: any
-      if (filterData[0].chain === 'bsc') {
-        actions = await bschttp.get(`v0/active_actions/${element}`)
-        users = await bschttp.get(`v0/active_users/${element}`)
-      }
-      if (filterData[0].chain === 'polygon') {
-        actions = await polygonhttp.get(`v0/active_actions/${element}`)
-        users = await polygonhttp.get(`v0/active_users/${element}`)
-      }
-      if (filterData[0].chain === 'eth') {
-        actions = await ethhttp.get(`v0/active_actions/${element}`)
-        users = await ethhttp.get(`v0/active_users/${element}`)
-      }
-      const ItemGameData = seachGameData
-      ItemGameData.push({
-        name: filterData[0].contractName,
-        chain: filterData[0].chain,
-        data: actions.data.data
-      })
-      setSeachGameData(ItemGameData)
-      const approveData = [] as any
-      const adrr = '0x0000000000000000000000000000000000000000'
-      const PlatformTime = [] as any
-      const PlatformAll = [] as any
-      const activeUser = [] as any
-      let TokenTotal = 0
-      actions.data.data.map((item: any) => {
-        if (item.tokenid * 1 === 0) {
-          approveData.push(item)
-        }
-        if (filterAddress(item.t1)?.toLowerCase() === item.address?.toLowerCase()) {
-          item.type = 'Sold'
-        }
-        if (filterAddress(item.t1)?.toLowerCase() === adrr?.toLowerCase()) {
-          item.type = 'Mint'
-        }
-        if (item.xw !== '') {
-          PlatformAll.push(item)
-          const data = PlatformTime.filter((ele: any) => {
-            return ele === item.timeStamp
-          })
-          if (data.length === 0) {
-            PlatformTime.push(item.timeStamp)
-          }
-        }
-        const filteraddress = activeUser.filter((ele: any) => {
-          return ele === item.address
-        })
-        if (!filteraddress.length) {
-          activeUser.push(item.address)
-        }
-        if (item.xw === 'sale') {
-          const value = new BigNumber(item.transactionvalue).div(1000000000000000000).toNumber()
-          TokenTotal = TokenTotal + value
-        }
-        item.t1 = filterAddress(item.t1)
-        item.t2 = filterAddress(item.t2)
-      })
-      const sortarr = PlatformTime.sort((a: any,b: any)=> {return b-a})
-      sortarr.map((item: any) => {
-        const time = new Date(item *1000).toJSON().substring(5, 10)
-        const data = PlatformxAxis.filter((ele: any) => {
-          return ele === time
-        })
-        if (data.length === 0) {
-          PlatformxAxis.push(time)
-        }
-      })
-      const OpenSea = [] as any
-      const Element = [] as any
-      const Blur = [] as any
-      const X2Y2 = [] as any
-      PlatformxAxis.map((item: any) => {
-        const OpenSeadata = PlatformAll.filter((ele: any) => {
-          const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='OpenSea'
-        })
-        OpenSea.push(OpenSeadata.length)
-        const Elementdata = PlatformAll.filter((ele: any) => {
-          const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='Element'
-        })
-        Element.push(Elementdata.length)
-        const Blurdata = PlatformAll.filter((ele: any) => {
-          const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='Blur'
-        })
-        Blur.push(Blurdata.length)
-        const X2Y2data = PlatformAll.filter((ele: any) => {
-          const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='X2Y2'
-        })
-        X2Y2.push(X2Y2data.length)
-      })
-      PlatformSeriesData.push({
-        name: `${filterData[0].contractName} OpenSea`,
-        data: OpenSea,
-        type: 'line',
-        smooth: true
-      },{
-        name: `${filterData[0].contractName} Element`,
-        data: Element,
-        type: 'line',
-        smooth: true
-      },{
-        name: `${filterData[0].contractName} Blur`,
-        data: Blur,
-        type: 'line',
-        smooth: true
-      },{
-        name: `${filterData[0].contractName} X2Y2`,
-        data: X2Y2,
-        type: 'line',
-        smooth: true
-      })
-      const userNftArr = [] as any
-      users.data.data.map((item: any) => {
-        if ((item.nftcount * 1) >= 0) {
-          const data = userNftArr.filter((ele: any) => {
-            return ele.address === item.address
-          })
-          if (data.length === 0) {
-            userNftArr.push(item)
-          }
-        }
-      })
-      let bot = 0
-      let bottransaction = 0
-      const actionDataAll = [] as any
-      userNftArr.map((item: any) => {
-        const data = approveData.filter((ele: any) => {
-          return ele.address?.toLowerCase() === item.address?.toLowerCase()
-        })
-        if (data.length > 0) {
-          if (data.length > 25) {
-            bot = bot + 1
-            const data = actions.data.data.filter((ele: any) => {
-              return item.address?.toLowerCase() === ele.address?.toLowerCase()
-            })
-            bottransaction = bottransaction + data.length
-          }
-          actionDataAll.push(item.address)
-        }
-      })
-      const actionRankData = [] as any
-      activeUser.map((item: any) => {
-        let level
-        const data = actions.data.data.filter((ele: any) => {
-          return item.toLowerCase() === ele.t2.toLowerCase() || item.toLowerCase() === ele.t1
-        })
-        if (data.length >= 330) {
-          bot = bot + 1
-          bottransaction = bottransaction + data.length
-          level = 'Bot'
-        } else if (data.length < 330 && data.length > 250) {
-          level = 'High'
-        } else if(data.length < 250&& data.length > 150){
-          level = 'Middle'
-        } else {
-          level = 'Low'
-        }
-        actionRankData.push({
-          address: item,
-          action: data.length,
-          level: level
-        })
-      })
-      const sortactionRankData = actionRankData.sort((a: any,b: any)=> {return b.action-a.action})
-      const saleRankData = [] as any
-      const Sales = actions.data.data.filter((item: any)=> {
-        return item.xw === 'sale'
-      })
-      const Sold = actions.data.data.filter((item: any)=> {
-        return item.xw === 'sold'
-      })
-      const SalesAddress = [] as any
-      const Boughttime = [] as any
-      Sales.map((item: any) => {
-        const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
-        const datas = Boughttime.filter((ele: any) => {
-          const times = new Date(ele * 1000).toJSON().substring(5, 10)
-          return times === time
-        })
-        if (datas.length === 0) {
-          Boughttime.push(item.timeStamp)
-        }
-        const data = SalesAddress.filter((ele: any) => {
-            return ele === item.address
-        })
-        if (data.length === 0) {
-          SalesAddress.push(item.address)
-        }
-      })
-      const BoughtDetailsData= [] as any
-      const BoughtSpentData = [] as any
-      const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
-      let tokenPrice: any
-      if (filterData[0].chain === 'eth') {
-        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
-      }
-      if (filterData[0].chain === 'bsc') {
-        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
-      }
-      if (filterData[0].chain === 'polygon') {
-        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
-      }
-      sortBoughttime.map((item: any) => {
-        let spent = 0
-        let ERC20Value = 0
-        const times = new Date(item * 1000).toJSON().substring(5, 10)
-        const data = Sales.filter((ele: any)=> {
-          const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
-          return times === time
-        })
-        data.map(async (ele: any)=> {
-          if (ele.token) {
-            if (ele.token==='WETH') {
-              const Price = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
-              const value = new BigNumber(ele.price).div(1000000000000000000).toNumber()*Price
-              ERC20Value = ERC20Value + value
-            }
-            if (ele.token==='Binance USD') {
-              ERC20Value = ERC20Value + new BigNumber(ele.price).div(1000000000000000000).toNumber()
-            }
-          } else {
-            spent = spent+ele.transactionvalue*1
-          }
-        })
-        const vules = new BigNumber(spent).div(1000000000000000000).toNumber()
-        const tokenValue = vules * tokenPrice + ERC20Value
-        BoughttimeArr.push(times)
-        BoughtDetailsData.push(data.length)
-        BoughtSpentData.push(tokenValue.toFixed(3))
-      })
-      const Soldtime = [] as any
-      Sold.map((item: any) => {
-        const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
-        const data = Soldtime.filter((ele: any) => {
-          const times = new Date(ele * 1000).toJSON().substring(5, 10)
-          return times === time
-        })
-        if (data.length === 0) {
-          Soldtime.push(time)
-        }
-      })
-      const SoldDetailsData = [] as any
-      const SoldSpentData = [] as any
-      const sortSoldtime = Soldtime.sort((a: any,b: any)=> {return b-a})
-      sortSoldtime.map((item: any) => {
-        let spent = 0
-        const times = new Date(item * 1000).toJSON().substring(5, 10)
-        const data = Sold.filter((ele: any)=> {
-          const time = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
-          return times === time
-        })
-        data.map((ele: any)=> {
-          spent = spent+ele.transactionvalue*1
-        })
-        const vules = new BigNumber(spent).div(1000000000000000000).toFixed(3)
-        SoldtimeArr.push(times)
-        SoldDetailsData.push(data.length)
-        SoldSpentData.push(vules)
-      })
-      SalesAddress.map((item: any) => {
-        const data = Sales.filter((ele: any) => {
-          return item === ele.address
-        })
-        let value = 0
-        data.map((val: any) => {
-          value = value + new BigNumber(val.transactionvalue).div(1000000000000000000).toNumber()
-        })
-        saleRankData.push({
-          address: item,
-          Sales: data.length,
-          Volume: value.toFixed(3),
-          chain: filterData[0].chain
-        })
-      })
-      const sortsaleRankData = saleRankData.sort((a: any,b: any)=> {return b.Volume-a.Volume})
-      const Rankarr = RankData
-      Rankarr.push({
-        tab: filterData[0].contractName,
-        chain: filterData[0].chain,
-        contractAddress: filterData[0].contractAddress,
-        saleData: sortsaleRankData.slice(0,10),
-        Player: sortactionRankData.slice(0,10)
-      })
-      setRankData(Rankarr)
-      arr.push({
-        image: filterData[0].image,
-        name: filterData[0].contractName,
-        Sales: Sales.length,
-        Avg: Sales.length===0? Sales.length: new BigNumber(TokenTotal.toFixed(3)).div(Sales.length).toFixed(3),
-        chain: filterData[0].chain,
-        Volume: TokenTotal.toFixed(3)
-      })
-      NFTxAxis.push(filterData[0].contractName)
-      legend.push(`${filterData[0].contractName} Average Approve`)
-      legend.push(`${filterData[0].contractName} Average Transction`)
-      Platformlegend.push(...[`${filterData[0].contractName} OpenSea`,`${filterData[0].contractName} Element`,`${filterData[0].contractName} Blur`,`${filterData[0].contractName} X2Y2`,])
-      BoughtDetailsSeries.push({
-        name: `${filterData[0].contractName} Sale`,
-        type: 'line',
-        data: BoughtDetailsData
-      },{
-        name: `${filterData[0].contractName} Price & Volume($)`,
-        type: 'line',
-        data: BoughtSpentData
-      })
-      BoughtDetailslegend.push(`${filterData[0].contractName} Sale`)
-      BoughtDetailslegend.push(`${filterData[0].contractName} Price & Volume($)`)
-      seriesData.push({
-        name: `${filterData[0].contractName} Average Approve`,
-        data: calculateAverage(approveData, users.data.data),
-        type: 'line',
-        smooth: true
-      },{
-        name: `${filterData[0].contractName} Average Transction`,
-        data: calculateAverage(actions.data.data, users.data.data),
-        type: 'line',
-        smooth: true
-      })
-      BotratioSeries.push({
-        name: `${filterData[0].contractName} Bot`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuBotratio(actions.data.data,filterData[0].chain).bot
-      },
-      {
-        name: `${filterData[0].contractName} Real`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuBotratio(actions.data.data,filterData[0].chain).user
-      })
-      BotTranctionSeries.push({
-        name: `${filterData[0].contractName} Bot`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuBotTranction(actions.data.data,filterData[0].chain).bot
-      },
-      {
-        name: `${filterData[0].contractName} Real`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuBotTranction(actions.data.data,filterData[0].chain).user
-      })
-      NFTTransactionSeries.push({
-        name: `${filterData[0].contractName} Other`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuNFTTranction(actions.data.data).other
-      },
-      {
-        name: `${filterData[0].contractName} Transfer`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuNFTTranction(actions.data.data).Transfer
-      },
-      {
-        name: `${filterData[0].contractName} Sale`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuNFTTranction(actions.data.data).bought
-      },
-      {
-        name: `${filterData[0].contractName} Mint`,
-        type: 'bar',
-        stack: filterData[0].contractName,
-        data: calcuNFTTranction(actions.data.data).mint
-      })
-    }
 
     for (let index = 0; index < data.seachCache.length; index++) {
       const element = data.seachCache[index]
@@ -1317,10 +1065,10 @@ export const GameAnalysis = (data: any) => {
       let TokenTotal = 0
       let TokenTotal7 = 0
       let TokenTotal14 = 0
-      const OpenSea = [] as any
-      const Element = [] as any
-      const Blur = [] as any
-      const X2Y2 = [] as any
+      const Tensor = [] as any
+      const Hadeswap = [] as any
+      const ME_V2 = [] as any
+      const CoralCubeAMM = [] as any
       const actionRankData = [] as any
       const saleRankData = [] as any
       actionData.data.data.map((item: any) => {
@@ -1340,21 +1088,18 @@ export const GameAnalysis = (data: any) => {
           mintData.push(item)
         }
         const filteraddress = activeUser.filter((ele: any) => {
-          return ele===filterAddress(item.t1)
+          return ele ===item?.buyer
         })
         if (!filteraddress.length) {
-          if (filterAddress(item.t1) !=='0x0000000000000000000000000000000000000000') {
-            activeUser.push(filterAddress(item.t1))
-          }
+          activeUser.push(item?.buyer)
         }
         if (item.action === 'sale') {
-          const value = new BigNumber(item.transactionvalue).div(1000000000000000000).toNumber()
-          TokenTotal = TokenTotal + value
+          TokenTotal = TokenTotal + (item.price)*1
           if (item.timeStamp * 1000 >days7time) {
-            TokenTotal7 = TokenTotal7 + value
+            TokenTotal7 = TokenTotal7 + (item.price)*1
           }
           if (item.timeStamp * 1000 >days14time) {
-            TokenTotal14 = TokenTotal14 + value
+            TokenTotal14 = TokenTotal14 + (item.price)*1
           }
         }
       })
@@ -1369,26 +1114,26 @@ export const GameAnalysis = (data: any) => {
         }
       })
       PlatformxAxis.map((item: any) => {
-        const OpenSeadata = PlatformAll.filter((ele: any) => {
+        const TensorData = PlatformAll.filter((ele: any) => {
           const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='OpenSea'
+          return time === item&&ele.market==='Tensor'
         })
-        OpenSea.push(OpenSeadata.length)
-        const Elementdata = PlatformAll.filter((ele: any) => {
+        Tensor.push(TensorData.length)
+        const HadeswapData = PlatformAll.filter((ele: any) => {
           const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='Element'
+          return time === item&&ele.market==='Hadeswap'
         })
-        Element.push(Elementdata.length)
-        const Blurdata = PlatformAll.filter((ele: any) => {
+        Hadeswap.push(HadeswapData.length)
+        const ME_V2Data = PlatformAll.filter((ele: any) => {
           const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='Blur'
+          return time === item&&ele.market==='ME_V2'
         })
-        Blur.push(Blurdata.length)
-        const X2Y2data = PlatformAll.filter((ele: any) => {
+        ME_V2.push(ME_V2Data.length)
+        const CoralCubeAMMData = PlatformAll.filter((ele: any) => {
           const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='X2Y2'
+          return time === item&&ele.market==='Coral Cube AMM'
         })
-        X2Y2.push(X2Y2data.length)
+        CoralCubeAMM.push(TensorData.length)
       })
       const Sales = actionData.data.data.filter((item: any)=> {
         return item.action === 'sale'
@@ -1402,7 +1147,7 @@ export const GameAnalysis = (data: any) => {
       const SalesAddress = [] as any
       const Boughttime = [] as any
       Sales.map((item: any) => {
-        const address = item?.buyer || filterAddress(item.t1)
+        const address = item?.buyer
         const time = new Date(item.timeStamp * 1000).toJSON().substring(5, 10)
         const data = Boughttime.filter((ele: any) => {
           const times = new Date(ele * 1000).toJSON().substring(5, 10)
@@ -1423,17 +1168,7 @@ export const GameAnalysis = (data: any) => {
       const BoughtDetailsData= [] as any
       const BoughtSpentData = [] as any
       const sortBoughttime = Boughttime.sort((a: any,b: any)=> {return b-a})
-      let tokenPrice: any
-      if (filterData[0].chain === 'eth') {
-        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
-      }
-      if (filterData[0].chain === 'bsc') {
-        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
-      }
-      if (filterData[0].chain === 'polygon') {
-        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
-      }
-
+      const tokenPrice = 1
       sortBoughttime.map(async (item: any) => {
         let spent = 0
         let ERC20Value = 0
@@ -1456,66 +1191,63 @@ export const GameAnalysis = (data: any) => {
             spent = ele.transactionvalue ? spent+ele.transactionvalue*1 : spent+ele.price*1
           }
         })
-        const vules = new BigNumber(spent).div(1000000000000000000).toNumber()
-        const tokenValue = vules * tokenPrice + ERC20Value
+        const tokenValue = spent * tokenPrice + ERC20Value
         BoughttimeArr.push(times)
         BoughtDetailsData.push(filterDatas.length)
         BoughtSpentData.push(tokenValue.toFixed(3))
       })
-
       BoughtDetailsSeries.push({
         name: `${filterData[0].name} Sale`,
         type: 'line',
         data: BoughtDetailsData
       },{
-        name: `${filterData[0].name} Price & Volume($)`,
+        name: `${filterData[0].name} Price & Volume(Sol)`,
         type: 'line',
         data: BoughtSpentData
       })
       BoughtDetailslegend.push(`${filterData[0].name} Sale`)
-      BoughtDetailslegend.push(`${filterData[0].name} Price & Volume($)`)
-
+      BoughtDetailslegend.push(`${filterData[0].name} Price & Volume(Sol)`)
+      
       SalesAddress.map((item: any) => {
         const filterdata = Sales.filter((ele: any) => {
-          return item === filterAddress(ele.t1)
+          return item === ele?.buyer 
         })
         let value = 0
         filterdata.map((val: any) => {
-          value = value + new BigNumber(val.transactionvalue).div(1000000000000000000).toNumber()
+          value=value+val.price*1
         })
         saleRankData.push({
           address: item,
           Sales: filterdata.length,
-          Volume: value.toFixed(3),
+          Volume: value.toFixed(0),
           chain: filterData[0].chain
         })
       })
-
       const sortsaleRankData = saleRankData.sort((a: any,b: any)=> {return b.Volume-a.Volume})
       arr.push({
         All: {
           image: filterData[0].image,
           name: filterData[0].name,
           Sales: Sales.length,
-          Avg: Sales.length===0? 0: new BigNumber(TokenTotal).div(Sales.length).toFixed(3),
+          Avg: Sales.length===0? 0: new BigNumber(TokenTotal).div(Sales.length).toFixed(2),
           chain: filterData[0].chain,
-          Volume: TokenTotal.toFixed(3)
+          Volume: TokenTotal.toFixed(2)
         },
         Days7: {
           image: filterData[0].image,
           name: filterData[0].name,
           chain: filterData[0].chain,
           Sales: Sales7.length,
-          Avg: Sales7.length===0? 0:new BigNumber(TokenTotal7).div(Sales7.length).toFixed(3),
-          Volume: TokenTotal7.toFixed(3)
+          Avg: Sales7.length===0? 0:new BigNumber(TokenTotal7).div(Sales7.length).toFixed(2),
+          Volume: TokenTotal7.toFixed(2)
         },
         Days14: {
           image: filterData[0].image,
           name: filterData[0].name,
           chain: filterData[0].chain,
           Sales: Sales14.length,
-          Avg: Sales14.length===0? 0:new BigNumber(TokenTotal14).div(Sales14.length).toFixed(3),
-          Volume: TokenTotal14.toFixed(3)
+          Avg: Sales14.length===0? 0:new BigNumber(TokenTotal14).div(Sales14.length).toFixed(2),
+          Volume: TokenTotal14.toFixed(2)
         }
       })
       let bot = 0
@@ -1523,8 +1255,8 @@ export const GameAnalysis = (data: any) => {
       activeUser.map((item: any) => {
         let level
         const data = actionData.data.data.filter((ele: any) => {
-            return item === filterAddress(ele.t1)
-          })
+          return  item === ele?.buyer
+        })
         if (data.length >= 250) {
           bot = bot + 1
           bottransaction = bottransaction + data.length
@@ -1553,7 +1285,6 @@ export const GameAnalysis = (data: any) => {
       })
       setRankData(Rankarr)
       NFTxAxis.push(filterData[0].name)
-      legend.push(`${filterData[0].name} Average Approve`)
       legend.push(`${filterData[0].name} Average PeopleNumber`)
       legend.push(`${filterData[0].name} Average Transction`)
       BotratioSeries.push({
@@ -1580,12 +1311,8 @@ export const GameAnalysis = (data: any) => {
         stack: filterData[0].name,
         data: calcuBotTranction(actionData.data.data,filterData[0].chain).user
       })
-      NFTTransactionSeries.push({
-        name: `${filterData[0].name} Other`,
-        type: 'bar',
-        stack: filterData[0].name,
-        data: calcuNFTTranction(actionData.data.data).other
-      },
+
+      NFTTransactionSeries.push(
       {
         name: `${filterData[0].name} Transfer`,
         type: 'bar',
@@ -1606,11 +1333,6 @@ export const GameAnalysis = (data: any) => {
       })
 
       seriesData.push({
-        name: `${filterData[0].name} Average Approve`,
-        data: calculate(approveData, actionData.data.data),
-        type: 'line',
-        smooth: true
-      },{
         name: `${filterData[0].name} Average PeopleNumber`,
         data: getPeopleNumber(actionData.data.data),
         type: 'line',
@@ -1622,37 +1344,36 @@ export const GameAnalysis = (data: any) => {
         smooth: true
       })
 
-      Platformlegend.push(...[`${filterData[0].name} OpenSea`,`${filterData[0].name} Element`,`${filterData[0].name} Blur`,`${filterData[0].name} X2Y2`,])
+      Platformlegend.push(...[`${filterData[0].name} Tensor`,`${filterData[0].name} Hadeswap`,`${filterData[0].name} ME_V2`,`${filterData[0].name} Coral Cube AMM`,])
       PlatformSeriesData.push({
-        name: `${filterData[0].name} OpenSea`,
-        data: OpenSea,
+        name: `${filterData[0].name} Tensor`,
+        data: Tensor,
         type: 'line',
         smooth: true
       },{
-        name: `${filterData[0].name} Element`,
-        data: Element,
+        name: `${filterData[0].name} Hadeswap`,
+        data: Hadeswap,
         type: 'line',
         smooth: true
       },{
-        name: `${filterData[0].name} Blur`,
-        data: Blur,
+        name: `${filterData[0].name} ME_V2`,
+        data: ME_V2,
         type: 'line',
         smooth: true
       },{
-        name: `${filterData[0].name} X2Y2`,
-        data: X2Y2,
+        name: `${filterData[0].name} Coral Cube AMM`,
+        data: CoralCubeAMM,
         type: 'line',
         smooth: true
       })
     }
-
-    setActionChartLoad(false)
     setCollectionDataList(arr)
     const initData = [] as any
     arr.map((item: any) => {
       initData.push(item[CollectionDataTab])
     })
     setCollectionData(initData)
+    setActionChartLoad(false)
     const option = {
       tooltip: {
         trigger: 'axis' as any,
@@ -1673,9 +1394,6 @@ export const GameAnalysis = (data: any) => {
         type: 'value' as any
       },
       series: seriesData
-    }
-    if (document.getElementById('AverageActions') == null) {
-      return
     }
     echarts.dispose(document.getElementById('AverageActions') as HTMLDivElement)
     const AverageActionDom = document.getElementById('AverageActions') as HTMLDivElement
@@ -1803,8 +1521,8 @@ export const GameAnalysis = (data: any) => {
     const Time = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
     for (let index = 0; index < addressData.length; index++) {
       const element = addressData[index];
-      const userdata = await newhttp.get(`v0/user/${element.contractAddress}`)
-      const usercacheData = await newhttp.get(`v0/user_cache/${element.contractAddress}`)
+      const userdata = await newhttp.get(`v0/solana_user/${element.contractAddress}`)
+      const usercacheData = await newhttp.get(`v0/solana_user_cache/${element.contractAddress}`)
       const filteruserdata = userdata.data.data.filter((item: any) => {
         const itemTime = new Date(item.dates).getTime()
         return itemTime>Time && itemTime<Time+604800000
@@ -1825,7 +1543,7 @@ export const GameAnalysis = (data: any) => {
               action: 'topPlayers',
               contractaddress: element.contractAddress
             }
-            newhttp.post(`v0/user_cache`,parm)
+            newhttp.post(`v0/solana_user_cache`,parm)
           }
           let saleAddress = ''
           if (element.saleData.length) {
@@ -1837,7 +1555,7 @@ export const GameAnalysis = (data: any) => {
               action: 'topSalers',
               contractaddress: element.contractAddress
             }
-            newhttp.post(`v0/user_cache`,saleparm)
+            newhttp.post(`v0/solana_user_cache`,saleparm)
           }
       } else {
         setChart(true)
@@ -1846,7 +1564,7 @@ export const GameAnalysis = (data: any) => {
   }
 
   const setuserComparisonChart = async () => {
-    const arr = [...data.data,...data.seachCache]
+    const arr = data.seachCache
     const GameData = [...data.GameData,...data.gameData]
     const Time = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
     const AverageActiveLegend = [] as any
@@ -1871,9 +1589,9 @@ export const GameAnalysis = (data: any) => {
       AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Players Transactions`)
       AverageActiveLegend.push(`${filterData[0]?.name||filterData[0]?.contractName} Top Salers Transactions`)
 
-      const statistic = await newhttp.get(`v0/data_statistic/${element}`)
-      const statisticDay = await newhttp.get(`v0/data_statistic_day/${element}`)
-
+      const statistic = await newhttp.get(`v0/solana_data_statistic/${element}`)
+      const statisticDay = await newhttp.get(`v0/solana_data_statistic_day/${element}`)
+      
       const filterstatisticDay = statisticDay.data.data.filter((item: any) => {
         const itemTime = new Date(item.dates).getTime()
         return itemTime>Time && itemTime<Time+604800000
@@ -1959,9 +1677,8 @@ export const GameAnalysis = (data: any) => {
       const SalersId = filterstatistic.filter((item: any) => {
         return item.actions==='topSalers'
       })
-      
-      const Playercollaction = await newhttp.get(`v0/data_statistics_rank5s/${PlayersId[0]?.id}`)
-      const Salerscollaction = await newhttp.get(`v0/data_statistics_rank5s/${SalersId[0]?.id}`)
+      const Playercollaction = await newhttp.get(`v0/solana_data_statistics_rank5s/${PlayersId[0]?.id}`)
+      const Salerscollaction = await newhttp.get(`v0/solana_data_statistics_rank5s/${SalersId[0]?.id}`)
       
       Playercollaction.data.data.map((ele: any) => {
         if (ele.contractname.length>0) {
@@ -2011,6 +1728,7 @@ export const GameAnalysis = (data: any) => {
         }
       })
     }
+
     setComparisonChartLoad(false)
     const AverageActiveOption = {
       tooltip: {
@@ -2084,6 +1802,9 @@ export const GameAnalysis = (data: any) => {
         if (filterData[0].chain === 'polygon') {
           tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
         }
+        if (filterData[0].chain === 'solana') {
+          tokenPrice = 1
+        }
         const findGame = seachGameData.filter((item: any) => {
           return item.name === filterData[0].name || item.name === filterData[0].contractName
         })
@@ -2136,7 +1857,7 @@ export const GameAnalysis = (data: any) => {
                   ERC20Value = ERC20Value + new BigNumber(ele.price).div(1000000000000000000).toNumber()
                 }
               } else {
-                spent = spent+ele.transactionvalue*1
+                spent = spent+ele.price*1
               }
             }
             if (saleIndex>=0) {
@@ -2150,13 +1871,17 @@ export const GameAnalysis = (data: any) => {
                   saleERC20Value = saleERC20Value + new BigNumber(ele.price).div(1000000000000000000).toNumber()
                 }
               } else {
-                saleSpent = saleSpent+ele.transactionvalue*1
+                if (filterData[0].chain === 'solana') {
+                  saleSpent = saleSpent+ele.price*1
+                } else {
+                  saleSpent = saleSpent+ele.transactionvalue*1
+                }
               }
             }
             
           })
-          const vules = new BigNumber(spent).div(1000000000000000000).toNumber()
-          const saleVules = new BigNumber(saleSpent).div(1000000000000000000).toNumber()
+          const vules =filterData[0].chain === 'solana'? spent:new BigNumber(spent).div(1000000000000000000).toNumber()
+          const saleVules =filterData[0].chain === 'solana'?saleSpent: new BigNumber(saleSpent).div(1000000000000000000).toNumber()
           const tokenValue = (vules * tokenPrice + ERC20Value) /findRankData[0].Player.length
           const saleTokenValue = (saleVules * tokenPrice + saleERC20Value) /findRankData[0].saleData.length
           averagePurchasingTime.push(times)
@@ -2339,6 +2064,17 @@ export const GameAnalysis = (data: any) => {
             <div className="pieTitle text-center">Transactions Platform</div>
             <div id="Platform" className="item">
               {ActionChartLoad? (
+                <Loading></Loading>
+              ):(
+                <div className="text-center margin">No Data</div>
+              )}
+            </div>
+            <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
+          </ApproveTable>
+          <ApproveTable className="bg borderNone relative">
+            <div className="pieTitle text-center">Floor Price</div>
+            <div id="FloorPrice" className="item">
+              {FloorPriceLoad? (
                 <Loading></Loading>
               ):(
                 <div className="text-center margin">No Data</div>
