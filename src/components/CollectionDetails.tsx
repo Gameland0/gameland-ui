@@ -887,6 +887,10 @@ export const ApproveTable = styled.div`
   margin: auto;
   margin-top: 20px;
   margin-bottom: 20px;
+  .item {
+    width: 96%;
+    height: 350px;
+  }
   #retentionRate {
     width: 96%;
     height: 350px;
@@ -1950,6 +1954,8 @@ export const CollectionDetails = () => {
     }
     if (tap === 'Analysis' && userActionData && userActionData.length) {
       setSaleRinkDataTable()
+      setPlatform()
+      setSaleDetails()
     }
   },[userActionData, actionDataAll, tap])
   useEffect(() => {
@@ -2734,6 +2740,181 @@ export const CollectionDetails = () => {
       item.ranking = index+1
     })
     setSaleDataAll(sortsaleRankData)
+  }
+  const setPlatform = () => {
+    const PlatformData = userActionData.filter((item: any) => {
+      return item.market
+    })
+    const PlatformxAxis = [] as any
+    const PlatformTime = [] as any
+    const OpenSea = [] as any
+    const Element = [] as any
+    const Blur = [] as any
+    const X2Y2 = [] as any
+    PlatformData.map((item: any) => {
+      const data = PlatformTime.filter((ele: any) => {
+        return new Date(ele *1000).toJSON().substring(5, 10) === new Date(item.timeStamp *1000).toJSON().substring(5, 10)
+      })
+      if (data.length === 0) {
+        PlatformTime.push(item.timeStamp)
+      }
+    })
+    const sortarr = PlatformTime.sort((a: any,b: any)=> {return b-a})
+    sortarr.map((item: any) => {
+      const time = new Date(item *1000).toJSON().substring(5, 10)
+      PlatformxAxis.push(time)
+      const OpenSeaData = PlatformData.filter((ele: any) => {
+        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+        return time === eletime&&ele.market==='OpenSea'
+      })
+      OpenSea.push(OpenSeaData.length)
+      const ElementData = PlatformData.filter((ele: any) => {
+        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+        return time === eletime&&ele.market==='Element'
+      })
+      Element.push(ElementData.length)
+      const BlurData = PlatformData.filter((ele: any) => {
+        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+        return time === eletime&&ele.market==='Blur'
+      })
+      Blur.push(BlurData.length)
+      const X2Y2Data = PlatformData.filter((ele: any) => {
+        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+        return time === eletime&&ele.market==='X2Y2'
+      })
+      X2Y2.push(X2Y2Data.length)
+    })
+    const PlatformOption = {
+      tooltip: {
+        trigger: 'axis' as any,
+      },
+      grid: {
+        left: '3%',
+        right: '3%',
+        bottom: '3%',
+        containLabel: true
+      },
+      legend: {
+        data: [`OpenSea`,`Element`,`Blur`,`X2Y2`,]
+      },
+      xAxis:{
+        data: PlatformxAxis
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [{
+        name: `OpenSea`,
+        data: OpenSea,
+        type: 'line',
+        smooth: true
+      },{
+        name: `Element`,
+        data: Element,
+        type: 'line',
+        smooth: true
+      },{
+        name: `Blur`,
+        data: Blur,
+        type: 'line',
+        smooth: true
+      },{
+        name: `X2Y2`,
+        data: X2Y2,
+        type: 'line',
+        smooth: true
+      }]
+    }
+    echarts.dispose(document.getElementById('Platform') as HTMLDivElement)
+    const Platformdom = document.getElementById('Platform') as HTMLDivElement
+    const PlatformChart = echarts.init(Platformdom)
+    PlatformChart.setOption(PlatformOption)
+  }
+
+  const setSaleDetails = async () => {
+    let tokenPrice: any
+    if (chain === 'eth') {
+      tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+    }
+    if (chain === 'bsc') {
+      tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=56`)).data.data[0]?.lastPrice
+    }
+    if (chain === 'polygon') {
+      tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
+    }
+    if (chain === 'one') {
+      tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=42161`)).data.data[0]?.lastPrice
+    }
+    const saleData = userActionData.filter((item: any) => {
+      return item.xw === 'sale'
+    })
+    const Boughttime = [] as any
+    const BoughttimeArr = [] as any
+    const BoughtDetailsData= [] as any
+    const BoughtSpentData = [] as any
+    saleData.map((item: any) => {
+      const data = Boughttime.filter((ele: any) => {
+        return new Date(ele *1000).toJSON().substring(5, 10) === new Date(item.timeStamp *1000).toJSON().substring(5, 10)
+      })
+      if (data.length === 0) {
+        Boughttime.push(item.timeStamp)
+      }
+    })
+    const sortarr = Boughttime.sort((a: any,b: any)=> {return b-a})
+    sortarr.map((item: any) => {
+      let spent = 0
+      let ERC20Value = 0
+      const time = new Date(item *1000).toJSON().substring(5, 10)
+      BoughttimeArr.push(time)
+      const filterDatas = saleData.filter((ele: any)=> {
+        const eletime = new Date(ele.timeStamp * 1000).toJSON().substring(5, 10)
+        return eletime === time
+      })
+      filterDatas.map(async (ele: any) => {
+        if (ele?.price) {
+          if (ele.price==='WETH') {
+            const Price = (await polygonhttp.get(`v0/oklink/marketprice?chainId=1`)).data.data[0]?.lastPrice
+            const value = new BigNumber(ele.token).div(1000000000000000000).toNumber()*Price
+            ERC20Value = ERC20Value + value
+          }
+          if (ele.price==='Binance USD') {
+            ERC20Value = ERC20Value + new BigNumber(ele.token).div(1000000000000000000).toNumber()
+          }
+        } else {
+          spent = spent + new BigNumber(ele.transactionvalue).div(1000000000000000000).toNumber()
+        }
+      })
+      const tokenValue = spent * tokenPrice + ERC20Value
+      BoughtDetailsData.push(filterDatas.length)
+      BoughtSpentData.push(tokenValue.toFixed(3))
+    })
+    const Boughtoptions = {
+      tooltip: {
+        trigger: 'axis' as any
+      },
+      legend: {
+        data: ['Sale','Price & Volume($)']
+      },
+      xAxis: {
+        data: BoughttimeArr
+      },
+      yAxis: {
+        type: 'value' as any
+      },
+      series: [{
+        name: `Sale`,
+        type: 'line',
+        data: BoughtDetailsData
+      },{
+        name: `Price & Volume($)`,
+        type: 'line',
+        data: BoughtSpentData
+      }]
+    }
+    echarts.dispose(document.getElementById('SaleDetails') as HTMLDivElement)
+    const Boughtmdom = document.getElementById('SaleDetails') as HTMLDivElement
+    const BoughtChart = echarts.init(Boughtmdom)
+    BoughtChart.setOption(Boughtoptions)
   }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
@@ -4517,6 +4698,18 @@ export const CollectionDetails = () => {
                   <div className="pieTitle text-center">DAU</div>
                   <div id="interactionsPerDay">
                     <div className="text-center">No Data</div>
+                  </div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div className="pieTitle text-center">Transactions Platform</div>
+                  <div id="Platform" className="item">
+                      <div className="text-center margin">No Data</div>
+                  </div>
+                  <div className="text-center">{new Date().toISOString().substr(0, 10)}</div>
+                </ApproveTable>
+                <ApproveTable>
+                  <div id="SaleDetails" className="item">
+                    <div className="text-center margin">No Data</div>
                   </div>
                 </ApproveTable>
                 <ApproveTable>
