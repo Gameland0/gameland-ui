@@ -710,7 +710,7 @@ export const SolanaGameAnalysis = (data: any) => {
         setAverageActionChart()
       }
     }
-  }, [data.data,data.seachCache,data.seachContract])
+  }, [data.seachCache,data.seachContract])
 
   useEffect(() => {
     if (saleRankTab!=='') {
@@ -1565,7 +1565,7 @@ export const SolanaGameAnalysis = (data: any) => {
 
   const setuserComparisonChart = async () => {
     const arr = data.seachCache
-    const GameData = [...data.GameData,...data.gameData]
+    const GameData = [...data.gameData]
     const Time = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
     const AverageActiveLegend = [] as any
     const AverageActiveTime = [] as any
@@ -1779,12 +1779,12 @@ export const SolanaGameAnalysis = (data: any) => {
     const averagePurchasingSeries = [] as any
     const averagePurchasingTime = [] as any
     const averagePurchasingLegend = [] as any
-    const GameData = [...data.GameData,...data.gameData]
+    const GameData = [...data.gameData]
     let arr: any
     if (data.seachContract) {
-      arr = [...data.data,...data.seachCache,data.seachContract]
+      arr = [...data.seachCache,data.seachContract]
     } else {
-      arr = [...data.data,...data.seachCache]
+      arr = [...data.seachCache]
     }
     if (seachGameData.length) {
       for (let index = 0; index < arr.length; index++) {
@@ -2243,15 +2243,15 @@ export const SolanaGameAnalysis = (data: any) => {
             <ApproveTable className="ApproveTable bg borderNone relative">
               <Tap className="flex">
                 <div onClick={()=> setUserComparisonTap('AverageActive')}>
-                  Average active rate
+                  Average Active Rate
                   {userComparisonTap === 'AverageActive' ? <img src={shortbutton} /> : ''}
                 </div>
                 <div onClick={()=> setUserComparisonTap('averagePurchasing')}>
-                  average purchasing rate
+                  Average Purchasing Rate
                   {userComparisonTap === 'averagePurchasing' ? <img src={shortbutton} /> : ''}
                 </div>
                 <div onClick={()=> setUserComparisonTap('ChainActivity')}>
-                  Chain activity rate
+                  Chain Activity Rate
                   {userComparisonTap === 'ChainActivity' ? <img src={shortbutton} /> : ''}
                 </div>
                 <div onClick={()=> setUserComparisonTap('PlayersCollections')}>

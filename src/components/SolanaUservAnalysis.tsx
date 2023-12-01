@@ -463,7 +463,7 @@ export const SolanaUservAnalysis = (data: any) => {
                   </div>
                 ))
               ) : (
-                <div className="Notrecords flex flex-justify-content">No records</div>
+                <div className="Notrecords flex flex-justify-content">No Records</div>
               )}
               <div className="tablePage flex">
                 {tableDataAll && tableDataAll.length
@@ -500,7 +500,7 @@ export const SolanaUservAnalysis = (data: any) => {
                   </div>
                 ))
               ) : (
-                <div className="Notrecords flex flex-justify-content">No records</div>
+                <div className="Notrecords flex flex-justify-content">No Records</div>
               )}
               <div className="tablePage flex">
                 {swapDataAll && swapDataAll.length
@@ -540,7 +540,7 @@ export const SolanaUservAnalysis = (data: any) => {
                   </div>
                 ))
               ) : (
-                <div className="Notrecords flex flex-justify-content">No records</div>
+                <div className="Notrecords flex flex-justify-content">No Records</div>
               )}
               <div className="tablePage flex">
                 {transactionAll && transactionAll.length
@@ -584,7 +584,7 @@ export const SolanaUservAnalysis = (data: any) => {
                   </div>
                 ))
               ) : (
-                <div className="Notrecords flex flex-justify-content">No records</div>
+                <div className="Notrecords flex flex-justify-content">No Records</div>
               )}
               <div className="tablePage flex">
                 {washDataAll && washDataAll.length
@@ -612,7 +612,7 @@ export const SolanaUservAnalysis = (data: any) => {
               </div> */}
             </div>
             <div id="Activity" className={activityTab === 'Chains' ? 'lineChart' : 'lineChart none'}>
-              <div className="Notrecords flex flex-justify-content">No records</div>
+              <div className="Notrecords flex flex-justify-content">No Records</div>
             </div>
             {/* <div id="collationActivity" className={activityTab === 'Collections' ? 'lineChart' : 'lineChart none'}>
               <div className="Notrecords flex flex-justify-content">No records</div>
@@ -621,7 +621,7 @@ export const SolanaUservAnalysis = (data: any) => {
           <TableBox className="bg">
             <CollationTable id="relation">
               <div className="title">Player Relationship</div>
-              <div className="text-center">No records</div>
+              <div className="text-center">No Records</div>
             </CollationTable>
           </TableBox>
         </AnalysisBox>

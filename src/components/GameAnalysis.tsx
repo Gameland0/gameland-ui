@@ -2507,15 +2507,15 @@ export const GameAnalysis = (data: any) => {
             <ApproveTable className="ApproveTable bg borderNone relative">
               <Tap className="flex">
                 <div onClick={()=> setUserComparisonTap('AverageActive')}>
-                  Average active rate
+                  Average Active Rate
                   {userComparisonTap === 'AverageActive' ? <img src={shortbutton} /> : ''}
                 </div>
                 <div onClick={()=> setUserComparisonTap('averagePurchasing')}>
-                  average purchasing rate
+                  Average Purchasing Rate
                   {userComparisonTap === 'averagePurchasing' ? <img src={shortbutton} /> : ''}
                 </div>
                 <div onClick={()=> setUserComparisonTap('ChainActivity')}>
-                  Chain activity rate
+                  Chain Activity Rate
                   {userComparisonTap === 'ChainActivity' ? <img src={shortbutton} /> : ''}
                 </div>
                 <div onClick={()=> setUserComparisonTap('PlayersCollections')}>

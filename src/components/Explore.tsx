@@ -16,6 +16,7 @@ import { SolanaGameAnalysis } from './SolanaGameAnalysis'
 import { useActiveWeb3React } from '../hooks'
 import { formatting, handleImgError } from '../utils'
 import { SolanaUservAnalysis } from './SolanaUservAnalysis'
+import axios from 'axios'
 
 const SearchBox = styled.div`
   width: 100%;
@@ -377,18 +378,50 @@ export const Explore = () => {
   const Enter = async (e: any) => {
     if (e.keyCode === 13) {
       if (SeachInputValue.length&&SeachInputValue.length!==42&&seachType !== 'Wallet') {
-        setSeachContract(SeachInputValue)
-        const gameData = solanaGameData.filter((item: any) => {
-          return SeachInputValue.toLowerCase() === item.name.toLowerCase()
-        })
-        const SeachListarr = seachList
-        const filterList = SeachListarr.filter((item: any) => {
-          return gameData[0].address.toLowerCase() === item.toLowerCase()
-        })
-        if (!filterList.length) {
-          SeachListarr.push(gameData[0].address)
+        if (seachType === 'Contract') {
+          const getdata = axios.create({
+            timeout: 100000,
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
+            }
+          })
+          const parm = {
+            nftMint: SeachInputValue
+          }
+          getdata.post(`https://rest-api.hellomoon.io/v0/nft/mints-by-owner`,parm)
+          .then((val) => {
+            console.log(val.data)
+            const gameData = solanaGameData.filter((item: any) => {
+              return val.data.data[0]?.helloMoonCollectionId === item.address
+            })
+            const SeachListarr = seachList
+            const filterList = SeachListarr.filter((item: any) => {
+              return gameData[0].address.toLowerCase() === item.toLowerCase()
+            })
+            if (!filterList.length) {
+              SeachListarr.push(gameData[0].address)
+            }
+            setSeachList(SeachListarr)
+          })
+          .catch(()=> {
+            setSeachContract(SeachInputValue)
+          })
+        } else {
+          setSeachContract(SeachInputValue)
+          const gameData = solanaGameData.filter((item: any) => {
+            return SeachInputValue.toLowerCase() === item.name.toLowerCase()
+          })
+          const SeachListarr = seachList
+          const filterList = SeachListarr.filter((item: any) => {
+            return gameData[0].address.toLowerCase() === item.toLowerCase()
+          })
+          if (!filterList.length) {
+            SeachListarr.push(gameData[0].address)
+          }
+          setSeachList(SeachListarr)
         }
-        setSeachList(SeachListarr)
       } else if (SeachInputValue.length&&SeachInputValue.length>42&&seachType === 'Wallet') {
         if (seachGameList.length ||seachCacheList.length||seachSolanaCacheList.length) {
           toastify.error('SmartContract addresses cannot be mixed with wallet addresses for querying.')
@@ -443,20 +476,53 @@ export const Explore = () => {
     }
   }
 
-  const SeachAddress = () => {
+  const SeachAddress = async () => {
     if (SeachInputValue.length&&SeachInputValue.length!==42&&seachType !== 'Wallet') {
-      setSeachContract(SeachInputValue)
-      const gameData = solanaGameData.filter((item: any) => {
-        return SeachInputValue.toLowerCase() === item.name.toLowerCase()
-      })
-      const SeachListarr = seachList
-      const filterList = SeachListarr.filter((item: any) => {
-        return gameData[0].address.toLowerCase() === item.toLowerCase()
-      })
-      if (!filterList.length) {
-        SeachListarr.push(gameData[0].address)
+      if (seachType === 'Contract') {
+        const getdata = axios.create({
+          timeout: 100000,
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
+          }
+        })
+        const parm = {
+          nftMint: SeachInputValue
+        }
+        getdata.post(`https://rest-api.hellomoon.io/v0/nft/mints-by-owner`,parm)
+        .then((val) => {
+          console.log(val.data)
+          const gameData = solanaGameData.filter((item: any) => {
+            return val.data.data[0]?.helloMoonCollectionId === item.address
+          })
+          const SeachListarr = seachList
+          const filterList = SeachListarr.filter((item: any) => {
+            return gameData[0].address.toLowerCase() === item.toLowerCase()
+          })
+          if (!filterList.length) {
+            SeachListarr.push(gameData[0].address)
+          }
+          setSeachList(SeachListarr)
+          setSeachContract(SeachInputValue)
+        })
+        .catch(()=> {
+          setSeachContract(SeachInputValue)
+        })
+      } else {
+        setSeachContract(SeachInputValue)
+        const gameData = solanaGameData.filter((item: any) => {
+          return SeachInputValue.toLowerCase() === item.name.toLowerCase()
+        })
+        const SeachListarr = seachList
+        const filterList = SeachListarr.filter((item: any) => {
+          return gameData[0].address.toLowerCase() === item.toLowerCase()
+        })
+        if (!filterList.length) {
+          SeachListarr.push(gameData[0].address)
+        }
+        setSeachList(SeachListarr)
       }
-      setSeachList(SeachListarr)
     } else if (SeachInputValue.length&&SeachInputValue.length>42&&seachType === 'Wallet') {
       if (seachGameList.length ||seachCacheList.length||seachSolanaCacheList.length) {
         toastify.error('SmartContract addresses cannot be mixed with wallet addresses for querying.')
@@ -505,7 +571,6 @@ export const Explore = () => {
         if (seachSolanaCacheList&&seachSolanaCacheList.length) {
           setSeachSolanaCache(seachSolanaCacheList)
         }
-        console.log(seachSolanaCacheList)
         setSeachList([...seachCacheList,...seachGameList,...seachSolanaCacheList])
       }
     }

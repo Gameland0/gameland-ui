@@ -1631,6 +1631,8 @@ export const CollectionDetails = () => {
   const [transactionsTotalPage, setTransactionsTotalPage] = useState(0)
   const [transactionsTablePage, setTransactionsTablePage] = useState(0)
   const [saleRinkDataPage, setSaleRinkDataPage] = useState(0)
+  const [NFTTransfersDataPage, setNFTTransfersDataPage] = useState(0)
+  const [NFTSalesDataPage, setNFTSalesDataPage] = useState(0)
   const [nftData, setnftData] = useState([] as any)
   const [DataAll, setDataAll] = useState([] as any)
   const [userinfo, setUserinfo] = useState([] as any)
@@ -1656,6 +1658,9 @@ export const CollectionDetails = () => {
   const [RecommendPlayerData, setRecommendPlayerData] = useState([] as any)
   const [userActionData, setUserActionData] = useState([] as any)
   const [NFTTransfersData, setNFTTransfersData] = useState([] as any)
+  const [NFTTransfersDataAll, setNFTTransfersDataAll] = useState([] as any)
+  const [NFTSalesData,setNFTSalesData] = useState([] as any)
+  const [NFTSalesDataAll,setNFTSalesDataAll] = useState([] as any)
   const [collectionRiskData, setCollectionRiskData] = useState([] as any)
   const [tokenRiskData, setTokenRiskData] = useState([] as any)
   const [tokenHoldData, setTokenHoldData] = useState([] as any)
@@ -1715,7 +1720,6 @@ export const CollectionDetails = () => {
   const [transactionsType, setTransactionsType] = useState('All')
   const [transactionsTypeRatio, setTransactionsTypeRatio] = useState('NFT')
   const [holdersRatio ,setHoldersRatio] = useState('NFT')
-  const [cursor, setCursor] = useState('')
   const [holdNFTtotal, setHoldNFTtotal] = useState('')
   const [holdTokentotal, setHoldTokentotal] = useState('')
   const [AirdropType, setAirdropType] = useState('Average')
@@ -1848,7 +1852,6 @@ export const CollectionDetails = () => {
     getActiveData()
     getTokenData()
     contractDetection()
-    getNFTTransfersData()
   }, [contractName])
   useEffect(() => {
     const data = fetchMetadata(nftData)
@@ -1956,6 +1959,8 @@ export const CollectionDetails = () => {
       setSaleRinkDataTable()
       setPlatform()
       setSaleDetails()
+      getNFTTransfersData()
+      setNFTSales()
     }
   },[userActionData, actionDataAll, tap])
   useEffect(() => {
@@ -2186,19 +2191,43 @@ export const CollectionDetails = () => {
     })
   }
   const getNFTTransfersData = async () => {
-    const getdata = axios.create({
-      timeout: 100000,
-      headers: {
-        'X-API-Key': MORALIS_KEY
+    const NFTData = userActionData.filter((item: any) => {
+      return item.xw === 'sale' || item.xw === 'tranfer'
+    })
+    const NFTTransaction = [] as any
+    NFTData.map((item: any) => {
+      let amount: any
+      if (item.xw === 'sale') {
+        if (item.token) {
+          amount = new BigNumber(item.price).div(1000000000000000000).toNumber() + ' '+ item.token
+        } else {
+          amount = new BigNumber(item.transactionvalue).div(1000000000000000000).toNumber() + ' BNB'
+        }
+      }
+      if (item.xw === 'tranfer') {
+        amount = 0
+      }
+      NFTTransaction.push({
+        time: item.timeStamp*1000,
+        from: filterAddress(item?.t1),
+        to: filterAddress(item?.t2),
+        price: amount,
+        tokenid: item.tokenid,
+        type: item.xw
+      })
+    })
+    const sortArr = NFTTransaction.sort((a: any,b: any)=> {return b.time-a.time})
+    const Deduplication = [] as any
+    sortArr.map((item: any) => {
+      const filterData = Deduplication.filter((ele: any) => {
+        return item.tokenid===ele.tokenid&&item.t1===ele.t1&&item.t2===ele.t2&&item.time===ele.time
+      })
+      if (!filterData.length) {
+        Deduplication.push(item)
       }
     })
-    try {
-      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain==='one'?'arbitrum':chain}&format=decimal&limit=10`)
-      setNFTTransfersData(data.result)
-      setCursor(data.cursor)
-    } catch (error) {
-      console.log(error)
-    }
+    setNFTTransfersData(Deduplication.slice(0, 10))
+    setNFTTransfersDataAll(Deduplication)
   }
   const getTokenData = async () => {
     const action = await http2.get(`v0/erc20_active_actions/${address}`)
@@ -2830,7 +2859,6 @@ export const CollectionDetails = () => {
     const PlatformChart = echarts.init(Platformdom)
     PlatformChart.setOption(PlatformOption)
   }
-
   const setSaleDetails = async () => {
     let tokenPrice: any
     if (chain === 'eth') {
@@ -2915,6 +2943,48 @@ export const CollectionDetails = () => {
     const Boughtmdom = document.getElementById('SaleDetails') as HTMLDivElement
     const BoughtChart = echarts.init(Boughtmdom)
     BoughtChart.setOption(Boughtoptions)
+  }
+  const setNFTSales = () => {
+    const saleData = userActionData.filter((item: any) => {
+      return item.xw === 'sale'
+    })
+    const tokenid = [] as any
+    saleData.map((item: any) => {
+      const filterdata = tokenid.filter((ele: any) => {
+        return ele === item.tokenid
+      })
+      if (!filterdata.length) {
+        tokenid.push(item.tokenid)
+      }
+    })
+    const nftSaleData = [] as any
+    tokenid.map((item: any) => {
+      let price = 0
+      const findData = saleData.filter((ele: any) => {
+        return ele.tokenid === item
+      })
+      findData.map((val: any) => {
+        if (val.transactionvalue) {
+          price = price + new BigNumber(val.transactionvalue).div(1000000000000000000).toNumber()
+        }
+      })
+      nftSaleData.push({
+        tokenid: item,
+        Sales: findData.length,
+        Volume: price.toFixed(3)
+      })
+    })
+    const sortarr = nftSaleData.sort((a: any,b: any)=> {
+      if (b.Sales===a.Sales) {
+        return b.Volume-a.Volume
+      }
+      return b.Sales-a.Sales
+    })
+    sortarr.map((item: any, index: number) => {
+      item.ranking = index + 1
+    })
+    setNFTSalesData(sortarr.slice(0, 10))
+    setNFTSalesDataAll(sortarr)
   }
   const isLike = (id: any) => {
     const Index = userLikeInfo.findIndex((item: any) => {
@@ -3826,6 +3896,14 @@ export const CollectionDetails = () => {
   const saleRinkNext = (index: number) => {
     setSaleRinkDataPage(index)
   }
+  const NFTTransfersNext = (index: number) => {
+    setNFTTransfersDataPage(index)
+    setNFTTransfersData(NFTTransfersDataAll.slice(10 * index, 10 * index + 10))
+  }
+  const NFTSaleNext = (index: number) => {
+    setNFTSalesDataPage(index)
+    setNFTSalesData(NFTSalesDataAll.slice(10 * index, 10 * index + 10))
+  }
   const TransactionsButtonAll = () => {
     setTransactionsData([])
     setTransactionsType('All')
@@ -3833,21 +3911,6 @@ export const CollectionDetails = () => {
   const TransactionsAll = () => {
     setTransactionsData([])
     setTransactionsType('colletion')
-  }
-  const nextPage = async () => {
-    const getdata = axios.create({
-      timeout: 100000,
-      headers: {
-        'X-API-Key': MORALIS_KEY
-      }
-    })
-    try {
-      const { data } = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${address}/transfers?chain=${chain==='one'?'arbitrum':chain}&format=decimal&limit=10&cursor=${cursor}`)
-      setNFTTransfersData(data.result)
-      setCursor(data.cursor)
-    } catch (error) {
-      console.log(error)
-    }
   }
   const OpenAirdropList = async () => {
     actionDataAll.map((item: any) => {
@@ -4834,13 +4897,14 @@ export const CollectionDetails = () => {
                     </div>
                   </div>
                   <div className={transactionsType === 'All' ? 'table none' : 'table'}>
-                    <div className="title">NFT Transfers</div>
+                    <div className="title">NFT Transaction</div>
                     <div className="tableTab flex">
                       <div>Time</div>
-                      <div className='Address'>From</div>
-                      <div className='Address'>to</div>
-                      <div className="amount">amount</div>
+                      <div className=''>From</div>
+                      <div className=''>To</div>
+                      <div className="amount">Price</div>
                       <div>Token ID</div>
+                      <div>Type</div>
                     </div>
                     {NFTTransfersData && NFTTransfersData.length ? (
                       NFTTransfersData.map((item: any, index: number) => (
@@ -4848,17 +4912,31 @@ export const CollectionDetails = () => {
                           className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'}
                           key={index}
                         >
-                          <div>{item?.block_timestamp.substr(0, 10)}</div>
-                          <div className='Address'>{item?.from_address}</div>
-                          <div className='Address'>{item?.to_address}</div>
-                          <div className="amount">{item?.amount}</div>
-                          <div>{formatting(item?.token_id || '')}</div>
+                          <div>{new Date(item.time).toJSON().substring(0, 10)}</div>
+                          <div className=''>{formatting(item.from)}</div>
+                          <div className=''>{formatting(item?.to)}</div>
+                          <div className="amount">{item?.price}</div>
+                          <div>{item.tokenid}</div>
+                          <div>{item.type}</div>
                         </div>
                       ))
                     ) : (
                       <div className="Notrecords flex flex-justify-content">No records</div>
                     )}
-                    <div className="nextPage flex flex-center cursor" onClick={nextPage}>Next</div>
+                    <div className="tablePage flex">
+                      {NFTTransfersDataAll && NFTTransfersDataAll.length
+                        ? NFTTransfersDataAll.slice(0, Math.ceil(NFTTransfersDataAll.length/10)>41 ? 41 : Math.ceil(NFTTransfersDataAll.length/10)).map((item: any, index: number) => (
+                          <div
+                            className={NFTTransfersDataPage === index? 'flex selected': 'flex'
+                            }
+                            key={index}
+                            onClick={() => NFTTransfersNext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                    </div>
                   </div>
                 </TabBox>
                 <RankingTable className="">
@@ -4869,7 +4947,7 @@ export const CollectionDetails = () => {
                         <img src={shortbutton} />
                       </div>
                     </div>
-                    <div className="title text-center">Top Sales</div>
+                    <div className="title text-center">Top Salers</div>
                     <div className="titleBar flex">
                       <div>Ranking</div>
                       <div className="Address">Address</div>
@@ -4909,6 +4987,66 @@ export const CollectionDetails = () => {
                             }
                             key={index}
                             onClick={() => saleRinkNext(index)}
+                          >
+                            {index + 1}
+                          </div>
+                        ))
+                      : ''}
+                    </div>
+                  </div>
+                </RankingTable>
+                <RankingTable className="">
+                  <div className="saleRank itemDiv">
+                    <div className='Tab flex'>
+                      <div>
+                        {collectionDetails.contractName}
+                        <img src={shortbutton} />
+                      </div>
+                    </div>
+                    <div className="title text-center">Top Sales</div>
+                    <div className="titleBar flex">
+                      <div>Ranking</div>
+                      <div className="Address">Token ID</div>
+                      <div>Sales</div>
+                      <div>Volume</div>
+                    </div>
+                    <div className="dataArea">
+                      {NFTSalesData&&NFTSalesData.length? (
+                        NFTSalesData.map((item: any, index: number) =>(
+                          <div
+                            className={(index + 1) % 2 === 0 ? 'dataItem flex bag' : 'dataItem flex'}
+                            key={index}
+                          >
+                            <div>{item.ranking}</div>
+                            <div className="Address">
+                              <a href={`https://${chain==='eth'?'ether':chain}scan.io/nft/${collectionDetails.contractAddress}/${item.tokenid}`}>
+                                {item.tokenid}
+                              </a>
+                            </div>
+                            <div>{item.Sales}</div>
+                            <div  className="Volume">
+                              {chain==='polygon'
+                                ? (<img src={PolygonImg} alt="" />)
+                                : chain==='bsc'
+                                ? (<img src={BSCImg} alt="" />)
+                                : (<img src={ETHImg} alt="" />)
+                              }
+                              {item.Volume}
+                            </div>
+                          </div>
+                        ))
+                      ):(
+                        <div className="NoData text-center">No data</div>
+                      )}
+                    </div>
+                    <div className="tablePage flex">
+                      {NFTSalesDataAll && NFTSalesDataAll.length
+                        ? NFTSalesDataAll.slice(0, Math.ceil(NFTSalesDataAll.length/10)).map((item: any, index: number) => (
+                          <div
+                            className={NFTSalesDataPage === index? 'flex selected': 'flex'
+                            }
+                            key={index}
+                            onClick={() => NFTSaleNext(index)}
                           >
                             {index + 1}
                           </div>
