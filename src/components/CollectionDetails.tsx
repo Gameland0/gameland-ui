@@ -2071,9 +2071,6 @@ export const CollectionDetails = () => {
     const res6 = await http.get(
       `https://api.rss3.io/v1/notes/${actionData[6]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
     )
-    const res7 = await http.get(
-      `https://api.rss3.io/v1/notes/${actionData[7]?.address}?limit=500&include_poap=false&count_only=false&query_status=false`
-    )
     const data = [
       ...res.data.result,
       ...res1.data.result,
@@ -2081,8 +2078,7 @@ export const CollectionDetails = () => {
       ...res3.data.result,
       ...res4.data.result,
       ...res5.data.result,
-      ...res6.data.result,
-      ...res7.data.result
+      ...res6.data.result
     ]
     const Tabledata = [] as any
     const TabledataAll = [] as any

@@ -206,6 +206,15 @@ const SearchGame = styled.div`
   }
 `
 
+const hellomoonApi = axios.create({
+  timeout: 100000,
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
+  }
+})
+
 export const Explore = () => {
   const { account } = useActiveWeb3React()
   const [switchTab, setSwitchTab] = useState('Recommend')
@@ -379,20 +388,11 @@ export const Explore = () => {
     if (e.keyCode === 13) {
       if (SeachInputValue.length&&SeachInputValue.length!==42&&seachType !== 'Wallet') {
         if (seachType === 'Contract') {
-          const getdata = axios.create({
-            timeout: 100000,
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "application/json",
-              Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
-            }
-          })
           const parm = {
             nftMint: SeachInputValue
           }
-          getdata.post(`https://rest-api.hellomoon.io/v0/nft/mints-by-owner`,parm)
+          hellomoonApi.post(`https://rest-api.hellomoon.io/v0/nft/mints-by-owner`,parm)
           .then((val) => {
-            console.log(val.data)
             const gameData = solanaGameData.filter((item: any) => {
               return val.data.data[0]?.helloMoonCollectionId === item.address
             })
@@ -475,24 +475,14 @@ export const Explore = () => {
       }
     }
   }
-
   const SeachAddress = async () => {
     if (SeachInputValue.length&&SeachInputValue.length!==42&&seachType !== 'Wallet') {
       if (seachType === 'Contract') {
-        const getdata = axios.create({
-          timeout: 100000,
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: "Bearer bee3af0b-f180-4c66-b1d4-a2f7cc866c5d"
-          }
-        })
         const parm = {
           nftMint: SeachInputValue
         }
-        getdata.post(`https://rest-api.hellomoon.io/v0/nft/mints-by-owner`,parm)
+        hellomoonApi.post(`https://rest-api.hellomoon.io/v0/nft/mints-by-owner`,parm)
         .then((val) => {
-          console.log(val.data)
           const gameData = solanaGameData.filter((item: any) => {
             return val.data.data[0]?.helloMoonCollectionId === item.address
           })
@@ -585,7 +575,7 @@ export const Explore = () => {
   }
 
   const closeButton = (address: string) => {
-    if (address === seachContract) {
+    if (address === seachContract || seachContract.length>42) {
       setSeachContract('')
     }
     const arr = seachGames.filter((ele: any) => {
@@ -603,7 +593,6 @@ export const Explore = () => {
     })
     setSeachSolanaCache(arr3)
     setSeachSolanaCacheList(arr3)
-
     setSeachList([...arr,...arr2,...arr3])
   }
 

@@ -71,7 +71,7 @@ export const TokenTransactions = styled.div`
     width: 400px;
     height: 130px;
     border: 1px solid #43B7FF;
-    padding: 10px 20px;
+    padding: 10px 10px;
     border-radius: 28px;
     .Collection {
       width: 155px;
@@ -92,34 +92,34 @@ export const TokenTransactions = styled.div`
       }
     }
     .Volume {
-      width: 75px;
+      width: 90px;
       margin-left: 10px;
       text-align: right;
       img {
-        width: 15px;
-        height: 15px;
+        width: 10px;
+        height: 10px;
         margin-right: 5px;
         margin-top: -3px;
       }
     }
     .Avg {
-      width: 55px;
+      width: 60px;
       text-align: right;
     }
     .Sales {
-      width: 55px;
+      width: 60px;
       text-align: right;
     }
     .info {
       margin-top: 10px;
       .gameImg {
-        width: 40px;
-        height: 40px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         margin-right: 10px;
       }
       .name {
-        width: 105px;
+        width: 115px;
       }
     }
   }
@@ -1780,17 +1780,13 @@ export const SolanaGameAnalysis = (data: any) => {
     const averagePurchasingTime = [] as any
     const averagePurchasingLegend = [] as any
     const GameData = [...data.gameData]
-    let arr: any
-    if (data.seachContract) {
-      arr = [...data.seachCache,data.seachContract]
-    } else {
-      arr = [...data.seachCache]
-    }
+    const arr = [...data.seachCache]
+
     if (seachGameData.length) {
       for (let index = 0; index < arr.length; index++) {
         const element = arr[index]
         const filterData = GameData.filter((ele: any) => {
-          return element?.toLowerCase() === ele.contractAddress?.toLowerCase() || element?.toLowerCase() === ele.address?.toLowerCase()
+          return element?.toLowerCase() === ele.address?.toLowerCase()
         })
         let tokenPrice: any
         if (filterData[0].chain === 'eth') {

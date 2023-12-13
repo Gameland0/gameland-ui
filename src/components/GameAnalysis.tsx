@@ -12,6 +12,7 @@ import PolygonImg from '../assets/polygon.svg'
 import BSCImg from '../assets/binance.svg'
 import ETHImg from '../assets/eth.svg'
 import SolanaLogo from '../assets/solanaLogo.png'
+import OneImg from '../assets/ArbitrumOne.png'
 import shortbutton from '../assets/short_button.jpg'
 import { fetchReceipt, filterAddress, formatting } from '../utils'
 import BigNumber from 'bignumber.js'
@@ -707,6 +708,12 @@ export const GameAnalysis = (data: any) => {
           'X-API-Key': MORALIS_KEY
         }
       })
+      const simplehash = axios.create({
+        timeout: 100000,
+        headers: {
+          'X-API-Key': 'gameland_sk_6dafc74d-9eb3-44fc-92af-b464e1782763_szhqyvlngx7rp7za'
+        }
+      })
       const time = Math.ceil(new Date().getTime()/1000)
       const bscinfo = await getdata.get(`https://deep-index.moralis.io/api/v2/nft/${data.seachContract}?chain=bsc&format=decimal&media_items=false`)
       if (bscinfo.data.result[0]?.contract_type) {
@@ -745,6 +752,20 @@ export const GameAnalysis = (data: any) => {
           name: ethinfo.data.result[0].name,
           blocknumber: block.data.result*1,
           uri: ethinfo.data.result[0].token_uri
+        }
+        newhttp.post(`v0/games_cache`, params)
+      }
+      const arbiInfo = await simplehash.get(`https://api.simplehash.com/api/v0/nfts/arbitrum/${data.seachContract}?limit=10`)
+      if (arbiInfo.data.nfts.length) {
+        const arbikey = 'I1D2GT6CFQFJHAH2RXY4MIBDNYWHJZYMWE'
+        const block = await http.get(`https://api.arbiscan.io/api?module=block&action=getblocknobytime&timestamp=${time}&closest=before&apikey=${arbikey}`)
+        const params = {
+          address: data.seachContract,
+          chain: 'one',
+          type: arbiInfo.data.nfts[0].contract.type,
+          name: arbiInfo.data.nfts[0].collection.name,
+          blocknumber: block.data.result*1,
+          uri: ''
         }
         newhttp.post(`v0/games_cache`, params)
       }
@@ -829,8 +850,8 @@ export const GameAnalysis = (data: any) => {
       const filterData = data.gameData.filter((ele: any) => {
         return element.toLowerCase() === ele.address.toLowerCase()
       })
-      const res = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0].chain}&tokenContractAddress=${element}`)
-      const res2 = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0].chain}&tokenContractAddress=${element}&page=${2}`)
+      const res = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0]?.chain==='one'?'arbitrum':filterData[0]?.chain}&tokenContractAddress=${element}`)
+      const res2 = await polygonhttp.get(`v0/oklink/transactionList?chainShortName=${filterData[0]?.chain==='one'?'arbitrum':filterData[0]?.chain}&tokenContractAddress=${element}&page=${2}`)
       const dataAll = [...res.data.data[0].transactionLists, ...res2.data.data[0].transactionLists]
 
       dataAll.map((item: any) => {
@@ -1130,6 +1151,9 @@ export const GameAnalysis = (data: any) => {
       if (filterData[0].chain === 'polygon') {
         tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
       }
+      if (filterData[0].chain === 'one') {
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=42161`)).data.data[0]?.lastPrice
+      }
       sortBoughttime.map((item: any) => {
         let spent = 0
         let ERC20Value = 0
@@ -1321,6 +1345,8 @@ export const GameAnalysis = (data: any) => {
       const Element = [] as any
       const Blur = [] as any
       const X2Y2 = [] as any
+      const Treasure = [] as any
+      const TofuNFT = [] as any
       const actionRankData = [] as any
       const saleRankData = [] as any
       actionData.data.data.map((item: any) => {
@@ -1374,21 +1400,34 @@ export const GameAnalysis = (data: any) => {
           return time === item&&ele.market==='OpenSea'
         })
         OpenSea.push(OpenSeadata.length)
-        const Elementdata = PlatformAll.filter((ele: any) => {
-          const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='Element'
-        })
-        Element.push(Elementdata.length)
-        const Blurdata = PlatformAll.filter((ele: any) => {
-          const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='Blur'
-        })
-        Blur.push(Blurdata.length)
-        const X2Y2data = PlatformAll.filter((ele: any) => {
-          const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-          return time === item&&ele.market==='X2Y2'
-        })
-        X2Y2.push(X2Y2data.length)
+        if (filterData[0].chain === 'one') {
+          const Treasuredata = PlatformAll.filter((ele: any) => {
+            const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+            return time === item&&ele.market==='treasure'
+          })
+          Treasure.push(Treasuredata.length)
+          const TofuNFTdata = PlatformAll.filter((ele: any) => {
+            const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+            return time === item&&ele.market==='tofuNFT'
+          })
+          TofuNFT.push(TofuNFTdata.length)
+        } else {
+          const Elementdata = PlatformAll.filter((ele: any) => {
+            const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+            return time === item&&ele.market==='Element'
+          })
+          Element.push(Elementdata.length)
+          const Blurdata = PlatformAll.filter((ele: any) => {
+            const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+            return time === item&&ele.market==='Blur'
+          })
+          Blur.push(Blurdata.length)
+          const X2Y2data = PlatformAll.filter((ele: any) => {
+            const time = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+            return time === item&&ele.market==='X2Y2'
+          })
+          X2Y2.push(X2Y2data.length)
+        }
       })
       const Sales = actionData.data.data.filter((item: any)=> {
         return item.action === 'sale'
@@ -1432,6 +1471,9 @@ export const GameAnalysis = (data: any) => {
       }
       if (filterData[0].chain === 'polygon') {
         tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
+      }
+      if (filterData[0].chain === 'one') {
+        tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=42161`)).data.data[0]?.lastPrice
       }
 
       sortBoughttime.map(async (item: any) => {
@@ -1621,29 +1663,48 @@ export const GameAnalysis = (data: any) => {
         type: 'line',
         smooth: true
       })
-
-      Platformlegend.push(...[`${filterData[0].name} OpenSea`,`${filterData[0].name} Element`,`${filterData[0].name} Blur`,`${filterData[0].name} X2Y2`,])
-      PlatformSeriesData.push({
-        name: `${filterData[0].name} OpenSea`,
-        data: OpenSea,
-        type: 'line',
-        smooth: true
-      },{
-        name: `${filterData[0].name} Element`,
-        data: Element,
-        type: 'line',
-        smooth: true
-      },{
-        name: `${filterData[0].name} Blur`,
-        data: Blur,
-        type: 'line',
-        smooth: true
-      },{
-        name: `${filterData[0].name} X2Y2`,
-        data: X2Y2,
-        type: 'line',
-        smooth: true
-      })
+      if (filterData[0].chain === 'one') {
+        Platformlegend.push(...[`${filterData[0].name} OpenSea`,`${filterData[0].name} treasure`,`${filterData[0].name} tofuNFT`])
+        PlatformSeriesData.push({
+          name: `${filterData[0].name} OpenSea`,
+          data: OpenSea,
+          type: 'line',
+          smooth: true
+        },{
+          name: `${filterData[0].name} treasure`,
+          data: Treasure,
+          type: 'line',
+          smooth: true
+        },{
+          name: `${filterData[0].name} tofuNFT`,
+          data: TofuNFT,
+          type: 'line',
+          smooth: true
+        })
+      } else {
+        Platformlegend.push(...[`${filterData[0].name} OpenSea`,`${filterData[0].name} Element`,`${filterData[0].name} Blur`,`${filterData[0].name} X2Y2`])
+        PlatformSeriesData.push({
+          name: `${filterData[0].name} OpenSea`,
+          data: OpenSea,
+          type: 'line',
+          smooth: true
+        },{
+          name: `${filterData[0].name} Element`,
+          data: Element,
+          type: 'line',
+          smooth: true
+        },{
+          name: `${filterData[0].name} Blur`,
+          data: Blur,
+          type: 'line',
+          smooth: true
+        },{
+          name: `${filterData[0].name} X2Y2`,
+          data: X2Y2,
+          type: 'line',
+          smooth: true
+        })
+      }
     }
 
     setActionChartLoad(false)
@@ -2084,6 +2145,9 @@ export const GameAnalysis = (data: any) => {
         if (filterData[0].chain === 'polygon') {
           tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=137`)).data.data[0]?.lastPrice
         }
+        if (filterData[0].chain === 'one') {
+          tokenPrice = (await polygonhttp.get(`v0/oklink/marketprice?chainId=42161`)).data.data[0]?.lastPrice
+        }
         const findGame = seachGameData.filter((item: any) => {
           return item.name === filterData[0].name || item.name === filterData[0].contractName
         })
@@ -2316,7 +2380,9 @@ export const GameAnalysis = (data: any) => {
                       ? (<img src={BSCImg} alt="" />)
                       : item.chain==='eth'
                       ? (<img src={ETHImg} alt="" />)
-                      : (<img src={SolanaLogo} alt="" />)
+                      : item.chain==='one'
+                      ? (<img src={OneImg} alt="" />)
+                      :(<img src={SolanaLogo} alt="" />)
                     }
                     {item.Volume}
                   </div>
@@ -2489,6 +2555,8 @@ export const GameAnalysis = (data: any) => {
                               ? (<img src={BSCImg} alt="" />)
                               : item.chain==='eth'
                               ? (<img src={ETHImg} alt="" />)
+                              : item.chain==='one'
+                              ? (<img src={OneImg} alt="" />)
                               : (<img src={SolanaLogo} alt="" />)
                             }
                             {item.Volume}

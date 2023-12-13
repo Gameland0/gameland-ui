@@ -231,6 +231,7 @@ export const OneRewardAddress = '0xc3f30DFFaeFDF540c2e66477c875824ab8bA584C'
 export const OnePayMentAddress = '0xDc0cca7521129cC85629be12a191a74Cbd59d340'
 export const OneUSDT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'
 export const ONE_API_KEY = 'PIXPBZ6T75MXJJ4QAR48MK4ZNP1YQYGYHM'
+export const NOVA_API_KEY = 'ZCK9XS8DG6ZZNPPJ1HPAQMKD3HYKW88U8V'
 export const ONE_CHAIN_ID = '0xa4b1'
 export const ONE_RPC_URL = 'https://arb1.arbitrum.io/rpc'
 

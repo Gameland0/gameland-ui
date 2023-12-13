@@ -1589,12 +1589,32 @@ export const MyPage = () => {
       const ETHTokensChart = echarts.init(ETHTokensdom)
       ETHTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
     })
+    polygonhttp.get(`v0/oklink/addressBalance?chainShortName=arbitrum&address=${account}&protocolType=token_20`).then((vals) => {
+      const Tokensoptionsdata = [] as any
+      let tokenTotal = 0
+      vals.data.data[0].tokenList.map((item: any) => {
+        if (item.priceUsd * 1 > 0) {
+          Tokensoptionsdata.push({ value: (item.valueUsd*1).toFixed(2), name: item.token+'($)' })
+        }
+        tokenTotal = tokenTotal + (item.valueUsd*1)
+      })
+      setEthTokenTotal(tokenTotal)
+      const ETHTokensdom = document.getElementById('ArbitrumOneTokens') as HTMLDivElement
+      const ETHTokensChart = echarts.init(ETHTokensdom)
+      ETHTokensChart.setOption(PieOption('Tokens', Tokensoptionsdata))
+    })
   }
   const setCollectionPie = () => {
     const getdata = axios.create({
       timeout: 100000,
       headers: {
         'X-API-Key': MORALIS_KEY
+      }
+    })
+    const simplehash = axios.create({
+      timeout: 100000,
+      headers: {
+        'X-API-Key': 'gameland_sk_6dafc74d-9eb3-44fc-92af-b464e1782763_szhqyvlngx7rp7za'
       }
     })
     getdata.get(`https://deep-index.moralis.io/api/v2/${account}/nft?chain=bsc&format=decimal`).then((vals) => {
@@ -1672,6 +1692,23 @@ export const MyPage = () => {
       })
       setEthNFTTotal(NFTTotal)
       const Collationdom = document.getElementById('ethCollation') as HTMLDivElement
+      const CollationChart = echarts.init(Collationdom)
+      CollationChart.setOption(PieOption('Colletion', optionData))
+    })
+    simplehash.get(`https://api.simplehash.com/api/v0/nfts/owners?chains=arbitrum&wallet_addresses=${account}&limit=50`).then((vals) => {
+      const addressArr = [] as any
+      vals.data.nfts.map((item: any) => {
+        addressArr.push(item.collection.name)
+      })
+      const addressArrDeduplication = [...new Set(addressArr)]
+      const optionData = [] as any
+      addressArrDeduplication.slice(0, 15).map((item: any) => {
+        const data = vals.data.nfts.filter((ele: any) => {
+          return ele.collection.name === item
+        })
+        optionData.push({ value: data.length, name: item })
+      })
+      const Collationdom = document.getElementById('arbitrumOneCollation') as HTMLDivElement
       const CollationChart = echarts.init(Collationdom)
       CollationChart.setOption(PieOption('Colletion', optionData))
     })
@@ -3410,10 +3447,15 @@ export const MyPage = () => {
                       Ethereum
                       {collectionTab === 'Ethereum' ? <img src={longbutton} /> : ''}
                     </div>
+                    <div onClick={() => setCollectionTab('ArbitrumOne')}>
+                      Arbitrum One
+                      {collectionTab === 'ArbitrumOne' ? <img src={shortbutton} /> : ''}
+                    </div>
                   </div>
                   <div id="polygonCollation" className={collectionTab === 'Polygon' ? 'lineChart' : 'lineChart none'}></div>
                   <div id="bscCollation" className={collectionTab === 'BNB' ? 'lineChart' : 'lineChart none'}></div>
                   <div id="ethCollation" className={collectionTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
+                  <div id="arbitrumOneCollation" className={collectionTab === 'ArbitrumOne' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
               </div>
               <div className="pieitem flex flex-column-between">
@@ -3431,10 +3473,15 @@ export const MyPage = () => {
                       Ethereum
                       {tokenTab === 'Ethereum' ? <img src={longbutton} /> : ''}
                     </div>
+                    <div onClick={() => setTokenTab('ArbitrumOne')}>
+                      Arbitrum One
+                      {tokenTab === 'ArbitrumOne' ? <img src={longbutton} /> : ''}
+                    </div>
                   </div>
                   <div id="PolygonTokens" className={tokenTab === 'Polygon' ? 'lineChart' : 'lineChart none'}></div>
                   <div id="BSCTokens" className={tokenTab === 'BNB' ? 'lineChart' : 'lineChart none'}></div>
                   <div id="ETHTokens" className={tokenTab === 'Ethereum' ? 'lineChart' : 'lineChart none'}></div>
+                  <div id="ArbitrumOneTokens" className={tokenTab === 'ArbitrumOne' ? 'lineChart' : 'lineChart none'}></div>
                 </div>
                 <div className="pie">
                   <div id="Preferred" className="lineChart"></div>
