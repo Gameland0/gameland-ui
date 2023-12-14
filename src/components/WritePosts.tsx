@@ -125,7 +125,7 @@ const MyNftBox = styled.div`
     }
   }
 `
-const Editor = styled.div`
+export const Editor = styled.div`
   border: 1px solid rgb(229, 232, 235);
   border-radius: 20px;
   padding: 32px;

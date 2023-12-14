@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useHistory } from 'react-router-dom'
 import styled from 'styled-components'
 import ModelsIcon from '../assets/Market/icon_models.png'
 import selectedModelsIcon from '../assets/Market/icon_models_selected.png'
@@ -7,6 +8,12 @@ import selectedDatasetsIcon from '../assets/Market/icon_Datasets_selected.png'
 import magnifier from '../assets/magnifier.png'
 import MultimodalIcon from '../assets/Market/icon_Multimodal.png'
 import rowIcon from '../assets/Market/Row_item_icon.png';
+import dataItemBg from '../assets/Market/data_item.png'
+import dataItemBgHover from '../assets/Market/data_item_hover.png'
+import titleIcon from '../assets/Market/icon_data_title.png'
+import downloadIcon from '../assets/Market/icon_download.png'
+import uploadTimeIcon from '../assets/Market/icon_download_time.png'
+import likeIcon from '../assets/Market/icon_like.png'
 
 const MarketBox = styled.div`
   width: 100%;
@@ -132,10 +139,84 @@ const MarketBox = styled.div`
     font-size: 22px;
   }
 `
-const DataContent = styled.div``
+const ModelsContent = styled.div`
+  .DataItem {
+    padding: 14px 20px;
+    width: 49%;
+    height: 88px;
+    background: url(${dataItemBg});
+    background-size: 100% 88px;
+    &:hover {
+      background: url(${dataItemBgHover});
+      background-size: 100% 88px;
+      .title {
+        color: #009DFF;
+      }
+    }
+    .title {
+      font-size: 18px;
+      color: #222222;
+      img {
+        margin-right: 10px;
+      }
+    }
+    .info {
+      margin-top: 10px;
+      div {
+        font-size: 12px;
+        color: #888888;
+        img {
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+`
+const DatasetsContent = styled.div``
 
 export const Market = () => {
   const [ContentTabs, setContentTabs] = useState('Models')
+  const [ModelData, setModelData] = useState([] as any)
+  const history = useHistory()
+
+  useEffect(()=> {
+    setModelData([{
+      name: 'laion/dalle-3-dataset',
+      download: 660,
+      uploadTime: '2023-12-12',
+      like: 699,
+      type: 'Checkpoint',
+      fileSize: '1.99GB',
+      hash: '94F45BF623'
+    },{
+      name: 'stingning/ultrachat',
+      download: 560,
+      uploadTime: '2023-12-10',
+      like: 990,
+      type: 'Checkpoint',
+      fileSize: '1.99GB',
+      hash: '7C317DF983'
+    },{
+      name: 'fka/awesome-chatgpt-prompts',
+      download: 560,
+      uploadTime: '2023-12-10',
+      like: 990,
+      type: 'Checkpoint',
+      fileSize: '1.99GB',
+      hash: '7C317DF983'
+    }])
+  },[])
+
+  const toUpload = () => {
+    history.push({
+      pathname: `/Market/Upload`
+    })
+  }
+  const toDataInfo = (item: any) => {
+    history.push({
+      pathname: `/Market/1`
+    })
+  }
 
   return (
     <MarketBox>
@@ -202,12 +283,41 @@ export const Market = () => {
               />
               <img className="magnifier cursor" src={magnifier} alt="" />
             </div>
-            <div className="updata text-center cursor"><b>+</b> Upload</div>
+            <div className="updata text-center cursor" onClick={toUpload}><b>+</b> Upload</div>
           </div>
-          <div className="comingsoon">No data...</div>
+          {ContentTabs==='Models'? (
+            <ModelsContent className="flex flex-column-between wrap">
+              {ModelData&&ModelData.length? (
+                ModelData.map((item: any, index: number) => (
+                  <div className="DataItem cursor" key={index}>
+                    <div className="title flex flex-v-center">
+                      <img src={titleIcon} alt="" />
+                      {item.name}
+                    </div>
+                    <div className="info flex flex-v-center flex-column-between">
+                      <div className="flex flex-v-center">
+                        <img src={downloadIcon} alt="" />
+                        {item.download}
+                      </div>
+                      <div className="flex flex-v-center">
+                        <img src={uploadTimeIcon} alt="" />
+                        {item.uploadTime}
+                      </div>
+                      <div className="flex flex-v-center">
+                        <img src={likeIcon} alt="" />
+                        {item.like}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="comingsoon">No data...</div>
+              )}
+            </ModelsContent>
+          ) : ''}
+          
         </div>
       </div>
-      {/* <div className="comingsoon">coming soon...</div> */}
     </MarketBox>
   )
 }
