@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import styled from 'styled-components'
 import EditorJS from '@editorjs/editorjs'
 import needIcon from '../assets/Market/red_str.png'
 import writeIcon from '../assets/Market/icon_write.png'
 import uploadBg from '../assets/Market/upload_div_bg.png'
 import uploadIcon from '../assets/Market/icon_upload.png'
+import chooseIcon from '../assets/Market/icon_choose.png'
 import arrow from '../assets/icon_select.svg'
 import { Editor } from './WritePosts'
+import { uploadhttp } from './Store'
 import { toastify } from './Toastify'
+import { useActiveWeb3React } from '../hooks'
 
 const MarketUploadBox = styled.div`
   .main_title {
@@ -29,7 +32,6 @@ const MarketUploadBox = styled.div`
     font-weight: bold;
     color: #555555;
     display: inline-block !important;
-    margin-bottom: 10px;
     img {
       position: absolute;
       right: -12px;
@@ -49,6 +51,7 @@ const MarketUploadBox = styled.div`
     font-size: 16px;
     font-weight: 400;
     color: #888888;
+    margin-bottom: 10px;
   }
 `
 
@@ -80,12 +83,13 @@ const EditModelBox = styled.div`
         line-height: 60px;
         padding-left: 10px;
         border-radius: 20px;
+        cursor: pointer;
         &:hover {
           background-color: #87d1ff;
         }
       }
     }
-  } 
+  }
   .nameInput {
     width: 80%;
     padding-left: 30px;
@@ -113,15 +117,18 @@ const EditModelBox = styled.div`
     margin-top: 30px;
     .Optio {
       width: 48%;
-      div {
+      .item {
         font-size: 16px;
         color: #555555;
-        margin-bottom: 20px;
+        margin-top: 20px;
         .circle {
           width: 26px;
           height: 26px;
           border: 2px solid #0090FF;
           border-radius: 13px;
+          margin-right: 10px;
+        }
+        img {
           margin-right: 10px;
         }
       }
@@ -133,11 +140,45 @@ const EditModelBox = styled.div`
     background: #0090FF;
     border-radius: 20px;
     margin: auto;
+    margin-top: 20px;
     font-size: 20px;
     font-weight: bold;
     color: #FFFFFF;
     line-height: 55px;
     margin-bottom: 50px;
+  }
+  .TagsChoose {
+    position: absolute;
+    top: 25px;
+    width: 30%;
+    padding: 10px;
+    background: #3eb6ff;
+    border-radius: 20px;
+    z-index: 10;
+    div {
+      height: 60px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #FFFFFF;
+      line-height: 60px;
+      padding-left: 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      &:hover {
+        background-color: #87d1ff;
+      }
+    }
+    input {
+      height: 40px;
+    }
+  }
+  .tagsItem {
+    height: 20px;
+    background: #0090FF;
+    color: #fff;
+    border-radius: 30%;
+    padding: 0 10px;
+    margin-right: 10px;
   }
 `
 
@@ -149,9 +190,15 @@ const UploadFile = styled.div`
     background: url(${uploadBg});
     background-size: 100% 380px;
     margin: auto;
+    img {
+      position: absolute;
+      z-index: 99;
+    }
   }
   #file {
-    display: none;
+    width: 100%;
+    height: 380px;
+    opacity: 0;
   }
 `
 
@@ -181,11 +228,18 @@ const Switch = styled.div`
 `
 
 export const MarketUpload = () => {
+  const { account } = useActiveWeb3React()
   const [edit, setEdit] = useState('Model')
   const [type, setType] = useState('Checkpoint')
   const [category, setCategory] = useState('Character')
+  const [nameInputValue, setNameInputValue] = useState('')
+  const [tagsInputValue, setTagsInputValue] = useState('')
+  const [description, setDescription] = useState('')
+  const [permissions, setPermissions] = useState('')
   const [showType, setShowType] = useState(false)
+  const [showTags, setShowTags] = useState(false)
   const [showCategory, setShowCategory] = useState(false)
+  const [Tags, setTags] = useState([] as any)
   const Header = require('@editorjs/header')
   const List = require('@editorjs/list')
   const Image = require('@editorjs/image')
@@ -240,6 +294,13 @@ export const MarketUpload = () => {
     })
   }, [])
 
+  useEffect(() => {
+    if (edit==='Upload') {
+      const inputDom = document.getElementById('file')
+      inputDom?.setAttribute('multiple', '')
+    }
+  }, [edit])
+
   const blobToDataURI = (blob: any) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
@@ -260,7 +321,45 @@ export const MarketUpload = () => {
     setShowCategory(false)
   }
 
+  const addTags = (tags: string) => {
+    if (Tags.length === 5) {
+      toastify.error('You can add up to 5 tags')
+      return
+    }
+    let tagsArr = Tags
+    tagsArr.push(tags)
+    setTags(tagsArr)
+    setShowTags(false)
+    setTagsInputValue('')
+  }
+
+  const Enter = (e: any) => {
+    if (e.keyCode === 13) {
+      if (tagsInputValue) {
+        addTags(tagsInputValue)
+      }
+    }
+  }
+
   const next = () => {
+    if (!nameInputValue) {
+      toastify.error('name cannot be empty')
+      return
+    }
+    if (!Tags.length) {
+      toastify.error('Tags cannot be empty')
+      return
+    }
+    if (!permissions) {
+      toastify.error('Please select permissions')
+      return
+    }
+    const domcontent = document.getElementsByClassName('codex-editor__redactor')[0]?.innerHTML
+    if (!domcontent) {
+      toastify.error('description cannot be empty')
+      return
+    }
+    setDescription(domcontent)
     setEdit('Upload')
   }
 
@@ -268,22 +367,79 @@ export const MarketUpload = () => {
     const fileInput = document.getElementById('file')
     fileInput?.click()
   }
-  const ImgChange = async (e: any) => {
-    const Img = e.target.files[0]
-    const fileSize = Img.size
-    const size = fileSize / 1024
-    const type = Img.type
-    if (size > 1024) {
-      toastify.error('Image size cannot be larger than 1MB')
+  const uploadChange = (e: any) => {
+    if (!nameInputValue) {
+      toastify.error('name cannot be empty')
       return
     }
-    const reader = new FileReader()
-    reader.readAsArrayBuffer(Img)
-    // reader.onload = (res) => {
-    //   const imgData = res.target?.result
-    //   ImgTransaction(imgData, type)
-    // }
+    if (!Tags.length) {
+      toastify.error('Tags cannot be empty')
+      return
+    }
+    if (!permissions) {
+      toastify.error('Please select permissions')
+      return
+    }
+    if (!description) {
+      toastify.error('description cannot be empty')
+      return
+    }
+    if (e.target.files.length >= 4) {
+      toastify.error('Up to three files can be uploaded at one time')
+      return
+    }
+    console.log(e.target.files)
+
+    const Filename = [] as any
+    let fileSize = 0
+    for (let index = 0; index < e.target.files.length; index++) {
+      const element = e.target.files[index];
+      fileSize = fileSize + element.size
+      Filename.push(element.name)
+      const form = new FormData()
+      form.append('files',element)
+      uploadhttp.post('v0/upload',form).then((res) => {
+        if (res.data.code) {
+          toastify.success('Upload successful')
+        }
+      })
+    }
+    let size
+    if (fileSize/1000 > 1 && fileSize/1000 < 1024) {
+      size = fileSize/1000 + 'KB'
+    } else if (fileSize/1000 > 1024) {
+      size = fileSize/1000/1024 + 'MB'
+    } else {
+      size = fileSize
+    }
+    let nftAddress
+    if (permissions === 'open') {
+      nftAddress = ''
+    }
+    const parm = {
+      type: type,
+      name: nameInputValue,
+      category: category,
+      description: description,
+      permissions: permissions,
+      tags: Tags+'',
+      user: account,
+      originalFilename: Filename+'',
+      fileAmount: Filename.length,
+      fileSize: size,
+      nftAddress: ''
+    }
+    uploadhttp.post('v0/fileInfo', parm)
   }
+  const nameInputChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setNameInputValue(val)
+  }, [])
+
+  const tagsInputChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setTagsInputValue(val)
+  }, [])
 
   return (
     <MarketUploadBox>
@@ -297,7 +453,7 @@ export const MarketUpload = () => {
             </div>
             <div className="inputDiv nameInput">
               <img src={writeIcon} alt="" />
-              <input type="text" />
+              <input type="text" onChange={nameInputChange} value={nameInputValue}/>
             </div>
             <div className='min_title'>
               Type
@@ -337,42 +493,54 @@ export const MarketUpload = () => {
             </div>
             <div className='min_title'>
               Tags
-              <div className="tip_title">Search or create tags for your model</div>
+              <img src={needIcon} alt="" />
             </div>
-            <div className="addTags text-center">+</div>
+            <div className="tip_title">Search or create tags for your model</div>
+            <div className="relative flex">
+              {Tags&&Tags.length? (
+                Tags.map((item: any, index: number) => (
+                  <div className="tagsItem" key={index}>{item}</div>
+                ))
+              ) :''}
+              <div className="addTags text-center cursor" onClick={() => setShowTags(!showTags)}>+</div>
+              {showTags? (
+                <div className="TagsChoose">
+                  <div onClick={() => addTags('Feature Extraction')}>Feature Extraction</div>
+                  <div onClick={() => addTags('Text-to-lmage')}>Text-to-lmage</div>
+                  <div onClick={() => addTags('lmage-to-Text')}>lmage-to-Text</div>
+                  <div onClick={() => addTags('Text-to-Video')}>Text-to-Video</div>
+                  <div onClick={() => addTags('Visual Question Answering')}>Visual Question Answering</div>
+                  <div onClick={() => addTags('Graph Machine Learning')}>Graph Machine Learning</div>
+                  <input type="text" onChange={tagsInputChange} value={tagsInputValue} onKeyDown={(e) => Enter(e)}/>
+                </div>
+              ) : ''}
+            </div>
             <div className='min_title'>
               About your model
-              <div className="tip_title">Tell us what your model does</div>
+              <img src={needIcon} alt="" />
             </div>
+            <div className="tip_title">Tell us what your model does</div>
             <Editor id="editor"></Editor>
             <div className="ruleOption flex flex-column-between">
               <div className="Optio">
                 <div className='min_title'>
                   When using this model,I give permission for users to:
+                  <img src={needIcon} alt="" />
                 </div>
-                <div className="flex">
-                  <div className="circle"></div>
-                  Use without crediting me
+                <div className="flex item">
+                  {permissions === 'open' ? (
+                    <img src={chooseIcon} alt="" />
+                  ) : (
+                    <div className="circle" onClick={() => setPermissions('open')}></div>
+                  )}
+                  Use without permissions
                 </div>
-                <div className="flex">
-                  <div className="circle"></div>
-                  Share merges of this model
-                </div>
-                <div className="flex">
-                  <div className="circle"></div>
-                  Use different permissions on merges
-                </div>
-              </div>
-              <div className="Optio">
-                <div className='min_title'>
-                  This resource:
-                </div>
-                <div className="flex">
-                  <div className="circle"></div>
-                  Depicts an actual person
-                </div>
-                <div className="flex">
-                  <div className="circle"></div>
+                <div className="flex item">
+                  {permissions === 'Pay' ? (
+                    <img src={chooseIcon} alt="" />
+                  ) : (
+                    <div className="circle" onClick={() => setPermissions('Pay')}></div>
+                  )}
                   Use different permissions on merges
                 </div>
               </div>
@@ -383,21 +551,21 @@ export const MarketUpload = () => {
         {edit==='Upload'? (
           <UploadFile>
             <div className="main_title"><b>|</b> Upload files</div>
-            <div className="uploadDiv flex flex-center" onClick={Upload}>
+            <div className="uploadDiv flex flex-center relative" onClick={Upload}>
               <img src={uploadIcon} alt="" />
-              <input id="file" type="file" accept="" onChange={ImgChange} />
+              <input id="file" type="file" onChange={uploadChange} />
             </div>
           </UploadFile>
         ) : '' }
         <Switch>
           <div className="main_title"><b>|</b> Publish a Model</div>
           <div className="switchOption flex flex-center">
-            <div className="flex flex-v-center" onClick={() => setEdit('Model')}>
+            <div className="flex flex-v-center cursor" onClick={() => setEdit('Model')}>
               <div className={edit==='Model'? 'circle solid text-center': 'circle dashed text-center'}>1</div>
               Edit model
             </div>
             <div className="connectingLine"></div>
-            <div className="flex flex-v-center" onClick={() => setEdit('Upload')}>
+            <div className="flex flex-v-center cursor" onClick={() => setEdit('Upload')}>
               <div className={edit==='Upload'? 'circle solid text-center': 'circle dashed text-center'}>2</div>
               Upload files
             </div>

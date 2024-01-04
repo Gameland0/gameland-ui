@@ -93,7 +93,7 @@ function App() {
             {/* <Route exact path="/expose" component={Expose} /> */}
             <Route exact path="/circle" component={Circle} />
             <Route exact path="/Market" component={Market} />
-            <Route exact path="/Market/:Id" component={MarketDataInfo} />
+            <Route exact path="/Market/Details/:id" component={MarketDataInfo} />
             <Route exact path="/Market/Upload" component={MarketUpload} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />

@@ -53,6 +53,13 @@ export const newhttp = axios.create({
   timeout: 60000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://newapi.gameland.network' : 'http://localhost:8099'
 })
+export const uploadhttp = axios.create({
+  timeout: 60000,
+  baseURL: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8096',
+  // headers: {
+  //   'Content-Type': 'application/json,multipart/form-data'
+  // }
+})
 
 
 export const fetcher = (url: string) => {

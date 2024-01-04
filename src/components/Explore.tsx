@@ -572,6 +572,9 @@ export const Explore = () => {
     if (switchTab === 'Recent') {
       setRecentPage(RecentPage + 1)
     }
+    if (switchTab === 'Solana') {
+      setSolanaPage(SolanaPage+1)
+    }
   }
 
   const closeButton = (address: string) => {

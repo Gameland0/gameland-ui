@@ -101,6 +101,7 @@ import WETHIcon from '../assets/WETH.svg'
 import shortbutton from '../assets/short_button.jpg'
 import PolygonImg from '../assets/polygon.svg'
 import BSCImg from '../assets/binance.svg'
+import OneImg from '../assets/ArbitrumOne.png'
 import ETHImg from '../assets/eth.svg'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
@@ -2776,7 +2777,15 @@ export const CollectionDetails = () => {
     const Element = [] as any
     const Blur = [] as any
     const X2Y2 = [] as any
+    const Platform = [] as any
+    const seriesData = [] as any
     PlatformData.map((item: any) => {
+      const fliterPlatform = Platform.filter((ele: any) => {
+        return item.market === ele
+      })
+      if (!fliterPlatform.length) {
+        Platform.push(item.market)
+      }
       const data = PlatformTime.filter((ele: any) => {
         return new Date(ele *1000).toJSON().substring(5, 10) === new Date(item.timeStamp *1000).toJSON().substring(5, 10)
       })
@@ -2785,29 +2794,46 @@ export const CollectionDetails = () => {
       }
     })
     const sortarr = PlatformTime.sort((a: any,b: any)=> {return b-a})
+    Platform.map((item: any) => {
+      const itemData = [] as any
+      sortarr.map((ele: any) => {
+        const time = new Date(ele *1000).toJSON().substring(5, 10)
+        const OpenSeaData = PlatformData.filter((val: any) => {
+          const eletime = new Date(val.timeStamp *1000).toJSON().substring(5, 10)
+          return time === eletime&&val.market===item
+        })
+        itemData.push(OpenSeaData.length)
+      })
+      seriesData.push({
+        name: item,
+        data: itemData,
+        type: 'line',
+        smooth: true
+      })
+    })
     sortarr.map((item: any) => {
       const time = new Date(item *1000).toJSON().substring(5, 10)
       PlatformxAxis.push(time)
-      const OpenSeaData = PlatformData.filter((ele: any) => {
-        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-        return time === eletime&&ele.market==='OpenSea'
-      })
-      OpenSea.push(OpenSeaData.length)
-      const ElementData = PlatformData.filter((ele: any) => {
-        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-        return time === eletime&&ele.market==='Element'
-      })
-      Element.push(ElementData.length)
-      const BlurData = PlatformData.filter((ele: any) => {
-        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-        return time === eletime&&ele.market==='Blur'
-      })
-      Blur.push(BlurData.length)
-      const X2Y2Data = PlatformData.filter((ele: any) => {
-        const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
-        return time === eletime&&ele.market==='X2Y2'
-      })
-      X2Y2.push(X2Y2Data.length)
+      // const OpenSeaData = PlatformData.filter((ele: any) => {
+      //   const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+      //   return time === eletime&&ele.market==='OpenSea'
+      // })
+      // OpenSea.push(OpenSeaData.length)
+      // const ElementData = PlatformData.filter((ele: any) => {
+      //   const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+      //   return time === eletime&&ele.market==='Element'
+      // })
+      // Element.push(ElementData.length)
+      // const BlurData = PlatformData.filter((ele: any) => {
+      //   const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+      //   return time === eletime&&ele.market==='Blur'
+      // })
+      // Blur.push(BlurData.length)
+      // const X2Y2Data = PlatformData.filter((ele: any) => {
+      //   const eletime = new Date(ele.timeStamp *1000).toJSON().substring(5, 10)
+      //   return time === eletime&&ele.market==='X2Y2'
+      // })
+      // X2Y2.push(X2Y2Data.length)
     })
     const PlatformOption = {
       tooltip: {
@@ -2820,7 +2846,7 @@ export const CollectionDetails = () => {
         containLabel: true
       },
       legend: {
-        data: [`OpenSea`,`Element`,`Blur`,`X2Y2`,]
+        data: Platform
       },
       xAxis:{
         data: PlatformxAxis
@@ -2828,27 +2854,7 @@ export const CollectionDetails = () => {
       yAxis: {
         type: 'value' as any
       },
-      series: [{
-        name: `OpenSea`,
-        data: OpenSea,
-        type: 'line',
-        smooth: true
-      },{
-        name: `Element`,
-        data: Element,
-        type: 'line',
-        smooth: true
-      },{
-        name: `Blur`,
-        data: Blur,
-        type: 'line',
-        smooth: true
-      },{
-        name: `X2Y2`,
-        data: X2Y2,
-        type: 'line',
-        smooth: true
-      }]
+      series: seriesData
     }
     echarts.dispose(document.getElementById('Platform') as HTMLDivElement)
     const Platformdom = document.getElementById('Platform') as HTMLDivElement
@@ -4965,6 +4971,8 @@ export const CollectionDetails = () => {
                                 ? (<img src={PolygonImg} alt="" />)
                                 : item.chain==='bsc'
                                 ? (<img src={BSCImg} alt="" />)
+                                : chain==='one'
+                                ? (<img src={OneImg} alt="" />)
                                 : (<img src={ETHImg} alt="" />)
                               }
                               {item.Volume}
@@ -4977,7 +4985,7 @@ export const CollectionDetails = () => {
                     </div>
                     <div className="tablePage flex">
                       {SaleDataAll && SaleDataAll.length
-                        ? SaleDataAll.slice(0, Math.ceil(SaleDataAll.length/10)).map((item: any, index: number) => (
+                        ? SaleDataAll.slice(0, Math.ceil(SaleDataAll.length/10)>40?40:Math.ceil(SaleDataAll.length/10)).map((item: any, index: number) => (
                           <div
                             className={saleRinkDataPage === index? 'flex selected': 'flex'
                             }
@@ -5025,6 +5033,8 @@ export const CollectionDetails = () => {
                                 ? (<img src={PolygonImg} alt="" />)
                                 : chain==='bsc'
                                 ? (<img src={BSCImg} alt="" />)
+                                : chain==='one'
+                                ? (<img src={OneImg} alt="" />)
                                 : (<img src={ETHImg} alt="" />)
                               }
                               {item.Volume}
@@ -5037,7 +5047,7 @@ export const CollectionDetails = () => {
                     </div>
                     <div className="tablePage flex">
                       {NFTSalesDataAll && NFTSalesDataAll.length
-                        ? NFTSalesDataAll.slice(0, Math.ceil(NFTSalesDataAll.length/10)).map((item: any, index: number) => (
+                        ? NFTSalesDataAll.slice(0, Math.ceil(NFTSalesDataAll.length/10)>40? 40 : Math.ceil(NFTSalesDataAll.length/10)).map((item: any, index: number) => (
                           <div
                             className={NFTSalesDataPage === index? 'flex selected': 'flex'
                             }

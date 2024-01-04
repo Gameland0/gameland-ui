@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import styled from 'styled-components'
+import { uploadhttp } from './Store'
 import ModelsIcon from '../assets/Market/icon_models.png'
 import selectedModelsIcon from '../assets/Market/icon_models_selected.png'
 import DatasetsIcon from '../assets/Market/icon_Datasets.png'
@@ -19,7 +20,7 @@ const MarketBox = styled.div`
   width: 100%;
   .filterMenu {
     margin-bottom: 32px;
-    min-height: 650px;
+    min-height: 660px;
     .leftMenu {
       width: 41%;
       background: #FFFFFF;
@@ -102,10 +103,6 @@ const MarketBox = styled.div`
       .seachNameInput {
         width: 371px;
         height: 40px;
-        background: #FFFFFF;
-        border: 1px solid #B3E2FF;
-        box-shadow: 3px 2px 10px 0px #FFFFFF, -3px -2px 8px 0px rgba(109,119,128,0.2);
-        border-radius: 20px;
         padding-left: 25px;
         margin: 20px 0;
         input {
@@ -137,6 +134,7 @@ const MarketBox = styled.div`
     text-align: center;
     color: #000;
     font-size: 22px;
+    margin: auto;
   }
 `
 const ModelsContent = styled.div`
@@ -180,32 +178,13 @@ export const Market = () => {
   const history = useHistory()
 
   useEffect(()=> {
-    setModelData([{
-      name: 'laion/dalle-3-dataset',
-      download: 660,
-      uploadTime: '2023-12-12',
-      like: 699,
-      type: 'Checkpoint',
-      fileSize: '1.99GB',
-      hash: '94F45BF623'
-    },{
-      name: 'stingning/ultrachat',
-      download: 560,
-      uploadTime: '2023-12-10',
-      like: 990,
-      type: 'Checkpoint',
-      fileSize: '1.99GB',
-      hash: '7C317DF983'
-    },{
-      name: 'fka/awesome-chatgpt-prompts',
-      download: 560,
-      uploadTime: '2023-12-10',
-      like: 990,
-      type: 'Checkpoint',
-      fileSize: '1.99GB',
-      hash: '7C317DF983'
-    }])
+    getFileData()
   },[])
+
+  const getFileData = async () => {
+    const fileData = await uploadhttp.get(`v0/fileInfo`)
+    setModelData(fileData.data.data)
+  }
 
   const toUpload = () => {
     history.push({
@@ -214,7 +193,7 @@ export const Market = () => {
   }
   const toDataInfo = (item: any) => {
     history.push({
-      pathname: `/Market/1`
+      pathname: `/Market/Details/${item.id}`
     })
   }
 
@@ -277,11 +256,11 @@ export const Market = () => {
           </div>
           <div className="flex flex-column-between">
             <div className="seachNameInput">
-              <input
+              {/* <input
                 type="text"
                 placeholder="Filter by name"
               />
-              <img className="magnifier cursor" src={magnifier} alt="" />
+              <img className="magnifier cursor" src={magnifier} alt="" /> */}
             </div>
             <div className="updata text-center cursor" onClick={toUpload}><b>+</b> Upload</div>
           </div>
@@ -289,10 +268,10 @@ export const Market = () => {
             <ModelsContent className="flex flex-column-between wrap">
               {ModelData&&ModelData.length? (
                 ModelData.map((item: any, index: number) => (
-                  <div className="DataItem cursor" key={index}>
+                  <div className="DataItem cursor" key={index} onClick={() => toDataInfo(item)}>
                     <div className="title flex flex-v-center">
                       <img src={titleIcon} alt="" />
-                      {item.name}
+                      {item.fileName}
                     </div>
                     <div className="info flex flex-v-center flex-column-between">
                       <div className="flex flex-v-center">
@@ -301,7 +280,7 @@ export const Market = () => {
                       </div>
                       <div className="flex flex-v-center">
                         <img src={uploadTimeIcon} alt="" />
-                        {item.uploadTime}
+                        {item.uploadTime.slice(0,10)}
                       </div>
                       <div className="flex flex-v-center">
                         <img src={likeIcon} alt="" />
