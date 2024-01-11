@@ -1,23 +1,40 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { useParams } from 'react-router-dom'
-import { uploadhttp } from './Store'
+import EditorJS from '@editorjs/editorjs'
+import { Contract } from '@ethersproject/contracts'
+import { bschttp, uploadhttp } from './Store'
+import { toastify } from './Toastify'
+import { useActiveWeb3React } from '../hooks'
 import whiteStrIcon from '../assets/Market/icon_white_str.png'
-import effectPreviewBg from '../assets/Market/data_info_bg.png'
+import redStrIcon from '../assets/Market/icon_red_str.png'
 import DetailsIcon from '../assets/Market/icon_Details.png'
 import rowIcon from '../assets/Market/Row_item_icon.png'
 import like from '../assets/Market/like.png'
+import likes from '../assets/Market/likes.png'
 import likeIcon from '../assets/Market/icon_like.png'
 import download from '../assets/Market/download.png'
+import pay from '../assets/Market/pay.png'
 import downloadIcon from '../assets/Market/icon_download.png'
 import share from '../assets/Market/share.png'
-import shareIcon from '../assets/Market/icon_share.png'
 import viewer from '../assets/Market/icon_Viewer.png'
-import arrow from '../assets/icon_select.svg'
 import defaults from '../assets/default.png'
+import NFTAbi from '../constants/Abis/NFT.json'
+import { fetchReceipt } from '../utils'
+
 
 const DataInfoBox = styled.div`
   padding-top: 40px;
+  .whiteStrIcon {
+    width: 17px;
+    height: 16px;
+    background-image: url(${whiteStrIcon});
+  }
+  .redStrIcon {
+    width: 17px;
+    height: 16px;
+    background-image: url(${redStrIcon});
+  }
 `
 
 const LeftInfo = styled.div`
@@ -105,7 +122,7 @@ const RightInfo = styled.div`
       box-shadow: 0px 0px 12px 0px rgba(34,94,131,0.2);
       border-radius: 30px;
       position: absolute;
-      top: 97px;
+      top: 50px;
       right: 6px;
       img {
         width: 48px;
@@ -119,7 +136,7 @@ const RightInfo = styled.div`
     border-image: linear-gradient(190deg, #BBE5FF, #FFFFFF) 10 10;
     box-shadow: 0px 0px 8px 0px rgba(0,114,255,0.14);
     border-radius: 10px;
-    padding-left: 20px;
+    padding: 0 20px;
     margin-bottom: 20px;
   }
   .fileNumber {
@@ -127,7 +144,6 @@ const RightInfo = styled.div`
     line-height: 50px;
   }
   .Reviews {
-    padding-top: 10px;
     height: 80px;
     color: #222222;
     .title {
@@ -151,6 +167,16 @@ const RightInfo = styled.div`
       color: #0090FF;
       margin-left: 40px;
     }
+    .defaultReview {
+      width: 110px;
+      height: 20px;
+      background: #ccc;
+      border: 1px solid #cccccc;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #807979;
+      margin-left: 40px;
+    }
   }
   .userInfo {
     height: 100px;
@@ -170,6 +196,15 @@ const RightInfo = styled.div`
       font-size: 14px;
       line-height: 24px;
     }
+    .unfollowButton {
+      width: 80px;
+      height: 24px;
+      background: red;
+      border-radius: 12px;
+      color: #FFFFFF;
+      font-size: 14px;
+      line-height: 24px;
+    }
     .statistical {
       margin-top: 16px;
       div {
@@ -184,19 +219,197 @@ const RightInfo = styled.div`
 `
 
 export const MarketDataInfo = () => {
+  const { account, library } = useActiveWeb3React()
   const { id } = useParams() as any
+  const [Reload, setReload] = useState(false)
+  const [likeState, setLikeState] =useState(false)
   const [dataInfo, setDataInfo] = useState({} as any)
+  const [userInfo, setUserInfo] = useState({} as any)
+  const [statistics, setStatistics] = useState({} as any)
+  const [dataInfoAll, setDataInfoAll] = useState([] as any)
   const [Tags, setTags] = useState([] as any)
+  const [followeDataAll, setFolloweDataAll] = useState([] as any)
+  const [PayState, setPayState] = useState(0)
+  const [score, setScore] = useState(0)
+  const [myScore, setMyScore] = useState(0)
+  const [fileScore, setFileScore] = useState(0)
 
   useEffect(() => {
     getData()
-  }, [id])
+  }, [id, Reload, account])
+
+  useEffect(() => {
+    if (dataInfo.nftAddress) {
+      getPayState()
+    }
+    if (dataInfo.userAddress) {
+      getUserInfo()
+    }
+  }, [dataInfo, Reload, account])
+
+  useEffect(() => {
+    if (dataInfo.permissions === 'open' || PayState) {
+      Downlaod()
+    }
+  }, [dataInfo, PayState])
 
   const getData = async () => {
-    const data = await uploadhttp.get(`v0/fileInfo/${id}`)
-    setDataInfo(data.data.data[0])
-    const tagsArr = data.data.data[0].tags.split(",")
+    const data = await uploadhttp.get(`v0/fileInfo`)
+    setDataInfoAll(data.data.data)
+    const findData = data.data.data.filter((item: any) => {
+      return item.id === id
+    })
+    setDataInfo(findData[0])
+    const tagsArr = findData[0].tags.split(",")
     setTags(tagsArr)
+    const findUserFileData = data.data.data.filter((item: any) => {
+      return item.userAddress === findData[0].userAddress
+    })
+    let browse = 0
+    let like = 0
+    let download = 0
+    findUserFileData.map((item: any) => {
+      browse = browse + item.Browse
+      like = like + item.like
+      download = download + item.download
+    })
+    setStatistics({
+      browseTotal: browse,
+      likeTotal: like,
+      downloadTotal: download
+    })
+    if (!document.getElementById('effectPreview')?.innerText) {
+      const Dom = document.createElement('div')
+      Dom.innerHTML = findData[0].description
+      document.getElementById('effectPreview')?.appendChild(Dom)
+    }
+    const likeData = await uploadhttp.get(`v0/likeFile?userAddress=${account}&likeID=${id}`)
+    if (likeData.data.data.length) {
+      setLikeState(true)
+    }
+    const scoreData = await uploadhttp.get(`v0/fileScore`)
+    if (scoreData.data.data.length) {
+      const myscore = scoreData.data.data.filter((item: any) => {
+        return item.fileID === id && item.scoreAddress === account
+      })
+      setMyScore(myscore[0]?.score)
+      let filescore = 0
+      scoreData.data.data.map((item: any) => {
+        filescore = filescore + item.score
+      })
+      setFileScore(filescore/scoreData.data.data.length)
+    }
+    bschttp.get(`v0/followe`).then((vals) => setFolloweDataAll(vals.data.data))
+  }
+
+  const getPayState = async () => {
+    const NFTContract = new Contract(dataInfo.nftAddress, NFTAbi, library?.getSigner())
+    const balance = await NFTContract.balanceOf(account)
+    setPayState(balance.toNumber())
+  }
+
+  const getFolloweState = () => {
+    const data = followeDataAll.filter((item: any) => {
+      return item.useraddress === account && item.followeUserAddress === dataInfo.userAddress
+    })
+    return data.length
+  }
+
+  const getUserInfo = async () => {
+    const userdata = await bschttp.get(`v0/userinfo/${dataInfo.userAddress}`)
+    setUserInfo(userdata.data.data[0])
+  }
+
+  const Pay = async () => {
+    if (!dataInfo.nftAddress) {
+      return
+    }
+    const NFTContract = new Contract(dataInfo.nftAddress, NFTAbi, library?.getSigner())
+    const price = await NFTContract.get_price()
+    const payNFT = await NFTContract.mint({
+      value: price.toString()
+    })
+    const receipt = await fetchReceipt(payNFT.hash, library)
+    if (!receipt.status) {
+      throw Error('Failed to deposit.')
+    } else {
+      const parm = {
+        user: account,
+        buyID: dataInfo.id
+      }
+      uploadhttp.post('v0/purchaseRecord', parm)
+      setReload(!Reload)
+      toastify.success('Pay successful')
+    }
+  }
+
+  const Downlaod = async () => {
+    const file = await uploadhttp.get(`v0/fileURL/${id}?user=${account}&permissions=${dataInfo.permissions}`)
+    const fileURL = file.data.data[0]?.file
+    const href = `https://upload-api.gameland.network/v0/upload?filename=${fileURL}`
+    const Adom = document.getElementById('ALabel')
+    Adom?.setAttribute('href', href)
+  }
+
+  const countDownload = () => {
+    const parm = {
+      download: dataInfo.download + 1
+    }
+    uploadhttp.put(`v0/fileInfo/${id}`, parm)
+  }
+
+  const countLike = () => {
+    const parm = {
+      user: account,
+      likeID: id
+    }
+    uploadhttp.post(`v0/likeFile`, parm).then((res)=> {
+      if (res.data.code) {
+        const parms = {
+          like: dataInfo.like + 1
+        }
+        uploadhttp.put(`v0/fileInfo/${id}`, parms)
+        setReload(!Reload)
+      }
+    })
+  }
+
+  const addFileScore = () => {
+    const parm = {
+      user: account,
+      fileID: id,
+      score: score
+    }
+    uploadhttp.post('v0/fileScore', parm).then((res)=> {
+      if (res.data.code) {
+        toastify.success('Score successful')
+      }
+    })
+  }
+  const Followe = async () => {
+    const params = {
+      useraddress: account,
+      followeUserAddress: dataInfo.userAddress
+    }
+    const res: any = await bschttp.post(`v0/followe`, params)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setReload(!Reload)
+    } else {
+      throw res.message || res.data.message
+    }
+  }
+  const UnFollowe = async () => {
+    const data = followeDataAll.filter((item: any) => {
+      return item.useraddress === account && item.followeUserAddress === dataInfo.userAddress
+    })
+    const res: any = await bschttp.delete(`v0/followe/${data[0].id}`)
+    if (res.data.code === 1) {
+      toastify.success('succeed')
+      setReload(!Reload)
+    } else {
+      throw res.message || res.data.message
+    }
   }
 
   return (
@@ -206,11 +419,11 @@ export const MarketDataInfo = () => {
           <div className="title">{dataInfo.fileName}</div>
           <div className="score flex flex-v-center">
             <div className="borders"></div>
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
+            <div className={fileScore>=1 ? 'redStrIcon':'whiteStrIcon'}></div>
+            <div className={fileScore>=2 ? 'redStrIcon':'whiteStrIcon'}></div>
+            <div className={fileScore>=3 ? 'redStrIcon':'whiteStrIcon'}></div>
+            <div className={fileScore>=4 ? 'redStrIcon':'whiteStrIcon'}></div>
+            <div className={fileScore>=5 ? 'redStrIcon':'whiteStrIcon'}></div>
           </div>
         </div>
         <div className="Tags flex">
@@ -220,7 +433,7 @@ export const MarketDataInfo = () => {
             ))
           ):''}
         </div>
-        <div className="effectPreview"></div>
+        <div id="effectPreview" className="effectPreview"></div>
       </LeftInfo>
       <RightInfo>
         <div className="Details flex flex-v-center">
@@ -237,13 +450,6 @@ export const MarketDataInfo = () => {
             </div>
           </div>
           <div className="infoItem flex">
-            <div className="title">Category:</div>
-            <div className="content Row">
-              {dataInfo.category}
-              <img src={rowIcon} alt="" />
-            </div>
-          </div>
-          <div className="infoItem flex">
             <div className="title">Downloads:</div>
             <div className="content">{dataInfo.download}</div>
           </div>
@@ -255,60 +461,82 @@ export const MarketDataInfo = () => {
             <div className="title">Uploaded:</div>
             <div className="content">{dataInfo.uploadTime?.slice(0,10)}</div>
           </div>
-          {/* <div className="infoItem flex">
-            <div className="title">Hash:</div>
-            <div className="content Row">94F45BF623</div>
-          </div> */}
           <div className="func flex wrap flex-justify-content">
-            <img src={like} alt="" />
-            <img src={download} alt="" />
-            <img src={share} alt="" />
+            {likeState? (
+              <img src={likes} alt="" />
+            ):(
+              <img className="cursor" onClick={countLike} src={like} alt="" />
+            )}
+            {dataInfo.permissions === 'open' || PayState ? (
+              <a id="ALabel">
+                <img className="cursor" onClick={countDownload} src={download} alt="" />
+              </a>
+            ) : (
+              <img className="cursor" onClick={Pay} src={pay} alt="" />
+            )}
+            <img className="cursor" src={share} alt="" />
           </div>
         </div>
         <div className="fileNumber infoBorder relative cursor">
-          2 Files
+          {dataInfo.fileAmount} Files
         </div>
-        <div className="Reviews infoBorder relative flex flex-v-center">
+        <div className="Reviews infoBorder relative flex flex-v-center flex-column-between">
           <div>
             <div className="title">
-              Reviews
+              Score
             </div>
-            <div className="scoreInfo flex">
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
-              <img src={whiteStrIcon} alt="" />
-              &nbsp;4.95 out of 5
-            </div>
+            {myScore? (
+              <div className="scoreInfo flex">
+                <div className={myScore>=1 ? 'redStrIcon':'whiteStrIcon'}></div>
+                <div className={myScore>=2 ? 'redStrIcon':'whiteStrIcon'}></div>
+                <div className={myScore>=3 ? 'redStrIcon':'whiteStrIcon'}></div>
+                <div className={myScore>=4 ? 'redStrIcon':'whiteStrIcon'}></div>
+                <div className={myScore>=5 ? 'redStrIcon':'whiteStrIcon'}></div>
+                &nbsp;{myScore} out of 5
+              </div>
+            ) : (
+              <div className="scoreInfo flex">
+                <div className={score>=1 ? 'redStrIcon':'whiteStrIcon cursor'} onClick={()=> setScore(1)}></div>
+                <div className={score>=2 ? 'redStrIcon':'whiteStrIcon cursor'} onClick={()=> setScore(2)}></div>
+                <div className={score>=3 ? 'redStrIcon':'whiteStrIcon cursor'} onClick={()=> setScore(3)}></div>
+                <div className={score>=4 ? 'redStrIcon':'whiteStrIcon cursor'} onClick={()=> setScore(4)}></div>
+                <div className={score>=5 ? 'redStrIcon':'whiteStrIcon cursor'} onClick={()=> setScore(5)}></div>
+                &nbsp;{score} out of 5
+              </div>
+            )}
           </div>
-          <div className="addReview text-center cursor">Add Review</div>
-          <img src={arrow} className="arrowIcon" />
+          {myScore? (
+            <div className="defaultReview text-center not-allowed">Add Score</div>
+          ):(
+            <div className="addReview text-center cursor" onClick={addFileScore}>Add Score</div>
+          )}
         </div>
         <div className="userInfo infoBorder relative">
           <div className="flex flex-column-between flex-v-center">
             <div className="flex flex-v-center">
-              <img className="avatar" src={defaults} alt="" />
-              <div className="userName">Haley</div>
+              <img className="avatar" src={userInfo.image} alt="" />
+              <div className="userName">{userInfo.username}</div>
             </div>
-            <div className="followButton text-center">Follow</div>
+            {dataInfo.userAddress!==account ? (
+              getFolloweState() ? (
+                <div className="followButton text-center cursor" onClick={Followe}>+Follow</div>
+              ) : (
+                <div className="unfollowButton text-center cursor" onClick={UnFollowe}>-Follow</div>
+              )
+            ) : ''}
           </div>
           <div className="statistical flex">
-            <div>
-              <img src={shareIcon} alt="" />
-              2.36K
-            </div>
-            <div>
+            <div className="flex flex-v-center">
               <img src={viewer} alt="" />
-              2.36K
+              {statistics.browseTotal}
             </div>
-            <div>
+            <div className="flex flex-v-center">
               <img src={likeIcon} alt="" />
-              2.36K
+              {statistics.likeTotal}
             </div>
-            <div>
+            <div className="flex flex-v-center">
               <img src={downloadIcon} alt="" />
-              2.36K
+              {statistics.downloadTotal}
             </div>
           </div>
         </div>

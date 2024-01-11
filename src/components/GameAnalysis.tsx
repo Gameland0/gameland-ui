@@ -207,7 +207,7 @@ const getPeopleNumber = (activeUser: any) => {
 }
 
 const calculate = (data: any, activeUser: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeekActiveUser = [] as any
   const week2ActiveUser = [] as any
   const week3ActiveUser = [] as any
@@ -286,8 +286,8 @@ const calcuRatio  = (data: any, all: any, type: string) => {
     return ratio
   }
 }
-const calcuBotratio = (data: any, chain: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+const calcuBotratio = (data: any) => {
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeek = [] as any
   const Week2 = [] as any
   const Week3 = [] as any
@@ -306,7 +306,7 @@ const calcuBotratio = (data: any, chain: any) => {
   const Week4Player = [] as any
   data.map((item: any) => {
     const time = item.timeStamp * 1000
-    const address =filterAddress(item.t1)
+    const address = filterAddress(item.t1)
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       thisWeek.push(item)
       const data = thisWeekUser.filter((ele: any) => {
@@ -384,13 +384,15 @@ const calcuBotratio = (data: any, chain: any) => {
       Week4Player.push(item)
     }
   })
+  // console.log(thisWeekBot.length,thisWeekUser.length)
   return {
     bot: [calcuRatio(thisWeekBot,thisWeekUser,'ratio'),calcuRatio(Week2Bot,Week2User,'ratio'),calcuRatio(Week3Bot,Week3User,'ratio'),calcuRatio(Week4Bot,Week4User,'ratio')],
     user: [calcuRatio(thisWeekPlayer,thisWeekUser,'ratio'),calcuRatio(Week2Player,Week2User,'ratio'),calcuRatio(Week3Player,Week3User,'ratio'),calcuRatio(Week4Player,Week4User,'ratio')]
   }
 }
+
 const calcuBotTranction = (data: any,chain: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeek = [] as any
   const Week2 = [] as any
   const Week3 = [] as any
@@ -409,8 +411,8 @@ const calcuBotTranction = (data: any,chain: any) => {
   let Week4Player = 0
   data.map((item: any) => {
     const time = item.timeStamp * 1000
-    const address=filterAddress(item.t1)
-    
+    const address= filterAddress(item.t1)
+    console.log(time)
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       if (address!=='0x0000000000000000000000000000000000000000') {
         thisWeek.push(item)
@@ -456,6 +458,7 @@ const calcuBotTranction = (data: any,chain: any) => {
       }
     }
   })
+  // console.log(thisWeekUser.length,Week2User.length,Week3User.length,Week4User.length)
   thisWeekUser.map((item: any) => {
     const data = thisWeek.filter((ele: any) => {
       return item === filterAddress(ele.t1)
@@ -496,13 +499,14 @@ const calcuBotTranction = (data: any,chain: any) => {
       Week4Player=Week4Player+data.length
     }
   })
+  // console.log(Week2Bot,Week2Player)
   return {
     bot: [calcuRatio(thisWeekBot,thisWeek,'tranction'),calcuRatio(Week2Bot,Week2,'tranction'),calcuRatio(Week3Bot,Week3,'tranction'),calcuRatio(Week4Bot,Week4,'tranction')],
     user: [calcuRatio(thisWeekPlayer,thisWeek,'tranction'),calcuRatio(Week2Player,Week2,'tranction'),calcuRatio(Week3Player,Week3,'tranction'),calcuRatio(Week4Player,Week4,'tranction')]
   }
 }
 const calcuNFTTranction = (data: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeek = [] as any
   const Week2 = [] as any
   const Week3 = [] as any
@@ -640,7 +644,6 @@ export const GameAnalysis = (data: any) => {
   const PaidDownloadContract = usePaidDownloadContract()
 
   useEffect(() => {
-    console.log(data.seachContract.length)
     if (data.seachContract.length===42) {
         detectionAddress()
     } else {
@@ -1274,13 +1277,13 @@ export const GameAnalysis = (data: any) => {
         name: `${filterData[0].contractName} Bot`,
         type: 'bar',
         stack: filterData[0].contractName,
-        data: calcuBotratio(actions.data.data,filterData[0].chain).bot
+        data: calcuBotratio(actions.data.data).bot
       },
       {
         name: `${filterData[0].contractName} Real`,
         type: 'bar',
         stack: filterData[0].contractName,
-        data: calcuBotratio(actions.data.data,filterData[0].chain).user
+        data: calcuBotratio(actions.data.data).user
       })
       BotTranctionSeries.push({
         name: `${filterData[0].contractName} Bot`,
@@ -1602,13 +1605,13 @@ export const GameAnalysis = (data: any) => {
         name: `${filterData[0].name} Bot`,
         type: 'bar',
         stack: filterData[0].name,
-        data: calcuBotratio(actionData.data.data,filterData[0].chain).bot
+        data: calcuBotratio(actionData.data.data).bot
       },
       {
         name: `${filterData[0].name} Real`,
         type: 'bar',
         stack: filterData[0].name,
-        data: calcuBotratio(actionData.data.data,filterData[0].chain).user
+        data: calcuBotratio(actionData.data.data).user
       })
       BotTranctionSeries.push({
         name: `${filterData[0].name} Bot`,

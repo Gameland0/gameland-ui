@@ -264,7 +264,7 @@ const getPeopleNumber = (activeData: any) => {
 }
 
 const calculate = (data: any, activeUser: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeekActiveUser = [] as any
   const week2ActiveUser = [] as any
   const week3ActiveUser = [] as any
@@ -344,7 +344,7 @@ const calcuRatio  = (data: any, all: any, type: string) => {
   }
 }
 const calcuBotratio = (data: any, chain: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeek = [] as any
   const Week2 = [] as any
   const Week3 = [] as any
@@ -447,7 +447,7 @@ const calcuBotratio = (data: any, chain: any) => {
   }
 }
 const calcuBotTranction = (data: any,chain: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeek = [] as any
   const Week2 = [] as any
   const Week3 = [] as any
@@ -558,7 +558,7 @@ const calcuBotTranction = (data: any,chain: any) => {
   }
 }
 const calcuNFTTranction = (data: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()+604800000
+  const thisWeekTime = new Date(`2024-${firstWeek()} 23:59:59`).getTime()+604800000
   const thisWeek = [] as any
   const Week2 = [] as any
   const Week3 = [] as any

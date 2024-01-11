@@ -8,9 +8,11 @@ import uploadIcon from '../assets/Market/icon_upload.png'
 import chooseIcon from '../assets/Market/icon_choose.png'
 import arrow from '../assets/icon_select.svg'
 import { Editor } from './WritePosts'
-import { uploadhttp } from './Store'
+import { bschttp, uploadhttp } from './Store'
 import { toastify } from './Toastify'
-import { useActiveWeb3React } from '../hooks'
+import { useActiveWeb3React, useFactoryContract } from '../hooks'
+import BigNumber from 'bignumber.js'
+import { fetchReceipt } from '../utils'
 
 const MarketUploadBox = styled.div`
   .main_title {
@@ -52,6 +54,10 @@ const MarketUploadBox = styled.div`
     font-weight: 400;
     color: #888888;
     margin-bottom: 10px;
+  }
+  .centerBox {
+    width: 70%;
+    margin: auto;
   }
 `
 
@@ -114,7 +120,7 @@ const EditModelBox = styled.div`
     margin-bottom: 30px;
   }
   .ruleOption {
-    margin-top: 30px;
+    margin: 30px 0;
     .Optio {
       width: 48%;
       .item {
@@ -228,11 +234,14 @@ const Switch = styled.div`
 `
 
 export const MarketUpload = () => {
-  const { account } = useActiveWeb3React()
+  const { account, library } = useActiveWeb3React()
+  const FactoryContract =useFactoryContract()
   const [edit, setEdit] = useState('Model')
-  const [type, setType] = useState('Checkpoint')
+  const [type, setType] = useState('Models')
   const [category, setCategory] = useState('Character')
   const [nameInputValue, setNameInputValue] = useState('')
+  const [amountInputValue, setAmountInputValue] = useState('')
+  const [priceInputValue, setPriceInputValue] = useState('')
   const [tagsInputValue, setTagsInputValue] = useState('')
   const [description, setDescription] = useState('')
   const [permissions, setPermissions] = useState('')
@@ -292,7 +301,15 @@ export const MarketUpload = () => {
         }
       }
     })
+    // getindex()
   }, [])
+
+  const getindex = async () => {
+    const list = await FactoryContract?.getnftfactory_list()
+    // console.log(list)
+    const address = await FactoryContract?.getfactorys('5')
+    // console.log(address)
+  }
 
   useEffect(() => {
     if (edit==='Upload') {
@@ -359,6 +376,16 @@ export const MarketUpload = () => {
       toastify.error('description cannot be empty')
       return
     }
+    if (permissions === 'Pay') {
+      if (!priceInputValue) {
+        toastify.error('price cannot be empty')
+        return
+      }
+      if (!amountInputValue) {
+        toastify.error('amount cannot be empty')
+        return
+      }
+    }
     setDescription(domcontent)
     setEdit('Upload')
   }
@@ -367,7 +394,7 @@ export const MarketUpload = () => {
     const fileInput = document.getElementById('file')
     fileInput?.click()
   }
-  const uploadChange = (e: any) => {
+  const uploadChange = async (e: any) => {
     if (!nameInputValue) {
       toastify.error('name cannot be empty')
       return
@@ -388,8 +415,42 @@ export const MarketUpload = () => {
       toastify.error('Up to three files can be uploaded at one time')
       return
     }
-    console.log(e.target.files)
 
+    let nftAddress
+    let nftAmount
+    let price
+    if (permissions === 'open') {
+      nftAddress = ''
+      nftAmount = 0
+      price = '0'
+    }
+    if (permissions === 'Pay') {
+      if (!priceInputValue) {
+        toastify.error('price cannot be empty')
+        return
+      }
+      if (!amountInputValue) {
+        toastify.error('amount cannot be empty')
+        return
+      }
+      const userNmae = await bschttp.get(`v0/userinfo/${account}`)
+      price = priceInputValue
+      nftAmount = amountInputValue
+      const creatNFT = await FactoryContract?.createnft(
+        nameInputValue,
+        userNmae.data.data[0].username,
+        'baseURI',
+        new BigNumber(priceInputValue).multipliedBy(1000000000000000000).toString(),
+        account,
+        nftAmount
+      )
+      const receipt = await fetchReceipt(creatNFT.hash, library)
+      if (!receipt.status) {
+        throw Error('Failed to deposit.')
+      } else {
+        nftAddress = receipt.logs[0].address
+      }
+    }
     const Filename = [] as any
     let fileSize = 0
     for (let index = 0; index < e.target.files.length; index++) {
@@ -412,14 +473,10 @@ export const MarketUpload = () => {
     } else {
       size = fileSize
     }
-    let nftAddress
-    if (permissions === 'open') {
-      nftAddress = ''
-    }
     const parm = {
       type: type,
       name: nameInputValue,
-      category: category,
+      // category: category,
       description: description,
       permissions: permissions,
       tags: Tags+'',
@@ -427,13 +484,24 @@ export const MarketUpload = () => {
       originalFilename: Filename+'',
       fileAmount: Filename.length,
       fileSize: size,
-      nftAddress: ''
+      nftAddress: nftAddress,
+      price: price,
+      nftAmount: Number(nftAmount)
     }
+    // console.log(parm)
     uploadhttp.post('v0/fileInfo', parm)
   }
   const nameInputChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setNameInputValue(val)
+  }, [])
+  const amountInputChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setAmountInputValue(val)
+  }, [])
+  const priceInputChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setPriceInputValue(val)
   }, [])
 
   const tagsInputChange = useCallback((ele) => {
@@ -444,133 +512,151 @@ export const MarketUpload = () => {
   return (
     <MarketUploadBox>
       <div className="container">
-        {edit==='Model'? (
-          <EditModelBox>
-            <div className="main_title"><b>|</b> Edit model</div>
-            <div className='min_title'>
-              Name
-              <img src={needIcon} alt="" />
-            </div>
-            <div className="inputDiv nameInput">
-              <img src={writeIcon} alt="" />
-              <input type="text" onChange={nameInputChange} value={nameInputValue}/>
-            </div>
-            <div className='min_title'>
-              Type
-              <img src={needIcon} alt="" />
-            </div>
-            <div className="inputDiv typeInput" onClick={() => setShowType(!showType)}>
-              <div className="text">{type}</div>
-              <img src={arrow} className="arrowIcon" />
-              {showType? (
-                <div className="choose">
-                  <div onClick={() => setTypeData('Checkpoint')}>Checkpoint</div>
-                  <div onClick={() => setTypeData('Embedding')}>Embedding</div>
-                  <div onClick={() => setTypeData('Hypernetwork')}>Hypernetwork</div>
-                  <div onClick={() => setTypeData('Aesthetic Gradient')}>Aesthetic Gradient</div>
-                  <div onClick={() => setTypeData('LoRA')}>LoRA</div>
-                  <div onClick={() => setTypeData('LyCORIS')}>LyCORIS</div>
-                </div>
-              ) : ''}
-            </div>
-            <div className='min_title'>
-              Category
-              <img src={needIcon} alt="" />
-            </div>
-            <div className="inputDiv categoryInput" onClick={() => setShowCategory(!showCategory)}>
-              <div className="text">{category}</div>
-              <img src={arrow} className="arrowIcon" />
-              {showCategory? (
-                <div className="choose">
-                  <div onClick={() => setCategoryData('Character')}>Character</div>
-                  <div onClick={() => setCategoryData('Style')}>Style</div>
-                  <div onClick={() => setCategoryData('Celebrity')}>Celebrity</div>
-                  <div onClick={() => setCategoryData('Conce')}>Conce</div>
-                  <div onClick={() => setCategoryData('Clothing')}>Clothing</div>
-                  <div onClick={() => setCategoryData('Base model')}>Base model</div>
-                </div>
-              ) : ''}
-            </div>
-            <div className='min_title'>
-              Tags
-              <img src={needIcon} alt="" />
-            </div>
-            <div className="tip_title">Search or create tags for your model</div>
-            <div className="relative flex">
-              {Tags&&Tags.length? (
-                Tags.map((item: any, index: number) => (
-                  <div className="tagsItem" key={index}>{item}</div>
-                ))
-              ) :''}
-              <div className="addTags text-center cursor" onClick={() => setShowTags(!showTags)}>+</div>
-              {showTags? (
-                <div className="TagsChoose">
-                  <div onClick={() => addTags('Feature Extraction')}>Feature Extraction</div>
-                  <div onClick={() => addTags('Text-to-lmage')}>Text-to-lmage</div>
-                  <div onClick={() => addTags('lmage-to-Text')}>lmage-to-Text</div>
-                  <div onClick={() => addTags('Text-to-Video')}>Text-to-Video</div>
-                  <div onClick={() => addTags('Visual Question Answering')}>Visual Question Answering</div>
-                  <div onClick={() => addTags('Graph Machine Learning')}>Graph Machine Learning</div>
-                  <input type="text" onChange={tagsInputChange} value={tagsInputValue} onKeyDown={(e) => Enter(e)}/>
-                </div>
-              ) : ''}
-            </div>
-            <div className='min_title'>
-              About your model
-              <img src={needIcon} alt="" />
-            </div>
-            <div className="tip_title">Tell us what your model does</div>
-            <Editor id="editor"></Editor>
-            <div className="ruleOption flex flex-column-between">
-              <div className="Optio">
-                <div className='min_title'>
-                  When using this model,I give permission for users to:
-                  <img src={needIcon} alt="" />
-                </div>
-                <div className="flex item">
-                  {permissions === 'open' ? (
-                    <img src={chooseIcon} alt="" />
-                  ) : (
-                    <div className="circle" onClick={() => setPermissions('open')}></div>
-                  )}
-                  Use without permissions
-                </div>
-                <div className="flex item">
-                  {permissions === 'Pay' ? (
-                    <img src={chooseIcon} alt="" />
-                  ) : (
-                    <div className="circle" onClick={() => setPermissions('Pay')}></div>
-                  )}
-                  Use different permissions on merges
+        <div className="centerBox">
+          {edit==='Model'? (
+            <EditModelBox>
+              <div className="main_title"><b>|</b> Edit model</div>
+              <div className='min_title'>
+                Name
+                <img src={needIcon} alt="" />
+              </div>
+              <div className="inputDiv nameInput">
+                <img src={writeIcon} alt="" />
+                <input type="text" onChange={nameInputChange} value={nameInputValue}/>
+              </div>
+              <div className='min_title'>
+                Type
+                <img src={needIcon} alt="" />
+              </div>
+              <div className="inputDiv typeInput" onClick={() => setShowType(!showType)}>
+                <div className="text">{type}</div>
+                <img src={arrow} className="arrowIcon" />
+                {showType? (
+                  <div className="choose">
+                    <div onClick={() => setTypeData('Models')}>Models</div>
+                    <div onClick={() => setTypeData('Datasets')}>Datasets</div>
+                  </div>
+                ) : ''}
+              </div>
+              {/* <div className='min_title'>
+                Category
+                <img src={needIcon} alt="" />
+              </div> */}
+              {/* <div className="inputDiv categoryInput" onClick={() => setShowCategory(!showCategory)}>
+                <div className="text">{category}</div>
+                <img src={arrow} className="arrowIcon" />
+                {showCategory? (
+                  <div className="choose">
+                    <div onClick={() => setCategoryData('Character')}>Character</div>
+                    <div onClick={() => setCategoryData('Style')}>Style</div>
+                    <div onClick={() => setCategoryData('Celebrity')}>Celebrity</div>
+                    <div onClick={() => setCategoryData('Conce')}>Conce</div>
+                    <div onClick={() => setCategoryData('Clothing')}>Clothing</div>
+                    <div onClick={() => setCategoryData('Base model')}>Base model</div>
+                  </div>
+                ) : ''}
+              </div> */}
+              <div className='min_title'>
+                Tags
+                <img src={needIcon} alt="" />
+              </div>
+              <div className="tip_title">Search or create tags for your model</div>
+              <div className="relative flex">
+                {Tags&&Tags.length? (
+                  Tags.map((item: any, index: number) => (
+                    <div className="tagsItem" key={index}>{item}</div>
+                  ))
+                ) :''}
+                <div className="addTags text-center cursor" onClick={() => setShowTags(!showTags)}>+</div>
+                {showTags? (
+                  <div className="TagsChoose">
+                    <div onClick={() => addTags('Feature Extraction')}>Feature Extraction</div>
+                    <div onClick={() => addTags('Text-to-lmage')}>Text-to-lmage</div>
+                    <div onClick={() => addTags('lmage-to-Text')}>lmage-to-Text</div>
+                    <div onClick={() => addTags('Text-to-Video')}>Text-to-Video</div>
+                    <div onClick={() => addTags('Visual Question Answering')}>Visual Question Answering</div>
+                    <div onClick={() => addTags('Graph Machine Learning')}>Graph Machine Learning</div>
+                    <input type="text" onChange={tagsInputChange} value={tagsInputValue} onKeyDown={(e) => Enter(e)}/>
+                  </div>
+                ) : ''}
+              </div>
+              <div className='min_title'>
+                About your model
+                <img src={needIcon} alt="" />
+              </div>
+              <div className="tip_title">Tell us what your model does</div>
+              <Editor id="editor"></Editor>
+              <div className="ruleOption flex flex-column-between">
+                <div className="Optio">
+                  <div className='min_title'>
+                    When using this model,I give permission for users to:
+                    <img src={needIcon} alt="" />
+                  </div>
+                  <div className="flex item">
+                    {permissions === 'open' ? (
+                      <img src={chooseIcon} alt="" />
+                    ) : (
+                      <div className="circle" onClick={() => setPermissions('open')}></div>
+                    )}
+                    Use without permissions
+                  </div>
+                  <div className="flex item">
+                    {permissions === 'Pay' ? (
+                      <img src={chooseIcon} alt="" />
+                    ) : (
+                      <div className="circle" onClick={() => setPermissions('Pay')}></div>
+                    )}
+                    Use different permissions on merges
+                  </div>
                 </div>
               </div>
+              {permissions === 'Pay'? (
+                <div>
+                  <div className='min_title'>
+                    Price
+                    <img src={needIcon} alt="" />
+                  </div>
+                  <div className="inputDiv nameInput">
+                    <img src={writeIcon} alt="" />
+                    <input type="text" onChange={priceInputChange} value={priceInputValue}/>
+                  </div>
+                  <div className='min_title'>
+                    Amount
+                    <img src={needIcon} alt="" />
+                  </div>
+                  <div className="inputDiv nameInput">
+                    <img src={writeIcon} alt="" />
+                    <input type="text" onChange={amountInputChange} value={amountInputValue}/>
+                  </div>
+                </div>
+              ) : ''}
+              <div className="nextBotton text-center cursor" onClick={next}>Next</div>
+            </EditModelBox>
+          ) : ''}
+          {edit==='Upload'? (
+            <UploadFile>
+              <div className="main_title"><b>|</b> Upload files</div>
+              <div className="uploadDiv flex flex-center relative" onClick={Upload}>
+                <img src={uploadIcon} alt="" />
+                <input id="file" type="file" onChange={uploadChange} />
+              </div>
+            </UploadFile>
+          ) : '' }
+          <Switch>
+            <div className="main_title"><b>|</b> Publish a Model</div>
+            <div className="switchOption flex flex-center">
+              <div className="flex flex-v-center cursor" onClick={() => setEdit('Model')}>
+                <div className={edit==='Model'? 'circle solid text-center': 'circle dashed text-center'}>1</div>
+                Edit model
+              </div>
+              <div className="connectingLine"></div>
+              <div className="flex flex-v-center cursor" onClick={() => setEdit('Upload')}>
+                <div className={edit==='Upload'? 'circle solid text-center': 'circle dashed text-center'}>2</div>
+                Upload files
+              </div>
             </div>
-            <div className="nextBotton text-center cursor" onClick={next}>Next</div>
-          </EditModelBox>
-        ) : ''}
-        {edit==='Upload'? (
-          <UploadFile>
-            <div className="main_title"><b>|</b> Upload files</div>
-            <div className="uploadDiv flex flex-center relative" onClick={Upload}>
-              <img src={uploadIcon} alt="" />
-              <input id="file" type="file" onChange={uploadChange} />
-            </div>
-          </UploadFile>
-        ) : '' }
-        <Switch>
-          <div className="main_title"><b>|</b> Publish a Model</div>
-          <div className="switchOption flex flex-center">
-            <div className="flex flex-v-center cursor" onClick={() => setEdit('Model')}>
-              <div className={edit==='Model'? 'circle solid text-center': 'circle dashed text-center'}>1</div>
-              Edit model
-            </div>
-            <div className="connectingLine"></div>
-            <div className="flex flex-v-center cursor" onClick={() => setEdit('Upload')}>
-              <div className={edit==='Upload'? 'circle solid text-center': 'circle dashed text-center'}>2</div>
-              Upload files
-            </div>
-          </div>
-        </Switch>
+          </Switch>
+        </div>
       </div>
     </MarketUploadBox>
   )

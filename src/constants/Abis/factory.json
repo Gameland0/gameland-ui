@@ -1,0 +1,89 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "_feeaddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "symbol",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "baseURI",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_price",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address payable",
+				"name": "_owneraddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_max_count",
+				"type": "uint256"
+			}
+		],
+		"name": "createnft",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "contractaddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "key",
+				"type": "uint256"
+			}
+		],
+		"name": "getfactorys",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getnftfactory_list",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]

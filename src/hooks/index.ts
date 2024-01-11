@@ -17,6 +17,7 @@ import rewardAbi from '../constants/Abis/reward.json'
 import payment from '../constants/Abis/payment.json'
 import PaidDownload from '../constants/Abis/PaidDownloads.json'
 import airdrop from '../constants/Abis/airdrop.json'
+import factoryAbi from '../constants/Abis/factory.json'
 import { useMyNfts } from './useMyNfts'
 import { useMyRenting } from './useMyRenting'
 import {
@@ -275,6 +276,15 @@ export function useRewardContract() {
   } else if (chainId === 42161) {
     return new Contract(OneRewardAddress, rewardAbi, library.getSigner())
   }
+}
+
+export function useFactoryContract() {
+  const { library, chainId } = useActiveWeb3React()
+  if (!library) return null
+  if (chainId === 56) {
+    return new Contract('0x923E1c3A560D2D1f47856c8E0d6745C111929040', factoryAbi, library.getSigner())
+  } 
+  // return new Contract('0xf37a3242265cb6E7A12602Bd1f2818458d1b15c4', factoryAbi, library.getSigner())
 }
 
 

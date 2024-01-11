@@ -55,7 +55,7 @@ export const newhttp = axios.create({
 })
 export const uploadhttp = axios.create({
   timeout: 60000,
-  baseURL: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8096',
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://upload-api.gameland.network' : 'http://localhost:8096',
   // headers: {
   //   'Content-Type': 'application/json,multipart/form-data'
   // }

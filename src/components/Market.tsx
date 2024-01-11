@@ -22,7 +22,7 @@ const MarketBox = styled.div`
     margin-bottom: 32px;
     min-height: 660px;
     .leftMenu {
-      width: 41%;
+      width: 30%;
       background: #FFFFFF;
       padding: 20px 15px 0 15px;
       .seachTaskInput {
@@ -69,7 +69,6 @@ const MarketBox = styled.div`
         .searchOptions {
           cursor: pointer;
           position: relative;
-          height: 30px;
           background: #FFFFFF;
           font-size: 14px;
           color: #555555;
@@ -86,7 +85,7 @@ const MarketBox = styled.div`
       }
     }
     .rightData {
-      width: 59%;
+      width: 70%;
       background: #F8F8F8;
       padding: 20px 10px 0 10px;
       .Tabs {
@@ -140,7 +139,7 @@ const MarketBox = styled.div`
 const ModelsContent = styled.div`
   .DataItem {
     padding: 14px 20px;
-    width: 49%;
+    width: 32%;
     height: 88px;
     background: url(${dataItemBg});
     background-size: 100% 88px;
@@ -175,6 +174,7 @@ const DatasetsContent = styled.div``
 export const Market = () => {
   const [ContentTabs, setContentTabs] = useState('Models')
   const [ModelData, setModelData] = useState([] as any)
+  const [DatasetsData, setDatasetsData] = useState([] as any)
   const history = useHistory()
 
   useEffect(()=> {
@@ -183,7 +183,14 @@ export const Market = () => {
 
   const getFileData = async () => {
     const fileData = await uploadhttp.get(`v0/fileInfo`)
-    setModelData(fileData.data.data)
+    const filterModel = fileData.data.data.filter((item: any) => {
+      return item.type === 'Models'
+    })
+    const filterDatasets = fileData.data.data.filter((item: any) => {
+      return item.type === 'Datasets'
+    })
+    setModelData(filterModel)
+    setDatasetsData(filterDatasets)
   }
 
   const toUpload = () => {
@@ -192,6 +199,10 @@ export const Market = () => {
     })
   }
   const toDataInfo = (item: any) => {
+    const parms = {
+      Browse: item.Browse + 1
+    }
+    uploadhttp.put(`v0/fileInfo/${item.id}`, parms)
     history.push({
       pathname: `/Market/Details/${item.id}`
     })
@@ -294,7 +305,36 @@ export const Market = () => {
               )}
             </ModelsContent>
           ) : ''}
-          
+          {ContentTabs==='Datasets'? (
+            <ModelsContent className="flex flex-column-between wrap">
+              {DatasetsData&&DatasetsData.length? (
+                DatasetsData.map((item: any, index: number) => (
+                  <div className="DataItem cursor" key={index} onClick={() => toDataInfo(item)}>
+                    <div className="title flex flex-v-center">
+                      <img src={titleIcon} alt="" />
+                      {item.fileName}
+                    </div>
+                    <div className="info flex flex-v-center flex-column-between">
+                      <div className="flex flex-v-center">
+                        <img src={downloadIcon} alt="" />
+                        {item.download}
+                      </div>
+                      <div className="flex flex-v-center">
+                        <img src={uploadTimeIcon} alt="" />
+                        {item.uploadTime.slice(0,10)}
+                      </div>
+                      <div className="flex flex-v-center">
+                        <img src={likeIcon} alt="" />
+                        {item.like}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="comingsoon">No data...</div>
+              )}
+            </ModelsContent>
+          ) : ''}
         </div>
       </div>
     </MarketBox>

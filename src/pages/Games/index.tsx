@@ -436,7 +436,7 @@ export const Games = () => {
             <span>
               <img src={search} />
             </span>
-            <input onChange={handleCollectionChange} value={collection} placeholder="search" />
+            <input onChange={handleCollectionChange} value={collection} placeholder="Search Game Name" />
           </div>
           {collectionFilterResult && collectionFilterResult.length ? (
             <div className="result">
@@ -455,7 +455,7 @@ export const Games = () => {
       <Sort className="flex flex-j-end">
         <div className="filter cursor" onClick={() => setFilterMenu(!filterMenu)}>
           <img src={gamesFilter==='Polygon'? PolygonImg : gamesFilter==='One'? OneImg : gamesFilter==='ALL'? ' ' : gamesFilter==='ETH'? EthImg:BSCImg} />
-          &nbsp;{gamesFilter}
+          &nbsp;{gamesFilter === 'ALL' ? 'All Chain' : gamesFilter}
           <img src={arrow} className="arrowIcon" />
         </div>
         {filterMenu ? (
@@ -506,7 +506,7 @@ export const Games = () => {
                 setFilterMenu(false)
               }}
             >
-              ALL
+              All Chain
             </div>
           </div>
         ) : (
