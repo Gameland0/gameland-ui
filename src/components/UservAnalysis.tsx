@@ -14,6 +14,7 @@ import html2canvas from 'html2canvas'
 import { toastify } from './Toastify'
 import { colorTable } from '../constants/colorTable'
 import { findAddressIndex } from './RelationChart'
+import BigNumber from 'bignumber.js'
 
 const Analysis = styled.div`
   margin-top: 20px;
@@ -168,12 +169,13 @@ export const UservAnalysis = (data: any) => {
     const SnapshotTime = [] as any
     const seriesvote = [] as any
     PieChartData?.map((item: any) => {
+      console.log(item.platform)
       if (item.platform === 'Lens') {
         const filterdata = timearr.filter((ele: any) => {
-          return ele === item.timestamp.substr(5, 5)
+          return ele === new Date(item.timestamp*1000).toJSON().substr(5, 5)
         })
         if (!filterdata.length) {
-          timearr.push(item.timestamp.substr(5, 5))
+          timearr.push(new Date(item.timestamp*1000).toJSON().substr(5, 5))
         }
         if (item.type === 'post') {
           post.push(item)
@@ -198,28 +200,28 @@ export const UservAnalysis = (data: any) => {
             const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
             let prices
             if (ele.metadata.cost) {
-              prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+              prices = new BigNumber(ele.metadata.cost.value).div(`1e${ele.metadata.cost.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.cost?.symbol
             } else {
               prices = 0
             }
             poap.push({
-              collation: ele.metadata.collection,
-              nftname: ele.metadata.name,
+              collation: ele.metadata.name,
+              nftname: ele.metadata.title,
               price: prices,
               chain: chains,
               platform: item.platform,
               type: ele.type,
-              time: item.timestamp.substr(0, 10)
+              time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
             })
           }
         })
       }
       if (item.platform === 'Snapshot') {
         const filterdata = SnapshotTime.filter((ele: any) => {
-          return ele === item.timestamp.substr(5, 5)
+          return ele === new Date(item.timestamp*1000).toJSON().substr(5, 5)
         })
         if (!filterdata.length) {
-          SnapshotTime.push(item.timestamp.substr(5, 5))
+          SnapshotTime.push(new Date(item.timestamp*1000).toJSON().substr(5, 5))
         }
         Snapshot.push(item)
       }
@@ -227,19 +229,19 @@ export const UservAnalysis = (data: any) => {
     setPoapData(poap)
     timearr.map((item: any) => {
       const filterpost = post.filter((ele: any) => {
-        return item === ele.timestamp.substr(5, 5)
+        return item === new Date(ele.timestamp*1000).toJSON().substr(5, 5)
       })
       const filtermint = mint.filter((ele: any) => {
-        return item === ele.timestamp.substr(5, 5)
+        return item === new Date(ele.timestamp*1000).toJSON().substr(5, 5)
       })
       const filtershare = share.filter((ele: any) => {
-        return item === ele.timestamp.substr(5, 5)
+        return item === new Date(ele.timestamp*1000).toJSON().substr(5, 5)
       })
       const filterfollow = follow.filter((ele: any) => {
-        return item === ele.timestamp.substr(5, 5)
+        return item === new Date(ele.timestamp*1000).toJSON().substr(5, 5)
       })
       const filtercomment = comment.filter((ele: any) => {
-        return item === ele.timestamp.substr(5, 5)
+        return item === new Date(ele.timestamp*1000).toJSON().substr(5, 5)
       })
       seriespost.push(filterpost.length)
       seriesmint.push(filtermint.length)
@@ -249,7 +251,7 @@ export const UservAnalysis = (data: any) => {
     })
     SnapshotTime.map((item: any) => {
       const filtervote = Snapshot.filter((ele: any) => {
-        return item === ele.timestamp.substr(5, 5)
+        return item === new Date(ele.timestamp*1000).toJSON().substr(5, 5)
       })
       seriesvote.push(filtervote.length)
     })
@@ -330,15 +332,20 @@ export const UservAnalysis = (data: any) => {
   }
   const getPieChartData = () => {
     setLoaddState(true)
+    const parm = {
+      action_limit: 10,
+      limit: 500,
+      account: [
+        data.useraddress
+      ]
+    }
     http
-      .get(
-        `https://api.rss3.io/v1/notes/${data.useraddress}?limit=500&include_poap=false&count_only=false&query_status=false`
-      )
+      .post(`https://api.rss3.io/data/accounts/activities`, parm)
       .then((vals) => {
         if (vals.data.error_code) {
           toastify.error('Only support for wallet addresses.')
         } else {
-          setPieChartData(vals.data.result)
+          setPieChartData(vals.data.data)
         }
         setLoaddState(false)
       })
@@ -367,20 +374,20 @@ export const UservAnalysis = (data: any) => {
         if (new Date(item.timestamp).getTime() > currentTime - (604800000 * 4)) {
           interactArr.push(item)
         }
-        if (item.tag === 'collectible' && item.actions[0].metadata.collection) {
-          collationarr.push(item.actions[0].metadata.collection)
+        if (item.tag === 'collectible' && item.actions[0].metadata.name) {
+          collationarr.push(item.actions[0].metadata.name)
         }
         if (item.tag === 'exchange' && item.type === 'swap') {
           item.actions.map((ele: any) => {
             if (ele.type === 'swap') {
               const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
               swapdata.push({
-                sent: (ele.metadata.from.value_display * 1).toFixed(2) + ' ' + ele.metadata.from.symbol,
-                received: (ele.metadata.to.value_display * 1).toFixed(2) + ' ' + ele.metadata.to.symbol,
+                sent: new BigNumber(ele.metadata.from.value).div(`1e${ele.metadata.from.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.from.symbol,
+                received: new BigNumber(ele.metadata.to.value).div(`1e${ele.metadata.to.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.to.symbol,
                 type: 'Swap',
                 platform: item.platform,
                 chain: chains,
-                time: item.timestamp.substr(0, 10)
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
           })
@@ -388,65 +395,65 @@ export const UservAnalysis = (data: any) => {
         if (item.tag === 'transaction') {
           item.actions.map((ele: any) => {
             const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
-            if (ele.type === 'mint' && ele.address_to?.toLowerCase() === data.useraddress?.toLowerCase()) {
+            if (ele.type === 'mint' && ele.to?.toLowerCase() === data.useraddress?.toLowerCase()) {
               transactionData.push({
-                sent: formatting(ele.address_from),
-                received: formatting(ele.address_to),
-                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                sent: formatting(ele.from),
+                received: formatting(ele.to),
+                price: new BigNumber(ele.metadata.value).div(`1e${ele.metadata.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.symbol,
                 type: 'Mint',
                 chain: chains,
-                time: item.timestamp.substr(0, 10)
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
             if (ele.type === 'approval') {
               transactionData.push({
-                sent: formatting(ele.address_from),
-                received: formatting(ele.address_to),
+                sent: formatting(ele.from),
+                received: formatting(ele.to),
                 price: 0,
                 type: 'Approval',
                 chain: chains,
-                time: item.timestamp.substr(0, 10)
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
-            if (ele.type === 'transfer' && ele.address_to?.toLowerCase() === data.useraddress?.toLowerCase()) {
+            if (ele.type === 'transfer' && ele.to?.toLowerCase() === data.useraddress?.toLowerCase()) {
               transactionData.push({
-                sent: formatting(ele.address_from),
-                received: formatting(ele.address_to),
-                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                sent: formatting(ele.from),
+                received: formatting(ele.to),
+                price: new BigNumber(ele.metadata.value).div(`1e${ele.metadata.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.symbol,
                 type: 'Claim',
                 chain: chains,
-                time: item.timestamp.substr(0, 10)
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
-            if (ele.type === 'transfer' && ele.address_from?.toLowerCase() === data.useraddress?.toLowerCase()) {
+            if (ele.type === 'transfer' && ele.from?.toLowerCase() === data.useraddress?.toLowerCase()) {
               transactionData.push({
-                sent: formatting(ele.address_from),
-                received: formatting(ele.address_to),
-                price: (ele.metadata.value_display * 1).toFixed(2) + ' ' + ele.metadata.symbol,
+                sent: formatting(ele.from),
+                received: formatting(ele.to),
+                price: new BigNumber(ele.metadata.value).div(`1e${ele.metadata.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.symbol,
                 type: 'Sent',
                 chain: chains,
-                time: item.timestamp.substr(0, 10)
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
           })
         }
         if (item.tag === 'collectible' && item.type === 'mint') {
           item.actions.map((ele: any) => {
-            if (ele.type === 'mint') {
+            if (ele.type === 'mint'&&!ele.from) {
               const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
               let prices
               if (ele.metadata.cost) {
-                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+                prices = new BigNumber(ele.metadata.cost.value).div(`1e${ele.metadata.cost.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.cost?.symbol
               } else {
                 prices = 0
               }
               Tabledata.push({
-                collation: ele.metadata.collection,
-                nftname: ele.metadata.name,
+                collation: ele.metadata.name,
+                nftname: ele.metadata.title,
                 price: prices,
                 chain: chains,
                 type: 'Mint',
-                time: item.timestamp.substr(0, 10)
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
           })
@@ -457,18 +464,18 @@ export const UservAnalysis = (data: any) => {
               const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
               let prices
               if (ele.metadata.cost) {
-                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+                prices = new BigNumber(ele.metadata.cost.value).div(`1e${ele.metadata.cost.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.cost?.symbol
               } else {
                 prices = 0
               }
               Tabledata.push({
-                collation: ele.metadata.collection,
-                nftname: ele.metadata.name,
+                collation: ele.metadata.name,
+                nftname: ele.metadata.title,
                 price: prices,
                 chain: chains,
                 platform: item.platform,
-                type: ele.address_from?.toLowerCase() === data.useraddress?.toLowerCase() ? 'Sold' : 'Bought',
-                time: item.timestamp.substr(0, 10)
+                type: ele.from?.toLowerCase() === data.useraddress?.toLowerCase() ? 'Sold' : 'Bought',
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
           })
@@ -477,15 +484,15 @@ export const UservAnalysis = (data: any) => {
           item.actions.map((ele: any) => {
             if (ele.metadata.collection=== 'Galaxy OAT') {
               const filterTime = OATtime.filter((val: any) => {
-                return val === item.timestamp.substr(5, 5)
+                return val === new Date(item.timestamp*1000).toJSON().substr(5, 5)
               })
               if (filterTime.length===0) {
-                OATtime.push(item.timestamp.substr(5, 5))
+                OATtime.push(new Date(item.timestamp*1000).toJSON().substr(5, 5))
               }
               const chains = item.network === 'binance_smart_chain' ? 'BNB' : item.network
               let prices
               if (ele.metadata.cost) {
-                prices = ele.metadata.cost?.value_display.substr(0, 5) + ' ' + ele.metadata.cost?.symbol
+                prices = new BigNumber(ele.metadata.cost.value).div(`1e${ele.metadata.cost.decimals}`).toNumber().toFixed(2) + ' ' + ele.metadata.cost?.symbol
               } else {
                 prices = 0
               }
@@ -495,16 +502,15 @@ export const UservAnalysis = (data: any) => {
                 price: prices,
                 chain: chains,
                 platform: item.platform,
-                type: ele.address_from?.toLowerCase() === data.useraddress?.toLowerCase() ? 'Sold' : 'Bought',
-                time: item.timestamp.substr(0, 10)
+                type: ele.from?.toLowerCase() === data.useraddress?.toLowerCase() ? 'Sold' : 'Bought',
+                time: new Date(item.timestamp*1000).toJSON().substr(0, 10)
               })
             }
           })
         }
         if (item.tag === 'exchange') {
-          // console.log(item.actions)
           item.actions.map((ele: any) => {
-            if (ele.address_from?.toLowerCase() === data.useraddress?.toLowerCase()) {
+            if (ele.from?.toLowerCase() === data.useraddress?.toLowerCase()) {
               if (ele.type === 'swap') {
                 Tokensarr.push(ele.metadata.from.symbol)
                 Tokensarr.push(ele.metadata.to.symbol)
@@ -514,7 +520,7 @@ export const UservAnalysis = (data: any) => {
             }
           })
         }
-        timearr.push(item.timestamp.substr(0, 10))
+        timearr.push(new Date(item.timestamp*1000).toJSON().substr(0, 10))
       })
       setTableDataAll(Tabledata)
       setSwapDataAll(swapdata)
@@ -553,7 +559,7 @@ export const UservAnalysis = (data: any) => {
         const seriesdata: any[] = []
         timearrDeduplication.map((ele) => {
           const filtertime = PieChartData.filter((data: any) => {
-            return data.timestamp.indexOf(ele) !== -1
+            return new Date(data.timestamp*1000).toJSON().indexOf(ele) !== -1
           })
           const filtertag = filtertime.filter((data: any) => {
             return data.network === item
@@ -571,10 +577,12 @@ export const UservAnalysis = (data: any) => {
         const seriesdata = [] as any
         timearrDeduplication.map((ele) => {
           const filtertime = PieChartData.filter((data: any) => {
-            return data.timestamp.indexOf(ele) !== -1
+            return new Date(data.timestamp*1000).toJSON().indexOf(ele) !== -1
           })
           const filtercollation = filtertime.filter((data: any) => {
-            return data.actions[0].metadata.collection === item
+            if (data.actions[0]?.metadata) {
+              return data.actions[0].metadata?.name === item
+            }
           })
           seriesdata.push(filtercollation.length)
         })
@@ -765,11 +773,11 @@ export const UservAnalysis = (data: any) => {
   const setRelationChart = () => {
     const addressArr = [] as any
     interactAll.map((item: any) => {
-      if (item.address_from) {
-        addressArr.push(item.address_from)
+      if (item.from) {
+        addressArr.push(item.from)
       }
-      if (item.address_to) {
-        addressArr.push(item.address_to)
+      if (item.to) {
+        addressArr.push(item.to)
       }
     })
     const addressArrDeduplication = [...new Set(addressArr)]
@@ -787,13 +795,13 @@ export const UservAnalysis = (data: any) => {
     })
     interactAll.map((item: any) => {
       const object = {
-        source: findAddressIndex(Array.from(new Set(addressArr)), item.address_from),
-        target: findAddressIndex(Array.from(new Set(addressArr)), item.address_to),
+        source: findAddressIndex(Array.from(new Set(addressArr)), item.from),
+        target: findAddressIndex(Array.from(new Set(addressArr)), item.to),
         value: `${item.type === 'transfer'
           ? (item.type +' '+(item.actions[0].metadata.value_display * 1).toFixed(2)+' '+item.actions[0].metadata.symbol) || formatting(item.actions[0].metadata.id)
           : item.type}`,
         lineStyle: {
-          color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), item.address_to)]
+          color: colorTable[findAddressIndex(Array.from(new Set(addressArr)), item.to)]
         }
       }
       linkData.push(object)
@@ -848,14 +856,14 @@ export const UservAnalysis = (data: any) => {
   }
   const chainActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
-      return item.network === params.seriesName && item.timestamp.substr(5, 5) === params.name
+      return item.network === params.seriesName && new Date(item.timestamp*1000).toJSON().substr(5, 5) === params.name
     })
     setPopUpsData(data)
     setShowActivity(true)
   }
   const collationActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
-      return item.timestamp.substr(5, 5) === params.name && item.tag === 'collectible' && item.actions[0].metadata.collection === params.seriesName
+      return new Date(item.timestamp*1000).toJSON().substr(5, 5) === params.name && item.tag === 'collectible' && item.actions[0].metadata.collection === params.seriesName
     })
     setPopUpsData(data)
     setShowActivity(true)
@@ -979,22 +987,22 @@ export const UservAnalysis = (data: any) => {
             <CollationTable className={transactionTab === 'NFT' ? '' : 'none'}>
               <div className="title">NFT Transactions</div>
               <div className="tab flex">
-                <div>COLLATION</div>
-                <div>NFTNAME</div>
-                <div>PRICE</div>
-                <div>CHAIN</div>
-                <div>TYPE</div>
-                <div>TIME</div>
+                  <div>Time</div>
+                  <div>Colletion</div>
+                  <div>NFT Name</div>
+                  <div>Price</div>
+                  <div>Chain</div>
+                  <div>Type</div>
               </div>
               {tableData && tableData.length ? (
                 tableData.map((item: any, index: number) => (
                   <div className={(index + 1) % 2 === 0 ? 'tableContent flex bag' : 'tableContent flex'} key={index}>
+                    <div>{item?.time}</div>
                     <div>{item?.collation}</div>
                     <div>{item?.nftname}</div>
                     <div>{item?.price}</div>
                     <div>{item?.chain}</div>
                     <div>{item?.type}</div>
-                    <div>{item?.time}</div>
                   </div>
                 ))
               ) : (
