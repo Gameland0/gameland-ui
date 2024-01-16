@@ -13,7 +13,7 @@
 			},
 			{
 				"internalType": "string",
-				"name": "baseURI",
+				"name": "_uri",
 				"type": "string"
 			},
 			{
@@ -22,12 +22,12 @@
 				"type": "uint256"
 			},
 			{
-				"internalType": "address payable",
+				"internalType": "address",
 				"name": "_feeaddress",
 				"type": "address"
 			},
 			{
-				"internalType": "address payable",
+				"internalType": "address",
 				"name": "_owneraddress",
 				"type": "address"
 			},
@@ -35,6 +35,11 @@
 				"internalType": "uint256",
 				"name": "_max_count",
 				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_downloadlink",
+				"type": "string"
 			}
 		],
 		"stateMutability": "nonpayable",
@@ -135,6 +140,19 @@
 		"type": "event"
 	},
 	{
+		"inputs": [],
+		"name": "Mint",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -169,19 +187,6 @@
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "tokenId",
-				"type": "uint256"
-			}
-		],
-		"name": "burn",
-		"outputs": [],
-		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -243,6 +248,19 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "getdownloadlink",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -264,13 +282,6 @@
 			}
 		],
 		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "mint",
-		"outputs": [],
-		"stateMutability": "payable",
 		"type": "function"
 	},
 	{

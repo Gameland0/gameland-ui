@@ -192,10 +192,20 @@ const UploadFile = styled.div`
   margin-bottom: 50px;
   .uploadDiv {
     width: 80%;
+    margin: auto;
+    .fileList {
+      margin-left: 15px;
+      .title {
+          font-size: 20px;
+          color: #222222;
+      }
+    }
+  }
+  .uploadButton {
+    width: 60%;
     height: 380px;
     background: url(${uploadBg});
     background-size: 100% 380px;
-    margin: auto;
     img {
       position: absolute;
       z-index: 99;
@@ -205,6 +215,16 @@ const UploadFile = styled.div`
     width: 100%;
     height: 380px;
     opacity: 0;
+  }
+  .SubmitBottun {
+    width: 10%;
+    height: 40px;
+    border: 1px solid #0090FF;
+    color: #0090FF;
+    border-radius: 20px;
+    line-height: 40px;
+    margin: auto;
+    margin-top: 30px;
   }
 `
 
@@ -234,7 +254,7 @@ const Switch = styled.div`
 `
 
 export const MarketUpload = () => {
-  const { account, library } = useActiveWeb3React()
+  const { account, library, chainId } = useActiveWeb3React()
   const FactoryContract =useFactoryContract()
   const [edit, setEdit] = useState('Model')
   const [type, setType] = useState('Models')
@@ -248,7 +268,9 @@ export const MarketUpload = () => {
   const [showType, setShowType] = useState(false)
   const [showTags, setShowTags] = useState(false)
   const [showCategory, setShowCategory] = useState(false)
+  const [Reload, setReload] = useState(false)
   const [Tags, setTags] = useState([] as any)
+  const [files, setFiles] = useState([] as any)
   const Header = require('@editorjs/header')
   const List = require('@editorjs/list')
   const Image = require('@editorjs/image')
@@ -258,51 +280,53 @@ export const MarketUpload = () => {
   const Table = require('@editorjs/table')
 
   useEffect(() => {
-    const editor = new EditorJS({
-      holder: 'editor',
-      tools: {
-        header: {
-          class: Header,
-          config: {
-            placeholder: 'Enter a header',
-            levels: [1, 2, 3, 4],
-            defaultLevel: 2
-          }
-        },
-        list: {
-          class: List
-        },
-        image: {
-          class: Image,
-          config: {
-            uploader: {
-              async uploadByFile(file: any) {
-                return {
-                  success: 1,
-                  file: {
-                    url: await blobToDataURI(file)
+    if (edit==='Model') {
+      new EditorJS({
+        holder: 'editor',
+        tools: {
+          header: {
+            class: Header,
+            config: {
+              placeholder: 'Enter a header',
+              levels: [1, 2, 3, 4],
+              defaultLevel: 2
+            }
+          },
+          list: {
+            class: List
+          },
+          image: {
+            class: Image,
+            config: {
+              uploader: {
+                async uploadByFile(file: any) {
+                  return {
+                    success: 1,
+                    file: {
+                      url: await blobToDataURI(file)
+                    }
                   }
                 }
               }
             }
+          },
+          checklist: {
+            class: Checklist
+          },
+          quote: {
+            class: Quote
+          },
+          delimiter: {
+            class: Delimiter
+          },
+          table: {
+            class: Table
           }
-        },
-        checklist: {
-          class: Checklist
-        },
-        quote: {
-          class: Quote
-        },
-        delimiter: {
-          class: Delimiter
-        },
-        table: {
-          class: Table
         }
-      }
-    })
+      })
+    }
     // getindex()
-  }, [])
+  }, [Reload,edit])
 
   const getindex = async () => {
     const list = await FactoryContract?.getnftfactory_list()
@@ -394,7 +418,22 @@ export const MarketUpload = () => {
     const fileInput = document.getElementById('file')
     fileInput?.click()
   }
+
   const uploadChange = async (e: any) => {
+    if (files.length >= 4) {
+      toastify.error('Up to three files can be uploaded at one time')
+      return
+    }
+    const filearr = files
+    for (let index = 0; index < e.target.files.length; index++) {
+      const element = e.target.files[index];
+      filearr.push(element)
+    }
+    setFiles(filearr)
+    setReload(!Reload)
+  }
+
+  const uploadButton = async () => {
     if (!nameInputValue) {
       toastify.error('name cannot be empty')
       return
@@ -411,11 +450,6 @@ export const MarketUpload = () => {
       toastify.error('description cannot be empty')
       return
     }
-    if (e.target.files.length >= 4) {
-      toastify.error('Up to three files can be uploaded at one time')
-      return
-    }
-
     let nftAddress
     let nftAmount
     let price
@@ -423,6 +457,13 @@ export const MarketUpload = () => {
       nftAddress = ''
       nftAmount = 0
       price = '0'
+    }
+    const Filename = [] as any
+    let fileSize = 0
+    for (let index = 0; index < files.length; index++) {
+      const element = files[index]
+      fileSize = fileSize + element.size
+      Filename.push(element.name)
     }
     if (permissions === 'Pay') {
       if (!priceInputValue) {
@@ -433,16 +474,27 @@ export const MarketUpload = () => {
         toastify.error('amount cannot be empty')
         return
       }
+      const daat = {
+        name: nameInputValue,
+        description: description,
+        image: 'https://dapp.gameland.network/favicon.ico'
+      }
+      const jsonString = JSON.stringify(daat)
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const formData = new FormData()
+      formData.append('files', blob, `${nameInputValue}.json`)
+      uploadhttp.post('v0/upload/matedata',formData)
       const userNmae = await bschttp.get(`v0/userinfo/${account}`)
       price = priceInputValue
       nftAmount = amountInputValue
       const creatNFT = await FactoryContract?.createnft(
         nameInputValue,
         userNmae.data.data[0].username,
-        'baseURI',
+        `https://upload-api.gameland.network/v0/readfile?filename=${nameInputValue}.json`,
         new BigNumber(priceInputValue).multipliedBy(1000000000000000000).toString(),
         account,
-        nftAmount
+        nftAmount,
+        `https://upload-api.gameland.network/v0/upload?filename=${Filename+''}`
       )
       const receipt = await fetchReceipt(creatNFT.hash, library)
       if (!receipt.status) {
@@ -451,12 +503,8 @@ export const MarketUpload = () => {
         nftAddress = receipt.logs[0].address
       }
     }
-    const Filename = [] as any
-    let fileSize = 0
-    for (let index = 0; index < e.target.files.length; index++) {
-      const element = e.target.files[index];
-      fileSize = fileSize + element.size
-      Filename.push(element.name)
+    for (let index = 0; index < files.length; index++) {
+      const element = files[index]
       const form = new FormData()
       form.append('files',element)
       uploadhttp.post('v0/upload',form).then((res) => {
@@ -476,7 +524,6 @@ export const MarketUpload = () => {
     const parm = {
       type: type,
       name: nameInputValue,
-      // category: category,
       description: description,
       permissions: permissions,
       tags: Tags+'',
@@ -488,9 +535,9 @@ export const MarketUpload = () => {
       price: price,
       nftAmount: Number(nftAmount)
     }
-    // console.log(parm)
     uploadhttp.post('v0/fileInfo', parm)
   }
+
   const nameInputChange = useCallback((ele) => {
     const val = ele.currentTarget.value
     setNameInputValue(val)
@@ -612,16 +659,18 @@ export const MarketUpload = () => {
               </div>
               {permissions === 'Pay'? (
                 <div>
+                  <div className=''>Create Permission NFT</div>
                   <div className='min_title'>
-                    Price
+                    Price per NFT
                     <img src={needIcon} alt="" />
                   </div>
                   <div className="inputDiv nameInput">
                     <img src={writeIcon} alt="" />
                     <input type="text" onChange={priceInputChange} value={priceInputValue}/>
+                    {chainId===56?'BNB':chainId===1?'ETH':'MATIC'}
                   </div>
                   <div className='min_title'>
-                    Amount
+                    NFT Amount
                     <img src={needIcon} alt="" />
                   </div>
                   <div className="inputDiv nameInput">
@@ -636,10 +685,21 @@ export const MarketUpload = () => {
           {edit==='Upload'? (
             <UploadFile>
               <div className="main_title"><b>|</b> Upload files</div>
-              <div className="uploadDiv flex flex-center relative" onClick={Upload}>
-                <img src={uploadIcon} alt="" />
-                <input id="file" type="file" onChange={uploadChange} />
+              <div className="uploadDiv flex">
+                <div className="uploadButton flex flex-center relative" onClick={Upload}>
+                  <img src={uploadIcon} alt="" />
+                  <input id="file" type="file" onChange={uploadChange} />
+                </div>
+                <div className="fileList">
+                  <div className="title">file list:</div>
+                  {files&&files.length ? (
+                    files.map((item: any,index: number) => (
+                      <div key={index}>{item.name}</div>
+                    ))
+                  ) : ''}
+                </div>
               </div>
+              <div className="SubmitBottun text-center cursor" onClick={uploadButton}>Submit</div>
             </UploadFile>
           ) : '' }
           <Switch>

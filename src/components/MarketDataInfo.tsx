@@ -165,6 +165,7 @@ const RightInfo = styled.div`
       border-radius: 10px;
       font-size: 14px;
       color: #0090FF;
+      line-height: 20px;
       margin-left: 40px;
     }
     .defaultReview {
@@ -233,6 +234,7 @@ export const MarketDataInfo = () => {
   const [score, setScore] = useState(0)
   const [myScore, setMyScore] = useState(0)
   const [fileScore, setFileScore] = useState(0)
+  const [saleNFTAmount, setSaleNFTAmount] = useState(0)
 
   useEffect(() => {
     getData()
@@ -248,7 +250,10 @@ export const MarketDataInfo = () => {
   }, [dataInfo, Reload, account])
 
   useEffect(() => {
-    if (dataInfo.permissions === 'open' || PayState) {
+    if (dataInfo.permissions === 'open') {
+      openDownlaod()
+    }
+    if (PayState) {
       Downlaod()
     }
   }, [dataInfo, PayState])
@@ -260,6 +265,11 @@ export const MarketDataInfo = () => {
       return item.id === id
     })
     setDataInfo(findData[0])
+    if (findData[0].nftAddress) {
+      const NFTContract = new Contract(findData[0].nftAddress, NFTAbi, library?.getSigner())
+      const saleNFT = await NFTContract.get_sale_count()
+      setSaleNFTAmount(saleNFT.toNumber())
+    }
     const tagsArr = findData[0].tags.split(",")
     setTags(tagsArr)
     const findUserFileData = data.data.data.filter((item: any) => {
@@ -326,7 +336,7 @@ export const MarketDataInfo = () => {
     }
     const NFTContract = new Contract(dataInfo.nftAddress, NFTAbi, library?.getSigner())
     const price = await NFTContract.get_price()
-    const payNFT = await NFTContract.mint({
+    const payNFT = await NFTContract.Mint({
       value: price.toString()
     })
     const receipt = await fetchReceipt(payNFT.hash, library)
@@ -344,6 +354,14 @@ export const MarketDataInfo = () => {
   }
 
   const Downlaod = async () => {
+    const NFTContract = new Contract(dataInfo.nftAddress, NFTAbi, library?.getSigner())
+    const fileURL = await NFTContract.getdownloadlink()
+    const href = fileURL.toString()
+    const Adom = document.getElementById('ALabel')
+    Adom?.setAttribute('href', href)
+  }
+
+  const openDownlaod = async () => {
     const file = await uploadhttp.get(`v0/fileURL/${id}?user=${account}&permissions=${dataInfo.permissions}`)
     const fileURL = file.data.data[0]?.file
     const href = `https://upload-api.gameland.network/v0/upload?filename=${fileURL}`
@@ -375,6 +393,10 @@ export const MarketDataInfo = () => {
   }
 
   const addFileScore = () => {
+    if (score<1) {
+      toastify.error('score cannot be empty')
+      return
+    }
     const parm = {
       user: account,
       fileID: id,
@@ -461,6 +483,14 @@ export const MarketDataInfo = () => {
             <div className="title">Uploaded:</div>
             <div className="content">{dataInfo.uploadTime?.slice(0,10)}</div>
           </div>
+          {dataInfo.nftAddress ? (
+            <div className="infoItem flex">
+              <div className="title">NFT Mint:</div>
+              <div className="content">
+                {saleNFTAmount}/{dataInfo.nftAmount}
+              </div>
+            </div>
+          ) : ''}
           <div className="func flex wrap flex-justify-content">
             {likeState? (
               <img src={likes} alt="" />
@@ -519,9 +549,9 @@ export const MarketDataInfo = () => {
             </div>
             {dataInfo.userAddress!==account ? (
               getFolloweState() ? (
-                <div className="followButton text-center cursor" onClick={Followe}>+Follow</div>
-              ) : (
                 <div className="unfollowButton text-center cursor" onClick={UnFollowe}>-Follow</div>
+              ) : (
+                <div className="followButton text-center cursor" onClick={Followe}>+Follow</div>
               )
             ) : ''}
           </div>

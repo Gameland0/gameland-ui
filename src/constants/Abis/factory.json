@@ -2,7 +2,7 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address payable",
+				"internalType": "address",
 				"name": "_feeaddress",
 				"type": "address"
 			}
@@ -24,7 +24,7 @@
 			},
 			{
 				"internalType": "string",
-				"name": "baseURI",
+				"name": "_uri",
 				"type": "string"
 			},
 			{
@@ -33,7 +33,7 @@
 				"type": "uint256"
 			},
 			{
-				"internalType": "address payable",
+				"internalType": "address",
 				"name": "_owneraddress",
 				"type": "address"
 			},
@@ -41,13 +41,18 @@
 				"internalType": "uint256",
 				"name": "_max_count",
 				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "downloadlink",
+				"type": "string"
 			}
 		],
 		"name": "createnft",
 		"outputs": [
 			{
 				"internalType": "address",
-				"name": "contractaddress",
+				"name": "",
 				"type": "address"
 			}
 		],
@@ -55,14 +60,27 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "getnft_list",
+		"outputs": [
 			{
-				"internalType": "uint256",
-				"name": "key",
-				"type": "uint256"
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
 			}
 		],
-		"name": "getfactorys",
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "getnftbyowner",
 		"outputs": [
 			{
 				"internalType": "address",
@@ -75,12 +93,12 @@
 	},
 	{
 		"inputs": [],
-		"name": "getnftfactory_list",
+		"name": "getowner_list",
 		"outputs": [
 			{
-				"internalType": "uint256[]",
+				"internalType": "address[]",
 				"name": "",
-				"type": "uint256[]"
+				"type": "address[]"
 			}
 		],
 		"stateMutability": "view",
