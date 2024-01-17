@@ -12,7 +12,7 @@ import { bschttp, uploadhttp } from './Store'
 import { toastify } from './Toastify'
 import { useActiveWeb3React, useFactoryContract } from '../hooks'
 import BigNumber from 'bignumber.js'
-import { fetchReceipt } from '../utils'
+import { fetchReceipt, generateRandomString } from '../utils'
 
 const MarketUploadBox = styled.div`
   .main_title {
@@ -185,6 +185,12 @@ const EditModelBox = styled.div`
     border-radius: 30%;
     padding: 0 10px;
     margin-right: 10px;
+  }
+  .PermissionNFT {
+    font-size: 20px;
+    font-weight: bold;
+    color: #555555;
+    margin-bottom: 22px;
   }
 `
 
@@ -453,10 +459,12 @@ export const MarketUpload = () => {
     let nftAddress
     let nftAmount
     let price
+    let random
     if (permissions === 'open') {
       nftAddress = ''
       nftAmount = 0
       price = '0'
+      random = ''
     }
     const Filename = [] as any
     let fileSize = 0
@@ -465,6 +473,7 @@ export const MarketUpload = () => {
       fileSize = fileSize + element.size
       Filename.push(element.name)
     }
+    
     if (permissions === 'Pay') {
       if (!priceInputValue) {
         toastify.error('price cannot be empty')
@@ -474,23 +483,14 @@ export const MarketUpload = () => {
         toastify.error('amount cannot be empty')
         return
       }
-      const daat = {
-        name: nameInputValue,
-        description: description,
-        image: 'https://dapp.gameland.network/favicon.ico'
-      }
-      const jsonString = JSON.stringify(daat)
-      const blob = new Blob([jsonString], { type: 'application/json' })
-      const formData = new FormData()
-      formData.append('files', blob, `${nameInputValue}.json`)
-      uploadhttp.post('v0/upload/matedata',formData)
+      random = generateRandomString()
       const userNmae = await bschttp.get(`v0/userinfo/${account}`)
       price = priceInputValue
       nftAmount = amountInputValue
       const creatNFT = await FactoryContract?.createnft(
         nameInputValue,
         userNmae.data.data[0].username,
-        `https://upload-api.gameland.network/v0/readfile?filename=${nameInputValue}.json`,
+        `https://upload-api.gameland.network/v0/readfile?contract=${random}&filename=`,
         new BigNumber(priceInputValue).multipliedBy(1000000000000000000).toString(),
         account,
         nftAmount,
@@ -533,7 +533,8 @@ export const MarketUpload = () => {
       fileSize: size,
       nftAddress: nftAddress,
       price: price,
-      nftAmount: Number(nftAmount)
+      nftAmount: Number(nftAmount),
+      coding: random
     }
     uploadhttp.post('v0/fileInfo', parm)
   }
@@ -659,7 +660,7 @@ export const MarketUpload = () => {
               </div>
               {permissions === 'Pay'? (
                 <div>
-                  <div className=''>Create Permission NFT</div>
+                  <div className='PermissionNFT'>Create Permission NFT</div>
                   <div className='min_title'>
                     Price per NFT
                     <img src={needIcon} alt="" />

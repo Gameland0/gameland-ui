@@ -1106,7 +1106,7 @@ export const UservAnalysis = (data: any) => {
               </div>
             </CollationTable>
             <CollationTable className={transactionTab === 'Wash' ? '' : 'none'}>
-              <div className="title">NFT Transactions</div>
+              <div className="title">POAP Transactions</div>
               <div className="tab flex">
                 <div>COLLATION</div>
                 <div>NFTNAME</div>
@@ -1143,7 +1143,7 @@ export const UservAnalysis = (data: any) => {
               </div>
             </CollationTable>
             <CollationTable className={transactionTab === 'Poap' ? '' : 'none'}>
-                  <div className="title">NFT Transactions</div>
+                  <div className="title">Wash Trading</div>
                   <div className="tab flex">
                     <div>Time</div>
                     <div>Colletion</div>

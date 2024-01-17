@@ -412,7 +412,6 @@ const calcuBotTranction = (data: any,chain: any) => {
   data.map((item: any) => {
     const time = item.timeStamp * 1000
     const address= filterAddress(item.t1)
-    console.log(time)
     if (time < thisWeekTime && time > thisWeekTime - 604800000) {
       if (address!=='0x0000000000000000000000000000000000000000') {
         thisWeek.push(item)
@@ -666,12 +665,14 @@ export const GameAnalysis = (data: any) => {
   }, [saleRankTab])
 
   useEffect(() => {
-    if (CollectionDataList.length) {
+    console.log(CollectionDataList.length)
+    if (CollectionDataList.length) { 
       const data = [] as any
       for (let index = 0; index < CollectionDataList.length; index++) {
         const element = CollectionDataList[index]
         data.push(element[CollectionDataTab])
       }
+      console.log(data)
       setCollectionData(data)
     }
   }, [CollectionDataTab])
@@ -974,6 +975,8 @@ export const GameAnalysis = (data: any) => {
       const PlatformAll = [] as any
       const activeUser = [] as any
       let TokenTotal = 0
+      let TokenTotal7 = 0
+      let TokenTotal14 = 0
       actions.data.data.map((item: any) => {
         if (item.tokenid * 1 === 0) {
           approveData.push(item)
@@ -1002,6 +1005,12 @@ export const GameAnalysis = (data: any) => {
         if (item.xw === 'sale') {
           const value = new BigNumber(item.transactionvalue).div(1000000000000000000).toNumber()
           TokenTotal = TokenTotal + value
+          if (item.timeStamp * 1000 >days7time) {
+            TokenTotal7 = TokenTotal7 + value
+          }
+          if (item.timeStamp * 1000 >days14time) {
+            TokenTotal14 = TokenTotal14 + value
+          }
         }
         item.t1 = filterAddress(item.t1)
         item.t2 = filterAddress(item.t2)
@@ -1119,6 +1128,12 @@ export const GameAnalysis = (data: any) => {
       const saleRankData = [] as any
       const Sales = actions.data.data.filter((item: any)=> {
         return item.xw === 'sale'
+      })
+      const Sales7 = actions.data.data.filter((item: any)=> {
+        return item.xw === 'sale'&&item.timeStamp * 1000 >days7time
+      })
+      const Sales14 = actions.data.data.filter((item: any)=> {
+        return item.xw === 'sale'&&item.timeStamp * 1000 >days14time
       })
       const Sold = actions.data.data.filter((item: any)=> {
         return item.xw === 'sold'
@@ -1240,12 +1255,30 @@ export const GameAnalysis = (data: any) => {
       })
       setRankData(Rankarr)
       arr.push({
-        image: filterData[0].image,
-        name: filterData[0].contractName,
-        Sales: Sales.length,
-        Avg: Sales.length===0? Sales.length: new BigNumber(TokenTotal.toFixed(3)).div(Sales.length).toFixed(3),
-        chain: filterData[0].chain,
-        Volume: TokenTotal.toFixed(3)
+        All: {
+          image: filterData[0].image,
+          name: filterData[0].contractName,
+          Sales: Sales.length,
+          Avg: Sales.length===0? 0: new BigNumber(TokenTotal).div(Sales.length).toFixed(3),
+          chain: filterData[0].chain,
+          Volume: TokenTotal.toFixed(3)
+        },
+        Days7: {
+          image: filterData[0].image,
+          name: filterData[0].contractName,
+          chain: filterData[0].chain,
+          Sales: Sales7.length,
+          Avg: Sales7.length===0? 0:new BigNumber(TokenTotal7).div(Sales7.length).toFixed(3),
+          Volume: TokenTotal7.toFixed(3)
+        },
+        Days14: {
+          image: filterData[0].image,
+          name: filterData[0].contractName,
+          chain: filterData[0].chain,
+          Sales: Sales14.length,
+          Avg: Sales14.length===0? 0:new BigNumber(TokenTotal14).div(Sales14.length).toFixed(3),
+          Volume: TokenTotal14.toFixed(3)
+        }
       })
       NFTxAxis.push(filterData[0].contractName)
       legend.push(`${filterData[0].contractName} Average Approve`)
@@ -2372,22 +2405,22 @@ export const GameAnalysis = (data: any) => {
                   <div className="Volume">Volume</div>
                 </div>
                 <div className="flex info flex-v-center">
-                  <img className="gameImg" src={item.image || defaultImg} alt="" />
-                  <div className="name Abbreviation">{item.name}</div>
-                  <div className="Avg">{item.Avg}</div>
-                  <div className="Sales">{item.Sales}</div>
+                  <img className="gameImg" src={item?.image || defaultImg} alt="" />
+                  <div className="name Abbreviation">{item?.name}</div>
+                  <div className="Avg">{item?.Avg}</div>
+                  <div className="Sales">{item?.Sales}</div>
                   <div className="Volume">
-                    {item.chain==='polygon'
+                    {item?.chain==='polygon'
                       ? (<img src={PolygonImg} alt="" />)
-                      : item.chain==='bsc'
+                      : item?.chain==='bsc'
                       ? (<img src={BSCImg} alt="" />)
-                      : item.chain==='eth'
+                      : item?.chain==='eth'
                       ? (<img src={ETHImg} alt="" />)
-                      : item.chain==='one'
+                      : item?.chain==='one'
                       ? (<img src={OneImg} alt="" />)
                       :(<img src={SolanaLogo} alt="" />)
                     }
-                    {item.Volume}
+                    {item?.Volume}
                   </div>
                 </div>
               </div>

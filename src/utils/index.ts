@@ -303,6 +303,15 @@ export const client = new ApolloClient({
   //   'X-API-KEY': 'QRs7cgbG5msDF7i1sXIy854x8EufDtHS'
   // }
 })
+export const generateRandomString = () => {
+  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = ''
+  for (let i = 0; i < 32; i++) {
+    let randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters.charAt(randomIndex);
+  }
+  return randomString
+}
 
 export const Recommended = gql`
   query getUserRecommendation($address: AddressEVM!, $chainId: ChainID!) {

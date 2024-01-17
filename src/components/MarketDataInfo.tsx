@@ -21,6 +21,7 @@ import viewer from '../assets/Market/icon_Viewer.png'
 import defaults from '../assets/default.png'
 import NFTAbi from '../constants/Abis/NFT.json'
 import { fetchReceipt } from '../utils'
+import BigNumber from 'bignumber.js'
 
 
 const DataInfoBox = styled.div`
@@ -343,6 +344,17 @@ export const MarketDataInfo = () => {
     if (!receipt.status) {
       throw Error('Failed to deposit.')
     } else {
+      const tokenid = new BigNumber(receipt.logs[0].topics[3]).toString()
+      const daat = {
+        name: dataInfo.fileName + ' ' + `#${tokenid}`,
+        description: 'No description yet',
+        image: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fci.xiaohongshu.com%2F1683c771-e13a-a1d3-4aa7-715b124fc38c%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fci.xiaohongshu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1708069173&t=d103d370a800e8b8a5347ecb0e9a6736'
+      }
+      const jsonString = JSON.stringify(daat)
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const formData = new FormData()
+      formData.append('files', blob, `${tokenid}.json`)
+      uploadhttp.post(`v0/upload/matedata?address=${dataInfo.nftAddress}`,formData)
       const parm = {
         user: account,
         buyID: dataInfo.id

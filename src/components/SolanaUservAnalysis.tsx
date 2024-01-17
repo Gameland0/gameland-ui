@@ -563,7 +563,7 @@ export const SolanaUservAnalysis = (data: any) => {
               </div>
             </CollationTable>
             <CollationTable className={transactionTab === 'Wash' ? '' : 'none'}>
-              <div className="title">NFT Transactions</div>
+              <div className="title">Wash Trading</div>
               <div className="tab flex">
                 <div>Collation</div>
                 <div>NFT Name</div>
