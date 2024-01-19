@@ -283,6 +283,8 @@ export function useFactoryContract() {
   if (!library) return null
   if (chainId === 56) {
     return new Contract('0xa2653fA580735bC3154a55b10a2B68e9F2f33FeF', factoryAbi, library.getSigner())
+  } else if (chainId === 137) {
+    return new Contract('0xCE6E87d0f4A64E127610A66ac97316DC2Fa3BFB0', factoryAbi, library.getSigner())
   }
   // return new Contract('0x180fDD663fDee626D91a31262E913c981a5B5F80', factoryAbi, library.getSigner())
 }

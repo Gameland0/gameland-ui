@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import styled from 'styled-components'
 import EditorJS from '@editorjs/editorjs'
+import { useHistory } from 'react-router-dom'
 import needIcon from '../assets/Market/red_str.png'
 import writeIcon from '../assets/Market/icon_write.png'
 import uploadBg from '../assets/Market/upload_div_bg.png'
@@ -13,6 +14,7 @@ import { toastify } from './Toastify'
 import { useActiveWeb3React, useFactoryContract } from '../hooks'
 import BigNumber from 'bignumber.js'
 import { fetchReceipt, generateRandomString } from '../utils'
+
 
 const MarketUploadBox = styled.div`
   .main_title {
@@ -277,6 +279,7 @@ export const MarketUpload = () => {
   const [Reload, setReload] = useState(false)
   const [Tags, setTags] = useState([] as any)
   const [files, setFiles] = useState([] as any)
+  const history = useHistory()
   const Header = require('@editorjs/header')
   const List = require('@editorjs/list')
   const Image = require('@editorjs/image')
@@ -536,7 +539,13 @@ export const MarketUpload = () => {
       nftAmount: Number(nftAmount),
       coding: random
     }
-    uploadhttp.post('v0/fileInfo', parm)
+    uploadhttp.post('v0/fileInfo', parm).then((res) => {
+      if (res.data.code) {
+        history.push({
+          pathname: `/Market`
+        })
+      }
+    })
   }
 
   const nameInputChange = useCallback((ele) => {

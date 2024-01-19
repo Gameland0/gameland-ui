@@ -36,6 +36,10 @@ const DataInfoBox = styled.div`
     height: 16px;
     background-image: url(${redStrIcon});
   }
+  .image-tool__image-picture {
+    width: 100%;
+    height: 100%;
+  }
 `
 
 const LeftInfo = styled.div`
@@ -228,6 +232,7 @@ export const MarketDataInfo = () => {
   const [dataInfo, setDataInfo] = useState({} as any)
   const [userInfo, setUserInfo] = useState({} as any)
   const [statistics, setStatistics] = useState({} as any)
+  const [myLike, setMyLike] =useState({} as any)
   const [dataInfoAll, setDataInfoAll] = useState([] as any)
   const [Tags, setTags] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
@@ -297,6 +302,7 @@ export const MarketDataInfo = () => {
     const likeData = await uploadhttp.get(`v0/likeFile?userAddress=${account}&likeID=${id}`)
     if (likeData.data.data.length) {
       setLikeState(true)
+      setMyLike(likeData.data.data[0])
     }
     const scoreData = await uploadhttp.get(`v0/fileScore`)
     if (scoreData.data.data.length) {
@@ -389,6 +395,9 @@ export const MarketDataInfo = () => {
   }
 
   const countLike = () => {
+    if (dataInfo.userAddress === account) {
+      return
+    }
     const parm = {
       user: account,
       likeID: id
@@ -400,6 +409,15 @@ export const MarketDataInfo = () => {
         }
         uploadhttp.put(`v0/fileInfo/${id}`, parms)
         setReload(!Reload)
+        toastify.success('successful')
+      }
+    })
+  }
+  const unLike = () => {
+    uploadhttp.delete(`v0/likeFile/${myLike.id}`).then((res)=> {
+      if (res.data.code) {
+        setReload(!Reload)
+        toastify.success('successful')
       }
     })
   }
@@ -503,11 +521,19 @@ export const MarketDataInfo = () => {
               </div>
             </div>
           ) : ''}
+          {dataInfo.nftAddress ? (
+            <div className="infoItem flex">
+              <div className="title">NFT Address:</div>
+              <div className="content">
+                {dataInfo.nftAddress}
+              </div>
+            </div>
+          ) : ''}
           <div className="func flex wrap flex-justify-content">
             {likeState? (
-              <img src={likes} alt="" />
+              <img src={likes} onClick={unLike} alt="" />
             ):(
-              <img className="cursor" onClick={countLike} src={like} alt="" />
+              <img className={dataInfo.userAddress === account ? 'not-allowed':'cursor'} onClick={countLike} src={like} alt="" />
             )}
             {dataInfo.permissions === 'open' || PayState ? (
               <a id="ALabel">
@@ -516,7 +542,7 @@ export const MarketDataInfo = () => {
             ) : (
               <img className="cursor" onClick={Pay} src={pay} alt="" />
             )}
-            <img className="cursor" src={share} alt="" />
+            <img className="not-allowed" src={share} alt="" />
           </div>
         </div>
         <div className="fileNumber infoBorder relative cursor">

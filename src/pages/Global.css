@@ -142,8 +142,8 @@
   margin-left: 20px;
   padding-left: 10px;
   background: #FFFFFF;
-border: 1px solid #CEEAFF;
-box-shadow: -4px 4px 12px 0px rgba(197,212,231,0.18), 5px -3px 12px 0px rgba(0,114,255,0.1);
+  border: 1px solid #CEEAFF;
+  box-shadow: -4px 4px 12px 0px rgba(197,212,231,0.18), 5px -3px 12px 0px rgba(0,114,255,0.1);
 }
 .ps {
   width: 180px;

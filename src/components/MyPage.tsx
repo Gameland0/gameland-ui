@@ -11,7 +11,7 @@ import * as echarts from 'echarts'
 import BigNumber from 'bignumber.js'
 import { useActiveWeb3React, useStore, useRewardContract, usePayMentContract, useUSDTContract } from '../hooks'
 import { MORALIS_KEY, BscContract, PolygonContract, BSCSCAN_KEY, POLYGONSCAN_KEY } from '../constants'
-import { bschttp, http, newhttp, polygonhttp } from './Store'
+import { bschttp, http, newhttp, polygonhttp, uploadhttp } from './Store'
 import { formatting, fixDigitalId, fetchReceipt, handleImgError } from '../utils'
 import { colorTable } from '../constants/colorTable'
 import { firstWeek, getTime } from './CollectionDetails'
@@ -55,11 +55,20 @@ import longbutton from '../assets/long_button.jpg'
 import coffee from '../assets/icon_coffee.svg'
 import icon_payment from '../assets/icon_payment.svg'
 import USDT from '../assets/USDT.svg'
+import ModelsIcon from '../assets/Market/icon_models.png'
+import selectedModelsIcon from '../assets/Market/icon_models_selected.png'
+import DatasetsIcon from '../assets/Market/icon_Datasets.png'
+import selectedDatasetsIcon from '../assets/Market/icon_Datasets_selected.png'
+import likeIcon from '../assets/Market/icon_like.png'
+import titleIcon from '../assets/Market/icon_data_title.png'
+import downloadIcon from '../assets/Market/icon_download.png'
+import uploadTimeIcon from '../assets/Market/icon_download_time.png'
 import Arweave from 'arweave'
 import key from '../constants/arweave-keyfile.json'
 import { findAddressIndex } from './RelationChart'
 import { LineChartMadal } from './LineChartMadal'
 import { log } from 'console'
+import { ModelsContent } from './Market'
 
 interface CardProps {
   onClick?: () => void
@@ -335,7 +344,7 @@ const InfoRight = styled.div`
     font-size: 18px;
     color: #41acef;
     div {
-      margin-left: 64px;
+      margin-left: 40px;
       text-align: right;
       padding: 13px 16px;
       cursor: pointer;
@@ -354,6 +363,20 @@ const InfoRight = styled.div`
   .horizontalDividing {
     border: 1px solid #e5e5e5;
     margin: 32px 0;
+  }
+`
+const MarketBox = styled.div`
+  .MarketTabs {
+    font-size: 22px;
+    font-weight: bold;
+    color: #222222;
+    margin-bottom: 20px;
+    img {
+      width: 35px;
+      height: 35px;
+      margin-right: 10px;
+      margin-top: -5px;
+    }
   }
 `
 const CommentsBox = styled.div`
@@ -1155,6 +1178,8 @@ export const MyPage = () => {
   const [washDataAll, setWashDataAll] = useState([] as any)
   const [poapData, setPoapData] = useState([] as any)
   const [lensModalData, setLensModalData] = useState([] as any)
+  const [ModelData, setModelData] = useState([] as any)
+  const [DatasetsData, setDatasetsData] = useState([] as any)
   const [showReplayWindow, setshowReplayWindow] = useState(-1)
   const [totaPoints, setTotaPoints] = useState(0)
   const [totalPage, setTotalPage] = useState(0)
@@ -1192,6 +1217,7 @@ export const MyPage = () => {
   const [UserNameValue, setUserNameValue] = useState('')
   const [Avatar, setAvatar] = useState('')
   const [payMentAmount, setPayMentAmount] = useState('')
+  const [ContentTabs, setContentTabs] = useState('Models')
   const [rewardSelection, setrewardSelection] = useState(chainId === 56 ? 'BNB' : 'MATIC')
   const RewardContract = useRewardContract()
   const PayMentContract = usePayMentContract()
@@ -1229,6 +1255,7 @@ export const MyPage = () => {
     getNftData()
     getReviewData()
     getPieChartData()
+    getFileData()
   }, [account, refreshBy])
   useEffect(() => {
     const RewardTimeArr = rewardinfo
@@ -2810,6 +2837,25 @@ export const MyPage = () => {
       SnapshotChart.on('click', SnapshotChartClick)
     }
   }
+  const getFileData = async () => {
+    const fileData = await uploadhttp.get(`v0/fileInfo`)
+    const filterModel = fileData.data.data.filter((item: any) => {
+      return item.type === 'Models'
+    })
+    const filterDatasets = fileData.data.data.filter((item: any) => {
+      return item.type === 'Datasets'
+    })
+    setModelData(filterModel)
+    setDatasetsData(filterDatasets)
+  }
+  const toDataInfo = (item: any) => {
+    const parms = {
+      Browse: item.Browse + 1
+    }
+    history.push({
+      pathname: `/Market/Details/${item.id}`
+    })
+  }
   const chainActivityClick = (params: any) => {
     const data = PieChartData.filter((item: any) => {
       return item.network === params.seriesName && new Date(item.timestamp*1000).toJSON().substr(5, 5) === params.name
@@ -3180,6 +3226,10 @@ export const MyPage = () => {
             <div className={showTabs === 'Analysis' ? 'blueBg' : ''} onClick={() => cutoverTabs('Analysis')}>
               <img src={analysis} alt="analysis" />
               &nbsp;&nbsp;Analysis
+            </div>
+            <div className={showTabs === 'Market' ? 'blueBg' : ''} onClick={() => cutoverTabs('Market')}>
+              {/* <img src={tabsIconPosts} /> */}
+              &nbsp;&nbsp;Market
             </div>
             <div className={showTabs === 'Posts' ? 'blueBg' : ''} onClick={() => cutoverTabs('Posts')}>
               <img src={tabsIconPosts} />
@@ -3759,6 +3809,50 @@ export const MyPage = () => {
           ) : (
             ''
           )}
+          {showTabs === 'Market' ? (
+            <MarketBox>
+              <div className="MarketTabs flex flex-around">
+                <div className="cursor" onClick={() => setContentTabs('Models')}>
+                  <img src={ContentTabs==='Models'? selectedModelsIcon:ModelsIcon} alt="" />
+                  Models
+                </div>
+                <div className="cursor" onClick={() => setContentTabs('Datasets')}>
+                  <img src={ContentTabs==='Datasets'? selectedDatasetsIcon:DatasetsIcon} alt="" />
+                  Datasets
+                </div>
+              </div>
+              {ContentTabs==='Models'? (
+                <ModelsContent className="flex flex-column-between wrap">
+                  {ModelData&&ModelData.length? (
+                    ModelData.map((item: any, index: number) => (
+                      <div className="DataItem cursor" key={index} onClick={() => toDataInfo(item)}>
+                        <div className="title flex flex-v-center">
+                          <img src={titleIcon} alt="" />
+                          {item.fileName}
+                        </div>
+                        <div className="info flex flex-v-center flex-column-between">
+                          <div className="flex flex-v-center">
+                            <img src={downloadIcon} alt="" />
+                            {item.download}
+                          </div>
+                          <div className="flex flex-v-center">
+                            <img src={uploadTimeIcon} alt="" />
+                            {item.uploadTime.slice(0,10)}
+                          </div>
+                          <div className="flex flex-v-center">
+                            <img src={likeIcon} alt="" />
+                            {item.like}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="comingsoon">No data...</div>
+                  )}
+                </ModelsContent>
+              ) : ''}
+            </MarketBox>
+          ) : ''}
         </InfoRight>
       </UserInfo>
     </UserBox>

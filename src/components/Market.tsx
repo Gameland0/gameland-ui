@@ -136,7 +136,7 @@ const MarketBox = styled.div`
     margin: auto;
   }
 `
-const ModelsContent = styled.div`
+export const ModelsContent = styled.div`
   .DataItem {
     padding: 14px 20px;
     width: 32%;
