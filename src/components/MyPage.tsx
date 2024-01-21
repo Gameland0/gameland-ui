@@ -365,7 +365,7 @@ const InfoRight = styled.div`
     margin: 32px 0;
   }
 `
-const MarketBox = styled.div`
+export const MarketBox = styled.div`
   .MarketTabs {
     font-size: 22px;
     font-weight: bold;
@@ -377,6 +377,12 @@ const MarketBox = styled.div`
       margin-right: 10px;
       margin-top: -5px;
     }
+  }
+  .comingsoon {
+    text-align: center;
+    color: #000;
+    font-size: 22px;
+    margin: auto;
   }
 `
 const CommentsBox = styled.div`
@@ -2838,7 +2844,7 @@ export const MyPage = () => {
     }
   }
   const getFileData = async () => {
-    const fileData = await uploadhttp.get(`v0/fileInfo`)
+    const fileData = await uploadhttp.get(`v0/fileInfo?userAddress=${account}`)
     const filterModel = fileData.data.data.filter((item: any) => {
       return item.type === 'Models'
     })
@@ -3828,7 +3834,37 @@ export const MyPage = () => {
                       <div className="DataItem cursor" key={index} onClick={() => toDataInfo(item)}>
                         <div className="title flex flex-v-center">
                           <img src={titleIcon} alt="" />
-                          {item.fileName}
+                          {item.state === 0 ? `(Not Available)`:''}{item.fileName}
+                        </div>
+                        <div className="info flex flex-v-center flex-column-between">
+                          <div className="flex flex-v-center">
+                            <img src={downloadIcon} alt="" />
+                            {item.download}
+                          </div>
+                          <div className="flex flex-v-center">
+                            <img src={uploadTimeIcon} alt="" />
+                            {item.uploadTime.slice(0,10)}
+                          </div>
+                          <div className="flex flex-v-center">
+                            <img src={likeIcon} alt="" />
+                            {item.like}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="comingsoon">No data...</div>
+                  )}
+                </ModelsContent>
+              ) : ''}
+              {ContentTabs==='Datasets'? (
+                <ModelsContent className="flex flex-column-between wrap">
+                  {DatasetsData&&DatasetsData.length? (
+                    DatasetsData.map((item: any, index: number) => (
+                      <div className="DataItem cursor" key={index} onClick={() => toDataInfo(item)}>
+                        <div className="title flex flex-v-center">
+                          <img src={titleIcon} alt="" />
+                          {item.state === 0 ? `(Not Available)`:''}{item.fileName}
                         </div>
                         <div className="info flex flex-v-center flex-column-between">
                           <div className="flex flex-v-center">

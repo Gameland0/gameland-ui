@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { useParams } from 'react-router-dom'
+import { useHistory, useParams } from 'react-router-dom'
 import EditorJS from '@editorjs/editorjs'
 import { Contract } from '@ethersproject/contracts'
 import { bschttp, uploadhttp } from './Store'
@@ -22,6 +22,8 @@ import defaults from '../assets/default.png'
 import NFTAbi from '../constants/Abis/NFT.json'
 import { fetchReceipt } from '../utils'
 import BigNumber from 'bignumber.js'
+import { handleClick } from './Header'
+import { BSC_CHAIN_ID_HEX, BSC_RPC_URL, ETH_CHAIN_ID_HEX, ETH_RPC_URL, POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL } from '../constants'
 
 
 const DataInfoBox = styled.div`
@@ -222,10 +224,20 @@ const RightInfo = styled.div`
       
     }
   }
+  .ReviewButton {
+    margin: auto;
+    width: 100%;
+    height: 30px;
+    background: red;
+    color: #FFFFFF;
+    font-size: 20px;
+    line-height: 30px;
+    border-radius: 15px;
+  }
 `
 
 export const MarketDataInfo = () => {
-  const { account, library } = useActiveWeb3React()
+  const { account, library, chainId } = useActiveWeb3React()
   const { id } = useParams() as any
   const [Reload, setReload] = useState(false)
   const [likeState, setLikeState] =useState(false)
@@ -241,6 +253,7 @@ export const MarketDataInfo = () => {
   const [myScore, setMyScore] = useState(0)
   const [fileScore, setFileScore] = useState(0)
   const [saleNFTAmount, setSaleNFTAmount] = useState(0)
+  const history = useHistory()
 
   useEffect(() => {
     getData()
@@ -272,9 +285,8 @@ export const MarketDataInfo = () => {
     })
     setDataInfo(findData[0])
     if (findData[0].nftAddress) {
-      const NFTContract = new Contract(findData[0].nftAddress, NFTAbi, library?.getSigner())
-      const saleNFT = await NFTContract.get_sale_count()
-      setSaleNFTAmount(saleNFT.toNumber())
+      const saleNFTcount = await uploadhttp.get(`v0/purchaseRecord?buyID=${findData[0].id}`)
+      setSaleNFTAmount(saleNFTcount.data.data.length)
     }
     const tagsArr = findData[0].tags.split(",")
     setTags(tagsArr)
@@ -340,6 +352,13 @@ export const MarketDataInfo = () => {
   const Pay = async () => {
     if (!dataInfo.nftAddress) {
       return
+    }
+    if (dataInfo.chain === 'bsc') {
+      handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
+    } else if (dataInfo.chain === 'polygon') {
+      handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
+    } else if (dataInfo.chain === 'eth') {
+      handleClick(ETH_CHAIN_ID_HEX,ETH_RPC_URL)
     }
     const NFTContract = new Contract(dataInfo.nftAddress, NFTAbi, library?.getSigner())
     const price = await NFTContract.get_price()
@@ -463,6 +482,19 @@ export const MarketDataInfo = () => {
       throw res.message || res.data.message
     }
   }
+  const Remove = () => {
+    const parm = {
+      state: 0
+    }
+    uploadhttp.put(`v0/fileInfo/${id}`, parm).then((res) => {
+      toastify.success('succeed')
+      history.push({
+        pathname: `/Market`
+      })
+    }).catch((err) => {
+      toastify.error(err.message)
+    })
+  }
 
   return (
     <DataInfoBox className="container flex">
@@ -523,6 +555,14 @@ export const MarketDataInfo = () => {
           ) : ''}
           {dataInfo.nftAddress ? (
             <div className="infoItem flex">
+              <div className="title">NFT Price:</div>
+              <div className="content">
+                {dataInfo.price} {dataInfo.chain === 'eth' ? 'ETH': dataInfo.chain === 'bsc' ? 'BNB':'MATIC'}
+              </div>
+            </div>
+          ) : ''}
+          {dataInfo.nftAddress ? (
+            <div className="infoItem flex">
               <div className="title">NFT Address:</div>
               <div className="content">
                 {dataInfo.nftAddress}
@@ -545,7 +585,7 @@ export const MarketDataInfo = () => {
             <img className="not-allowed" src={share} alt="" />
           </div>
         </div>
-        <div className="fileNumber infoBorder relative cursor">
+        <div className="fileNumber infoBorder relative">
           {dataInfo.fileAmount} Files
         </div>
         <div className="Reviews infoBorder relative flex flex-v-center flex-column-between">
@@ -608,6 +648,11 @@ export const MarketDataInfo = () => {
             </div>
           </div>
         </div>
+        {account === '0x7a387E6f725a837dF5922e3Fe71827450A76A3E5' ? (
+          <div className="ReviewButton text-center cursor" onClick={Remove}>
+            Remove
+          </div>
+        ) : ''}
       </RightInfo>
     </DataInfoBox>
   )

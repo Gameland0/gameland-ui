@@ -538,6 +538,7 @@ export const MarketUpload = () => {
       fileSize: size,
       nftAddress: nftAddress,
       price: price,
+      chain: chainId === 1? 'eth':chainId===56? 'bsc':chainId===137? 'polygon':'',
       nftAmount: Number(nftAmount),
       coding: random
     }

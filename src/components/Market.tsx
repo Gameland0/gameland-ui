@@ -187,10 +187,10 @@ export const Market = () => {
     const fileData = await uploadhttp.get(`v0/fileInfo`)
     setFileDataAll(fileData.data.data)
     const filterModel = fileData.data.data.filter((item: any) => {
-      return item.type === 'Models'
+      return item.type === 'Models' && item.state > 0
     })
     const filterDatasets = fileData.data.data.filter((item: any) => {
-      return item.type === 'Datasets'
+      return item.type === 'Datasets' && item.state > 0
     })
     setModelData(filterModel)
     setDatasetsData(filterDatasets)
