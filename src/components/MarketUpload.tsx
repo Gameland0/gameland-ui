@@ -158,11 +158,13 @@ const EditModelBox = styled.div`
   .TagsChoose {
     position: absolute;
     top: 25px;
-    width: 30%;
+    width: 35%;
+    height: 240px;
     padding: 10px;
     background: #3eb6ff;
     border-radius: 20px;
     z-index: 10;
+    overflow-y: scroll;
     div {
       height: 60px;
       font-size: 20px;
@@ -585,7 +587,7 @@ export const MarketUpload = () => {
                 Type
                 <img src={needIcon} alt="" />
               </div>
-              <div className="inputDiv typeInput" onClick={() => setShowType(!showType)}>
+              <div className="inputDiv typeInput" onClick={() => {setShowType(!showType);setShowTags(false)}}>
                 <div className="text">{type}</div>
                 <img src={arrow} className="arrowIcon" />
                 {showType? (
@@ -595,24 +597,6 @@ export const MarketUpload = () => {
                   </div>
                 ) : ''}
               </div>
-              {/* <div className='min_title'>
-                Category
-                <img src={needIcon} alt="" />
-              </div> */}
-              {/* <div className="inputDiv categoryInput" onClick={() => setShowCategory(!showCategory)}>
-                <div className="text">{category}</div>
-                <img src={arrow} className="arrowIcon" />
-                {showCategory? (
-                  <div className="choose">
-                    <div onClick={() => setCategoryData('Character')}>Character</div>
-                    <div onClick={() => setCategoryData('Style')}>Style</div>
-                    <div onClick={() => setCategoryData('Celebrity')}>Celebrity</div>
-                    <div onClick={() => setCategoryData('Conce')}>Conce</div>
-                    <div onClick={() => setCategoryData('Clothing')}>Clothing</div>
-                    <div onClick={() => setCategoryData('Base model')}>Base model</div>
-                  </div>
-                ) : ''}
-              </div> */}
               <div className='min_title'>
                 Tags
                 <img src={needIcon} alt="" />
@@ -624,7 +608,7 @@ export const MarketUpload = () => {
                     <div className="tagsItem" key={index}>{item}</div>
                   ))
                 ) :''}
-                <div className="addTags text-center cursor" onClick={() => setShowTags(!showTags)}>+</div>
+                <div className="addTags text-center cursor" onClick={() => {setShowTags(!showTags);setShowType(false)}}>+</div>
                 {showTags? (
                   <div className="TagsChoose">
                     <div onClick={() => addTags('Feature Extraction')}>Feature Extraction</div>
@@ -633,6 +617,18 @@ export const MarketUpload = () => {
                     <div onClick={() => addTags('Text-to-Video')}>Text-to-Video</div>
                     <div onClick={() => addTags('Visual Question Answering')}>Visual Question Answering</div>
                     <div onClick={() => addTags('Graph Machine Learning')}>Graph Machine Learning</div>
+                    <div onClick={() => addTags('Summarization')}>Summarization</div>
+                    <div onClick={() => addTags('Conversational')}>Conversational</div>
+                    <div onClick={() => addTags('Text-to-3D')}>Text-to-3D</div>
+                    <div onClick={() => addTags('lmage-to-3D')}>lmage-to-3D</div>
+                    <div onClick={() => addTags('Translation')}>Translation</div>
+                    <div onClick={() => addTags('Multiple Choice')}>Multiple Choice</div>
+                    <div onClick={() => addTags('Question Answering')}>Question Answering</div>
+                    <div onClick={() => addTags('Text Retrieval')}>Text Retrieval</div>
+                    <div onClick={() => addTags('Fill-Mask')}>Fill-Mask</div>
+                    <div onClick={() => addTags('Table to Text')}>Table to Text</div>
+                    <div onClick={() => addTags('Text Generation')}>Text Generation</div>
+                    <div onClick={() => addTags('Table Question Answering')}>Table Question Answering</div>
                     <input type="text" onChange={tagsInputChange} value={tagsInputValue} onKeyDown={(e) => Enter(e)}/>
                   </div>
                 ) : ''}

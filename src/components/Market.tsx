@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import styled from 'styled-components'
 import { uploadhttp } from './Store'
@@ -173,6 +173,8 @@ const DatasetsContent = styled.div``
 
 export const Market = () => {
   const [ContentTabs, setContentTabs] = useState('Models')
+  const [tagsInputValue, setTagsInputValue] = useState('')
+  const [fileDataAll, setFileDataAll] = useState([] as any)
   const [ModelData, setModelData] = useState([] as any)
   const [DatasetsData, setDatasetsData] = useState([] as any)
   const history = useHistory()
@@ -183,6 +185,7 @@ export const Market = () => {
 
   const getFileData = async () => {
     const fileData = await uploadhttp.get(`v0/fileInfo`)
+    setFileDataAll(fileData.data.data)
     const filterModel = fileData.data.data.filter((item: any) => {
       return item.type === 'Models'
     })
@@ -208,6 +211,44 @@ export const Market = () => {
     })
   }
 
+  const seachFiles = (tags: string) => {
+    let filterModel
+    let filterDatasets
+    if (tags === 'All') {
+      filterModel = fileDataAll.filter((item: any) => {
+        return item.type === 'Models'
+      })
+      filterDatasets = fileDataAll.filter((item: any) => {
+        return item.type === 'Datasets'
+      })
+      setModelData(filterModel)
+      setDatasetsData(filterDatasets)
+    } else {
+      const filterData = fileDataAll.filter((item: any) => {
+        return item.tags.indexOf(tags) !== -1
+      })
+      filterModel = filterData.filter((item: any) => {
+        return item.type === 'Models'
+      })
+      filterDatasets = filterData.filter((item: any) => {
+        return item.type === 'Datasets'
+      })
+      setModelData(filterModel)
+      setDatasetsData(filterDatasets)
+    }
+  }
+
+  const Enter = (e: any) => {
+    if (e.keyCode === 13) {
+      seachFiles(tagsInputValue)
+    }
+  }
+
+  const tagsInputChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setTagsInputValue(val)
+  }, [])
+
   return (
     <MarketBox>
       <div className="container filterMenu flex flex-justify-content">
@@ -215,7 +256,10 @@ export const Market = () => {
           <div className="seachTaskInput">
             <input
               type="text"
-              placeholder="Filter Tasks by name..."
+              placeholder="Seach name or tags"
+              value={tagsInputValue}
+              onChange={tagsInputChange}
+              onKeyDown={(e) => Enter(e)}
             />
             <img className="magnifier cursor" src={magnifier} alt="" />
           </div>
@@ -225,30 +269,92 @@ export const Market = () => {
               Multimodal
             </div>
             <div className="Row flex">
-              <div className="searchOptions">
+              <div className="searchOptions" onClick={()=>seachFiles('All')}>
+                All
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('Summarization')}>
+                Summarization
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('Conversational')}>
+                Conversational
+                <img src={rowIcon} alt="" />
+              </div>
+            </div>
+            <div className="Row flex">
+              <div className="searchOptions" onClick={()=>seachFiles('Feature Extraction')}>
                 Feature Extraction
                 <img src={rowIcon} alt="" />
               </div>
-              <div className="searchOptions">
+              <div className="searchOptions" onClick={()=>seachFiles('Text-to-lmage')}>
                 Text-to-lmage
                 <img src={rowIcon} alt="" />
               </div>
-              <div className="searchOptions">
+              <div className="searchOptions" onClick={()=>seachFiles('lmage-to-Text')}>
                 lmage-to-Text
                 <img src={rowIcon} alt="" />
               </div>
             </div>
             <div className="Row flex">
-              <div className="searchOptions">
+              <div className="searchOptions" onClick={()=>seachFiles('Text-to-Video')}>
                 Text-to-Video
                 <img src={rowIcon} alt="" />
               </div>
-              <div className="searchOptions">
+              <div className="searchOptions" onClick={()=>seachFiles('Visual Question Answering')}>
                 Visual Question Answering
                 <img src={rowIcon} alt="" />
               </div>
             </div>
-            <div className="thirdRow searchOptions">
+            <div className="Row flex">
+              <div className="searchOptions" onClick={()=>seachFiles('Text-to-3D')}>
+                Text-to-3D
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('lmage-to-3D')}>
+                lmage-to-3D
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('Translation')}>
+                Translation
+                <img src={rowIcon} alt="" />
+              </div>
+            </div>
+            <div className="Row flex">
+              <div className="searchOptions" onClick={()=>seachFiles('Table Question Answering')}>
+                Table Question Answering
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('Multiple Choice')}>
+                Multiple Choice
+                <img src={rowIcon} alt="" />
+              </div>
+            </div>
+            <div className="Row flex">
+              <div className="searchOptions" onClick={()=>seachFiles('Question Answering')}>
+                Question Answering
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('Text Retrieval')}>
+                Text Retrieval
+                <img src={rowIcon} alt="" />
+              </div>
+            </div>
+            <div className="Row flex">
+              <div className="searchOptions" onClick={()=>seachFiles('Fill-Mask')}>
+                Fill-Mask
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('Table to Text')}>
+                Table to Text
+                <img src={rowIcon} alt="" />
+              </div>
+              <div className="searchOptions" onClick={()=>seachFiles('Text Generation')}>
+                Text Generation
+                <img src={rowIcon} alt="" />
+              </div>
+            </div>
+            <div className="thirdRow searchOptions" onClick={()=>seachFiles('Graph Machine Learning')}>
               Graph Machine Learning
               <img src={rowIcon} alt="" />
             </div>
