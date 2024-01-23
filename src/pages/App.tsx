@@ -29,6 +29,7 @@ import { Explore } from '../components/Explore'
 import { Market } from '../components/Market'
 import { MarketUpload } from '../components/MarketUpload'
 import { MarketDataInfo } from '../components/MarketDataInfo'
+import { WhiteList } from '../components/WhiteList'
 
 
 const browserHistory = createBrowserHistory()
@@ -95,6 +96,7 @@ function App() {
             <Route exact path="/Market" component={Market} />
             <Route exact path="/Market/Details/:id" component={MarketDataInfo} />
             <Route exact path="/Market/Upload" component={MarketUpload} />
+            <Route exact path="/Market/Whitelist" component={WhiteList} />
             <Route exact path="/games/:contractName" component={CollectionDetails} />
             <Route exact path="/games/:contractName/review" component={ReviewsDetails} />
             <Route exact path="/user/:useraddress" component={UserPage} />

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import styled from 'styled-components'
-import { uploadhttp } from './Store'
+import { bschttp, uploadhttp } from './Store'
 import ModelsIcon from '../assets/Market/icon_models.png'
 import selectedModelsIcon from '../assets/Market/icon_models_selected.png'
 import DatasetsIcon from '../assets/Market/icon_Datasets.png'
@@ -15,6 +15,7 @@ import titleIcon from '../assets/Market/icon_data_title.png'
 import downloadIcon from '../assets/Market/icon_download.png'
 import uploadTimeIcon from '../assets/Market/icon_download_time.png'
 import likeIcon from '../assets/Market/icon_like.png'
+import { useActiveWeb3React } from '../hooks'
 
 const MarketBox = styled.div`
   width: 100%;
@@ -169,11 +170,15 @@ export const ModelsContent = styled.div`
     }
   }
 `
-const DatasetsContent = styled.div``
+
+
 
 export const Market = () => {
+  const { account } = useActiveWeb3React()
   const [ContentTabs, setContentTabs] = useState('Models')
   const [tagsInputValue, setTagsInputValue] = useState('')
+  const [userInfo, setUserInfo] = useState([] as any)
+  const [Whitelist, setWhitelist] = useState([] as any)
   const [fileDataAll, setFileDataAll] = useState([] as any)
   const [ModelData, setModelData] = useState([] as any)
   const [DatasetsData, setDatasetsData] = useState([] as any)
@@ -181,9 +186,16 @@ export const Market = () => {
 
   useEffect(()=> {
     getFileData()
-  },[])
+  },[account])
 
   const getFileData = async () => {
+    const list = await uploadhttp.get(`v0/MarketWhitelist?userAddress=${account}`)
+    if (!list.data.data.length) {
+      history.push({
+        pathname: `/Market/Whitelist`
+      })
+      return
+    }
     const fileData = await uploadhttp.get(`v0/fileInfo`)
     setFileDataAll(fileData.data.data)
     const filterModel = fileData.data.data.filter((item: any) => {
@@ -192,15 +204,25 @@ export const Market = () => {
     const filterDatasets = fileData.data.data.filter((item: any) => {
       return item.type === 'Datasets' && item.state > 0
     })
+    const userdata = await bschttp.get(`v0/userinfo/${account}`)
+    setUserInfo(userdata.data.data)
     setModelData(filterModel)
     setDatasetsData(filterDatasets)
   }
 
   const toUpload = () => {
-    history.push({
-      pathname: `/Market/Upload`
-    })
+    if (!userInfo.length) {
+      history.push({
+        pathname: `/createUser`
+      })
+    } else {
+      history.push({
+        pathname: `/Market/Upload`
+      })
+    }
+    
   }
+
   const toDataInfo = (item: any) => {
     const parms = {
       Browse: item.Browse + 1
