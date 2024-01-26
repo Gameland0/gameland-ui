@@ -98,6 +98,7 @@ export declare enum ChainId {
   POLYGON = 137,
   BSC = 56,
   ONE = 42161,
+  LOCALNODE = 1337,
   NOVA = 42170
 }
 
@@ -241,7 +242,6 @@ export function usePaidDownloadContract() {
   return new Contract(PaidDownloads, PaidDownload, library.getSigner())
 }
 
-
 export function useAssetContract() {
   const { library, chainId } = useActiveWeb3React()
   if (!library) return null
@@ -285,6 +285,8 @@ export function useFactoryContract() {
     return new Contract('0xa2653fA580735bC3154a55b10a2B68e9F2f33FeF', factoryAbi, library.getSigner())
   } else if (chainId === 137) {
     return new Contract('0xCE6E87d0f4A64E127610A66ac97316DC2Fa3BFB0', factoryAbi, library.getSigner())
+  } else if (chainId === 1337) {
+    return new Contract('0x180fDD663fDee626D91a31262E913c981a5B5F80', factoryAbi, library.getSigner())
   }
   // return new Contract('0x180fDD663fDee626D91a31262E913c981a5B5F80', factoryAbi, library.getSigner())
 }

@@ -313,6 +313,24 @@ export const generateRandomString = () => {
   return randomString
 }
 
+export const handleThunk = (file: any, size = 1024 * 1024 * 200) => {
+  let current = 0
+  const res = []
+  // const total = Math.ceil(file.size / size)
+  // for (var i = 0; i < total; i++) {
+  //   res.push({
+  //     tempFile: file.slice(current * i, (i + 1) * current),
+  //   })
+  // }
+  while (current < file.size) {
+    res.push({
+      tempFile: file.slice(current, current + size),
+    })
+    current += size
+  }
+  return res
+}
+
 export const Recommended = gql`
   query getUserRecommendation($address: AddressEVM!, $chainId: ChainID!) {
     address(address: $address) {

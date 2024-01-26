@@ -152,8 +152,10 @@ export const ModelsContent = styled.div`
       }
     }
     .title {
+      width: 95%;
       font-size: 18px;
       color: #222222;
+      -webkit-line-clamp: 1;
       img {
         margin-right: 10px;
       }
@@ -189,6 +191,8 @@ export const Market = () => {
   },[account])
 
   const getFileData = async () => {
+    const userdata = await bschttp.get(`v0/userinfo/${account}`)
+    setUserInfo(userdata.data.data)
     const list = await uploadhttp.get(`v0/MarketWhitelist?userAddress=${account}`)
     if (!list.data.data.length) {
       history.push({
@@ -204,8 +208,6 @@ export const Market = () => {
     const filterDatasets = fileData.data.data.filter((item: any) => {
       return item.type === 'Datasets' && item.state > 0
     })
-    const userdata = await bschttp.get(`v0/userinfo/${account}`)
-    setUserInfo(userdata.data.data)
     setModelData(filterModel)
     setDatasetsData(filterDatasets)
   }
@@ -408,7 +410,7 @@ export const Market = () => {
               {ModelData&&ModelData.length? (
                 ModelData.map((item: any, index: number) => (
                   <div className="DataItem cursor" key={index} onClick={() => toDataInfo(item)}>
-                    <div className="title flex flex-v-center">
+                    <div className="title flex flex-v-center line-clamp">
                       <img src={titleIcon} alt="" />
                       {item.fileName}
                     </div>
@@ -438,7 +440,7 @@ export const Market = () => {
               {DatasetsData&&DatasetsData.length? (
                 DatasetsData.map((item: any, index: number) => (
                   <div className="DataItem cursor" key={index} onClick={() => toDataInfo(item)}>
-                    <div className="title flex flex-v-center">
+                    <div className="title flex flex-v-center line-clamp">
                       <img src={titleIcon} alt="" />
                       {item.fileName}
                     </div>

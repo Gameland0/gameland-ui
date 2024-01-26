@@ -13,7 +13,7 @@ import { bschttp, uploadhttp } from './Store'
 import { toastify } from './Toastify'
 import { useActiveWeb3React, useFactoryContract } from '../hooks'
 import BigNumber from 'bignumber.js'
-import { fetchReceipt, generateRandomString } from '../utils'
+import { fetchReceipt, handleThunk } from '../utils'
 
 
 const MarketUploadBox = styled.div`
@@ -209,6 +209,9 @@ const UploadFile = styled.div`
           font-size: 20px;
           color: #222222;
       }
+      .uploading {
+        margin-left: 15px;
+      }
     }
   }
   .uploadButton {
@@ -277,7 +280,7 @@ export const MarketUpload = () => {
   const [permissions, setPermissions] = useState('')
   const [showType, setShowType] = useState(false)
   const [showTags, setShowTags] = useState(false)
-  const [showCategory, setShowCategory] = useState(false)
+  const [uploadState, setUploadState] = useState(false)
   const [Reload, setReload] = useState(false)
   const [Tags, setTags] = useState([] as any)
   const [files, setFiles] = useState([] as any)
@@ -337,6 +340,7 @@ export const MarketUpload = () => {
       })
     }
     // getindex()
+    // testupload()
   }, [Reload,edit])
 
   const getindex = async () => {
@@ -366,11 +370,6 @@ export const MarketUpload = () => {
   const setTypeData = (type: string) => {
     setType(type)
     setShowType(false)
-  }
-
-  const setCategoryData = (type: string) => {
-    setCategory(type)
-    setShowCategory(false)
   }
 
   const addTags = (tags: string) => {
@@ -461,15 +460,14 @@ export const MarketUpload = () => {
       toastify.error('description cannot be empty')
       return
     }
+    setUploadState(true)
     let nftAddress
     let nftAmount
     let price
-    let random
     if (permissions === 'open') {
       nftAddress = ''
       nftAmount = 0
       price = '0'
-      random = ''
     }
     const Filename = [] as any
     let fileSize = 0
@@ -488,35 +486,70 @@ export const MarketUpload = () => {
         toastify.error('amount cannot be empty')
         return
       }
-      random = generateRandomString()
-      const userNmae = await bschttp.get(`v0/userinfo/${account}`)
-      price = priceInputValue
-      nftAmount = amountInputValue
-      const creatNFT = await FactoryContract?.createnft(
-        nameInputValue,
-        userNmae.data.data[0].username,
-        `https://upload-api.gameland.network/v0/readfile?contract=${random}&filename=`,
-        new BigNumber(priceInputValue).multipliedBy(1000000000000000000).toString(),
-        account,
-        nftAmount,
-        `https://upload-api.gameland.network/v0/upload?filename=${Filename+''}`
-      )
-      const receipt = await fetchReceipt(creatNFT.hash, library)
-      if (!receipt.status) {
-        throw Error('Failed to deposit.')
-      } else {
-        nftAddress = receipt.logs[0].address
+      const daat = {
+        name: nameInputValue,
+        description: 'No description yet',
+        image: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fci.xiaohongshu.com%2F1683c771-e13a-a1d3-4aa7-715b124fc38c%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fci.xiaohongshu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1708069173&t=d103d370a800e8b8a5347ecb0e9a6736'
+      }
+      const jsonString = JSON.stringify(daat)
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const formData = new FormData()
+      formData.append('files', blob, `1.json`)
+      const matedata = await uploadhttp.post(`v0/upload/matedata`,formData)
+      if (matedata.data.code) {
+        const arr = matedata.data.data.split(' ')
+        const baseURL = `https://ipfs.io/ipfs/${arr[1]}?filename=`
+
+        const userNmae = await bschttp.get(`v0/userinfo/${account}`)
+        price = priceInputValue
+        nftAmount = amountInputValue
+        const creatNFT = await FactoryContract?.createnft(
+          nameInputValue,
+          userNmae.data.data[0].username,
+          baseURL,
+          new BigNumber(priceInputValue).multipliedBy(1000000000000000000).toString(),
+          account,
+          nftAmount,
+          `https://upload-api.gameland.network/v0/upload?filename=${Filename+''}`
+        )
+        const receipt = await fetchReceipt(creatNFT.hash, library)
+        if (!receipt.status) {
+          throw Error('Failed to deposit.')
+        } else {
+          nftAddress = receipt.logs[0].address
+        }
       }
     }
     for (let index = 0; index < files.length; index++) {
       const element = files[index]
-      const form = new FormData()
-      form.append('files',element)
-      uploadhttp.post('v0/upload',form).then((res) => {
-        if (res.data.code) {
-          toastify.success('Upload successful')
-        }
-      })
+      const shardSize = 200 * 1024 * 1024
+      
+      if (element.size < shardSize) {
+        const form = new FormData()
+        form.append('files',element)
+        uploadhttp.post('v0/upload',form).then((res) => {
+          if (res.data.code) {
+            toastify.success('Upload successful')
+          } else {
+            toastify.error(res.data.message)
+            return
+          }
+        })
+      } else {
+        const fileList = handleThunk(element)
+        const uploadList = fileList.map((item, index) => {
+          const ShardingForm = new FormData()
+          ShardingForm.append("files", item.tempFile, `uuid@@${index}`)
+          return uploadhttp.post('v0/upload/Sharding',ShardingForm)
+        })
+        Promise.all(uploadList).then((res) => {
+          uploadhttp.post('v0/upload/merge',{
+            filename: element.name
+          }).then((val) => {
+            console.log(val.data.code)
+          })
+        })
+      }
     }
     let size
     if (fileSize/1000 > 1 && fileSize/1000 < 1024) {
@@ -539,11 +572,11 @@ export const MarketUpload = () => {
       nftAddress: nftAddress,
       price: price,
       chain: chainId === 1? 'eth':chainId===56? 'bsc':chainId===137? 'polygon':'',
-      nftAmount: Number(nftAmount),
-      coding: random
+      nftAmount: Number(nftAmount)
     }
     uploadhttp.post('v0/fileInfo', parm).then((res) => {
       if (res.data.code) {
+        setUploadState(false)
         history.push({
           pathname: `/Market`
         })
@@ -701,7 +734,12 @@ export const MarketUpload = () => {
                   <div className="title">file list:</div>
                   {files&&files.length ? (
                     files.map((item: any,index: number) => (
-                      <div key={index}>{item.name}</div>
+                      <div className="flex" key={index}>
+                        <div>{item.name}</div>
+                        {uploadState? (
+                          <div className="uploading">uploading...</div>
+                        ):''}
+                      </div>
                     ))
                   ) : ''}
                 </div>

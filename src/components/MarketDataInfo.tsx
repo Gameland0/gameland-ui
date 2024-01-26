@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { useHistory, useParams } from 'react-router-dom'
-import EditorJS from '@editorjs/editorjs'
 import { Contract } from '@ethersproject/contracts'
 import { bschttp, uploadhttp } from './Store'
 import { toastify } from './Toastify'
@@ -71,9 +70,10 @@ const LeftInfo = styled.div`
     }
   }
   .effectPreview {
-    height: 640px;
+    min-height: 640px;
     width: 90%;
     margin: auto;
+    margin-bottom: 20px;
   }
 `
 
@@ -275,6 +275,12 @@ export const MarketDataInfo = () => {
     if (PayState) {
       Downlaod()
     }
+    // const dom = document.getElementsByClassName('ce-paragraph')
+    // console.log(dom.length)
+    // for (let index = 0; index < dom.length; index++) {
+    //   const element = dom[index]
+    //   element.removeAttribute('contenteditable')  
+    // }
   }, [dataInfo, PayState])
 
   const getData = async () => {
@@ -310,13 +316,36 @@ export const MarketDataInfo = () => {
       const Dom = document.createElement('div')
       Dom.innerHTML = findData[0].description
       document.getElementById('effectPreview')?.appendChild(Dom)
+      const divdom = document.getElementsByClassName('ce-paragraph')
+      for (let index = 0; index < divdom.length; index++) {
+        const element = divdom[index]
+        element.removeAttribute('contenteditable')  
+      }
+      const h2dom = document.getElementsByClassName('ce-header')
+      for (let i= 0; i< h2dom.length; i++) {
+        const element = h2dom[i]
+        element.removeAttribute('contenteditable')  
+      }
+      const cdxinput = document.getElementsByClassName('cdx-input')
+      for (let j= 0; j < cdxinput.length; j++) {
+        const element = cdxinput[j]
+        element.remove()
+      }
+      cdxinput[cdxinput.length-1].remove()
+      const cdxbutton = document.getElementsByClassName('cdx-button')
+      for (let k= 0; k < cdxbutton.length; k++) {
+        console.log(k)
+        const element = cdxbutton[k]
+        element.remove()
+      }
+      cdxbutton[cdxbutton.length-1].remove()
     }
     const likeData = await uploadhttp.get(`v0/likeFile?userAddress=${account}&likeID=${id}`)
     if (likeData.data.data.length) {
       setLikeState(true)
       setMyLike(likeData.data.data[0])
     }
-    const scoreData = await uploadhttp.get(`v0/fileScore`)
+    const scoreData = await uploadhttp.get(`v0/fileScore?fileID=${id}`)
     if (scoreData.data.data.length) {
       const myscore = scoreData.data.data.filter((item: any) => {
         return item.fileID === id && item.scoreAddress === account
@@ -371,15 +400,15 @@ export const MarketDataInfo = () => {
     } else {
       const tokenid = new BigNumber(receipt.logs[0].topics[3]).toString()
       const daat = {
-        name: dataInfo.fileName + ' ' + `#${tokenid}`,
+        name: dataInfo.fileName,
         description: 'No description yet',
         image: 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fci.xiaohongshu.com%2F1683c771-e13a-a1d3-4aa7-715b124fc38c%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fci.xiaohongshu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1708069173&t=d103d370a800e8b8a5347ecb0e9a6736'
       }
       const jsonString = JSON.stringify(daat)
       const blob = new Blob([jsonString], { type: 'application/json' })
       const formData = new FormData()
-      formData.append('files', blob, `${tokenid}.json`)
-      uploadhttp.post(`v0/upload/matedata?address=${dataInfo.nftAddress}`,formData)
+      formData.append('files', blob, `${tokenid+1}.json`)
+      uploadhttp.post(`v0/upload/matedata`,formData)
       const parm = {
         user: account,
         buyID: dataInfo.id
