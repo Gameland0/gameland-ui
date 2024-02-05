@@ -188,6 +188,7 @@ export const Market = () => {
 
   useEffect(()=> {
     getFileData()
+    // Greenfield()
   },[account])
 
   const getFileData = async () => {
@@ -211,6 +212,10 @@ export const Market = () => {
     setModelData(filterModel)
     setDatasetsData(filterDatasets)
   }
+  // const Greenfield = async () => {
+  //   const res = await uploadhttp.get('v0/upload/Greenfield')
+  //   console.log(res)
+  // }
 
   const toUpload = () => {
     if (!userInfo.length) {

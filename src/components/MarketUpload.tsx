@@ -499,7 +499,6 @@ export const MarketUpload = () => {
       if (matedata.data.code) {
         const arr = matedata.data.data.split(' ')
         const baseURL = `https://ipfs.io/ipfs/${arr[1]}?filename=`
-
         const userNmae = await bschttp.get(`v0/userinfo/${account}`)
         price = priceInputValue
         nftAmount = amountInputValue
@@ -522,9 +521,8 @@ export const MarketUpload = () => {
     }
     for (let index = 0; index < files.length; index++) {
       const element = files[index]
-      const shardSize = 200 * 1024 * 1024
-      
-      if (element.size < shardSize) {
+      const shardSize = 500 * 1024 * 1024
+      if (element.size <= shardSize) {
         const form = new FormData()
         form.append('files',element)
         uploadhttp.post('v0/upload',form).then((res) => {
@@ -536,19 +534,20 @@ export const MarketUpload = () => {
           }
         })
       } else {
-        const fileList = handleThunk(element)
-        const uploadList = fileList.map((item, index) => {
-          const ShardingForm = new FormData()
-          ShardingForm.append("files", item.tempFile, `uuid@@${index}`)
-          return uploadhttp.post('v0/upload/Sharding',ShardingForm)
-        })
-        Promise.all(uploadList).then((res) => {
-          uploadhttp.post('v0/upload/merge',{
-            filename: element.name
-          }).then((val) => {
-            console.log(val.data.code)
-          })
-        })
+        // const fileList = handleThunk(element)
+        // const uploadList = fileList.map((item, index) => {
+        //   const ShardingForm = new FormData()
+        //   ShardingForm.append("files", item.tempFile, `uuid@@${index}`)
+        //   return uploadhttp.post('v0/upload/Sharding',ShardingForm)
+        // })
+        // Promise.all(uploadList).then((res) => {
+        //   uploadhttp.post('v0/upload/merge',{
+        //     filename: element.name
+        //   }).then((val) => {
+        //     console.log(val.data.code)
+        //   })
+        // })
+        toastify.error(`${element.name} The file is too large, the maximum size of a single file is 500MB`)
       }
     }
     let size

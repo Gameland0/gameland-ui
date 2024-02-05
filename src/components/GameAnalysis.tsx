@@ -820,7 +820,7 @@ export const GameAnalysis = (data: any) => {
       const dataAll = [...res.data.data[0].transactionLists, ...res2.data.data[0].transactionLists]
       
       dataAll.map((item: any) => {
-        const time = new Date(item.transactionTime *1).toJSON().substring(5, 10)
+        const time = item.transactionTime*1
         const data = timearr.filter((ele: any) => {
           return ele === time
         })
@@ -829,10 +829,19 @@ export const GameAnalysis = (data: any) => {
         }
       })
       const seriesItem = [] as any
-      timearr.map((item: any) => {
+      const sortimearr = timearr.sort((a: any,b: any)=> {return b-a})
+      sortimearr.map((item: any) => {
+        const filterTime = sortTime.filter((ele: any) => {
+          return ele === new Date(item).toJSON().substring(5, 10)
+        })
+        if (filterTime.length === 0) {
+          sortTime.push(new Date(item).toJSON().substring(5, 10))
+        }
+      })
+      sortTime.map((item: any) => {
         const addressArr = [] as any
         const filterdata = dataAll.filter((ele: any) => {
-          return new Date(ele.transactionTime *1).toJSON().substring(5, 10) === item
+          return new Date(ele.transactionTime*1).toJSON().substring(5, 10) === item
         })
         filterdata.map((val: any) => {
           addressArr.push(val.from)
