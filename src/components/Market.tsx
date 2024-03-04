@@ -15,7 +15,8 @@ import titleIcon from '../assets/Market/icon_data_title.png'
 import downloadIcon from '../assets/Market/icon_download.png'
 import uploadTimeIcon from '../assets/Market/icon_download_time.png'
 import likeIcon from '../assets/Market/icon_like.png'
-import { useActiveWeb3React } from '../hooks'
+import { useActiveWeb3React, useAssetContract } from '../hooks'
+import { Client } from '@bnb-chain/greenfield-js-sdk'
 
 const MarketBox = styled.div`
   width: 100%;
@@ -173,10 +174,9 @@ export const ModelsContent = styled.div`
   }
 `
 
-
-
 export const Market = () => {
   const { account } = useActiveWeb3React()
+  const AssetContract = useAssetContract()
   const [ContentTabs, setContentTabs] = useState('Models')
   const [tagsInputValue, setTagsInputValue] = useState('')
   const [userInfo, setUserInfo] = useState([] as any)
@@ -185,6 +185,9 @@ export const Market = () => {
   const [ModelData, setModelData] = useState([] as any)
   const [DatasetsData, setDatasetsData] = useState([] as any)
   const history = useHistory()
+  // const client = Client.create('https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org', '5600', {
+  //   zkCryptoUrl: 'https://unpkg.com/@bnb-chain/greenfield-zk-crypto/dist/node/zk-crypto.wasm',
+  // })
 
   useEffect(()=> {
     getFileData()
@@ -212,10 +215,13 @@ export const Market = () => {
     setModelData(filterModel)
     setDatasetsData(filterDatasets)
   }
-  // const Greenfield = async () => {
-  //   const res = await uploadhttp.get('v0/upload/Greenfield')
-  //   console.log(res)
-  // }
+  const Greenfield = async () => {
+    // const res = await uploadhttp.get('v0/upload/Greenfield')
+    // console.log(res)
+    // AssetContract?.add_nft_programforarray([
+    //   ''
+    // ])
+  }
 
   const toUpload = () => {
     if (!userInfo.length) {

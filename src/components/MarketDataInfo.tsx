@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import styled from 'styled-components'
+import '@wangeditor/editor/dist/css/style.css'
+import { Editor, Toolbar } from '@wangeditor/editor-for-react'
+import { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
+import { i18nChangeLanguage } from '@wangeditor/editor'
 import { useHistory, useParams } from 'react-router-dom'
 import { Contract } from '@ethersproject/contracts'
 import { bschttp, uploadhttp } from './Store'
 import { toastify } from './Toastify'
+import { Modal } from '../components/Modal'
 import { useActiveWeb3React } from '../hooks'
 import whiteStrIcon from '../assets/Market/icon_white_str.png'
 import redStrIcon from '../assets/Market/icon_red_str.png'
@@ -18,11 +23,14 @@ import downloadIcon from '../assets/Market/icon_download.png'
 import share from '../assets/Market/share.png'
 import viewer from '../assets/Market/icon_Viewer.png'
 import defaults from '../assets/default.png'
+import writeIcon from '../assets/Market/icon_write.png'
+import arrow from '../assets/icon_select.svg'
 import NFTAbi from '../constants/Abis/NFT.json'
 import { fetchReceipt } from '../utils'
 import BigNumber from 'bignumber.js'
 import { handleClick } from './Header'
 import { BSC_CHAIN_ID_HEX, BSC_RPC_URL, ETH_CHAIN_ID_HEX, ETH_RPC_URL, POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL } from '../constants'
+import { EditModelBox, MarketUploadBox } from './MarketUpload'
 
 
 const DataInfoBox = styled.div`
@@ -86,6 +94,14 @@ const RightInfo = styled.div`
       margin-right: 5px;
     }
     margin-bottom: 12px;
+    .Edit {
+      width: 100px;
+      margin-left: 300px;
+      border: 1px solid #0090FF;
+      color: #0090FF;
+      border-radius: 15px;
+      text-align: center;
+    }
   }
   .hr {
     width: 100%;
@@ -241,19 +257,49 @@ export const MarketDataInfo = () => {
   const { id } = useParams() as any
   const [Reload, setReload] = useState(false)
   const [likeState, setLikeState] =useState(false)
+  const [editModal, setEditModal] =useState(false)
+  const [showType, setShowType] = useState(false)
+  const [showTags, setShowTags] = useState(false)
   const [dataInfo, setDataInfo] = useState({} as any)
   const [userInfo, setUserInfo] = useState({} as any)
   const [statistics, setStatistics] = useState({} as any)
   const [myLike, setMyLike] =useState({} as any)
   const [dataInfoAll, setDataInfoAll] = useState([] as any)
   const [Tags, setTags] = useState([] as any)
+  const [editTags, setEditTags] = useState([] as any)
   const [followeDataAll, setFolloweDataAll] = useState([] as any)
   const [PayState, setPayState] = useState(0)
   const [score, setScore] = useState(0)
   const [myScore, setMyScore] = useState(0)
   const [fileScore, setFileScore] = useState(0)
   const [saleNFTAmount, setSaleNFTAmount] = useState(0)
+  const [nameInputValue, setNameInputValue] = useState('')
+  const [type, setType] = useState('Models')
+  const [tagsInputValue, setTagsInputValue] = useState('')
   const history = useHistory()
+  const [editor, setEditor] = useState<IDomEditor | null>(null)
+  const [html, setHtml] = useState('')
+  const toolbarConfig: Partial<IToolbarConfig> = {}
+  const editorConfig: Partial<IEditorConfig> = {
+    placeholder: 'Please enter content...',
+    MENU_CONF: {
+      uploadImage: {
+        base64LimitSize: 5*1024*1024,
+        maxFileSize: 5*1024*1024
+      }
+    }
+  }
+  i18nChangeLanguage('en')
+
+  useEffect(() => {
+    if (editModal) {
+      return () => {
+        if (editor == null) return
+        editor.destroy()
+        setEditor(null)
+      }
+    }
+  }, [editor,editModal])
 
   useEffect(() => {
     getData()
@@ -268,20 +314,14 @@ export const MarketDataInfo = () => {
     }
   }, [dataInfo, Reload, account])
 
-  useEffect(() => {
-    if (dataInfo.permissions === 'open') {
-      openDownlaod()
-    }
-    if (PayState) {
-      Downlaod()
-    }
-    // const dom = document.getElementsByClassName('ce-paragraph')
-    // console.log(dom.length)
-    // for (let index = 0; index < dom.length; index++) {
-    //   const element = dom[index]
-    //   element.removeAttribute('contenteditable')  
-    // }
-  }, [dataInfo, PayState])
+  // useEffect(() => {
+  //   if (dataInfo.permissions === 'open') {
+  //     openDownlaod()
+  //   }
+  //   if (PayState) {
+  //     Downlaod()
+  //   }
+  // }, [dataInfo, PayState])
 
   const getData = async () => {
     const data = await uploadhttp.get(`v0/fileInfo`)
@@ -289,6 +329,8 @@ export const MarketDataInfo = () => {
     const findData = data.data.data.filter((item: any) => {
       return item.id === id
     })
+    setType(findData[0].type)
+    setNameInputValue(findData[0].fileName)
     setDataInfo(findData[0])
     if (findData[0].nftAddress) {
       const saleNFTcount = await uploadhttp.get(`v0/purchaseRecord?buyID=${findData[0].id}`)
@@ -296,6 +338,7 @@ export const MarketDataInfo = () => {
     }
     const tagsArr = findData[0].tags.split(",")
     setTags(tagsArr)
+    setEditTags(tagsArr)
     const findUserFileData = data.data.data.filter((item: any) => {
       return item.userAddress === findData[0].userAddress
     })
@@ -329,16 +372,16 @@ export const MarketDataInfo = () => {
       const cdxinput = document.getElementsByClassName('cdx-input')
       for (let j= 0; j < cdxinput.length; j++) {
         const element = cdxinput[j]
-        element.remove()
+        element?.remove()
       }
-      cdxinput[cdxinput.length-1].remove()
+      cdxinput[cdxinput.length-1]?.remove()
       const cdxbutton = document.getElementsByClassName('cdx-button')
       for (let k= 0; k < cdxbutton.length; k++) {
         console.log(k)
         const element = cdxbutton[k]
         element.remove()
       }
-      cdxbutton[cdxbutton.length-1].remove()
+      cdxbutton[cdxbutton.length-1]?.remove()
     }
     const likeData = await uploadhttp.get(`v0/likeFile?userAddress=${account}&likeID=${id}`)
     if (likeData.data.data.length) {
@@ -427,10 +470,32 @@ export const MarketDataInfo = () => {
     Adom?.setAttribute('href', href)
   }
 
+  const Downlaodfile = async () => {
+    const file = await uploadhttp.get(`v0/fileURL/${id}?user=${account}&permissions=${dataInfo.permissions}`)
+    const fileURL = file.data.data[0]?.file
+    const arr = fileURL.split(",")
+    // const newarr = ['000.rar','666.zip']
+    for (let i = 0; i < arr.length; i++) {
+      const iframe = document.createElement('a')
+      iframe.style.display = 'none'
+      iframe.style.height = '0px'
+      iframe.target = '_blank'
+      const httpurl = process.env.NODE_ENV === 'production' ? 'https://upload-api.gameland.network' : 'http://localhost:8096'
+      iframe.href = `${httpurl}/v0/upload?filename=${arr[i]}`
+      iframe.click()
+    }
+  }
+
   const openDownlaod = async () => {
     const file = await uploadhttp.get(`v0/fileURL/${id}?user=${account}&permissions=${dataInfo.permissions}`)
     const fileURL = file.data.data[0]?.file
-    const href = `https://upload-api.gameland.network/v0/upload?filename=${fileURL}`
+    const arr = fileURL.split(",")
+    let href
+    if (arr.length>1) {
+      href = `https://upload-api.gameland.network/v0/upload?filename=${fileURL}`
+    } else {
+      href = `https://upload-api.gameland.network/v0/upload?filename=${fileURL}`
+    }
     const Adom = document.getElementById('ALabel')
     Adom?.setAttribute('href', href)
   }
@@ -525,8 +590,170 @@ export const MarketDataInfo = () => {
     })
   }
 
+  const setTypeData = (type: string) => {
+    setType(type)
+    setShowType(false)
+  }
+
+  const Enter = (e: any) => {
+    if (e.keyCode === 13) {
+      if (tagsInputValue) {
+        addTags(tagsInputValue)
+      }
+    }
+  }
+
+  const addTags = (tags: string) => {
+    if (Tags.length === 5) {
+      toastify.error('You can add up to 5 tags')
+      return
+    }
+    let tagsArr = Tags
+    tagsArr.push(tags)
+    setEditTags(tagsArr)
+    setShowTags(false)
+    setTagsInputValue('')
+  }
+
+  const deleteTags = (tags: string) => {
+    const filterData = Tags.filter((item: any) => {
+      return item !== tags
+    })
+    setEditTags(filterData)
+  }
+
+  const updataModel = () => {
+    const description = document.getElementById('w-e-textarea-1')?.innerHTML
+    const parm = {
+      type: type,
+      name: nameInputValue,
+      description: description,
+      tags: Tags+''
+    }
+    uploadhttp.put(`v0/fileInfo/${dataInfo.id}`,parm).then((res)=> {
+      if (res.data.code) {
+        toastify.success('successful')
+        setReload(!Reload)
+        setEditModal(false)
+      }
+    }).catch((err) => {
+      toastify.error(err.message || err)
+    })
+  }
+
+  const deleteModel = () => {
+    uploadhttp.delete(`v0/fileInfo/${dataInfo.id}`).then((res)=> {
+      if (res.data.code) {
+        toastify.success('successful')
+        history.push({
+          pathname: `/Market`
+        })
+      }
+    }).catch((err) => {
+      toastify.error(err.message || err)
+    })
+  }
+
+  const nameInputChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setNameInputValue(val)
+  }, [])
+
+  const tagsInputChange = useCallback((ele) => {
+    const val = ele.currentTarget.value
+    setTagsInputValue(val)
+  }, [])
+
   return (
     <DataInfoBox className="container flex">
+      <Modal footer={null} onCancel={() => setEditModal(false)} open={editModal} destroyOnClose closable={false}>
+        <MarketUploadBox>
+          <EditModelBox>
+            <div className="main_title"><b>|</b> Edit model</div>
+            <div className='min_title'>
+              Name
+            </div>
+            <div className="inputDiv nameInput">
+              <img src={writeIcon} alt="" />
+              <input type="text" onChange={nameInputChange} value={nameInputValue}/>
+            </div>
+            <div className='min_title'>
+              Type
+            </div>
+            <div className="inputDiv typeInput" onClick={() => {setShowType(!showType);setShowTags(false)}}>
+              <div className="text">{type}</div>
+              <img src={arrow} className="arrowIcon" />
+              {showType? (
+                <div className="choose">
+                  <div onClick={() => setTypeData('Models')}>Models</div>
+                  <div onClick={() => setTypeData('Datasets')}>Datasets</div>
+                </div>
+              ) : ''}
+            </div>
+            <div className='min_title'>
+              Tags
+            </div>
+            <div className="tip_title">Search or create tags for your model</div>
+            <div className="relative flex">
+              {editTags&&editTags.length? (
+                editTags.map((item: any, index: number) => (
+                  <div className="tagsItem cursor" key={index} onClick={() => deleteTags(item)}>{item}</div>
+                ))
+              ) :''}
+              <div className="addTags text-center cursor" onClick={() => {setShowTags(!showTags);setShowType(false)}}>+</div>
+              {showTags? (
+                <div className="TagsChoose">
+                  <div onClick={() => addTags('Feature Extraction')}>Feature Extraction</div>
+                  <div onClick={() => addTags('Text-to-lmage')}>Text-to-lmage</div>
+                  <div onClick={() => addTags('lmage-to-Text')}>lmage-to-Text</div>
+                  <div onClick={() => addTags('Text-to-Video')}>Text-to-Video</div>
+                  <div onClick={() => addTags('Visual Question Answering')}>Visual Question Answering</div>
+                  <div onClick={() => addTags('Graph Machine Learning')}>Graph Machine Learning</div>
+                  <div onClick={() => addTags('Summarization')}>Summarization</div>
+                  <div onClick={() => addTags('Conversational')}>Conversational</div>
+                  <div onClick={() => addTags('Text-to-3D')}>Text-to-3D</div>
+                  <div onClick={() => addTags('lmage-to-3D')}>lmage-to-3D</div>
+                  <div onClick={() => addTags('Translation')}>Translation</div>
+                  <div onClick={() => addTags('Multiple Choice')}>Multiple Choice</div>
+                  <div onClick={() => addTags('Question Answering')}>Question Answering</div>
+                  <div onClick={() => addTags('Text Retrieval')}>Text Retrieval</div>
+                  <div onClick={() => addTags('Fill-Mask')}>Fill-Mask</div>
+                  <div onClick={() => addTags('Table to Text')}>Table to Text</div>
+                  <div onClick={() => addTags('Text Generation')}>Text Generation</div>
+                  <div onClick={() => addTags('Table Question Answering')}>Table Question Answering</div>
+                  <input type="text" onChange={tagsInputChange} value={tagsInputValue} onKeyDown={(e) => Enter(e)}/>
+                </div>
+              ) : ''}
+            </div>
+            <div className='min_title'>
+              About your model
+            </div>
+            <div className="tip_title">Tell us what your model does</div>
+            <>
+              <div style={{ border: '1px solid #ccc', zIndex: 100}}>
+                <Toolbar
+                  editor={editor}
+                  defaultConfig={toolbarConfig}
+                  mode="default"
+                  style={{ borderBottom: '1px solid #ccc' }}
+                />
+                <Editor
+                  defaultConfig={editorConfig}
+                  value={html}
+                  onCreated={setEditor}
+                  onChange={editor => setHtml(editor.getHtml())}
+                  mode="default"
+                  style={{ height: '500px', overflowY: 'hidden' }}
+                />
+              </div>
+            </>
+            <div className="flex flex-around">
+              <div className="nextBotton text-center cursor" onClick={updataModel}>Updata</div>
+              <div className="deleteBotton text-center cursor" onClick={deleteModel}>Delete</div>
+            </div>
+          </EditModelBox>
+        </MarketUploadBox>
+      </Modal>
       <LeftInfo>
         <div className="first flex flex-v-center">
           <div className="title">{dataInfo.fileName}</div>
@@ -552,6 +779,9 @@ export const MarketDataInfo = () => {
         <div className="Details flex flex-v-center">
           <img src={DetailsIcon} alt="" />
           Details
+          {/* {dataInfo.permissions === 'open' && dataInfo.userAddress === account ? (
+            <div className="Edit cursor" onClick={() => {setEditModal(true);setHtml(dataInfo.description)}}>Edit</div>
+          ):''} */}
         </div>
         <div className="hr"></div>
         <div className="fileInfo relative">
@@ -604,8 +834,8 @@ export const MarketDataInfo = () => {
             ):(
               <img className={dataInfo.userAddress === account ? 'not-allowed':'cursor'} onClick={countLike} src={like} alt="" />
             )}
-            {dataInfo.permissions === 'open' || PayState ? (
-              <a id="ALabel">
+            {dataInfo.permissions === 'open' || PayState || dataInfo.userAddress === account ? (
+              <a id="ALabel" onClick={Downlaodfile}>
                 <img className="cursor" onClick={countDownload} src={download} alt="" />
               </a>
             ) : (

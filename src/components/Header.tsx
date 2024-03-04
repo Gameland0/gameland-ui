@@ -10,7 +10,7 @@ import BSCImg from '../assets/binance.svg'
 import ETHimg from '../assets/eth.svg'
 import { Grid, Drawer } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
-import { useActiveWeb3React } from '../hooks'
+import { useActiveWeb3React, useStore } from '../hooks'
 import {
   POLYGON_CHAIN_ID_HEX,
   POLYGON_RPC_URL,
@@ -216,6 +216,7 @@ export const Header = () => {
   const [chainName, setChainName] = useState('')
   const [chainImg, setChainImg] = useState('')
   const screens = useBreakpoint()
+  const { welletType } = useStore()
   const isMobile = useMemo(() => {
     return !(screens.lg ?? true)
   }, [screens])
@@ -264,30 +265,32 @@ export const Header = () => {
                 <span>Dashboard</span>
               </Link>
             </div>
-            <div className="chain">
-              <div className="jumpButton flex-center">
-                <img src={chainImg} alt="" />
-                <div className="chainName">{chainName}</div>
-                <div className="menu">
-                  <div onClick={() => handleClick(ETH_CHAIN_ID_HEX, ETH_RPC_URL)}>
-                    <img src={ETHimg} alt="" />
-                    ETH
-                  </div>
-                  <div onClick={() => handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)}>
-                    <img src={PolygonImg} />
-                    Polygon
-                  </div>
-                  <div onClick={() => handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)}>
-                    <img src={BSCImg} alt="" />
-                    BNB chain
-                  </div>
-                  <div onClick={() => handleClick(ONE_CHAIN_ID, ONE_RPC_URL)}>
-                    <img src={OneImg} alt="" />
-                    Arbitrum One
+            {welletType === 'MetaMask' ? (
+              <div className="chain">
+                <div className="jumpButton flex-center">
+                  <img src={chainImg} alt="" />
+                  <div className="chainName">{chainName}</div>
+                  <div className="menu">
+                    <div onClick={() => handleClick(ETH_CHAIN_ID_HEX, ETH_RPC_URL)}>
+                      <img src={ETHimg} alt="" />
+                      ETH
+                    </div>
+                    <div onClick={() => handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)}>
+                      <img src={PolygonImg} />
+                      Polygon
+                    </div>
+                    <div onClick={() => handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)}>
+                      <img src={BSCImg} alt="" />
+                      BNB chain
+                    </div>
+                    <div onClick={() => handleClick(ONE_CHAIN_ID, ONE_RPC_URL)}>
+                      <img src={OneImg} alt="" />
+                      Arbitrum One
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : ''}
             <div className="flex flex-h-between flex-v-center">
               <AccountBar key="accountbar" />
             </div>

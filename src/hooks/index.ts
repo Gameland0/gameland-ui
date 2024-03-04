@@ -9,7 +9,7 @@ import { Web3ReactContextInterface } from '@web3-react/core/dist/types'
 import { NetworkContextName } from '../utils'
 import AssetContractAbi from '../constants/Abis/assetContract.json'
 import ControlContractAbi from '../constants/Abis/controlContract.json'
-// import erc721Abi from '../constants/Abis/erc721.json'
+import erc721Abi from '../constants/Abis/erc721.json'
 import BUSD from '../constants/Abis/busd.json'
 import ERC20 from '../constants/Abis/ERC20.json'
 import WETH from '../constants/Abis/WETH.json'
@@ -206,6 +206,12 @@ export function useUSDTContract() {
   }
 }
 
+export function use721Contract() {
+  const { library } = useActiveWeb3React()
+  if (!library) return null
+  return new Contract('0x3461DC5e6E02eC0Ca3bd43166C1c64a16102a5B8', erc721Abi, library.getSigner())
+}
+
 export function useTestUSDTContract() {
   const { library } = useActiveWeb3React()
   if (!library) return null
@@ -251,6 +257,8 @@ export function useAssetContract() {
     return new Contract(POLYGONAssetContractAddress, AssetContractAbi, library.getSigner())
   } else if (chainId === 42161) {
     return new Contract(OneAssetContractAddress, AssetContractAbi, library.getSigner())
+  } else if (chainId === 1337) {
+    return new Contract('0x79b942D6881859d7C7909E1f93335d1C2C477d6A', AssetContractAbi, library.getSigner())
   }
 }
 
@@ -263,6 +271,8 @@ export function useControlContract() {
     return new Contract(POLYGONControlContractAddress, ControlContractAbi, library.getSigner())
   } else if (chainId === 42161) {
     return new Contract(OneControlContractAddress, ControlContractAbi, library.getSigner())
+  } else if (chainId === 1337) {
+    return new Contract('0x1ABAb9c018dac654086b0C86706a647ccE2D7d16', ControlContractAbi, library.getSigner())
   }
 }
 

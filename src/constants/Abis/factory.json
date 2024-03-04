@@ -2,17 +2,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "_feeaddress",
-				"type": "address"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "string",
 				"name": "name",
 				"type": "string"
@@ -44,8 +33,13 @@
 			},
 			{
 				"internalType": "string",
-				"name": "downloadlink",
+				"name": "_downloadkey",
 				"type": "string"
+			},
+			{
+				"internalType": "string[]",
+				"name": "downloadlink",
+				"type": "string[]"
 			}
 		],
 		"name": "createnft",
@@ -56,6 +50,102 @@
 				"type": "address"
 			}
 		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "nfttokenaddress",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_baseTokenURI",
+				"type": "string"
+			}
+		],
+		"name": "settokenbaseuri",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "nfttokenaddress",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_downloadkey",
+				"type": "string"
+			},
+			{
+				"internalType": "string[]",
+				"name": "_downloadlink",
+				"type": "string[]"
+			}
+		],
+		"name": "settokendownloadinfo",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_feeaddress",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_feeaddress",
+				"type": "address"
+			}
+		],
+		"name": "updatefeeaddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_gove",
+				"type": "address"
+			}
+		],
+		"name": "updategove",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_Owner",
+				"type": "address"
+			}
+		],
+		"name": "updateOwner",
+		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -76,7 +166,7 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "owner",
+				"name": "_owner",
 				"type": "address"
 			}
 		],

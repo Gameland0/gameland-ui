@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import styled from 'styled-components'
-import EditorJS from '@editorjs/editorjs'
+import '@wangeditor/editor/dist/css/style.css'
+import { Editor, Toolbar } from '@wangeditor/editor-for-react'
+import { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
+import { i18nChangeLanguage } from '@wangeditor/editor'
 import { useHistory } from 'react-router-dom'
 import needIcon from '../assets/Market/red_str.png'
 import writeIcon from '../assets/Market/icon_write.png'
@@ -8,15 +11,15 @@ import uploadBg from '../assets/Market/upload_div_bg.png'
 import uploadIcon from '../assets/Market/icon_upload.png'
 import chooseIcon from '../assets/Market/icon_choose.png'
 import arrow from '../assets/icon_select.svg'
-import { Editor } from './WritePosts'
 import { bschttp, uploadhttp } from './Store'
 import { toastify } from './Toastify'
 import { useActiveWeb3React, useFactoryContract } from '../hooks'
 import BigNumber from 'bignumber.js'
 import { fetchReceipt, handleThunk } from '../utils'
+import LoadingIcon from '../assets/loading.svg'
 
 
-const MarketUploadBox = styled.div`
+export const MarketUploadBox = styled.div`
   .main_title {
     font-size: 30px;
     font-weight: bold;
@@ -63,7 +66,7 @@ const MarketUploadBox = styled.div`
   }
 `
 
-const EditModelBox = styled.div`
+export const EditModelBox = styled.div`
   padding-top: 40px;
   .inputDiv {
     position: relative;
@@ -155,6 +158,19 @@ const EditModelBox = styled.div`
     line-height: 55px;
     margin-bottom: 50px;
   }
+  .deleteBotton {
+    width: 150px;
+    height: 55px;
+    background: red;
+    border-radius: 20px;
+    margin: auto;
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #FFFFFF;
+    line-height: 55px;
+    margin-bottom: 50px;
+  }
   .TagsChoose {
     position: absolute;
     top: 25px;
@@ -189,6 +205,9 @@ const EditModelBox = styled.div`
     border-radius: 30%;
     padding: 0 10px;
     margin-right: 10px;
+    &:hover {
+      background-color: red;
+    }
   }
   .PermissionNFT {
     font-size: 20px;
@@ -210,7 +229,14 @@ const UploadFile = styled.div`
           color: #222222;
       }
       .uploading {
-        margin-left: 15px;
+        margin-left: 35px;
+        img {
+          width: 20px;
+          height: 20px;
+          position: absolute;
+          top: 0px;
+          left: -20px;
+        }
       }
     }
   }
@@ -227,7 +253,7 @@ const UploadFile = styled.div`
   #file {
     width: 100%;
     height: 380px;
-    opacity: 0;
+    display: none;
   }
   .SubmitBottun {
     width: 10%;
@@ -285,70 +311,27 @@ export const MarketUpload = () => {
   const [Tags, setTags] = useState([] as any)
   const [files, setFiles] = useState([] as any)
   const history = useHistory()
-  const Header = require('@editorjs/header')
-  const List = require('@editorjs/list')
-  const Image = require('@editorjs/image')
-  const Checklist = require('@editorjs/checklist')
-  const Quote = require('@editorjs/quote')
-  const Delimiter = require('@editorjs/delimiter')
-  const Table = require('@editorjs/table')
+  const [editor, setEditor] = useState<IDomEditor | null>(null)
+  const [html, setHtml] = useState('')
+  const toolbarConfig: Partial<IToolbarConfig> = {}
+  const editorConfig: Partial<IEditorConfig> = {
+    placeholder: 'Please enter content...',
+    MENU_CONF: {
+      uploadImage: {
+        base64LimitSize: 5*1024*1024,
+        maxFileSize: 5*1024*1024
+      }
+    }
+  }
+  i18nChangeLanguage('en')
 
   useEffect(() => {
-    if (edit==='Model') {
-      new EditorJS({
-        holder: 'editor',
-        tools: {
-          header: {
-            class: Header,
-            config: {
-              placeholder: 'Enter a header',
-              levels: [1, 2, 3, 4],
-              defaultLevel: 2
-            }
-          },
-          list: {
-            class: List
-          },
-          image: {
-            class: Image,
-            config: {
-              uploader: {
-                async uploadByFile(file: any) {
-                  return {
-                    success: 1,
-                    file: {
-                      url: await blobToDataURI(file)
-                    }
-                  }
-                }
-              }
-            }
-          },
-          checklist: {
-            class: Checklist
-          },
-          quote: {
-            class: Quote
-          },
-          delimiter: {
-            class: Delimiter
-          },
-          table: {
-            class: Table
-          }
-        }
-      })
+    return () => {
+        if (editor == null) return
+        editor.destroy()
+        setEditor(null)
     }
-    // getindex()
-    // testupload()
-  }, [Reload,edit])
-
-  const getindex = async () => {
-    const list = await FactoryContract?.getnftfactory_list()
-    // console.log(list)
-    const address = await FactoryContract?.getfactorys('5')
-    // console.log(address)
-  }
+  }, [editor])
 
   useEffect(() => {
     if (edit==='Upload') {
@@ -356,16 +339,6 @@ export const MarketUpload = () => {
       inputDom?.setAttribute('multiple', '')
     }
   }, [edit])
-
-  const blobToDataURI = (blob: any) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(blob)
-      reader.onload = (e) => {
-        resolve(e.target?.result)
-      }
-    })
-  }
 
   const setTypeData = (type: string) => {
     setType(type)
@@ -382,6 +355,12 @@ export const MarketUpload = () => {
     setTags(tagsArr)
     setShowTags(false)
     setTagsInputValue('')
+  }
+  const deleteTags = (tags: string) => {
+    const filterData = Tags.filter((item: any) => {
+      return item !== tags
+    })
+    setTags(filterData)
   }
 
   const Enter = (e: any) => {
@@ -405,8 +384,13 @@ export const MarketUpload = () => {
       toastify.error('Please select permissions')
       return
     }
-    const domcontent = document.getElementsByClassName('codex-editor__redactor')[0]?.innerHTML
-    if (!domcontent) {
+
+    // const domcontent = editor?.getHtml()
+    // const domcontent = document.getElementsByClassName('codex-editor__redactor')[0]?.innerHTML
+    const domcontent = editor?.getHtml()
+    const domcontentText = editor?.getText()
+    console.log(domcontentText)
+    if (!domcontentText) {
       toastify.error('description cannot be empty')
       return
     }
@@ -420,7 +404,7 @@ export const MarketUpload = () => {
         return
       }
     }
-    setDescription(domcontent)
+    setDescription(domcontent as string)
     setEdit('Upload')
   }
 
@@ -456,6 +440,7 @@ export const MarketUpload = () => {
       toastify.error('Please select permissions')
       return
     }
+    console.log(description)
     if (!description) {
       toastify.error('description cannot be empty')
       return
@@ -519,44 +504,38 @@ export const MarketUpload = () => {
         }
       }
     }
-    for (let index = 0; index < files.length; index++) {
-      const element = files[index]
-      const shardSize = 500 * 1024 * 1024
-      if (element.size <= shardSize) {
-        const form = new FormData()
-        form.append('files',element)
-        uploadhttp.post('v0/upload',form).then((res) => {
-          if (res.data.code) {
-            toastify.success('Upload successful')
-          } else {
-            toastify.error(res.data.message)
-            return
-          }
-        })
-      } else {
-        // const fileList = handleThunk(element)
-        // const uploadList = fileList.map((item, index) => {
-        //   const ShardingForm = new FormData()
-        //   ShardingForm.append("files", item.tempFile, `uuid@@${index}`)
-        //   return uploadhttp.post('v0/upload/Sharding',ShardingForm)
-        // })
-        // Promise.all(uploadList).then((res) => {
-        //   uploadhttp.post('v0/upload/merge',{
-        //     filename: element.name
-        //   }).then((val) => {
-        //     console.log(val.data.code)
-        //   })
-        // })
-        toastify.error(`${element.name} The file is too large, the maximum size of a single file is 500MB`)
-      }
-    }
+    // for (let index = 0; index < files.length; index++) {
+    //   const element = files[index]
+    //   const shardSize = 500 * 1024 * 1024
+    //   if (element.size <= shardSize) {
+    //     const form = new FormData()
+    //     form.append('files',element)
+    //     uploadhttp.post('v0/upload',form).then((res) => {
+    //       if (res.data.code) {
+    //         toastify.success('File uploaded successfully')
+    //       } else {
+    //         toastify.error(res.data.message)
+    //         return
+    //       }
+    //     })
+    //   } else {
+    //     toastify.error(`${element.name} The file is too large, the maximum size of a single file is 500MB`)
+    //   }
+    // }
+
+    const uploadList = files.map((item: any) => {
+      const ShardingForm = new FormData()
+      ShardingForm.append("files", item)
+      return uploadhttp.post('v0/upload',ShardingForm)
+    })
+
     let size
     if (fileSize/1000 > 1 && fileSize/1000 < 1024) {
-      size = fileSize/1000 + 'KB'
+      size = (fileSize/1000).toFixed(2) + 'KB'
     } else if (fileSize/1000 > 1024) {
-      size = fileSize/1000/1024 + 'MB'
+      size = (fileSize/1000/1024).toFixed(2) + 'MB'
     } else {
-      size = fileSize
+      size = fileSize.toFixed(2) + 'B'
     }
     const parm = {
       type: type,
@@ -573,13 +552,16 @@ export const MarketUpload = () => {
       chain: chainId === 1? 'eth':chainId===56? 'bsc':chainId===137? 'polygon':'',
       nftAmount: Number(nftAmount)
     }
-    uploadhttp.post('v0/fileInfo', parm).then((res) => {
-      if (res.data.code) {
-        setUploadState(false)
-        history.push({
-          pathname: `/Market`
-        })
-      }
+    Promise.all(uploadList).then((res) => {
+      uploadhttp.post('v0/fileInfo', parm).then((res) => {
+        if (res.data.code) {
+          setUploadState(false)
+          toastify.success('File uploaded successfully')
+          history.push({
+            pathname: `/Market`
+          })
+        }
+      })
     })
   }
 
@@ -638,7 +620,7 @@ export const MarketUpload = () => {
               <div className="relative flex">
                 {Tags&&Tags.length? (
                   Tags.map((item: any, index: number) => (
-                    <div className="tagsItem" key={index}>{item}</div>
+                    <div className="tagsItem cursor" key={index} onClick={() => deleteTags(item)}>{item}</div>
                   ))
                 ) :''}
                 <div className="addTags text-center cursor" onClick={() => {setShowTags(!showTags);setShowType(false)}}>+</div>
@@ -671,7 +653,25 @@ export const MarketUpload = () => {
                 <img src={needIcon} alt="" />
               </div>
               <div className="tip_title">Tell us what your model does</div>
-              <Editor id="editor"></Editor>
+              {/* <Editor id="editor"></Editor> */}
+              <>
+                <div style={{ border: '1px solid #ccc', zIndex: 100}}>
+                  <Toolbar
+                      editor={editor}
+                      defaultConfig={toolbarConfig}
+                      mode="default"
+                      style={{ borderBottom: '1px solid #ccc' }}
+                  />
+                  <Editor
+                      defaultConfig={editorConfig}
+                      value={html}
+                      onCreated={setEditor}
+                      onChange={editor => setHtml(editor.getHtml())}
+                      mode="default"
+                      style={{ height: '500px', overflowY: 'hidden' }}
+                  />
+                </div>
+              </>
               <div className="ruleOption flex flex-column-between">
                 <div className="Optio">
                   <div className='min_title'>
@@ -736,7 +736,10 @@ export const MarketUpload = () => {
                       <div className="flex" key={index}>
                         <div>{item.name}</div>
                         {uploadState? (
-                          <div className="uploading">uploading...</div>
+                          <div className="uploading relative">
+                            <img src={LoadingIcon} alt="" />
+                            uploading...
+                          </div>
                         ):''}
                       </div>
                     ))

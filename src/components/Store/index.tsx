@@ -13,6 +13,8 @@ export interface StoreData {
   loading: boolean
   activatingConnector: any
   setActivatingConnector: React.Dispatch<any>
+  welletType: any
+  setWelletType: React.Dispatch<any>
   nfts: Record<string, any>
   // BSCmutateDebts: KeyedMutator<any>
   // polygonmutateDebts: KeyedMutator<any>
@@ -50,11 +52,11 @@ export const arbitrumhttp = axios.create({
   baseURL: process.env.NODE_ENV === 'production' ? 'https://arbone-api.gameland.network' : 'http://localhost:8093'
 })
 export const newhttp = axios.create({
-  timeout: 60000,
+  timeout: 300000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://newapi.gameland.network' : 'http://localhost:8099'
 })
 export const uploadhttp = axios.create({
-  timeout: 60000,
+  timeout: 1800000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://upload-api.gameland.network' : 'http://localhost:8096',
   // headers: {
   //   'Content-Type': 'application/json,multipart/form-data'
@@ -109,13 +111,15 @@ export const Store = ({ children }: { children: JSX.Element }) => {
   }, [chainId])
 
   const [activatingConnector, setActivatingConnector] = React.useState<any>()
-
+  const [welletType, setWelletType] = React.useState<any>()
   const value = useMemo(() => {
     return {
       networkError,
       loading,
       activatingConnector,
       setActivatingConnector,
+      welletType,
+      setWelletType,
       nfts,
       lastBlockNumber,
       setLastBlockNumber,

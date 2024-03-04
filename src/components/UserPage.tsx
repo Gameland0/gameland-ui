@@ -3713,7 +3713,7 @@ export const UserPage = () => {
           ) : (
             ''
           )}
-          {showTabs === 'Market' ? (
+          {/* {showTabs === 'Market' ? (
             <MarketBox>
               <div className="MarketTabs flex flex-around">
                 <div className="cursor" onClick={() => setContentTabs('Models')}>
@@ -3786,7 +3786,7 @@ export const UserPage = () => {
                 </ModelsContent>
               ) : ''}
             </MarketBox>
-          ) : ''}
+          ) : ''} */}
         </InfoRight>
       </UserInfo>
     </UserBox>

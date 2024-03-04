@@ -3,27 +3,27 @@
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "nft_programe_address",
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"internalType": "address payable",
+				"name": "_rev",
+				"type": "address"
+			},
+			{
+				"internalType": "address payable",
+				"name": "_ga",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "u",
 				"type": "address"
 			}
 		],
-		"name": "add_nft_program",
-		"outputs": [],
 		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address[]",
-				"name": "nft_programe_address",
-				"type": "address[]"
-			}
-		],
-		"name": "add_nft_programforarray",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
+		"type": "constructor"
 	},
 	{
 		"inputs": [
@@ -34,7 +34,7 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "gameland_nft_id",
+				"name": "borowlistindex",
 				"type": "uint256"
 			}
 		],
@@ -52,7 +52,7 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "gameland_nft_id",
+				"name": "borowlistindex",
 				"type": "uint256"
 			}
 		],
@@ -289,7 +289,7 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "nftlistindex",
+				"name": "borowlistindex",
 				"type": "uint256"
 			},
 			{
@@ -307,7 +307,7 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "nftlistindex",
+				"name": "borowlistindex",
 				"type": "uint256"
 			},
 			{
@@ -324,28 +324,34 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address payable",
-				"name": "_rev",
-				"type": "address"
-			},
+				"internalType": "bytes4",
+				"name": "interfaceId",
+				"type": "bytes4"
+			}
+		],
+		"name": "supportsInterface",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_gove",
-				"type": "address"
-			},
-			{
-				"internalType": "address payable",
-				"name": "_ga",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "u",
+				"name": "_u",
 				"type": "address"
 			}
 		],
+		"name": "updateERC20",
+		"outputs": [],
 		"stateMutability": "nonpayable",
-		"type": "constructor"
+		"type": "function"
 	},
 	{
 		"inputs": [
@@ -356,6 +362,19 @@
 			}
 		],
 		"name": "updateGameLand_assets",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_Owner",
+				"type": "address"
+			}
+		],
+		"name": "updateOwner",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -376,38 +395,12 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "_owner",
-				"type": "address"
-			}
-		],
-		"name": "updateowner",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address payable",
 				"name": "_rev",
 				"type": "address"
 			}
 		],
 		"name": "updaterev",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_u",
-				"type": "address"
-			}
-		],
-		"name": "updateusdt",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -423,89 +416,6 @@
 		"name": "withdrawnft",
 		"outputs": [],
 		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "collatoralbalance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "get_nft_programes",
-		"outputs": [
-			{
-				"internalType": "address[]",
-				"name": "",
-				"type": "address[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_nft",
-				"type": "address"
-			}
-		],
-		"name": "is1155",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_nft",
-				"type": "address"
-			}
-		],
-		"name": "is721",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes4",
-				"name": "interfaceId",
-				"type": "bytes4"
-			}
-		],
-		"name": "supportsInterface",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
 		"type": "function"
 	}
 ]

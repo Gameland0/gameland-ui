@@ -93,9 +93,9 @@ export const NFTDigits = 9 // asume the NFT basic number is 100000
 export const OPENSEA_API_KEY = 'f5b8f957f34a40548ed97bd5b41bf761'
 export const ETH_CHAIN_ID_HEX = '0x1'
 export const ETH_RPC_URL = 'https://mainnet.infura.io/v3/'
-export const BNBAirdropAddress = '0x2620Ade2e3A9d532cD0D1d0C1E03E93F4b0E46D7'
-export const ETHAirdropAddress = '0xC1Cc174B1711714a254b164db4987c115CB8f9cF'
-export const PolygonAirdropAddress = '0x9ada7b5d61c1aeb0d2dd1724dc0993d74e6f3321'
+export const BNBAirdropAddress = '0x9BCb7fcBDC483D39566187F0DFd1f450408e1f4C'
+export const ETHAirdropAddress = '0xe5Ee76b74dd646a50fFcb4B1F4A6Af4821F0da48'
+export const PolygonAirdropAddress = '0x0404A42c14eA1B394b141B47c63AF27A242607Ce'
 
 export const MORALIS_KEY = 'xXnq9dJMxd0VrXQ08mHhJpOIaKSHVq37LJ8OWdhxlSoObQeCeDwWGOH2iOD99Ayu'
 export const MORALIS_API = 'https://deep-index.moralis.io/api/v2'
@@ -108,11 +108,11 @@ export const POLYGONSCAN_KEY = 'D2X13TWY3D9KYC7TQ7C6X2RYD3ZN3379Q6'
 export const POLYGON_CHAIN_ID = 137 // 137
 export const POLYGON_CHAIN_ID_HEX = '0x89' // 137
 export const POLYGON_RPC_URL = 'https://rpc-mainnet.maticvigil.com/v1/a5ba02a72ebb3e9794e7d00984d4b39a0f5c85ed'
-export const POLYGONControlContractAddress = '0x81486D24FC4755534bABF196014753421C619e0a'
-export const POLYGONAssetContractAddress = '0x4d57cBfFacc67F04605e13a1Eb9A1E69F9EDDBE8'
-export const POLYGONRewardAddress = '0x062161B776ac0421F0414d5fb290b47b5F5E1D8F'
+export const POLYGONControlContractAddress = '0x57a1446aD83419718739d2Ad6C0d537b996bab9E'
+export const POLYGONAssetContractAddress = '0xF4271BCC87fC0F783cdB5ee647EbEf964306039b'
+export const POLYGONRewardAddress = '0x84C3Bd820283d471b05693509cCF586804316b06'
 export const WETHaddress = '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619'
-export const PolygonPayMentAddress = '0xae4357eb7aaf14f5feb8b56be18d4cd1e4a6e158'
+export const PolygonPayMentAddress = '0xFa3e281f2a0c6EC95fF93c9A0A9b4D2A93151A84'
 export const PolygonContract = [
   '0x94e42811db93ef7831595b6ff9360491b987dfbd',
   '0x9d29e9fb9622f098a3d64eba7d2ce2e8d9e7a46b',
@@ -162,11 +162,11 @@ export const BSC_CHAIN_ID_HEX = '0x38' // 137
 export const BSC_RPC_URL = 'https://bsc-dataseed.binance.org'
 export const OPENSEA_URL = 'https://opensea.io'
 
-export const BSCControlContractAddress = '0xf0Bccbd3516e655d2EBA7836EAF78108a306AAcF'
-export const BSCAssetContractAddress = '0x0B7b14E00017a6f46E180086Ffce54b1a5FC7dDc'
-export const BSCRewardAddress = '0x028391eA16E8d7F35f740eBc1D55376b9fDD183f'
+export const BSCControlContractAddress = '0x0AB29223102F232D09C96F56610c171a0592162A'
+export const BSCAssetContractAddress = '0x82a1Ee436d8F7aB98578F1D68328a1828023AE21'
+export const BSCRewardAddress = '0xe9531A823224bE426A8C29e375309afe9A3245b5'
 export const BUSDAddress = '0xe9e7cea3dedca5984780bafc599bd69add087d56'
-export const BSCPayMentAddress = '0x967Fe0F548D40a05a4A3190bd29E236e8b7269aB'
+export const BSCPayMentAddress = '0x5133FeEF78b629F412a85Bdd387a51189e871baC'
 export const BscContract = [
   '0xe218144c228863b03ccf85d120fd5b71bf97f3f4',
   '0xe6965b4f189dbdb2bd65e60abaeb531b6fe9580b',
@@ -225,10 +225,10 @@ export const NovaAssetContractAddress = '0xA9b9c7578354272e5677D94AEa425c36b647B
 export const NOVA_CHAIN_ID = '0xa4ba'
 export const NOVA_RPC_URL = 'https://nova.arbitrum.io/rpc'
 
-export const OneControlContractAddress = '0xFbDc9a18AFA91Eb03B03FCfDA3269DD394f60bd8'
-export const OneAssetContractAddress = '0xA9b9c7578354272e5677D94AEa425c36b647B427'
-export const OneRewardAddress = '0xc3f30DFFaeFDF540c2e66477c875824ab8bA584C'
-export const OnePayMentAddress = '0xDc0cca7521129cC85629be12a191a74Cbd59d340'
+export const OneControlContractAddress = '0x217C9b5f41207255FA557825dD7F4b8c5063583d'
+export const OneAssetContractAddress = '0x978901d6aF02Ee53D14a4099B3C6B3810514b0df'
+export const OneRewardAddress = '0x7e5f9dbDF222FEFd11Fbf2F10079A3715AdAB61d'
+export const OnePayMentAddress = '0x443cB62b4dd483F8f11439F3d729d299fa1F1936'
 export const OneUSDT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'
 export const ONE_API_KEY = 'PIXPBZ6T75MXJJ4QAR48MK4ZNP1YQYGYHM'
 export const NOVA_API_KEY = 'ZCK9XS8DG6ZZNPPJ1HPAQMKD3HYKW88U8V'

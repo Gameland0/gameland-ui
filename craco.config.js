@@ -10,7 +10,6 @@ module.exports = {
           TerserPlugin.options.terserOptions.compress['drop_console'] = true
         }
       }
-
       return webpackConfig
     }
   },
