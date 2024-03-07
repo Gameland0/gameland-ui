@@ -68,7 +68,7 @@ export const ConnectWallet: React.FC<ButtonProps> = ({ ...props }) => {
             <SwitchWallet>
               <div onClick={okxConnect}>
                 <img src={okxLogo} alt="" />
-                Okx
+                OKX
               </div>
               <div onClick={handleConnect}>
                 <img src={metamaskLogo} alt="" />

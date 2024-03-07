@@ -292,9 +292,9 @@ export function useFactoryContract() {
   const { library, chainId } = useActiveWeb3React()
   if (!library) return null
   if (chainId === 56) {
-    return new Contract('0xa2653fA580735bC3154a55b10a2B68e9F2f33FeF', factoryAbi, library.getSigner())
+    return new Contract('0x11Df41f031045A0B3294660Db6A1B9d5674B4C18', factoryAbi, library.getSigner())
   } else if (chainId === 137) {
-    return new Contract('0xCE6E87d0f4A64E127610A66ac97316DC2Fa3BFB0', factoryAbi, library.getSigner())
+    return new Contract('0x2397B9943e323B48Ca32cE53aCC7180A034eC27a', factoryAbi, library.getSigner())
   } else if (chainId === 1337) {
     return new Contract('0x180fDD663fDee626D91a31262E913c981a5B5F80', factoryAbi, library.getSigner())
   }

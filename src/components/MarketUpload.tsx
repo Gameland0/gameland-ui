@@ -494,7 +494,8 @@ export const MarketUpload = () => {
           new BigNumber(priceInputValue).multipliedBy(1000000000000000000).toString(),
           account,
           nftAmount,
-          `https://upload-api.gameland.network/v0/upload?filename=${Filename+''}`
+          'Greenfield',
+          [`${Filename+''}`]
         )
         const receipt = await fetchReceipt(creatNFT.hash, library)
         if (!receipt.status) {

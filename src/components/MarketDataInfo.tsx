@@ -471,9 +471,18 @@ export const MarketDataInfo = () => {
   }
 
   const Downlaodfile = async () => {
-    const file = await uploadhttp.get(`v0/fileURL/${id}?user=${account}&permissions=${dataInfo.permissions}`)
-    const fileURL = file.data.data[0]?.file
-    const arr = fileURL.split(",")
+    let arr: any
+    if (dataInfo.permissions === 'Pay') {
+      const NFTContract = new Contract(dataInfo.nftAddress, NFTAbi, library?.getSigner())
+      const fileURL = await NFTContract.getdownloadlink()
+      const href = fileURL.toString()
+      arr = href.split(",")
+    } else {
+      const file = await uploadhttp.get(`v0/fileURL/${id}?user=${account}&permissions=${dataInfo.permissions}`)
+      const fileURL = file.data.data[0]?.file
+      arr = fileURL.split(",")
+    }
+    
     // const newarr = ['000.rar','666.zip']
     for (let i = 0; i < arr.length; i++) {
       const iframe = document.createElement('a')
