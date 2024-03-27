@@ -1521,14 +1521,14 @@ export const MyPage = () => {
   }
   const getPieChartData = () => {
     const parm = {
-      action_limit: 10,
-      limit: 500,
+      "action_limit": 20,
+      "limit": 500,
       account: [
         account
       ]
     }
     http
-    .post(`https://api.rss3.io/data/accounts/activities`, parm)
+    .post(`https://testnet.rss3.io/data/accounts/activities`, parm)
       .then((vals) => {
         setPieChartData(vals.data.data)
       })

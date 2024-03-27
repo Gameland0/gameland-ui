@@ -55,6 +55,10 @@ export const newhttp = axios.create({
   timeout: 300000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://newapi.gameland.network' : 'http://localhost:8099'
 })
+export const web3Storage = axios.create({
+  timeout: 6000000,
+  baseURL: process.env.NODE_ENV === 'production' ? 'https://webstorage.gameland.network/' : 'http://localhost:8111'
+})
 export const uploadhttp = axios.create({
   timeout: 1800000,
   baseURL: process.env.NODE_ENV === 'production' ? 'https://upload-api.gameland.network' : 'http://localhost:8096',

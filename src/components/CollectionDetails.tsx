@@ -1571,7 +1571,7 @@ export const firstWeek = () => {
   return firstWeek
 }
 export const calculateAverage = (data: any, activeUser: any) => {
-  const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
+  const thisWeekTime = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
   const thisWeekActiveUser = [] as any
   const week2ActiveUser = [] as any
   const week3ActiveUser = [] as any
@@ -2356,7 +2356,7 @@ export const CollectionDetails = () => {
       }
       const Tokensdom = document.getElementById('Tokens') as HTMLDivElement
       const TokensChart = echarts.init(Tokensdom)
-      TokensChart.setOption(PieOption('', Tokensdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+      TokensChart.setOption(PieOption('', Tokensdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().getFullYear()}-${firstWeek()}`))
     }
   }
   const setNFTpie = () => {
@@ -2394,7 +2394,7 @@ export const CollectionDetails = () => {
         ]
       const NFTdom = document.getElementById('NFT') as HTMLDivElement
       const NFTChart = echarts.init(NFTdom)
-      NFTChart.setOption(PieOption('', NFTdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+      NFTChart.setOption(PieOption('', NFTdata, `\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n${new Date().getFullYear()}-${firstWeek()}`))
     }
   }
   const setBotratioPie = () => {
@@ -2418,7 +2418,7 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('Botratio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\n\ntotal: ${actionDataAll.length}\n\n\n\n\n\n\n\n\n\n\n${new Date().getFullYear()}-${firstWeek()}`))
   }
   const setBotTransactionRatioPie = () => {
     let bot = 0
@@ -2444,7 +2444,7 @@ export const CollectionDetails = () => {
     ]
     const Botratiodom = document.getElementById('BotTransactionRatio') as HTMLDivElement
     const BotratioChart = echarts.init(Botratiodom)
-    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\n\ntotal: ${userActionData.length}\n\n\n\n\n\n\n\n\n\n\n2023-${firstWeek()}`))
+    BotratioChart.setOption(PieOption('', data, `\n\n\n\n\n\n\n\n\ntotal: ${userActionData.length}\n\n\n\n\n\n\n\n\n\n\n${new Date().getFullYear()}-${firstWeek()}`))
   }
   const setRetentionRateColumnChart = async () => {
     const getdata = axios.create({
@@ -2465,7 +2465,7 @@ export const CollectionDetails = () => {
         ...res6.data.result,
         ...res7.data.result
       ]
-      const thisWeekTime = new Date(`2023-${firstWeek()} 23:59:59`).getTime()
+      const thisWeekTime = new Date(`${new Date().getFullYear()}-${firstWeek()} 23:59:59`).getTime()
       const thisWeekActiveUser = [] as any
       const week2ActiveUser = [] as any
       const week3ActiveUser = [] as any

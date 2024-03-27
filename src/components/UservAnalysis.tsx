@@ -340,7 +340,7 @@ export const UservAnalysis = (data: any) => {
       ]
     }
     http
-      .post(`https://api.rss3.io/data/accounts/activities`, parm)
+      .post(`https://testnet.rss3.io/data/accounts/activities`, parm)
       .then((vals) => {
         if (vals.data.error_code) {
           toastify.error('Only support for wallet addresses.')

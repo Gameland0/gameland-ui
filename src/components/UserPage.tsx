@@ -1280,7 +1280,7 @@ export const UserPage = () => {
         useraddress
       ]
     }
-    http.post(`https://api.rss3.io/data/accounts/activities`, parm)
+    http.post(`https://testnet.rss3.io/data/accounts/activities`, parm)
       .then((vals) => {
         setPieChartData(vals.data.data)
       })

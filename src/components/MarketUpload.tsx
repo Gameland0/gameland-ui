@@ -11,12 +11,13 @@ import uploadBg from '../assets/Market/upload_div_bg.png'
 import uploadIcon from '../assets/Market/icon_upload.png'
 import chooseIcon from '../assets/Market/icon_choose.png'
 import arrow from '../assets/icon_select.svg'
-import { bschttp, uploadhttp } from './Store'
+import { bschttp, uploadhttp, web3Storage } from './Store'
 import { toastify } from './Toastify'
 import { useActiveWeb3React, useFactoryContract } from '../hooks'
 import BigNumber from 'bignumber.js'
 import { fetchReceipt, handleThunk } from '../utils'
 import LoadingIcon from '../assets/loading.svg'
+import { log } from 'console'
 
 
 export const MarketUploadBox = styled.div`
@@ -440,15 +441,14 @@ export const MarketUpload = () => {
       toastify.error('Please select permissions')
       return
     }
-    console.log(description)
     if (!description) {
       toastify.error('description cannot be empty')
       return
     }
     setUploadState(true)
-    let nftAddress
-    let nftAmount
-    let price
+    let nftAddress: any
+    let nftAmount: any
+    let price: any
     if (permissions === 'open') {
       nftAddress = ''
       nftAmount = 0
@@ -456,10 +456,19 @@ export const MarketUpload = () => {
     }
     const Filename = [] as any
     let fileSize = 0
+    const CIDArr = [] as any
+    // for (let index = 0; index < files.length; index++) {
+    //   const element = files[index]
+    //   fileSize = fileSize + element.size
+    //   Filename.push(element.name)
+    // }
     for (let index = 0; index < files.length; index++) {
       const element = files[index]
       fileSize = fileSize + element.size
-      Filename.push(element.name)
+      const ShardingForm = new FormData()
+      ShardingForm.append("files", element)
+      const res = await web3Storage.post('/upload',ShardingForm)
+      CIDArr.push(res.data.CID)
     }
     
     if (permissions === 'Pay') {
@@ -495,7 +504,7 @@ export const MarketUpload = () => {
           account,
           nftAmount,
           'Greenfield',
-          [`${Filename+''}`]
+          [`${CIDArr+''}`]
         )
         const receipt = await fetchReceipt(creatNFT.hash, library)
         if (!receipt.status) {
@@ -505,32 +514,15 @@ export const MarketUpload = () => {
         }
       }
     }
-    // for (let index = 0; index < files.length; index++) {
-    //   const element = files[index]
-    //   const shardSize = 500 * 1024 * 1024
-    //   if (element.size <= shardSize) {
-    //     const form = new FormData()
-    //     form.append('files',element)
-    //     uploadhttp.post('v0/upload',form).then((res) => {
-    //       if (res.data.code) {
-    //         toastify.success('File uploaded successfully')
-    //       } else {
-    //         toastify.error(res.data.message)
-    //         return
-    //       }
-    //     })
-    //   } else {
-    //     toastify.error(`${element.name} The file is too large, the maximum size of a single file is 500MB`)
-    //   }
-    // }
 
-    const uploadList = files.map((item: any) => {
-      const ShardingForm = new FormData()
-      ShardingForm.append("files", item)
-      return uploadhttp.post('v0/upload',ShardingForm)
-    })
+    // const uploadList = files.map((item: any) => {
+    //   const ShardingForm = new FormData()
+    //   ShardingForm.append("files", item)
+    //   return web3Storage.post('/upload',ShardingForm)
+    //   return uploadhttp.post('v0/upload',ShardingForm)
+    // })
 
-    let size
+    let size: any
     if (fileSize/1000 > 1 && fileSize/1000 < 1024) {
       size = (fileSize/1000).toFixed(2) + 'KB'
     } else if (fileSize/1000 > 1024) {
@@ -545,25 +537,35 @@ export const MarketUpload = () => {
       permissions: permissions,
       tags: Tags+'',
       user: account,
-      originalFilename: Filename+'',
-      fileAmount: Filename.length,
+      originalFilename: CIDArr+'',
+      fileAmount: CIDArr.length,
       fileSize: size,
       nftAddress: nftAddress,
       price: price,
       chain: chainId === 1? 'eth':chainId===56? 'bsc':chainId===137? 'polygon':'',
       nftAmount: Number(nftAmount)
     }
-    Promise.all(uploadList).then((res) => {
-      uploadhttp.post('v0/fileInfo', parm).then((res) => {
-        if (res.data.code) {
-          setUploadState(false)
-          toastify.success('File uploaded successfully')
-          history.push({
-            pathname: `/Market`
-          })
-        }
-      })
+    uploadhttp.post('v0/fileInfo', parm).then((res) => {
+      if (res.data.code) {
+        setUploadState(false)
+        toastify.success('File uploaded successfully')
+        history.push({
+          pathname: `/Market`
+        })
+      }
     })
+    // Promise.all(uploadList).then((res) => {
+    //   console.log(res[0].data.CID)
+    //   uploadhttp.post('v0/fileInfo', parm).then((res) => {
+    //     if (res.data.code) {
+    //       setUploadState(false)
+    //       toastify.success('File uploaded successfully')
+    //       history.push({
+    //         pathname: `/Market`
+    //       })
+    //     }
+    //   })
+    // })
   }
 
   const nameInputChange = useCallback((ele) => {

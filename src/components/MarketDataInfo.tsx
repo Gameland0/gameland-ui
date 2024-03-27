@@ -473,6 +473,13 @@ export const MarketDataInfo = () => {
   const Downlaodfile = async () => {
     let arr: any
     if (dataInfo.permissions === 'Pay') {
+      if (dataInfo.chain === 'bsc') {
+        handleClick(BSC_CHAIN_ID_HEX, BSC_RPC_URL)
+      } else if (dataInfo.chain === 'polygon') {
+        handleClick(POLYGON_CHAIN_ID_HEX, POLYGON_RPC_URL)
+      } else if (dataInfo.chain === 'eth') {
+        handleClick(ETH_CHAIN_ID_HEX,ETH_RPC_URL)
+      }
       const NFTContract = new Contract(dataInfo.nftAddress, NFTAbi, library?.getSigner())
       const fileURL = await NFTContract.getdownloadlink()
       const href = fileURL.toString()
@@ -490,7 +497,8 @@ export const MarketDataInfo = () => {
       iframe.style.height = '0px'
       iframe.target = '_blank'
       const httpurl = process.env.NODE_ENV === 'production' ? 'https://upload-api.gameland.network' : 'http://localhost:8096'
-      iframe.href = `${httpurl}/v0/upload?filename=${arr[i]}`
+      // iframe.href = `${httpurl}/v0/upload?filename=${arr[i]}`
+      iframe.href = `https://${arr[i]}.ipfs.w3s.link`
       iframe.click()
     }
   }
